@@ -28,15 +28,15 @@ interface PasswordResetFormProps {
   submittedEmail?: string;
 }
 
-export function PasswordResetForm({ 
-  onSubmit, 
+export function PasswordResetForm({
+  onSubmit,
   isLoading: externalLoading = false,
   isSubmitted = false,
   submittedEmail
 }: PasswordResetFormProps) {
   const { showSuccess } = useNotifications();
   const { handleSubmit: submitForm, isLoading } = useFormSubmit();
-  
+
   const {
     register,
     handleSubmit,
@@ -93,16 +93,16 @@ export function PasswordResetForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-                      <FormInput
-                        label="メールアドレス"
-                        name="email"
-                        type="email"
-                        placeholder="example@email.com"
-                        required
-                        register={register}
-                        error={errors.email?.message}
-                      />          <LoadingButton 
-            type="submit" 
+          <FormInput
+            label="メールアドレス"
+            name="email"
+            type="email"
+            placeholder="example@email.com"
+            required
+            register={register}
+            error={errors.email?.message}
+          />          <LoadingButton
+            type="submit"
             className="w-full"
             isLoading={isLoading || externalLoading}
           >
@@ -110,8 +110,8 @@ export function PasswordResetForm({
           </LoadingButton>
 
           <div className="text-center">
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="text-sm text-blue-600 hover:underline"
             >
               ログイン画面に戻る

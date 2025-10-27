@@ -32,7 +32,7 @@ interface LoginFormProps {
 export function LoginForm({ onSubmit, isLoading: externalLoading = false }: LoginFormProps) {
   const { showInfo } = useNotifications();
   const { handleSubmit: submitForm, isLoading } = useFormSubmit();
-  
+
   const {
     register,
     handleSubmit,
@@ -72,7 +72,7 @@ export function LoginForm({ onSubmit, isLoading: externalLoading = false }: Logi
             register={register}
             error={errors.email?.message}
           />
-          
+
           <FormInput
             label="パスワード"
             name="password"
@@ -83,8 +83,8 @@ export function LoginForm({ onSubmit, isLoading: externalLoading = false }: Logi
             error={errors.password?.message}
           />
 
-          <LoadingButton 
-            type="submit" 
+          <LoadingButton
+            type="submit"
             className="w-full"
             isLoading={isLoading || externalLoading}
           >
@@ -92,8 +92,8 @@ export function LoginForm({ onSubmit, isLoading: externalLoading = false }: Logi
           </LoadingButton>
 
           <div className="text-center">
-            <Link 
-              href="/password-reset" 
+            <Link
+              href="/password-reset"
               className="text-sm text-blue-600 hover:underline"
             >
               パスワードを忘れた方はこちら
