@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent } from "@/components/atoms/card";
 import { cn } from "@/lib/utils";
 
 interface MonitorDisplayData {
@@ -10,12 +9,14 @@ interface MonitorDisplayData {
   courtName: string;
   round: string;
   playerA: {
-    name: string;
+    displayName: string;
+    teamName: string;
     score: number;
     hansoku: number;
   };
   playerB: {
-    name: string;
+    displayName: string;
+    teamName: string;
     score: number;
     hansoku: number;
   };
@@ -27,11 +28,11 @@ interface MonitorDisplayData {
 export default function MonitorDisplayPage() {
   const [data, setData] = React.useState<MonitorDisplayData>({
     matchId: "",
-    tournamentName: "大会名",
-    courtName: "コート名",
-    round: "予選",
-    playerA: { name: "選手A", score: 0, hansoku: 0 },
-    playerB: { name: "選手B", score: 0, hansoku: 0 },
+    tournamentName: "大会名未設定",
+    courtName: "コート名未設定",
+    round: "回戦未設定",
+    playerA: { displayName: "選手A", teamName: "チーム名未設定", score: 0, hansoku: 0 },
+    playerB: { displayName: "選手B", teamName: "チーム名未設定", score: 0, hansoku: 0 },
     timeRemaining: 300,
     isTimerRunning: false,
     isPublic: false,
@@ -108,16 +109,16 @@ export default function MonitorDisplayPage() {
         // 動的にPresentation APIにアクセス
         const presentation = (navigator as unknown as Record<string, unknown>)
           .presentation as {
-          receiver?: {
-            connectionList?: Promise<{
-              connections?: unknown[];
-              addEventListener?: (
-                event: string,
-                handler: EventListener
-              ) => void;
-            }>;
+            receiver?: {
+              connectionList?: Promise<{
+                connections?: unknown[];
+                addEventListener?: (
+                  event: string,
+                  handler: EventListener
+                ) => void;
+              }>;
+            };
           };
-        };
 
         if (presentation?.receiver?.connectionList) {
           presentation.receiver.connectionList
@@ -186,7 +187,7 @@ export default function MonitorDisplayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 p-8">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* 接続状態表示 */}
       <div className="fixed top-4 right-4 z-50">
         <div
@@ -222,84 +223,98 @@ export default function MonitorDisplayPage() {
         </div>
       )}
 
-      {/* メインディスプレイ */}
-      <div className="max-w-6xl mx-auto">
-        {/* ヘッダー */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">
-            {data.tournamentName}
-          </h1>
-          <div className="flex justify-center items-center gap-8 text-white text-xl">
-            <span>{data.courtName}</span>
-            <span>•</span>
-            <span>{data.round}</span>
+      {/* メイン画面 - 2分割レイアウト */}
+      <div className="h-screen flex flex-col">
+        {/* 上側 - 選手A（赤チーム） */}
+        <div className="flex-1 bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-between px-16 py-8">
+          {/* 左側：チーム名と選手名 */}
+          <div className="flex-1">
+            <div className="text-2xl font-medium mb-2 opacity-90">
+              {data.playerA.teamName || "チーム名未設定"}
+            </div>
+            <div className="text-8xl font-black leading-none">
+              {data.playerA.displayName || "選手A"}
+            </div>
+          </div>
+
+          {/* 右側：スコアと反則カード */}
+          <div className="flex items-center gap-8">
+            {/* スコア */}
+            <div className="text-[12rem] font-black leading-none">
+              {data.playerA.score}
+            </div>
+
+            {/* 反則カード表示エリア */}
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: Math.min(data.playerA.hansoku, 2) }, (_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "w-20 h-20 rounded-lg border-4 border-white shadow-lg",
+                    i === 0 ? "bg-red-600" : "bg-yellow-400"
+                  )}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* スコアボード */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 mb-8">
-          <CardContent className="p-8">
-            <div className="grid grid-cols-3 gap-8 items-center">
-              {/* 選手A */}
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">
-                  {data.playerA.name}
-                </h2>
-                <div className="bg-blue-500 rounded-lg p-6">
-                  <div className="text-6xl font-bold text-white mb-2">
-                    {data.playerA.score}
-                  </div>
-                  {data.playerA.hansoku > 0 && (
-                    <div className="text-red-300 text-lg">
-                      反則: {data.playerA.hansoku}
-                    </div>
-                  )}
-                </div>
-              </div>
+        {/* 中央セクション - 大会情報とタイマー */}
+        <div className="bg-gray-900 py-6 px-16">
+          <div className="flex items-center justify-between">
+            {/* 左側：大会情報 */}
+            <div className="flex items-center gap-8 text-white">
+              <span className="text-3xl font-bold">{data.tournamentName}</span>
+              <span className="text-2xl">{data.courtName}</span>
+              <span className="text-2xl">{data.round}</span>
+            </div>
 
-              {/* タイマー */}
-              <div className="text-center">
-                <div
-                  className={cn(
-                    "text-8xl font-mono font-bold mb-4",
-                    data.isTimerRunning ? "text-green-400" : "text-white"
-                  )}
-                >
-                  {formatTime(data.timeRemaining)}
-                </div>
-                <div
-                  className={cn(
-                    "text-2xl font-medium",
-                    data.isTimerRunning ? "text-green-400" : "text-gray-400"
-                  )}
-                >
-                  {data.isTimerRunning ? "進行中" : "停止中"}
-                </div>
-              </div>
-
-              {/* 選手B */}
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">
-                  {data.playerB.name}
-                </h2>
-                <div className="bg-red-500 rounded-lg p-6">
-                  <div className="text-6xl font-bold text-white mb-2">
-                    {data.playerB.score}
-                  </div>
-                  {data.playerB.hansoku > 0 && (
-                    <div className="text-red-300 text-lg">
-                      反則: {data.playerB.hansoku}
-                    </div>
-                  )}
-                </div>
+            {/* 右側：タイマー */}
+            <div className="text-right">
+              <div
+                className={cn(
+                  "text-6xl font-mono font-black",
+                  data.isTimerRunning ? "text-green-400" : "text-white"
+                )}
+              >
+                {formatTime(data.timeRemaining)}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* 追加情報 */}
-        <div className="text-center text-white/80">
-          <p className="text-lg">試合ID: {data.matchId || "未設定"}</p>
+        {/* 下側 - 選手B（グレー/白チーム） */}
+        <div className="flex-1 bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-between px-16 py-8 text-black">
+          {/* 左側：チーム名と選手名 */}
+          <div className="flex-1">
+            <div className="text-2xl font-medium mb-2 opacity-90">
+              {data.playerB.teamName || "チーム名未設定"}
+            </div>
+            <div className="text-8xl font-black leading-none">
+              {data.playerB.displayName || "選手B"}
+            </div>
+          </div>
+
+          {/* 右側：スコアと反則カード */}
+          <div className="flex items-center gap-8">
+            {/* スコア */}
+            <div className="text-[12rem] font-black leading-none">
+              {data.playerB.score}
+            </div>
+
+            {/* 反則カード表示エリア */}
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: Math.min(data.playerB.hansoku, 2) }, (_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "w-20 h-20 rounded-lg border-4 border-white shadow-lg",
+                    i === 0 ? "bg-red-600" : "bg-yellow-400"
+                  )}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
