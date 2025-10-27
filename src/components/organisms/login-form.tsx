@@ -5,9 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { Button } from "@/components/atoms/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
-import { FormInputField } from "@/components/molecules/form-field";
+import { FormInput } from "@/components/molecules/form-input";
+import { LoadingButton } from "@/components/molecules/loading-button";
+import { useFormSubmit, useNotifications } from "@/hooks";
 
 // ログインフォーム用のZodスキーマ
 const loginSchema = z.object({
@@ -28,8 +29,12 @@ interface LoginFormProps {
   isLoading?: boolean;
 }
 
-export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
+export function LoginForm({ onSubmit, isLoading: externalLoading = false }: LoginFormProps) {
+  const { showInfo } = useNotifications();
+  const { handleSubmit: submitForm, isLoading } = useFormSubmit();
+  
   const {
+    register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>({
@@ -38,11 +43,16 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
 
   const handleFormSubmit = async (data: LoginFormData) => {
     if (onSubmit) {
-      await onSubmit(data);
+      await submitForm(
+        async (formData: unknown) => {
+          const typedData = formData as LoginFormData;
+          await onSubmit(typedData);
+        },
+        data
+      );
     } else {
-      // デモ用: コンソールに出力
-      console.log("ログイン試行:", data);
-      alert("ログイン機能は未実装です");
+      // デモ用: 通知システムを使用
+      showInfo("ログイン機能は未実装です", `ログイン試行: ${data.email}`);
     }
   };
 
@@ -53,31 +63,33 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <FormInputField
+          <FormInput
             label="メールアドレス"
             name="email"
             type="email"
             placeholder="example@email.com"
             required
+            register={register}
             error={errors.email?.message}
           />
           
-          <FormInputField
+          <FormInput
             label="パスワード"
             name="password"
             type="password"
             placeholder="パスワードを入力"
             required
+            register={register}
             error={errors.password?.message}
           />
 
-          <Button 
+          <LoadingButton 
             type="submit" 
             className="w-full"
-            disabled={isLoading}
+            isLoading={isLoading || externalLoading}
           >
-            {isLoading ? "ログイン中..." : "ログイン"}
-          </Button>
+            {isLoading || externalLoading ? "ログイン中..." : "ログイン"}
+          </LoadingButton>
 
           <div className="text-center">
             <Link 

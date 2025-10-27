@@ -16,6 +16,7 @@ import {
   LoadingButton,
   type PlayerRegistrationData
 } from "@/components/molecules";
+import { useFormSubmit, useNotifications } from "@/hooks";
 
 // 選手登録フォーム用のスキーマ
 const playerRegistrationSchema = z.object({
@@ -41,9 +42,8 @@ interface PlayerRegistrationFormProps {
 
 export function PlayerRegistrationForm({ onSubmit, className }: PlayerRegistrationFormProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = React.useState(false);
   const [showConfirmation, setShowConfirmation] = React.useState(false);
-
+  const { showError } = useNotifications();
 
   const {
     register,
@@ -64,7 +64,7 @@ export function PlayerRegistrationForm({ onSubmit, className }: PlayerRegistrati
     },
   });
 
-
+  const { handleSubmit: submitForm, isLoading } = useFormSubmit();
 
   const handleFormSubmit = async () => {
     const isValid = await trigger();
@@ -74,20 +74,21 @@ export function PlayerRegistrationForm({ onSubmit, className }: PlayerRegistrati
   };
 
   const handleConfirmSubmit = async () => {
-    try {
-      setIsLoading(true);
-      const formData = getValues();
-      await onSubmit(formData);
-
-      // 成功後に完了ページへリダイレクト
-      router.push('/player-registration/complete');
-    } catch (error) {
-      console.error('登録に失敗しました:', error);
-      // エラーハンドリング
-    } finally {
-      setIsLoading(false);
-      setShowConfirmation(false);
-    }
+    const formData = getValues();
+    await submitForm(
+      async (data: unknown) => {
+        const typedData = data as PlayerRegistrationData;
+        await onSubmit(typedData);
+        router.push('/player-registration/complete');
+      },
+      formData,
+      {
+        onError: (error: Error) => {
+          showError('登録に失敗しました', error.message);
+        }
+      }
+    );
+    setShowConfirmation(false);
   };
 
   return (

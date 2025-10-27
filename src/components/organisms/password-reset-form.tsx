@@ -7,7 +7,9 @@ import { z } from "zod";
 import Link from "next/link";
 import { Button } from "@/components/atoms/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
-import { FormInputField } from "@/components/molecules/form-field";
+import { FormInput } from "@/components/molecules/form-input";
+import { LoadingButton } from "@/components/molecules/loading-button";
+import { useFormSubmit, useNotifications } from "@/hooks";
 
 // パスワード再設定フォーム用のZodスキーマ
 const passwordResetSchema = z.object({
@@ -28,11 +30,15 @@ interface PasswordResetFormProps {
 
 export function PasswordResetForm({ 
   onSubmit, 
-  isLoading = false,
+  isLoading: externalLoading = false,
   isSubmitted = false,
   submittedEmail
 }: PasswordResetFormProps) {
+  const { showSuccess } = useNotifications();
+  const { handleSubmit: submitForm, isLoading } = useFormSubmit();
+  
   const {
+    register,
     handleSubmit,
     formState: { errors },
   } = useForm<PasswordResetFormData>({
@@ -41,11 +47,19 @@ export function PasswordResetForm({
 
   const handleFormSubmit = async (data: PasswordResetFormData) => {
     if (onSubmit) {
-      await onSubmit(data);
+      await submitForm(
+        async (formData: unknown) => {
+          const typedData = formData as PasswordResetFormData;
+          await onSubmit(typedData);
+        },
+        data
+      );
     } else {
-      // デモ用: コンソールに出力
-      console.log("パスワード再設定メール送信:", data);
-      alert(`${data.email}にパスワード再設定メールを送信しました。`);
+      // デモ用: 通知システムを使用
+      showSuccess(
+        "メール送信完了",
+        `${data.email}にパスワード再設定メールを送信しました。`
+      );
     }
   };
 
@@ -79,22 +93,21 @@ export function PasswordResetForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-                      <FormInputField
-              label="メールアドレス"
-              name="email"
-              type="email"
-              placeholder="example@email.com"
-              required
-              error={errors.email?.message}
-            />
-
-          <Button 
+                      <FormInput
+                        label="メールアドレス"
+                        name="email"
+                        type="email"
+                        placeholder="example@email.com"
+                        required
+                        register={register}
+                        error={errors.email?.message}
+                      />          <LoadingButton 
             type="submit" 
             className="w-full"
-            disabled={isLoading}
+            isLoading={isLoading || externalLoading}
           >
-            {isLoading ? "送信中..." : "再設定メールを送信"}
-          </Button>
+            {isLoading || externalLoading ? "送信中..." : "再設定メールを送信"}
+          </LoadingButton>
 
           <div className="text-center">
             <Link 
