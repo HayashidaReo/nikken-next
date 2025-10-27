@@ -1,3 +1,5 @@
+"use client";
+
 import { PlayerRegistrationForm } from "@/components/organisms/player-registration-form";
 
 export default function PlayerRegistrationPage() {
@@ -11,7 +13,7 @@ export default function PlayerRegistrationPage() {
   }) => {
     // TODO: 実際のAPIコールでFirestoreに保存
     console.log("選手登録データ:", data);
-    
+
     // モックとして少し待機
     await new Promise(resolve => setTimeout(resolve, 1000));
   };

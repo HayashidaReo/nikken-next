@@ -1,5 +1,7 @@
+"use client";
+
 import { MainLayout } from "@/components/templates/main-layout";
-import { MatchSetupTable } from "@/components/organisms/match-setup-simple-table";
+import { MatchSetupTable } from "@/components/organisms/match-setup-table";
 import { mockTeams, mockMatches, mockTournament } from "@/lib/mock-data";
 
 export default function MatchSetupPage() {
@@ -9,15 +11,15 @@ export default function MatchSetupPage() {
   };
 
   return (
-    <MainLayout 
-      activeTab="match-setup" 
+    <MainLayout
+      activeTab="match-setup"
       tournamentName={mockTournament.tournamentName}
     >
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">試合の組み合わせ設定</h1>
         </div>
-        
+
         <MatchSetupTable
           teams={mockTeams}
           courts={mockTournament.courts}
