@@ -40,6 +40,30 @@ export default function MonitorDisplayPage() {
   const [isConnected, setIsConnected] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  // BroadcastChannelでのデータ共有
+  React.useEffect(() => {
+    const channel = new BroadcastChannel('monitor-display-channel');
+
+    // メッセージ受信
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        if (event.data && typeof event.data === 'object') {
+          setData(event.data);
+          setIsConnected(true);
+        }
+      } catch (err) {
+        console.error('BroadcastChannel メッセージ解析エラー:', err);
+      }
+    };
+
+    channel.addEventListener('message', handleMessage);
+
+    return () => {
+      channel.removeEventListener('message', handleMessage);
+      channel.close();
+    };
+  }, []);
+
   // Presentation API接続の確立
   React.useEffect(() => {
     // 表示側（receiver）としての処理
@@ -154,14 +178,26 @@ export default function MonitorDisplayPage() {
       {/* 接続状態表示 */}
       <div className="fixed top-4 right-4 z-50">
         <div className={cn(
-          "px-3 py-1 rounded-full text-sm font-medium",
+          "px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2",
           isConnected
             ? "bg-green-500 text-white"
-            : "bg-red-500 text-white"
+            : "bg-yellow-500 text-white"
         )}>
-          {isConnected ? "接続中" : "未接続"}
+          <div className={cn(
+            "w-2 h-2 rounded-full",
+            isConnected ? "bg-green-200 animate-pulse" : "bg-yellow-200"
+          )} />
+          {isConnected ? "データ同期中" : "スタンバイ中"}
         </div>
       </div>
+
+      {/* 接続方法の説明 */}
+      {!isConnected && (
+        <div className="fixed top-16 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm max-w-xs">
+          <p className="font-semibold mb-1">使用方法</p>
+          <p>スコアボード操作画面から「モニター表示開始」ボタンを押すと、このページにデータが表示されます。</p>
+        </div>
+      )}
 
       {/* エラー表示 */}
       {error && (

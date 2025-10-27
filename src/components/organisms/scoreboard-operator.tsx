@@ -42,21 +42,45 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     isAvailable: isPresentationAvailable,
     isConnected: isPresentationConnected,
     startPresentation,
-    stopPresentation,
     sendMessage,
   } = usePresentation(`${window.location.origin}/monitor-display`);
 
   const timerIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
+  // BroadcastChannel for data sharing
+  const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
+
+  React.useEffect(() => {
+    // BroadcastChannelの初期化
+    broadcastChannelRef.current = new BroadcastChannel('monitor-display-channel');
+
+    return () => {
+      broadcastChannelRef.current?.close();
+    };
+  }, []);
+
+  // データ送信関数（Presentation API + BroadcastChannel）
+  const sendDataToMonitor = React.useCallback((data: unknown) => {
+    // Presentation APIで送信
+    sendMessage(data);
+
+    // BroadcastChannelで送信
+    try {
+      broadcastChannelRef.current?.postMessage(data);
+    } catch (err) {
+      console.warn('BroadcastChannel送信エラー:', err);
+    }
+  }, [sendMessage]);
+
   // タイマー処理
   React.useEffect(() => {
     if (isTimerRunning) {
       timerIntervalRef.current = setInterval(() => {
-        useMonitorStore.getState().setTimeRemaining(timeRemaining - 1);
-
-        // 0秒になったら自動停止
-        if (timeRemaining <= 1) {
-          stopTimer();
+        const currentTime = useMonitorStore.getState().timeRemaining;
+        if (currentTime > 0) {
+          useMonitorStore.getState().setTimeRemaining(currentTime - 1);
+        } else {
+          useMonitorStore.getState().stopTimer();
         }
       }, 1000);
     } else if (timerIntervalRef.current) {
@@ -69,26 +93,35 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         clearInterval(timerIntervalRef.current);
       }
     };
-  }, [isTimerRunning, timeRemaining, stopTimer]);
+  }, [isTimerRunning]);
 
-  // データが変更されたときにプレゼンテーション画面に送信
+  // データが変更されたときにモニター画面に送信（タイマー更新は制限）
+  const lastSendTimeRef = React.useRef<number>(0);
+
   React.useEffect(() => {
-    if (isPresentationConnected) {
-      const monitorData = {
-        matchId,
-        tournamentName,
-        courtName,
-        round,
-        playerA,
-        playerB,
-        timeRemaining,
-        isTimerRunning,
-        isPublic,
-      };
-      sendMessage(monitorData);
+    const now = Date.now();
+    const isTimerOnlyUpdate = lastSendTimeRef.current > 0 && now - lastSendTimeRef.current < 2000;
+
+    // タイマーのみの更新の場合は送信頻度を制限
+    if (isTimerOnlyUpdate && now - lastSendTimeRef.current < 500) {
+      return;
     }
+
+    lastSendTimeRef.current = now;
+
+    const monitorData = {
+      matchId,
+      tournamentName,
+      courtName,
+      round,
+      playerA,
+      playerB,
+      timeRemaining,
+      isTimerRunning,
+      isPublic,
+    };
+    sendDataToMonitor(monitorData);
   }, [
-    isPresentationConnected,
     matchId,
     tournamentName,
     courtName,
@@ -98,7 +131,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     timeRemaining,
     isTimerRunning,
     isPublic,
-    sendMessage
+    sendDataToMonitor
   ]);
 
   // 表示用モニターを開く関数
@@ -109,25 +142,14 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         await startPresentation();
         showSuccess('プレゼンテーション画面を開始しました', 'セカンドスクリーンでの表示が開始されました');
       } else {
-        // フォールバック: 新しいウィンドウで開く
-        const monitorData = {
-          matchId,
-          tournamentName,
-          courtName,
-          round,
-          playerA,
-          playerB,
-          timeRemaining,
-          isTimerRunning,
-          isPublic,
-        };
-        const dataParam = encodeURIComponent(JSON.stringify(monitorData));
+        // フォールバック: 新しいタブで開く（データ共有あり）
+        const monitorUrl = `${window.location.origin}/monitor-display`;
         window.open(
-          `/monitor-display?data=${dataParam}`,
+          monitorUrl,
           '_blank',
-          'fullscreen=yes,width=1920,height=1080'
+          'width=1920,height=1080'
         );
-        showInfo('モニター表示を開始しました', 'Presentation APIが利用できないため、新しいウィンドウで表示しています');
+        showInfo('モニター表示を開始しました', '新しいタブで表示しています。データは自動的に同期されます。');
       }
     } catch (error) {
       console.error('Monitor display failed:', error);
