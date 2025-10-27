@@ -1,0 +1,20 @@
+# Prettier ignore file
+# Ignore build artifacts
+.next/
+out/
+build/
+dist/
+
+# Ignore dependencies
+node_modules/
+
+# Ignore generated files
+*.generated.ts
+*.generated.js
+
+# Ignore configuration files that shouldn't be formatted
+.env*
+*.log
+
+# Ignore markdown files
+*.md
