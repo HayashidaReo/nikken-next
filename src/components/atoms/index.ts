@@ -31,3 +31,4 @@ export {
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export { Textarea, type TextareaProps } from "./textarea";
 export { SkewedBackground } from "./skewed-background";
+export { PenaltyBackground } from "./penalty-background";

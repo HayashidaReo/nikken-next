@@ -3,28 +3,27 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-interface SkewedBackgroundProps {
+interface PenaltyBackgroundProps {
     children: React.ReactNode;
     className?: string;
     backgroundColor?: string;
 }
 
-export function SkewedBackground({
+export function PenaltyBackground({
     children,
     className,
-    backgroundColor = "bg-gray-900"
-
-}: SkewedBackgroundProps) {
+    backgroundColor = "bg-black"
+}: PenaltyBackgroundProps) {
     return (
         <div className={cn("relative", className)}>
-            {/* 斜めカットされた背景 */}
+            {/* 左側が斜めカットされた平行四辺形の背景 */}
             <div
                 className={cn(
                     "absolute inset-0",
                     backgroundColor
                 )}
                 style={{
-                    clipPath: "polygon(20% 0%, 100% 0%, 100% 100%, 20% 100%, 0% 50%)"
+                    clipPath: "polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%)"
                 }}
             />
 

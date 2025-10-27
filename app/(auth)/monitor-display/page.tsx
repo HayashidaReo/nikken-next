@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { SkewedBackground } from "@/components/atoms/skewed-background";
+import { PenaltyBackground } from "@/components/atoms/penalty-background";
 
 interface MonitorDisplayData {
   matchId: string;
@@ -240,23 +241,27 @@ export default function MonitorDisplayPage() {
 
           {/* 右側：スコアと反則カード */}
           <div className="flex items-center gap-8">
-            {/* スコア */}
-            <div className="text-[12rem] font-black leading-none">
-              {data.playerA.score}
+            {/* スコア表示エリア */}
+            <div className="w-60 text-right">
+              <div className="text-[12rem] font-black leading-none">
+                {data.playerA.score}
+              </div>
             </div>
 
-            {/* 反則カード表示エリア */}
-            <div className="flex flex-col gap-2">
-              {Array.from({ length: Math.min(data.playerA.hansoku, 2) }, (_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "w-20 h-20 rounded-lg border-4 border-white shadow-lg",
-                    i === 0 ? "bg-red-600" : "bg-yellow-400"
-                  )}
-                />
-              ))}
-            </div>
+            {/* 反則カード表示エリア*/}
+            <PenaltyBackground className="w-44 h-24">
+              <div className="flex justify-center items-center gap-2 h-full">
+                {Array.from({ length: Math.min(data.playerB.hansoku, 2) }, (_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "w-16 h-16 rounded-lg border-2 border-white shadow-lg",
+                      i === 0 ? "bg-red-600" : "bg-yellow-400"
+                    )}
+                  />
+                ))}
+              </div>
+            </PenaltyBackground>
           </div>
         </div>
 
@@ -302,23 +307,27 @@ export default function MonitorDisplayPage() {
 
           {/* 右側：スコアと反則カード */}
           <div className="flex items-center gap-8">
-            {/* スコア */}
-            <div className="text-[12rem] font-black leading-none">
-              {data.playerB.score}
+            {/* スコア表示エリア（固定幅） */}
+            <div className="w-60 text-right">
+              <div className="text-[12rem] font-black leading-none">
+                {data.playerB.score}
+              </div>
             </div>
 
-            {/* 反則カード表示エリア */}
-            <div className="flex flex-col gap-2">
-              {Array.from({ length: Math.min(data.playerB.hansoku, 2) }, (_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "w-20 h-20 rounded-lg border-4 border-white shadow-lg",
-                    i === 0 ? "bg-red-600" : "bg-yellow-400"
-                  )}
-                />
-              ))}
-            </div>
+            {/* 反則カード表示エリア（固定幅・横並び） */}
+            <PenaltyBackground className="w-44 h-24 px-6 py-4">
+              <div className="flex justify-center items-center gap-2 h-full">
+                {Array.from({ length: Math.min(data.playerB.hansoku, 2) }, (_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "w-12 h-12 rounded-md border-2 border-white shadow-lg",
+                      i === 0 ? "bg-red-600" : "bg-yellow-400"
+                    )}
+                  />
+                ))}
+              </div>
+            </PenaltyBackground>
           </div>
         </div>
       </div>
