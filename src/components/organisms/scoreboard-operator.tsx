@@ -31,15 +31,19 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     togglePublic,
     saveMatchResult,
   } = useMonitorStore();
-  
+
   const timerIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
-  
+
+  // 長押し用の状態管理
+  const [pressTimer, setPressTimer] = React.useState<NodeJS.Timeout | null>(null);
+  const [pressInterval, setPressInterval] = React.useState<NodeJS.Timeout | null>(null);
+
   // タイマー処理
   React.useEffect(() => {
     if (isTimerRunning) {
       timerIntervalRef.current = setInterval(() => {
         useMonitorStore.getState().setTimeRemaining(timeRemaining - 1);
-        
+
         // 0秒になったら自動停止
         if (timeRemaining <= 1) {
           stopTimer();
@@ -49,23 +53,88 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
     }
-    
+
     return () => {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
     };
   }, [isTimerRunning, timeRemaining, stopTimer]);
-  
-  // 時間を分:秒形式に変換
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-  
 
-  
+  // 長押し開始処理
+  const handleMouseDown = React.useCallback((type: 'minutes-up' | 'minutes-down' | 'seconds-up' | 'seconds-down') => {
+    if (isTimerRunning) return;
+
+    const adjustTime = () => {
+      // ストアから最新の値を取得
+      const currentTime = useMonitorStore.getState().timeRemaining;
+      const minutes = Math.floor(currentTime / 60);
+      const seconds = currentTime % 60;
+
+      let newTime = currentTime;
+
+      switch (type) {
+        case 'minutes-up':
+          if (minutes < 99) {
+            newTime = (minutes + 1) * 60 + seconds;
+          }
+          break;
+        case 'minutes-down':
+          if (minutes > 0) {
+            newTime = (minutes - 1) * 60 + seconds;
+          }
+          break;
+        case 'seconds-up':
+          const newSeconds = seconds + 1;
+          const finalSeconds = newSeconds >= 60 ? 0 : newSeconds;
+          newTime = minutes * 60 + finalSeconds;
+          break;
+        case 'seconds-down':
+          const downSeconds = seconds - 1;
+          const finalDownSeconds = downSeconds < 0 ? 59 : downSeconds;
+          newTime = minutes * 60 + finalDownSeconds;
+          break;
+      }
+
+      setTimeRemaining(newTime);
+    };
+
+    // 最初の1回を実行
+    adjustTime();
+
+    // 300ms後に連続実行開始
+    const timer = setTimeout(() => {
+      const interval = setInterval(() => {
+        adjustTime();
+      }, 100); // 100msごとに実行
+      setPressInterval(interval);
+    }, 300);
+    setPressTimer(timer);
+  }, [isTimerRunning, setTimeRemaining]);
+
+  // 長押し終了処理
+  const handleMouseUp = () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      setPressTimer(null);
+    }
+    if (pressInterval) {
+      clearInterval(pressInterval);
+      setPressInterval(null);
+    }
+  };
+
+  // コンポーネントのクリーンアップ
+  React.useEffect(() => {
+    return () => {
+      if (pressTimer) clearTimeout(pressTimer);
+      if (pressInterval) clearInterval(pressInterval);
+    };
+  }, [pressTimer, pressInterval]);
+
+
+
+
   // 表示用モニターを開く関数
   const openPresentationMonitor = async () => {
     try {
@@ -118,7 +187,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
               <div className="text-lg font-medium">{playerA.teamName}</div>
               <div className="text-2xl font-bold">{playerA.displayName}</div>
             </div>
-            
+
             {/* 得点 */}
             <div>
               <Label className="text-sm font-medium mb-2 block">得点</Label>
@@ -135,7 +204,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
                 ))}
               </div>
             </div>
-            
+
             {/* 反則 */}
             <div>
               <Label className="text-sm font-medium mb-2 block">反則</Label>
@@ -172,7 +241,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
               <div className="text-lg font-medium">{playerB.teamName}</div>
               <div className="text-2xl font-bold">{playerB.displayName}</div>
             </div>
-            
+
             {/* 得点 */}
             <div>
               <Label className="text-sm font-medium mb-2 block">得点</Label>
@@ -189,7 +258,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
                 ))}
               </div>
             </div>
-            
+
             {/* 反則 */}
             <div>
               <Label className="text-sm font-medium mb-2 block">反則</Label>
@@ -225,10 +294,75 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         <CardContent>
           <div className="flex items-center justify-center space-x-6">
             <div className="text-center">
-              <div className="text-4xl font-mono font-bold mb-4">
-                {formatTime(timeRemaining)}
+              {/* 固定高さタイマー表示 */}
+              <div className="mb-4 h-16 flex items-center justify-center">
+                <div className="text-4xl font-mono font-bold flex items-center justify-center space-x-2">
+                  {/* 分の表示と調整 */}
+                  <div className="flex items-center">
+                    <span className="min-w-[3ch] text-center">
+                      {Math.floor(timeRemaining / 60).toString().padStart(2, '0')}
+                    </span>
+                    {!isTimerRunning && (
+                      <div className="flex flex-col ml-1">
+                        <button
+                          className="text-xs text-gray-500 hover:text-gray-700 leading-none select-none"
+                          onMouseDown={() => handleMouseDown('minutes-up')}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                          onTouchStart={() => handleMouseDown('minutes-up')}
+                          onTouchEnd={handleMouseUp}
+                        >
+                          ▲
+                        </button>
+                        <button
+                          className="text-xs text-gray-500 hover:text-gray-700 leading-none select-none"
+                          onMouseDown={() => handleMouseDown('minutes-down')}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                          onTouchStart={() => handleMouseDown('minutes-down')}
+                          onTouchEnd={handleMouseUp}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="text-gray-400">:</span>
+
+                  {/* 秒の表示と調整 */}
+                  <div className="flex items-center">
+                    <span className="min-w-[3ch] text-center">
+                      {(timeRemaining % 60).toString().padStart(2, '0')}
+                    </span>
+                    {!isTimerRunning && (
+                      <div className="flex flex-col ml-1">
+                        <button
+                          className="text-xs text-gray-500 hover:text-gray-700 leading-none select-none"
+                          onMouseDown={() => handleMouseDown('seconds-up')}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                          onTouchStart={() => handleMouseDown('seconds-up')}
+                          onTouchEnd={handleMouseUp}
+                        >
+                          ▲
+                        </button>
+                        <button
+                          className="text-xs text-gray-500 hover:text-gray-700 leading-none select-none"
+                          onMouseDown={() => handleMouseDown('seconds-down')}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                          onTouchStart={() => handleMouseDown('seconds-down')}
+                          onTouchEnd={handleMouseUp}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Button
                   variant={isTimerRunning ? "destructive" : "default"}
@@ -247,7 +381,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
                     </>
                   )}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => setTimeRemaining(180)}
@@ -276,7 +410,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
                 {isPublic ? "公開中" : "非公開"}
               </Label>
             </div>
-            
+
             <Button onClick={saveMatchResult} size="lg">
               <Save className="w-4 h-4 mr-2" />
               試合結果を保存
