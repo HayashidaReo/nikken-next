@@ -87,8 +87,17 @@ describe("Team Schema Validation", () => {
         });
 
         it("isApprovedのデフォルト値はfalse", () => {
-            const teamWithoutApproval = { ...validTeam };
-            delete (teamWithoutApproval as any).isApproved;
+            const teamWithoutApproval = {
+                teamId: validTeam.teamId,
+                teamName: validTeam.teamName,
+                representativeName: validTeam.representativeName,
+                representativePhone: validTeam.representativePhone,
+                representativeEmail: validTeam.representativeEmail,
+                players: validTeam.players,
+                createdAt: validTeam.createdAt,
+                updatedAt: validTeam.updatedAt,
+                // isApprovedを省略してデフォルト値をテスト
+            };
             const result = teamSchema.parse(teamWithoutApproval);
             expect(result.isApproved).toBe(false);
         });
