@@ -43,6 +43,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     isAvailable: isPresentationAvailable,
     isConnected: isPresentationConnected,
     startPresentation,
+    stopPresentation,
     sendMessage,
   } = usePresentation(`${window.location.origin}/monitor-display`);
 
@@ -144,20 +145,27 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     sendDataToMonitor,
   ]);
 
-  // 表示用モニターを開く関数
-  const openPresentationMonitor = async () => {
-    try {
-      if (isPresentationSupported && isPresentationAvailable) {
-        // Presentation APIを使用
-        await startPresentation();
-        showSuccess("モニター表示を開始しました");
-      } else {
-        // 確認ダイアログを表示
-        setShowFallbackDialog(true);
+  // 表示用モニターを開く/停止する関数
+  const handleMonitorAction = async () => {
+    if (isPresentationConnected) {
+      // 接続中の場合は停止
+      stopPresentation();
+      showInfo("プレゼンテーション接続を停止しました");
+    } else {
+      // 未接続の場合は開始
+      try {
+        if (isPresentationSupported && isPresentationAvailable) {
+          // Presentation APIを使用
+          await startPresentation();
+          showSuccess("モニター表示を開始しました");
+        } else {
+          // 確認ダイアログを表示
+          setShowFallbackDialog(true);
+        }
+      } catch (error) {
+        console.error("Monitor display failed:", error);
+        showError("モニター表示の開始に失敗しました。もう一度お試しください。");
       }
-    } catch (error) {
-      console.error("Monitor display failed:", error);
-      showError("モニター表示の開始に失敗しました。もう一度お試しください。");
     }
   };
 
@@ -182,7 +190,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         tournamentName={tournamentName}
         courtName={courtName}
         round={round}
-        onOpenMonitor={openPresentationMonitor}
+        onOpenMonitor={handleMonitorAction}
         isPresentationConnected={isPresentationConnected}
       />
 
