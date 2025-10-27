@@ -3,6 +3,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
+import { usePresentation } from "@/hooks/usePresentation";
+import { useToast } from "@/components/providers/notification-provider";
 import {
   MatchHeader,
   PlayerScoreCard,
@@ -16,6 +18,7 @@ interface ScoreboardOperatorProps {
 
 export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
   const {
+    matchId,
     courtName,
     round,
     tournamentName,
@@ -32,6 +35,16 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     togglePublic,
     saveMatchResult,
   } = useMonitorStore();
+
+  const { showSuccess, showError, showInfo } = useToast();
+  const {
+    isSupported: isPresentationSupported,
+    isAvailable: isPresentationAvailable,
+    isConnected: isPresentationConnected,
+    startPresentation,
+    stopPresentation,
+    sendMessage,
+  } = usePresentation(`${window.location.origin}/monitor-display`);
 
   const timerIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -58,13 +71,67 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     };
   }, [isTimerRunning, timeRemaining, stopTimer]);
 
+  // データが変更されたときにプレゼンテーション画面に送信
+  React.useEffect(() => {
+    if (isPresentationConnected) {
+      const monitorData = {
+        matchId,
+        tournamentName,
+        courtName,
+        round,
+        playerA,
+        playerB,
+        timeRemaining,
+        isTimerRunning,
+        isPublic,
+      };
+      sendMessage(monitorData);
+    }
+  }, [
+    isPresentationConnected,
+    matchId,
+    tournamentName,
+    courtName,
+    round,
+    playerA,
+    playerB,
+    timeRemaining,
+    isTimerRunning,
+    isPublic,
+    sendMessage
+  ]);
+
   // 表示用モニターを開く関数
   const openPresentationMonitor = async () => {
     try {
-      // Presentation API未対応または実装予定のため、新しいウィンドウで開く
-      window.open('/monitor-display', '_blank', 'fullscreen=yes,width=1920,height=1080');
+      if (isPresentationSupported && isPresentationAvailable) {
+        // Presentation APIを使用
+        await startPresentation();
+        showSuccess('プレゼンテーション画面を開始しました', 'セカンドスクリーンでの表示が開始されました');
+      } else {
+        // フォールバック: 新しいウィンドウで開く
+        const monitorData = {
+          matchId,
+          tournamentName,
+          courtName,
+          round,
+          playerA,
+          playerB,
+          timeRemaining,
+          isTimerRunning,
+          isPublic,
+        };
+        const dataParam = encodeURIComponent(JSON.stringify(monitorData));
+        window.open(
+          `/monitor-display?data=${dataParam}`,
+          '_blank',
+          'fullscreen=yes,width=1920,height=1080'
+        );
+        showInfo('モニター表示を開始しました', 'Presentation APIが利用できないため、新しいウィンドウで表示しています');
+      }
     } catch (error) {
       console.error('Monitor display failed:', error);
+      showError('モニター表示の開始に失敗しました', 'もう一度お試しください');
     }
   };
 
@@ -76,6 +143,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         courtName={courtName}
         round={round}
         onOpenMonitor={openPresentationMonitor}
+        isPresentationConnected={isPresentationConnected}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
