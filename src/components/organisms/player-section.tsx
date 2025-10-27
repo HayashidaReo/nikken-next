@@ -21,10 +21,10 @@ export function PlayerSection({ player, variant, className = "" }: PlayerSection
         : "bg-gradient-to-br from-gray-300 to-gray-400";
 
     const textColorClass = variant === "red" ? "text-white" : "text-black";
-    
+
     // 赤選手は上から20px、白選手は下から20pxの位置に配置
-    const scorePositionClass = variant === "red" 
-        ? "absolute top-4 right-8" 
+    const scorePositionClass = variant === "red"
+        ? "absolute top-4 right-8"
         : "absolute bottom-4 right-8";
 
     return (
@@ -44,7 +44,10 @@ export function PlayerSection({ player, variant, className = "" }: PlayerSection
             {/* 右側：スコアと反則カード */}
             <div className={`${scorePositionClass} flex items-center gap-8`}>
                 <ScoreDisplay score={player.score} />
-                <PenaltyCards hansokuCount={player.hansoku} />
+                <PenaltyCards
+                    hansokuCount={player.hansoku}
+                    variant={variant === "white" ? "flipped" : "normal"}
+                />
             </div>
         </div>
     );

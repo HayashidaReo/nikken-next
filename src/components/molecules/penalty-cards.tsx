@@ -5,11 +5,15 @@ import { PenaltyBackground } from "@/components/atoms";
 interface PenaltyCardsProps {
     hansokuCount: number;
     className?: string;
+    variant?: "normal" | "flipped";
 }
 
-export function PenaltyCards({ hansokuCount, className = "" }: PenaltyCardsProps) {
+export function PenaltyCards({ hansokuCount, className = "", variant = "normal" }: PenaltyCardsProps) {
     return (
-        <PenaltyBackground className={`w-66 h-40 flex items-center justify-center ${className}`}>
+        <PenaltyBackground
+            className={`w-66 h-40 flex items-center justify-center ${className}`}
+            variant={variant}
+        >
             <div className="flex justify-center items-center gap-4 h-full translate-x-3">
                 {Array.from({ length: Math.min(hansokuCount, 2) }, (_, i) => (
                     <div
