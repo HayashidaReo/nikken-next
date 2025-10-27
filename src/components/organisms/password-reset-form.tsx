@@ -59,10 +59,7 @@ export function PasswordResetForm({
       }, data);
     } else {
       // デモ用: 通知システムを使用
-      showSuccess(
-        "メール送信完了",
-        `${data.email}にパスワード再設定メールを送信しました。`
-      );
+      showSuccess(`${data.email}にパスワード再設定メールを送信しました。`);
     }
   };
 

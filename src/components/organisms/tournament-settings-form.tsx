@@ -93,7 +93,7 @@ export function TournamentSettingsForm({
       courtName: "",
     }),
     onMinItemsRequired: minItems => {
-      showWarning("削除できません", `最低${minItems}コートが必要です`);
+      showWarning(`削除できません。最低${minItems}コートが必要です。`);
     },
   });
 
@@ -118,7 +118,7 @@ export function TournamentSettingsForm({
     };
 
     await handleFormSubmission(onSave, tournamentData, {
-      onSuccess: () => {},
+      onSuccess: () => { },
     });
   };
 

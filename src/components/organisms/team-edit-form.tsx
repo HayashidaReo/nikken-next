@@ -102,7 +102,7 @@ export function TeamEditForm({
       displayName: "",
     }),
     onMinItemsRequired: minItems => {
-      showWarning("削除できません", `最低${minItems}人の選手が必要です`);
+      showWarning(`削除できません。最低${minItems}人の選手が必要です。`);
     },
     onRemove: () => {
       // displayNameを再計算

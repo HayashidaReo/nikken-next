@@ -58,7 +58,7 @@ export function LoginForm({
       }, data);
     } else {
       // デモ用: 通知システムを使用
-      showInfo("ログイン機能は未実装です", `ログイン試行: ${data.email}`);
+      showInfo(`ログイン機能は未実装です（ログイン試行: ${data.email}）`);
     }
   };
 

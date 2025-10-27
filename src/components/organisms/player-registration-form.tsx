@@ -90,13 +90,13 @@ export function PlayerRegistrationForm({
       async (data: unknown) => {
         const typedData = data as PlayerRegistrationData;
         await onSubmit(typedData);
-        showSuccess("選手登録が完了しました", `チーム: ${typedData.teamName}`);
+        showSuccess(`選手登録が完了しました（チーム: ${typedData.teamName}）`);
         router.push("/player-registration/complete");
       },
       formData,
       {
         onError: (error: Error) => {
-          showError("登録に失敗しました", error.message);
+          showError(`登録に失敗しました: ${error.message}`);
         },
       }
     );

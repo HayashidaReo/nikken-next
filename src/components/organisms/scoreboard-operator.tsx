@@ -150,17 +150,14 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
       if (isPresentationSupported && isPresentationAvailable) {
         // Presentation APIを使用
         await startPresentation();
-        showSuccess(
-          "プレゼンテーション画面を開始しました",
-          "セカンドスクリーンでの表示が開始されました"
-        );
+        showSuccess("モニター表示を開始しました");
       } else {
         // 確認ダイアログを表示
         setShowFallbackDialog(true);
       }
     } catch (error) {
       console.error("Monitor display failed:", error);
-      showError("モニター表示の開始に失敗しました", "もう一度お試しください");
+      showError("モニター表示の開始に失敗しました。もう一度お試しください。");
     }
   };
 
@@ -170,8 +167,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     const monitorUrl = `${window.location.origin}/monitor-display`;
     window.open(monitorUrl, "_blank", "width=1920,height=1080");
     showInfo(
-      "モニター表示を開始しました",
-      "新しいタブで表示しています。データは自動的に同期されます。"
+      "新しいタブでモニター表示を開始しました。データは自動的に同期されます。"
     );
   };
 

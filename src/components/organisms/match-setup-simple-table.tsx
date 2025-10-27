@@ -136,7 +136,7 @@ export function MatchSetupTable({
     );
 
     if (!isValid) {
-      showError("すべての項目を入力してください", "バリデーションエラー");
+      showError("バリデーションエラー: すべての項目を入力してください。");
       return;
     }
 
