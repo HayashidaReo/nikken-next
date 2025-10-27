@@ -1,29 +1,8 @@
 import * as React from "react";
-
-interface MonitorDisplayData {
-    matchId: string;
-    tournamentName: string;
-    courtName: string;
-    round: string;
-    playerA: {
-        displayName: string;
-        teamName: string;
-        score: number;
-        hansoku: number;
-    };
-    playerB: {
-        displayName: string;
-        teamName: string;
-        score: number;
-        hansoku: number;
-    };
-    timeRemaining: number;
-    isTimerRunning: boolean;
-    isPublic: boolean;
-}
+import { type MatchData } from "@/types/common";
 
 export function useMonitorData() {
-    const [data, setData] = React.useState<MonitorDisplayData>({
+    const [data, setData] = React.useState<MatchData>({
         matchId: "",
         tournamentName: "大会名未設定",
         courtName: "コート名未設定",

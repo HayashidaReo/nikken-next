@@ -1,13 +1,7 @@
 import * as React from "react";
 import { PlayerSection } from "@/components/organisms/player-section";
 import { CenterSection } from "@/components/organisms/center-section";
-
-interface PlayerData {
-    displayName: string;
-    teamName: string;
-    score: number;
-    hansoku: number;
-}
+import { type PlayerData } from "@/types/common";
 
 interface MonitorLayoutProps {
     playerA: PlayerData;
@@ -18,9 +12,7 @@ interface MonitorLayoutProps {
     timeRemaining: number;
     isTimerRunning: boolean;
     className?: string;
-}
-
-export function MonitorLayout({
+}export function MonitorLayout({
     playerA,
     playerB,
     tournamentName,

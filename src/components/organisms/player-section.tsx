@@ -1,34 +1,22 @@
 import * as React from "react";
 import { ScoreDisplay } from "@/components/molecules/score-display";
 import { PenaltyCards } from "@/components/molecules/penalty-cards";
-
-interface PlayerData {
-    displayName: string;
-    teamName: string;
-    score: number;
-    hansoku: number;
-}
+import { getPlayerVariantStyles, getPlayerDisplayName, getPlayerPositionClass, type PlayerVariant } from "@/lib/player-utils";
+import { type PlayerData } from "@/types/common";
 
 interface PlayerSectionProps {
     player: PlayerData;
-    variant: "red" | "white";
+    variant: PlayerVariant;
     className?: string;
 }
 
 export function PlayerSection({ player, variant, className = "" }: PlayerSectionProps) {
-    const backgroundClass = variant === "red"
-        ? "bg-gradient-to-br from-red-600 to-red-800"
-        : "bg-gradient-to-br from-gray-300 to-gray-400";
-
-    const textColorClass = variant === "red" ? "text-white" : "text-black";
-
-    // 赤選手は上から20px、白選手は下から20pxの位置に配置
-    const scorePositionClass = variant === "red"
-        ? "absolute top-4 right-8"
-        : "absolute bottom-4 right-8";
+    const styles = getPlayerVariantStyles(variant);
+    const playerName = getPlayerDisplayName(variant, player.displayName);
+    const scorePositionClass = getPlayerPositionClass(variant);
 
     return (
-        <div className={`flex-1 ${backgroundClass} relative px-16 py-8 ${textColorClass} ${className}`}>
+        <div className={`flex-1 ${styles.background} relative px-16 py-8 ${styles.text} ${className}`}>
             {/* 左側：チーム名と選手名 */}
             <div className="flex items-center h-full">
                 <div className="flex-1">
@@ -36,7 +24,7 @@ export function PlayerSection({ player, variant, className = "" }: PlayerSection
                         {player.teamName || "チーム名未設定"}
                     </div>
                     <div className="text-8xl font-black leading-none">
-                        {player.displayName || `選手${variant === "red" ? "A" : "B"}`}
+                        {playerName}
                     </div>
                 </div>
             </div>
@@ -45,7 +33,7 @@ export function PlayerSection({ player, variant, className = "" }: PlayerSection
             <div className={`${scorePositionClass} flex items-center gap-8`}>
                 <ScoreDisplay score={player.score} />
                 <PenaltyCards
-                    hansokuCount={player.hansoku}
+                    hansokuCount={player.hansoku as any}
                     variant={variant === "white" ? "flipped" : "normal"}
                 />
             </div>
