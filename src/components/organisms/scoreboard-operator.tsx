@@ -11,6 +11,7 @@ import {
   TimerControl,
   MatchControlPanel,
   FallbackMonitorDialog,
+  ConfirmDialog,
 } from "@/components/molecules";
 
 interface ScoreboardOperatorProps {
@@ -51,6 +52,9 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
 
   // フォールバックダイアログの状態
   const [showFallbackDialog, setShowFallbackDialog] = React.useState(false);
+
+  // 接続解除確認ダイアログの状態
+  const [showDisconnectDialog, setShowDisconnectDialog] = React.useState(false);
 
   // BroadcastChannel for data sharing
   const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
@@ -148,9 +152,8 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
   // 表示用モニターを開く/停止する関数
   const handleMonitorAction = async () => {
     if (isPresentationConnected) {
-      // 接続中の場合は停止
-      stopPresentation();
-      showInfo("プレゼンテーション接続を停止しました");
+      // 接続中の場合は確認ダイアログを表示
+      setShowDisconnectDialog(true);
     } else {
       // 未接続の場合は開始
       try {
@@ -181,6 +184,17 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
 
   const handleFallbackCancel = () => {
     setShowFallbackDialog(false);
+  };
+
+  // 接続解除確認のハンドラー
+  const handleDisconnectConfirm = () => {
+    setShowDisconnectDialog(false);
+    stopPresentation();
+    showInfo("プレゼンテーション接続を停止しました");
+  };
+
+  const handleDisconnectCancel = () => {
+    setShowDisconnectDialog(false);
   };
 
   return (
@@ -237,6 +251,18 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         isOpen={showFallbackDialog}
         onConfirm={handleFallbackConfirm}
         onCancel={handleFallbackCancel}
+      />
+
+      {/* 接続解除確認ダイアログ */}
+      <ConfirmDialog
+        isOpen={showDisconnectDialog}
+        title="プレゼンテーション接続解除"
+        message="プレゼンテーション接続を解除しますか？モニター画面での表示が停止されます。"
+        confirmText="解除"
+        cancelText="キャンセル"
+        variant="destructive"
+        onConfirm={handleDisconnectConfirm}
+        onCancel={handleDisconnectCancel}
       />
     </div>
   );
