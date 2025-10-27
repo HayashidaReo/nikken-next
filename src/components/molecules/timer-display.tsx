@@ -16,7 +16,7 @@ export function TimerDisplay({
 }: TimerDisplayProps) {
     return (
         <div className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 ${className}`}>
-            <SkewedBackground className="px-24 py-0">
+            <SkewedBackground className="pl-34 pr-14 py-0">
                 <div className="text-right">
                     <div
                         className={cn(
