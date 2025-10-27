@@ -16,7 +16,8 @@ import {
   LoadingButton,
   type PlayerRegistrationData
 } from "@/components/molecules";
-import { useFormSubmit, useNotifications } from "@/hooks";
+import { useFormSubmit } from "@/hooks";
+import { useToast } from "@/components/providers/notification-provider";
 
 // 選手登録フォーム用のスキーマ
 const playerRegistrationSchema = z.object({
@@ -43,7 +44,7 @@ interface PlayerRegistrationFormProps {
 export function PlayerRegistrationForm({ onSubmit, className }: PlayerRegistrationFormProps) {
   const router = useRouter();
   const [showConfirmation, setShowConfirmation] = React.useState(false);
-  const { showError } = useNotifications();
+  const { showError, showSuccess } = useToast();
 
   const {
     register,
@@ -79,6 +80,7 @@ export function PlayerRegistrationForm({ onSubmit, className }: PlayerRegistrati
       async (data: unknown) => {
         const typedData = data as PlayerRegistrationData;
         await onSubmit(typedData);
+        showSuccess('選手登録が完了しました', `チーム: ${typedData.teamName}`);
         router.push('/player-registration/complete');
       },
       formData,

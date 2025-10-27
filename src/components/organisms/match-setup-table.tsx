@@ -48,9 +48,7 @@ export function MatchSetupTable({
   className,
 }: MatchSetupTableProps) {
   // 承認済みのチームのみフィルター
-  const approvedTeams = teams.filter(team => team.isApproved);
-  
-  // 初期データを作成
+  const approvedTeams = teams.filter(team => team.isApproved);  // 初期データを作成
   const initialData = React.useMemo(() => {
     return matches.map(match => ({
       id: match.matchId,
@@ -73,18 +71,18 @@ export function MatchSetupTable({
 
   // データを更新する関数
   const updateData = (rowIndex: number, field: keyof MatchSetupData, value: string) => {
-    setData(prev => 
+    setData(prev =>
       prev.map((row, index) => {
         if (index === rowIndex) {
           const newRow = { ...row, [field]: value };
-          
+
           // チームが変更された場合は対応する選手もリセット
           if (field === 'playerATeamId') {
             newRow.playerAId = '';
           } else if (field === 'playerBTeamId') {
             newRow.playerBId = '';
           }
-          
+
           return newRow;
         }
         return row;

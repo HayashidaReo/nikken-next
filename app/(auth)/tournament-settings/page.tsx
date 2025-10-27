@@ -7,17 +7,19 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { TournamentSettingsForm } from "@/components/organisms/tournament-settings-form";
 import { mockTournament } from "@/lib/mock-data";
+import { useToast } from "@/components/providers/notification-provider";
 
 export default function TournamentSettingsPage() {
   const router = useRouter();
+  const { showSuccess } = useToast();
 
   const handleSave = async (data: { tournamentName: string; tournamentDate: string; location: string; defaultMatchTime: number; courts: { courtId: string; courtName: string; }[]; }) => {
     // TODO: 実際のAPIコールでFirestoreに保存
     console.log("大会設定を保存:", data);
-    
+
     // 保存完了のメッセージ
-    alert("大会設定を保存しました");
-    
+    showSuccess(`「${data.tournamentName}」の設定を更新しました`);
+
     // 前の画面に戻る
     router.back();
   };
@@ -33,7 +35,7 @@ export default function TournamentSettingsPage() {
             </Button>
           </Link>
         </div>
-        
+
         <TournamentSettingsForm
           tournament={mockTournament}
           onSave={handleSave}

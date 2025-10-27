@@ -8,7 +8,8 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
 import { LoadingButton } from "@/components/molecules/loading-button";
-import { useFormSubmit, useNotifications } from "@/hooks";
+import { useFormSubmit } from "@/hooks";
+import { useToast } from "@/components/providers/notification-provider";
 
 // ログインフォーム用のZodスキーマ
 const loginSchema = z.object({
@@ -30,7 +31,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSubmit, isLoading: externalLoading = false }: LoginFormProps) {
-  const { showInfo } = useNotifications();
+  const { showInfo } = useToast();
   const { handleSubmit: submitForm, isLoading } = useFormSubmit();
 
   const {

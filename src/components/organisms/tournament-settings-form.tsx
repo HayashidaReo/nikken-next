@@ -15,6 +15,7 @@ import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
 import { LoadingButton } from "@/components/molecules/loading-button";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useArrayField } from "@/hooks/useArrayField";
+import { useToast } from "@/components/providers/notification-provider";
 
 // 大会設定フォーム用のスキーマ
 const tournamentSettingsSchema = z.object({
@@ -43,6 +44,7 @@ export function TournamentSettingsForm({
   className,
 }: TournamentSettingsFormProps) {
   const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<Omit<Tournament, 'createdAt' | 'updatedAt'>>();
+  const { showWarning } = useToast();
 
   // 秒を分と秒に分割
   const defaultMinutes = Math.floor(tournament.defaultMatchTime / 60);
@@ -74,7 +76,10 @@ export function TournamentSettingsForm({
     defaultItem: () => ({
       courtId: `court-${Date.now()}`,
       courtName: "",
-    })
+    }),
+    onMinItemsRequired: (minItems) => {
+      showWarning('削除できません', `最低${minItems}コートが必要です`);
+    }
   });
 
   // コートを追加（共通hookを使用）
@@ -96,7 +101,10 @@ export function TournamentSettingsForm({
       courts: data.courts,
     };
 
-    await handleFormSubmission(onSave, tournamentData);
+    await handleFormSubmission(onSave, tournamentData, {
+      onSuccess: () => {
+      }
+    });
   };
 
   return (

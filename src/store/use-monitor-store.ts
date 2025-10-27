@@ -155,7 +155,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
         set({ isPublic: !currentState.isPublic });
     },
 
-    saveMatchResult: async () => {
+    saveMatchResult: async (onSuccess?: () => void) => {
         const state = get();
         console.log("試合結果を保存:", {
             matchId: state.matchId,
@@ -163,6 +163,8 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
             playerB: state.playerB,
         });
         // TODO: Firestoreへの保存ロジックを実装
-        alert("試合結果を保存しました");
+
+        // 成功時のコールバック実行
+        onSuccess?.();
     },
 }));

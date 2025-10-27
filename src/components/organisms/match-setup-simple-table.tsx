@@ -22,6 +22,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Team, Player } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
+import { useToast } from "@/components/providers/notification-provider";
 
 interface MatchSetupData {
   id: string;
@@ -50,7 +51,7 @@ export function MatchSetupTable({
 }: MatchSetupTableProps) {
   // 承認済みのチームのみフィルター
   const approvedTeams = teams.filter(team => team.isApproved);
-  
+
   // 初期データを作成
   const initialData = React.useMemo(() => {
     return matches.map(match => ({
@@ -65,6 +66,7 @@ export function MatchSetupTable({
   }, [matches]);
 
   const [data, setData] = React.useState<MatchSetupData[]>(initialData);
+  const { showError } = useToast();
 
   // チームから選手を取得する関数
   const getPlayersFromTeam = (teamId: string): Player[] => {
@@ -76,18 +78,18 @@ export function MatchSetupTable({
 
   // データを更新する関数
   const updateData = (rowIndex: number, field: keyof MatchSetupData, value: string) => {
-    setData(prev => 
+    setData(prev =>
       prev.map((row, index) => {
         if (index === rowIndex) {
           const newRow = { ...row, [field]: value };
-          
+
           // チームが変更された場合は対応する選手もリセット
           if (field === 'playerATeamId') {
             newRow.playerAId = '';
           } else if (field === 'playerBTeamId') {
             newRow.playerBId = '';
           }
-          
+
           return newRow;
         }
         return row;
@@ -116,13 +118,13 @@ export function MatchSetupTable({
 
   const handleSave = () => {
     // バリデーション
-    const isValid = data.every(row => 
-      row.courtId && row.round && row.playerATeamId && row.playerAId && 
+    const isValid = data.every(row =>
+      row.courtId && row.round && row.playerATeamId && row.playerAId &&
       row.playerBTeamId && row.playerBId
     );
 
     if (!isValid) {
-      alert('すべての項目を入力してください');
+      showError('すべての項目を入力してください', 'バリデーションエラー');
       return;
     }
 
@@ -181,7 +183,7 @@ export function MatchSetupTable({
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    
+
                     {/* 回戦 */}
                     <TableCell className="p-2">
                       <Select
@@ -200,7 +202,7 @@ export function MatchSetupTable({
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    
+
                     {/* 選手A所属 */}
                     <TableCell className="p-2">
                       <Select
@@ -219,7 +221,7 @@ export function MatchSetupTable({
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    
+
                     {/* 選手A表示名 */}
                     <TableCell className="p-2">
                       <Select
@@ -239,7 +241,7 @@ export function MatchSetupTable({
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    
+
                     {/* 選手B所属 */}
                     <TableCell className="p-2">
                       <Select
@@ -258,7 +260,7 @@ export function MatchSetupTable({
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    
+
                     {/* 選手B表示名 */}
                     <TableCell className="p-2">
                       <Select
@@ -278,7 +280,7 @@ export function MatchSetupTable({
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    
+
                     {/* 操作 */}
                     <TableCell className="p-2">
                       <Button

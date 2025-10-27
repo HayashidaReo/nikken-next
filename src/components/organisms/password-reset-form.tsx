@@ -9,7 +9,8 @@ import { Button } from "@/components/atoms/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
 import { LoadingButton } from "@/components/molecules/loading-button";
-import { useFormSubmit, useNotifications } from "@/hooks";
+import { useFormSubmit } from "@/hooks";
+import { useToast } from "@/components/providers/notification-provider";
 
 // パスワード再設定フォーム用のZodスキーマ
 const passwordResetSchema = z.object({
@@ -34,7 +35,7 @@ export function PasswordResetForm({
   isSubmitted = false,
   submittedEmail
 }: PasswordResetFormProps) {
-  const { showSuccess } = useNotifications();
+  const { showSuccess } = useToast();
   const { handleSubmit: submitForm, isLoading } = useFormSubmit();
 
   const {

@@ -18,6 +18,7 @@ import { FormInput, FormTextarea } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
 import { LoadingButton } from "@/components/molecules/loading-button";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
+import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useArrayField } from "@/hooks/useArrayField";
 
@@ -55,6 +56,7 @@ export function TeamEditForm({
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<TeamEditData>();
   const { confirmNavigation } = useUnsavedChanges(hasUnsavedChanges);
+  const { showWarning } = useToast();
 
   const {
     register,
@@ -89,6 +91,9 @@ export function TeamEditForm({
       firstName: "",
       displayName: "",
     }),
+    onMinItemsRequired: (minItems) => {
+      showWarning('削除できません', `最低${minItems}人の選手が必要です`);
+    },
     onRemove: () => {
       // displayNameを再計算
       setTimeout(updateDisplayNames, 100);
@@ -164,7 +169,9 @@ export function TeamEditForm({
   // フォーム送信
   const handleFormSubmit = async (data: TeamEditData) => {
     await handleFormSubmission(onSave, data, {
-      onSuccess: () => setHasUnsavedChanges(false)
+      onSuccess: () => {
+        setHasUnsavedChanges(false);
+      }
     });
   };
 

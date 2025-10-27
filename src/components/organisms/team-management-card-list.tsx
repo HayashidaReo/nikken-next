@@ -8,6 +8,7 @@ import { Badge } from "@/components/atoms/badge";
 import { ChevronDown, ChevronRight, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Team } from "@/types/team.schema";
+import { useToast } from "@/components/providers/notification-provider";
 
 interface TeamManagementCardListProps {
   teams: Team[];
@@ -23,6 +24,7 @@ interface TeamCardProps {
 function TeamCard({ team, onApprovalChange }: TeamCardProps) {
   const [isPlayersExpanded, setIsPlayersExpanded] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState<'approve' | 'unapprove' | null>(null);
+  const { showSuccess } = useToast();
 
   const handleApprovalClick = (action: 'approve' | 'unapprove') => {
     setShowConfirmDialog(action);
@@ -32,6 +34,13 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
     if (showConfirmDialog) {
       const newApprovalState = showConfirmDialog === 'approve';
       onApprovalChange(team.teamId, newApprovalState);
+
+      if (newApprovalState) {
+        showSuccess(`${team.teamName} を承認しました`);
+      } else {
+        showSuccess(`${team.teamName} の承認を取り消しました`);
+      }
+
       setShowConfirmDialog(null);
     }
   };

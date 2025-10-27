@@ -16,6 +16,8 @@ export function useArrayField<T extends FieldValues = FieldValues>(
         onAdd?: (newItem: Record<string, unknown>) => void;
         onRemove?: (index: number) => void;
         generateId?: () => string;
+        onMaxItemsReached?: (maxItems: number) => void;
+        onMinItemsRequired?: (minItems: number) => void;
     }
 ) {
     const { fields, append, remove, move, swap } = useFieldArray({
@@ -30,7 +32,7 @@ export function useArrayField<T extends FieldValues = FieldValues>(
 
     const addItem = (customItem?: Record<string, unknown>) => {
         if (maxItems && fields.length >= maxItems) {
-            alert(`最大${maxItems}件まで追加できます`);
+            options?.onMaxItemsReached?.(maxItems);
             return;
         }
 
@@ -46,7 +48,7 @@ export function useArrayField<T extends FieldValues = FieldValues>(
 
     const removeItem = (index: number) => {
         if (fields.length <= minItems) {
-            alert(`最低${minItems}件は必要です`);
+            options?.onMinItemsRequired?.(minItems);
             return;
         }
 
