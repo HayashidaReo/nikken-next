@@ -10,3 +10,4 @@ export { FormInput, FormTextarea } from './form-input';
 export { AddButton, RemoveButton } from './action-buttons';
 export { LoadingButton } from './loading-button';
 export { Toast, ToastContainer } from './toast';
+export { FallbackMonitorDialog } from './fallback-monitor-dialog';

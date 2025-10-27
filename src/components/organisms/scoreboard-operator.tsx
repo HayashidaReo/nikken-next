@@ -9,7 +9,8 @@ import {
   MatchHeader,
   PlayerScoreCard,
   TimerControl,
-  MatchControlPanel
+  MatchControlPanel,
+  FallbackMonitorDialog
 } from "@/components/molecules";
 
 interface ScoreboardOperatorProps {
@@ -46,6 +47,9 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
   } = usePresentation(`${window.location.origin}/monitor-display`);
 
   const timerIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // フォールバックダイアログの状態
+  const [showFallbackDialog, setShowFallbackDialog] = React.useState(false);
 
   // BroadcastChannel for data sharing
   const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
@@ -142,19 +146,29 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         await startPresentation();
         showSuccess('プレゼンテーション画面を開始しました', 'セカンドスクリーンでの表示が開始されました');
       } else {
-        // フォールバック: 新しいタブで開く（データ共有あり）
-        const monitorUrl = `${window.location.origin}/monitor-display`;
-        window.open(
-          monitorUrl,
-          '_blank',
-          'width=1920,height=1080'
-        );
-        showInfo('モニター表示を開始しました', '新しいタブで表示しています。データは自動的に同期されます。');
+        // 確認ダイアログを表示
+        setShowFallbackDialog(true);
       }
     } catch (error) {
       console.error('Monitor display failed:', error);
       showError('モニター表示の開始に失敗しました', 'もう一度お試しください');
     }
+  };
+
+  // フォールバック確認後の処理
+  const handleFallbackConfirm = () => {
+    setShowFallbackDialog(false);
+    const monitorUrl = `${window.location.origin}/monitor-display`;
+    window.open(
+      monitorUrl,
+      '_blank',
+      'width=1920,height=1080'
+    );
+    showInfo('モニター表示を開始しました', '新しいタブで表示しています。データは自動的に同期されます。');
+  };
+
+  const handleFallbackCancel = () => {
+    setShowFallbackDialog(false);
   };
 
   return (
@@ -204,6 +218,13 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         isPublic={isPublic}
         onTogglePublic={togglePublic}
         onSaveResult={saveMatchResult}
+      />
+
+      {/* フォールバック確認ダイアログ */}
+      <FallbackMonitorDialog
+        isOpen={showFallbackDialog}
+        onConfirm={handleFallbackConfirm}
+        onCancel={handleFallbackCancel}
       />
     </div>
   );
