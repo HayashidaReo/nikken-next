@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-import { ArrowLeft, Plus, Trash2, Save } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
 import { Input } from "@/components/atoms/input";
@@ -13,6 +13,10 @@ import { Label } from "@/components/atoms/label";
 import { Switch } from "@/components/atoms/switch";
 import { cn } from "@/lib/utils";
 import type { Team } from "@/types/team.schema";
+
+import { FormInput, FormTextarea } from "@/components/molecules/form-input";
+import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
+import { LoadingButton } from "@/components/molecules/loading-button";
 
 // 編集用のスキーマ
 const teamEditSchema = z.object({
@@ -87,7 +91,7 @@ export function TeamEditForm({
   // displayNameを自動生成する関数
   const updateDisplayNames = () => {
     const players = watchedValues.players;
-    
+
     // 姓でグループ化
     const lastNameGroups: { [key: string]: number[] } = {};
     players.forEach((player, index) => {
@@ -109,17 +113,17 @@ export function TeamEditForm({
           const player = players[index];
           const firstName = player.firstName;
           let displayName = `${lastName} ${firstName.charAt(0)}`;
-          
+
           // 同じ姓＋名の一部でも重複する場合はフルネーム
           const sameDisplay = indices.filter(i => {
             const otherPlayer = players[i];
             return `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName;
           });
-          
+
           if (sameDisplay.length > 1) {
             displayName = `${lastName} ${firstName}`;
           }
-          
+
           setValue(`players.${index}.displayName`, displayName);
         });
       }
@@ -195,10 +199,12 @@ export function TeamEditForm({
             チーム情報編集
           </h1>
         </div>
-        <Button onClick={handleSubmit(handleFormSubmit)} disabled={isLoading}>
-          <Save className="w-4 h-4 mr-2" />
-          {isLoading ? "保存中..." : "保存"}
-        </Button>
+        <LoadingButton
+          onClick={handleSubmit(handleFormSubmit)}
+          isLoading={isLoading}
+        >
+          保存
+        </LoadingButton>
       </div>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
@@ -221,74 +227,52 @@ export function TeamEditForm({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="teamName">チーム名 *</Label>
-                <Input
-                  {...register("teamName")}
-                  id="teamName"
-                  placeholder="チーム名を入力"
-                />
-                {errors.teamName && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.teamName.message}
-                  </p>
-                )}
-              </div>
+              <FormInput
+                label="チーム名"
+                name="teamName"
+                required
+                placeholder="チーム名を入力"
+                register={register}
+                error={errors.teamName?.message}
+              />
 
-              <div>
-                <Label htmlFor="representativeName">代表者名 *</Label>
-                <Input
-                  {...register("representativeName")}
-                  id="representativeName"
-                  placeholder="代表者名を入力"
-                />
-                {errors.representativeName && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.representativeName.message}
-                  </p>
-                )}
-              </div>
+              <FormInput
+                label="代表者名"
+                name="representativeName"
+                required
+                placeholder="代表者名を入力"
+                register={register}
+                error={errors.representativeName?.message}
+              />
 
-              <div>
-                <Label htmlFor="representativePhone">電話番号 *</Label>
-                <Input
-                  {...register("representativePhone")}
-                  id="representativePhone"
-                  placeholder="電話番号を入力"
-                />
-                {errors.representativePhone && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.representativePhone.message}
-                  </p>
-                )}
-              </div>
+              <FormInput
+                label="電話番号"
+                name="representativePhone"
+                required
+                type="tel"
+                placeholder="電話番号を入力"
+                register={register}
+                error={errors.representativePhone?.message}
+              />
 
-              <div>
-                <Label htmlFor="representativeEmail">メールアドレス *</Label>
-                <Input
-                  {...register("representativeEmail")}
-                  id="representativeEmail"
-                  type="email"
-                  placeholder="メールアドレスを入力"
-                />
-                {errors.representativeEmail && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.representativeEmail.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="remarks">備考</Label>
-              <textarea
-                {...register("remarks")}
-                id="remarks"
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows={3}
-                placeholder="備考があれば入力してください"
+              <FormInput
+                label="メールアドレス"
+                name="representativeEmail"
+                required
+                type="email"
+                placeholder="メールアドレスを入力"
+                register={register}
+                error={errors.representativeEmail?.message}
               />
             </div>
+
+            <FormTextarea
+              label="備考"
+              name="remarks"
+              placeholder="備考があれば入力してください"
+              rows={3}
+              register={register}
+            />
           </CardContent>
         </Card>
 
@@ -297,10 +281,9 @@ export function TeamEditForm({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>参加選手一覧</CardTitle>
-              <Button type="button" onClick={addPlayer} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
+              <AddButton onClick={addPlayer}>
                 選手を追加
-              </Button>
+              </AddButton>
             </div>
           </CardHeader>
           <CardContent>
@@ -346,14 +329,7 @@ export function TeamEditForm({
                   </div>
 
                   <div className="flex items-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removePlayer(index)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <RemoveButton onClick={() => removePlayer(index)} />
                   </div>
                 </div>
               ))}

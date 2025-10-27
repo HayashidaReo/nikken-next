@@ -4,14 +4,15 @@ import * as React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/atoms/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
-
-import { Plus, Trash2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Tournament } from "@/types/tournament.schema";
+
+import { FormInput } from "@/components/molecules/form-input";
+import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
+import { LoadingButton } from "@/components/molecules/loading-button";
 
 // 大会設定フォーム用のスキーマ
 const tournamentSettingsSchema = z.object({
@@ -94,7 +95,7 @@ export function TournamentSettingsForm({
     try {
       // 分と秒を秒に変換
       const totalSeconds = data.defaultMatchTimeMinutes * 60 + data.defaultMatchTimeSeconds;
-      
+
       const tournamentData = {
         tournamentName: data.tournamentName,
         tournamentDate: data.tournamentDate,
@@ -102,7 +103,7 @@ export function TournamentSettingsForm({
         defaultMatchTime: totalSeconds,
         courts: data.courts,
       };
-      
+
       await onSave(tournamentData);
     } finally {
       setIsLoading(false);
@@ -113,10 +114,12 @@ export function TournamentSettingsForm({
     <div className={cn("w-full max-w-4xl mx-auto space-y-6", className)}>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">大会設定</h1>
-        <Button onClick={handleSubmit(handleFormSubmit)} disabled={isLoading}>
-          <Save className="w-4 h-4 mr-2" />
-          {isLoading ? "保存中..." : "保存"}
-        </Button>
+        <LoadingButton
+          onClick={handleSubmit(handleFormSubmit)}
+          isLoading={isLoading}
+        >
+          保存
+        </LoadingButton>
       </div>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
@@ -127,48 +130,33 @@ export function TournamentSettingsForm({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="tournamentName">大会名 *</Label>
-                <Input
-                  {...register("tournamentName")}
-                  id="tournamentName"
-                  placeholder="第50回全国日本拳法大会"
-                />
-                {errors.tournamentName && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.tournamentName.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="tournamentDate">開催日 *</Label>
-                <Input
-                  {...register("tournamentDate")}
-                  id="tournamentDate"
-                  placeholder="2024-03-20"
-                />
-                {errors.tournamentDate && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.tournamentDate.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="location">開催場所 *</Label>
-              <Input
-                {...register("location")}
-                id="location"
-                placeholder="東京体育館"
+              <FormInput
+                label="大会名"
+                name="tournamentName"
+                required
+                placeholder="第50回全国日本拳法大会"
+                register={register}
+                error={errors.tournamentName?.message}
               />
-              {errors.location && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.location.message}
-                </p>
-              )}
+
+              <FormInput
+                label="開催日"
+                name="tournamentDate"
+                required
+                placeholder="2024-03-20"
+                register={register}
+                error={errors.tournamentDate?.message}
+              />
             </div>
+
+            <FormInput
+              label="開催場所"
+              name="location"
+              required
+              placeholder="東京体育館"
+              register={register}
+              error={errors.location?.message}
+            />
           </CardContent>
         </Card>
 
@@ -192,7 +180,7 @@ export function TournamentSettingsForm({
                   />
                   <span className="text-sm text-gray-600">分</span>
                 </div>
-                
+
                 <div className="flex items-center gap-1">
                   <Input
                     {...register("defaultMatchTimeSeconds", { valueAsNumber: true })}
@@ -224,10 +212,9 @@ export function TournamentSettingsForm({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>会場のコート情報</CardTitle>
-              <Button type="button" onClick={addCourt} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
+              <AddButton onClick={addCourt}>
                 コートを追加
-              </Button>
+              </AddButton>
             </div>
           </CardHeader>
           <CardContent>
@@ -245,19 +232,14 @@ export function TournamentSettingsForm({
                       </p>
                     )}
                   </div>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
+
+                  <RemoveButton
                     onClick={() => removeCourt(index)}
                     disabled={fields.length === 1}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  />
                 </div>
               ))}
-              
+
               {errors.courts && typeof errors.courts.message === 'string' && (
                 <p className="text-sm text-red-600">
                   {errors.courts.message}
