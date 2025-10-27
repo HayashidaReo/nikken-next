@@ -9,13 +9,13 @@ interface PenaltyCardsProps {
 
 export function PenaltyCards({ hansokuCount, className = "" }: PenaltyCardsProps) {
     return (
-        <PenaltyBackground className={`w-44 h-24 px-6 py-4 ${className}`}>
-            <div className="flex justify-center items-center gap-2 h-full">
+        <PenaltyBackground className={`w-66 h-40 flex items-center justify-center ${className}`}>
+            <div className="flex justify-center items-center gap-4 h-full translate-x-3">
                 {Array.from({ length: Math.min(hansokuCount, 2) }, (_, i) => (
                     <div
                         key={i}
                         className={cn(
-                            "w-12 h-12 rounded-md border-2 border-white shadow-lg",
+                            "w-16 h-24 rounded-md border-2 border-white shadow-lg",
                             i === 0 ? "bg-red-600" : "bg-yellow-400"
                         )}
                     />

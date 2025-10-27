@@ -21,21 +21,28 @@ export function PlayerSection({ player, variant, className = "" }: PlayerSection
         : "bg-gradient-to-br from-gray-300 to-gray-400";
 
     const textColorClass = variant === "red" ? "text-white" : "text-black";
+    
+    // 赤選手は上から20px、白選手は下から20pxの位置に配置
+    const scorePositionClass = variant === "red" 
+        ? "absolute top-4 right-8" 
+        : "absolute bottom-4 right-8";
 
     return (
-        <div className={`flex-1 ${backgroundClass} flex items-center justify-between px-16 py-8 ${textColorClass} ${className}`}>
+        <div className={`flex-1 ${backgroundClass} relative px-16 py-8 ${textColorClass} ${className}`}>
             {/* 左側：チーム名と選手名 */}
-            <div className="flex-1">
-                <div className="text-2xl font-medium mb-2 opacity-90">
-                    {player.teamName || "チーム名未設定"}
-                </div>
-                <div className="text-8xl font-black leading-none">
-                    {player.displayName || `選手${variant === "red" ? "A" : "B"}`}
+            <div className="flex items-center h-full">
+                <div className="flex-1">
+                    <div className="text-2xl font-medium mb-2 opacity-90">
+                        {player.teamName || "チーム名未設定"}
+                    </div>
+                    <div className="text-8xl font-black leading-none">
+                        {player.displayName || `選手${variant === "red" ? "A" : "B"}`}
+                    </div>
                 </div>
             </div>
 
             {/* 右側：スコアと反則カード */}
-            <div className="flex items-center gap-8">
+            <div className={`${scorePositionClass} flex items-center gap-8`}>
                 <ScoreDisplay score={player.score} />
                 <PenaltyCards hansokuCount={player.hansoku} />
             </div>
