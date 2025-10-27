@@ -10,7 +10,7 @@ import {
   PlayerScoreCard,
   TimerControl,
   MatchControlPanel,
-  FallbackMonitorDialog
+  FallbackMonitorDialog,
 } from "@/components/molecules";
 
 interface ScoreboardOperatorProps {
@@ -56,7 +56,9 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
 
   React.useEffect(() => {
     // BroadcastChannelの初期化
-    broadcastChannelRef.current = new BroadcastChannel('monitor-display-channel');
+    broadcastChannelRef.current = new BroadcastChannel(
+      "monitor-display-channel"
+    );
 
     return () => {
       broadcastChannelRef.current?.close();
@@ -64,17 +66,20 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
   }, []);
 
   // データ送信関数（Presentation API + BroadcastChannel）
-  const sendDataToMonitor = React.useCallback((data: unknown) => {
-    // Presentation APIで送信
-    sendMessage(data);
+  const sendDataToMonitor = React.useCallback(
+    (data: unknown) => {
+      // Presentation APIで送信
+      sendMessage(data);
 
-    // BroadcastChannelで送信
-    try {
-      broadcastChannelRef.current?.postMessage(data);
-    } catch (err) {
-      console.warn('BroadcastChannel送信エラー:', err);
-    }
-  }, [sendMessage]);
+      // BroadcastChannelで送信
+      try {
+        broadcastChannelRef.current?.postMessage(data);
+      } catch (err) {
+        console.warn("BroadcastChannel送信エラー:", err);
+      }
+    },
+    [sendMessage]
+  );
 
   // タイマー処理
   React.useEffect(() => {
@@ -104,7 +109,8 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
 
   React.useEffect(() => {
     const now = Date.now();
-    const isTimerOnlyUpdate = lastSendTimeRef.current > 0 && now - lastSendTimeRef.current < 2000;
+    const isTimerOnlyUpdate =
+      lastSendTimeRef.current > 0 && now - lastSendTimeRef.current < 2000;
 
     // タイマーのみの更新の場合は送信頻度を制限
     if (isTimerOnlyUpdate && now - lastSendTimeRef.current < 500) {
@@ -135,7 +141,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     timeRemaining,
     isTimerRunning,
     isPublic,
-    sendDataToMonitor
+    sendDataToMonitor,
   ]);
 
   // 表示用モニターを開く関数
@@ -144,14 +150,17 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
       if (isPresentationSupported && isPresentationAvailable) {
         // Presentation APIを使用
         await startPresentation();
-        showSuccess('プレゼンテーション画面を開始しました', 'セカンドスクリーンでの表示が開始されました');
+        showSuccess(
+          "プレゼンテーション画面を開始しました",
+          "セカンドスクリーンでの表示が開始されました"
+        );
       } else {
         // 確認ダイアログを表示
         setShowFallbackDialog(true);
       }
     } catch (error) {
-      console.error('Monitor display failed:', error);
-      showError('モニター表示の開始に失敗しました', 'もう一度お試しください');
+      console.error("Monitor display failed:", error);
+      showError("モニター表示の開始に失敗しました", "もう一度お試しください");
     }
   };
 
@@ -159,12 +168,11 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
   const handleFallbackConfirm = () => {
     setShowFallbackDialog(false);
     const monitorUrl = `${window.location.origin}/monitor-display`;
-    window.open(
-      monitorUrl,
-      '_blank',
-      'width=1920,height=1080'
+    window.open(monitorUrl, "_blank", "width=1920,height=1080");
+    showInfo(
+      "モニター表示を開始しました",
+      "新しいタブで表示しています。データは自動的に同期されます。"
     );
-    showInfo('モニター表示を開始しました', '新しいタブで表示しています。データは自動的に同期されます。');
   };
 
   const handleFallbackCancel = () => {

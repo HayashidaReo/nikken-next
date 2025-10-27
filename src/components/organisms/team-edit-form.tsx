@@ -7,7 +7,12 @@ import { z } from "zod";
 
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { Switch } from "@/components/atoms/switch";
@@ -27,15 +32,19 @@ const teamEditSchema = z.object({
   teamName: z.string().min(1, "チーム名は必須です"),
   representativeName: z.string().min(1, "代表者名は必須です"),
   representativePhone: z.string().min(1, "電話番号は必須です"),
-  representativeEmail: z.string().email("正しいメールアドレスを入力してください"),
+  representativeEmail: z
+    .string()
+    .email("正しいメールアドレスを入力してください"),
   isApproved: z.boolean(),
   remarks: z.string(),
-  players: z.array(z.object({
-    playerId: z.string(),
-    lastName: z.string().min(1, "姓は必須です"),
-    firstName: z.string().min(1, "名は必須です"),
-    displayName: z.string(),
-  })),
+  players: z.array(
+    z.object({
+      playerId: z.string(),
+      lastName: z.string().min(1, "姓は必須です"),
+      firstName: z.string().min(1, "名は必須です"),
+      displayName: z.string(),
+    })
+  ),
 });
 
 type TeamEditData = z.infer<typeof teamEditSchema>;
@@ -54,7 +63,8 @@ export function TeamEditForm({
   className,
 }: TeamEditFormProps) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
-  const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<TeamEditData>();
+  const { isLoading, handleSubmit: handleFormSubmission } =
+    useFormSubmit<TeamEditData>();
   const { confirmNavigation } = useUnsavedChanges(hasUnsavedChanges);
   const { showWarning } = useToast();
 
@@ -91,13 +101,13 @@ export function TeamEditForm({
       firstName: "",
       displayName: "",
     }),
-    onMinItemsRequired: (minItems) => {
-      showWarning('削除できません', `最低${minItems}人の選手が必要です`);
+    onMinItemsRequired: minItems => {
+      showWarning("削除できません", `最低${minItems}人の選手が必要です`);
     },
     onRemove: () => {
       // displayNameを再計算
       setTimeout(updateDisplayNames, 100);
-    }
+    },
   });
 
   // フォームの変更を監視（isDirtyフラグを使用）
@@ -142,7 +152,9 @@ export function TeamEditForm({
           // 同じ姓＋名の一部でも重複する場合はフルネーム
           const sameDisplay = indices.filter(i => {
             const otherPlayer = players[i];
-            return `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName;
+            return (
+              `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName
+            );
           });
 
           if (sameDisplay.length > 1) {
@@ -171,7 +183,7 @@ export function TeamEditForm({
     await handleFormSubmission(onSave, data, {
       onSuccess: () => {
         setHasUnsavedChanges(false);
-      }
+      },
     });
   };
 
@@ -190,9 +202,7 @@ export function TeamEditForm({
             <ArrowLeft className="w-4 h-4 mr-2" />
             戻る
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900">
-            チーム情報編集
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">チーム情報編集</h1>
         </div>
         <LoadingButton
           onClick={handleSubmit(handleFormSubmit)}
@@ -214,7 +224,7 @@ export function TeamEditForm({
               <Switch
                 {...register("isApproved")}
                 checked={isApprovedValue}
-                onCheckedChange={(checked) => setValue("isApproved", checked)}
+                onCheckedChange={checked => setValue("isApproved", checked)}
               />
               <Label className="font-medium">
                 {isApprovedValue ? "承認済み" : "未承認"}
@@ -276,15 +286,16 @@ export function TeamEditForm({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>参加選手一覧</CardTitle>
-              <AddButton onClick={addPlayer}>
-                選手を追加
-              </AddButton>
+              <AddButton onClick={addPlayer}>選手を追加</AddButton>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {fields.map((field, index) => (
-                <div key={field.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg">
+                <div
+                  key={field.id}
+                  className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg"
+                >
                   <div>
                     <Label>姓 *</Label>
                     <Input

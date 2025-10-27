@@ -3,7 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/atoms/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { Badge } from "@/components/atoms/badge";
 import { ChevronDown, ChevronRight, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,16 +28,18 @@ interface TeamCardProps {
 
 function TeamCard({ team, onApprovalChange }: TeamCardProps) {
   const [isPlayersExpanded, setIsPlayersExpanded] = React.useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = React.useState<'approve' | 'unapprove' | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = React.useState<
+    "approve" | "unapprove" | null
+  >(null);
   const { showSuccess } = useToast();
 
-  const handleApprovalClick = (action: 'approve' | 'unapprove') => {
+  const handleApprovalClick = (action: "approve" | "unapprove") => {
     setShowConfirmDialog(action);
   };
 
   const confirmApprovalChange = () => {
     if (showConfirmDialog) {
-      const newApprovalState = showConfirmDialog === 'approve';
+      const newApprovalState = showConfirmDialog === "approve";
       onApprovalChange(team.teamId, newApprovalState);
 
       if (newApprovalState) {
@@ -79,15 +86,12 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleApprovalClick('unapprove')}
+                onClick={() => handleApprovalClick("unapprove")}
               >
                 承認前に戻す
               </Button>
             ) : (
-              <Button
-                size="sm"
-                onClick={() => handleApprovalClick('approve')}
-              >
+              <Button size="sm" onClick={() => handleApprovalClick("approve")}>
                 承認
               </Button>
             )}
@@ -112,7 +116,7 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
         {/* 選手一覧（展開時） */}
         {isPlayersExpanded && (
           <div className="mt-3 pl-6 space-y-2">
-            {team.players.map((player) => (
+            {team.players.map(player => (
               <div
                 key={player.playerId}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -138,7 +142,8 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
 
         {/* 登録日時 */}
         <div className="mt-4 text-xs text-gray-500">
-          登録日時: {team.createdAt.toLocaleDateString('ja-JP')} {team.createdAt.toLocaleTimeString('ja-JP')}
+          登録日時: {team.createdAt.toLocaleDateString("ja-JP")}{" "}
+          {team.createdAt.toLocaleTimeString("ja-JP")}
         </div>
       </CardContent>
 
@@ -147,20 +152,19 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">
-              {showConfirmDialog === 'approve' ? '承認確認' : '承認取消確認'}
+              {showConfirmDialog === "approve" ? "承認確認" : "承認取消確認"}
             </h3>
             <p className="text-gray-600 mb-6">
-              {showConfirmDialog === 'approve'
+              {showConfirmDialog === "approve"
                 ? `${team.teamName} を承認しますか？`
-                : `${team.teamName} の承認を取り消しますか？`
-              }
+                : `${team.teamName} の承認を取り消しますか？`}
             </p>
             <div className="flex gap-3 justify-end">
               <Button variant="outline" onClick={cancelApprovalChange}>
                 キャンセル
               </Button>
               <Button onClick={confirmApprovalChange}>
-                {showConfirmDialog === 'approve' ? '承認する' : '取り消す'}
+                {showConfirmDialog === "approve" ? "承認する" : "取り消す"}
               </Button>
             </div>
           </div>
@@ -190,7 +194,7 @@ export function TeamManagementCardList({
   return (
     <div className={cn("w-full space-y-4", className)}>
       {sortedTeams.length > 0 ? (
-        sortedTeams.map((team) => (
+        sortedTeams.map(team => (
           <TeamCard
             key={team.teamId}
             team={team}

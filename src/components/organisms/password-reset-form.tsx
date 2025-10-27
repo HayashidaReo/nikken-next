@@ -6,7 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { Button } from "@/components/atoms/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
 import { LoadingButton } from "@/components/molecules/loading-button";
 import { useFormSubmit } from "@/hooks";
@@ -33,7 +38,7 @@ export function PasswordResetForm({
   onSubmit,
   isLoading: externalLoading = false,
   isSubmitted = false,
-  submittedEmail
+  submittedEmail,
 }: PasswordResetFormProps) {
   const { showSuccess } = useToast();
   const { handleSubmit: submitForm, isLoading } = useFormSubmit();
@@ -48,13 +53,10 @@ export function PasswordResetForm({
 
   const handleFormSubmit = async (data: PasswordResetFormData) => {
     if (onSubmit) {
-      await submitForm(
-        async (formData: unknown) => {
-          const typedData = formData as PasswordResetFormData;
-          await onSubmit(typedData);
-        },
-        data
-      );
+      await submitForm(async (formData: unknown) => {
+        const typedData = formData as PasswordResetFormData;
+        await onSubmit(typedData);
+      }, data);
     } else {
       // デモ用: 通知システムを使用
       showSuccess(
@@ -102,14 +104,14 @@ export function PasswordResetForm({
             required
             register={register}
             error={errors.email?.message}
-          />          <LoadingButton
+          />{" "}
+          <LoadingButton
             type="submit"
             className="w-full"
             isLoading={isLoading || externalLoading}
           >
             {isLoading || externalLoading ? "送信中..." : "再設定メールを送信"}
           </LoadingButton>
-
           <div className="text-center">
             <Link
               href="/login"

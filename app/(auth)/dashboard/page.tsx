@@ -4,16 +4,16 @@ import { mockMatches, mockTournament } from "@/lib/mock-data";
 
 export default function DashboardPage() {
   return (
-    <MainLayout 
-      activeTab="matches" 
+    <MainLayout
+      activeTab="matches"
       tournamentName={mockTournament.tournamentName}
     >
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">試合一覧</h1>
         </div>
-        
-        <MatchListTable 
+
+        <MatchListTable
           matches={mockMatches}
           tournamentName={mockTournament.tournamentName}
         />

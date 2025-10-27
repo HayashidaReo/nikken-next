@@ -8,7 +8,7 @@ export default function PlayerRegistrationPage() {
     representativePhone: string;
     representativeEmail: string;
     teamName: string;
-    players: { fullName: string; }[];
+    players: { fullName: string }[];
     remarks: string;
   }) => {
     // TODO: 実際のAPIコールでFirestoreに保存

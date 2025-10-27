@@ -6,7 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { cn } from "@/lib/utils";
 import {
   ConfirmationDialog,
@@ -14,7 +19,7 @@ import {
   FormInput,
   FormTextarea,
   LoadingButton,
-  type PlayerRegistrationData
+  type PlayerRegistrationData,
 } from "@/components/molecules";
 import { useFormSubmit } from "@/hooks";
 import { useToast } from "@/components/providers/notification-provider";
@@ -29,9 +34,11 @@ const playerRegistrationSchema = z.object({
     .email("正しいメールアドレスを入力してください"),
   teamName: z.string().min(1, "チーム名（所属名）は必須です"),
   players: z
-    .array(z.object({
-      fullName: z.string().min(1, "選手名は必須です"),
-    }))
+    .array(
+      z.object({
+        fullName: z.string().min(1, "選手名は必須です"),
+      })
+    )
     .min(1, "最低1人の選手を登録してください"),
   remarks: z.string(),
 });
@@ -41,7 +48,10 @@ interface PlayerRegistrationFormProps {
   className?: string;
 }
 
-export function PlayerRegistrationForm({ onSubmit, className }: PlayerRegistrationFormProps) {
+export function PlayerRegistrationForm({
+  onSubmit,
+  className,
+}: PlayerRegistrationFormProps) {
   const router = useRouter();
   const [showConfirmation, setShowConfirmation] = React.useState(false);
   const { showError, showSuccess } = useToast();
@@ -80,14 +90,14 @@ export function PlayerRegistrationForm({ onSubmit, className }: PlayerRegistrati
       async (data: unknown) => {
         const typedData = data as PlayerRegistrationData;
         await onSubmit(typedData);
-        showSuccess('選手登録が完了しました', `チーム: ${typedData.teamName}`);
-        router.push('/player-registration/complete');
+        showSuccess("選手登録が完了しました", `チーム: ${typedData.teamName}`);
+        router.push("/player-registration/complete");
       },
       formData,
       {
         onError: (error: Error) => {
-          showError('登録に失敗しました', error.message);
-        }
+          showError("登録に失敗しました", error.message);
+        },
       }
     );
     setShowConfirmation(false);
@@ -189,10 +199,7 @@ export function PlayerRegistrationForm({ onSubmit, className }: PlayerRegistrati
               >
                 戻る
               </Button>
-              <LoadingButton
-                type="submit"
-                isLoading={isLoading}
-              >
+              <LoadingButton type="submit" isLoading={isLoading}>
                 確認画面へ
               </LoadingButton>
             </div>

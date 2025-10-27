@@ -1,4 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { CheckCircle, Mail, Phone } from "lucide-react";
 
 export default function PlayerRegistrationCompletePage() {
@@ -14,7 +19,7 @@ export default function PlayerRegistrationCompletePage() {
               登録申請が完了しました
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             <div className="text-center text-gray-600">
               <p className="mb-4">
@@ -50,13 +55,19 @@ export default function PlayerRegistrationCompletePage() {
             </div>
 
             <div className="bg-yellow-50 p-4 rounded-lg">
-              <h3 className="font-medium text-yellow-900 mb-2">
-                ご注意事項
-              </h3>
+              <h3 className="font-medium text-yellow-900 mb-2">ご注意事項</h3>
               <ul className="text-sm text-yellow-800 space-y-1">
-                <li>• このメールは送信専用です。返信いただいてもお答えできません。</li>
-                <li>• 申請内容の承認は運営側で行います。承認結果は別途ご連絡いたします。</li>
-                <li>• 大会に関する詳細情報は、後日メールまたは電話でご案内いたします。</li>
+                <li>
+                  • このメールは送信専用です。返信いただいてもお答えできません。
+                </li>
+                <li>
+                  •
+                  申請内容の承認は運営側で行います。承認結果は別途ご連絡いたします。
+                </li>
+                <li>
+                  •
+                  大会に関する詳細情報は、後日メールまたは電話でご案内いたします。
+                </li>
               </ul>
             </div>
 

@@ -8,7 +8,17 @@ import { useToast } from "@/components/providers/notification-provider";
 export default function MatchSetupPage() {
   const { showSuccess } = useToast();
 
-  const handleSave = (matches: { id: string; courtId: string; round: string; playerATeamId: string; playerAId: string; playerBTeamId: string; playerBId: string; }[]) => {
+  const handleSave = (
+    matches: {
+      id: string;
+      courtId: string;
+      round: string;
+      playerATeamId: string;
+      playerAId: string;
+      playerBTeamId: string;
+      playerBId: string;
+    }[]
+  ) => {
     console.log("試合の組み合わせを保存:", matches);
     showSuccess(`${matches.length}件の試合を設定しました`);
   };
@@ -20,7 +30,9 @@ export default function MatchSetupPage() {
     >
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">試合の組み合わせ設定</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            試合の組み合わせ設定
+          </h1>
         </div>
 
         <MatchSetupTable

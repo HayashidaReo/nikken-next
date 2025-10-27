@@ -3,7 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/atoms/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import {
   Table,
   TableBody,
@@ -21,13 +26,17 @@ interface MatchListTableProps {
   className?: string;
 }
 
-export function MatchListTable({ matches, tournamentName, className }: MatchListTableProps) {
+export function MatchListTable({
+  matches,
+  tournamentName,
+  className,
+}: MatchListTableProps) {
   // 得点に応じた文字色を決定する関数（固定色使用）
   const getPlayerTextColor = (playerScore: number, opponentScore: number) => {
     if (playerScore > opponentScore) {
       return "font-medium" + " " + "text-blue-600"; // 勝利（青色）
     } else if (playerScore === opponentScore) {
-      return "text-cyan-600"; // 引き分け（水色）  
+      return "text-cyan-600"; // 引き分け（水色）
     } else {
       return "text-gray-900"; // 敗北または通常（黒色）
     }
@@ -71,10 +80,16 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
             </TableRow>
           </TableHeader>
           <TableBody>
-            {matches.map((match) => {
+            {matches.map(match => {
               const { playerA, playerB } = match.players;
-              const playerAColor = getPlayerTextColor(playerA.score, playerB.score);
-              const playerBColor = getPlayerTextColor(playerB.score, playerA.score);
+              const playerAColor = getPlayerTextColor(
+                playerA.score,
+                playerB.score
+              );
+              const playerBColor = getPlayerTextColor(
+                playerB.score,
+                playerA.score
+              );
 
               return (
                 <TableRow key={match.matchId}>
@@ -98,7 +113,8 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
                       <span className={playerBColor}>{playerB.score}</span>
                     </div>
                     <div className="text-xs mt-1 text-gray-500">
-                      反則: {getHansokuDisplay(playerA.hansoku)} / {getHansokuDisplay(playerB.hansoku)}
+                      反則: {getHansokuDisplay(playerA.hansoku)} /{" "}
+                      {getHansokuDisplay(playerB.hansoku)}
                     </div>
                   </TableCell>
                   <TableCell>

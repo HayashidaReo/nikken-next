@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import { Button } from "@/components/atoms/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import {
   Select,
   SelectContent,
@@ -74,20 +79,22 @@ export function MatchSetupTable({
     return team ? team.players : [];
   };
 
-
-
   // データを更新する関数
-  const updateData = (rowIndex: number, field: keyof MatchSetupData, value: string) => {
+  const updateData = (
+    rowIndex: number,
+    field: keyof MatchSetupData,
+    value: string
+  ) => {
     setData(prev =>
       prev.map((row, index) => {
         if (index === rowIndex) {
           const newRow = { ...row, [field]: value };
 
           // チームが変更された場合は対応する選手もリセット
-          if (field === 'playerATeamId') {
-            newRow.playerAId = '';
-          } else if (field === 'playerBTeamId') {
-            newRow.playerBId = '';
+          if (field === "playerATeamId") {
+            newRow.playerAId = "";
+          } else if (field === "playerBTeamId") {
+            newRow.playerBId = "";
           }
 
           return newRow;
@@ -101,12 +108,12 @@ export function MatchSetupTable({
   const addNewRow = () => {
     const newRow: MatchSetupData = {
       id: `match-${Date.now()}`,
-      courtId: '',
-      round: '',
-      playerATeamId: '',
-      playerAId: '',
-      playerBTeamId: '',
-      playerBId: '',
+      courtId: "",
+      round: "",
+      playerATeamId: "",
+      playerAId: "",
+      playerBTeamId: "",
+      playerBId: "",
     };
     setData(prev => [...prev, newRow]);
   };
@@ -118,13 +125,18 @@ export function MatchSetupTable({
 
   const handleSave = () => {
     // バリデーション
-    const isValid = data.every(row =>
-      row.courtId && row.round && row.playerATeamId && row.playerAId &&
-      row.playerBTeamId && row.playerBId
+    const isValid = data.every(
+      row =>
+        row.courtId &&
+        row.round &&
+        row.playerATeamId &&
+        row.playerAId &&
+        row.playerBTeamId &&
+        row.playerBId
     );
 
     if (!isValid) {
-      showError('すべての項目を入力してください', 'バリデーションエラー');
+      showError("すべての項目を入力してください", "バリデーションエラー");
       return;
     }
 
@@ -141,9 +153,7 @@ export function MatchSetupTable({
               <Plus className="w-4 h-4 mr-2" />
               行を追加
             </Button>
-            <Button onClick={handleSave}>
-              保存
-            </Button>
+            <Button onClick={handleSave}>保存</Button>
           </div>
         </CardTitle>
       </CardHeader>
@@ -169,14 +179,19 @@ export function MatchSetupTable({
                     <TableCell className="p-2">
                       <Select
                         value={row.courtId}
-                        onValueChange={(value) => updateData(index, 'courtId', value)}
+                        onValueChange={value =>
+                          updateData(index, "courtId", value)
+                        }
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="コートを選択" />
                         </SelectTrigger>
                         <SelectContent>
                           {courts.map(court => (
-                            <SelectItem key={court.courtId} value={court.courtId}>
+                            <SelectItem
+                              key={court.courtId}
+                              value={court.courtId}
+                            >
                               {court.courtName}
                             </SelectItem>
                           ))}
@@ -188,7 +203,9 @@ export function MatchSetupTable({
                     <TableCell className="p-2">
                       <Select
                         value={row.round}
-                        onValueChange={(value) => updateData(index, 'round', value)}
+                        onValueChange={value =>
+                          updateData(index, "round", value)
+                        }
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="回戦を選択" />
@@ -207,7 +224,9 @@ export function MatchSetupTable({
                     <TableCell className="p-2">
                       <Select
                         value={row.playerATeamId}
-                        onValueChange={(value) => updateData(index, 'playerATeamId', value)}
+                        onValueChange={value =>
+                          updateData(index, "playerATeamId", value)
+                        }
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="チームを選択" />
@@ -226,7 +245,9 @@ export function MatchSetupTable({
                     <TableCell className="p-2">
                       <Select
                         value={row.playerAId}
-                        onValueChange={(value) => updateData(index, 'playerAId', value)}
+                        onValueChange={value =>
+                          updateData(index, "playerAId", value)
+                        }
                         disabled={!row.playerATeamId}
                       >
                         <SelectTrigger className="w-full">
@@ -234,7 +255,10 @@ export function MatchSetupTable({
                         </SelectTrigger>
                         <SelectContent>
                           {getPlayersFromTeam(row.playerATeamId).map(player => (
-                            <SelectItem key={player.playerId} value={player.playerId}>
+                            <SelectItem
+                              key={player.playerId}
+                              value={player.playerId}
+                            >
                               {player.displayName}
                             </SelectItem>
                           ))}
@@ -246,7 +270,9 @@ export function MatchSetupTable({
                     <TableCell className="p-2">
                       <Select
                         value={row.playerBTeamId}
-                        onValueChange={(value) => updateData(index, 'playerBTeamId', value)}
+                        onValueChange={value =>
+                          updateData(index, "playerBTeamId", value)
+                        }
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="チームを選択" />
@@ -265,7 +291,9 @@ export function MatchSetupTable({
                     <TableCell className="p-2">
                       <Select
                         value={row.playerBId}
-                        onValueChange={(value) => updateData(index, 'playerBId', value)}
+                        onValueChange={value =>
+                          updateData(index, "playerBId", value)
+                        }
                         disabled={!row.playerBTeamId}
                       >
                         <SelectTrigger className="w-full">
@@ -273,7 +301,10 @@ export function MatchSetupTable({
                         </SelectTrigger>
                         <SelectContent>
                           {getPlayersFromTeam(row.playerBTeamId).map(player => (
-                            <SelectItem key={player.playerId} value={player.playerId}>
+                            <SelectItem
+                              key={player.playerId}
+                              value={player.playerId}
+                            >
                               {player.displayName}
                             </SelectItem>
                           ))}

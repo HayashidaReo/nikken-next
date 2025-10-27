@@ -13,19 +13,21 @@ export default function MonitorControlPage() {
   const params = useParams();
   const matchId = params.matchId as string;
   const { initializeMatch } = useMonitorStore();
-  
+
   React.useEffect(() => {
     // モックデータから該当する試合を取得
     const match = mockMatches.find(m => m.matchId === matchId);
     if (match) {
       // コート名を取得（mockTournament.courtsから）
-      const court = mockTournament.courts.find(c => c.courtId === match.courtId);
+      const court = mockTournament.courts.find(
+        c => c.courtId === match.courtId
+      );
       const courtName = court ? court.courtName : match.courtId;
-      
+
       initializeMatch(match, mockTournament.tournamentName, courtName);
     }
   }, [matchId, initializeMatch]);
-  
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -37,7 +39,7 @@ export default function MonitorControlPage() {
             </Button>
           </Link>
         </div>
-        
+
         <ScoreboardOperator />
       </div>
     </div>

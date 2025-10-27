@@ -1,12 +1,12 @@
 {
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit"
-    },
-    "typescript.preferences.importModuleSpecifier": "relative",
-    "files.exclude": {
-        "node_modules": true,
-        ".next": true,
-        "coverage": true
-    }
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "files.exclude": {
+    "node_modules": true,
+    ".next": true,
+    "coverage": true
+  }
 }

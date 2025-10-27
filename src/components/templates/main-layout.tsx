@@ -2,7 +2,12 @@ import * as React from "react";
 import Link from "next/link";
 import { Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/atoms/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/atoms/tabs";
 import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
@@ -59,16 +64,16 @@ function Header({ tournamentName = "第50回全国日本拳法大会" }: HeaderP
   );
 }
 
-export function MainLayout({ 
-  children, 
+export function MainLayout({
+  children,
   tournamentName,
   activeTab = "matches",
-  className 
+  className,
 }: MainLayoutProps) {
   return (
     <div className={cn("min-h-screen bg-gray-50", className)}>
       <Header tournamentName={tournamentName} />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} className="w-full">
           <TabsList className="mb-8">
@@ -76,13 +81,15 @@ export function MainLayout({
               <TabsTrigger value="matches">試合一覧</TabsTrigger>
             </Link>
             <Link href="/match-setup">
-              <TabsTrigger value="match-setup">試合の組み合わせ設定</TabsTrigger>
+              <TabsTrigger value="match-setup">
+                試合の組み合わせ設定
+              </TabsTrigger>
             </Link>
             <Link href="/teams">
               <TabsTrigger value="teams">チーム・選手管理</TabsTrigger>
             </Link>
           </TabsList>
-          
+
           <TabsContent value={activeTab} className="mt-0">
             {children}
           </TabsContent>

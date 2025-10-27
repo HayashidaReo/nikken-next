@@ -13,12 +13,12 @@ interface FormFieldProps {
   children: React.ReactNode;
 }
 
-export function FormField({ 
-  label, 
-  error, 
-  required = false, 
+export function FormField({
+  label,
+  error,
+  required = false,
   className,
-  children 
+  children,
 }: FormFieldProps) {
   return (
     <div className={cn("space-y-2", className)}>
@@ -27,9 +27,7 @@ export function FormField({
         {required && <span className="text-red-500 ml-1">*</span>}
       </Label>
       {children}
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }
@@ -56,7 +54,12 @@ export function FormInputField({
   register,
 }: FormInputFieldProps) {
   return (
-    <FormField label={label} error={error} required={required} className={className}>
+    <FormField
+      label={label}
+      error={error}
+      required={required}
+      className={className}
+    >
       <Input
         type={type}
         placeholder={placeholder}

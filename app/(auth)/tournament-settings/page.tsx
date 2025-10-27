@@ -13,7 +13,13 @@ export default function TournamentSettingsPage() {
   const router = useRouter();
   const { showSuccess } = useToast();
 
-  const handleSave = async (data: { tournamentName: string; tournamentDate: string; location: string; defaultMatchTime: number; courts: { courtId: string; courtName: string; }[]; }) => {
+  const handleSave = async (data: {
+    tournamentName: string;
+    tournamentDate: string;
+    location: string;
+    defaultMatchTime: number;
+    courts: { courtId: string; courtName: string }[];
+  }) => {
     // TODO: 実際のAPIコールでFirestoreに保存
     console.log("大会設定を保存:", data);
 

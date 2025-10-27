@@ -5,7 +5,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
 import { LoadingButton } from "@/components/molecules/loading-button";
 import { useFormSubmit } from "@/hooks";
@@ -30,7 +35,10 @@ interface LoginFormProps {
   isLoading?: boolean;
 }
 
-export function LoginForm({ onSubmit, isLoading: externalLoading = false }: LoginFormProps) {
+export function LoginForm({
+  onSubmit,
+  isLoading: externalLoading = false,
+}: LoginFormProps) {
   const { showInfo } = useToast();
   const { handleSubmit: submitForm, isLoading } = useFormSubmit();
 
@@ -44,13 +52,10 @@ export function LoginForm({ onSubmit, isLoading: externalLoading = false }: Logi
 
   const handleFormSubmit = async (data: LoginFormData) => {
     if (onSubmit) {
-      await submitForm(
-        async (formData: unknown) => {
-          const typedData = formData as LoginFormData;
-          await onSubmit(typedData);
-        },
-        data
-      );
+      await submitForm(async (formData: unknown) => {
+        const typedData = formData as LoginFormData;
+        await onSubmit(typedData);
+      }, data);
     } else {
       // デモ用: 通知システムを使用
       showInfo("ログイン機能は未実装です", `ログイン試行: ${data.email}`);

@@ -6,7 +6,6 @@ import { TeamEditForm } from "@/components/organisms/team-edit-form";
 import { mockTeams } from "@/lib/mock-data";
 import { useToast } from "@/components/providers/notification-provider";
 
-
 export default function TeamEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -37,7 +36,20 @@ export default function TeamEditPage() {
     );
   }
 
-  const handleSave = async (data: { teamName: string; representativeName: string; representativePhone: string; representativeEmail: string; isApproved: boolean; remarks: string; players: { playerId: string; lastName: string; firstName: string; displayName: string; }[]; }) => {
+  const handleSave = async (data: {
+    teamName: string;
+    representativeName: string;
+    representativePhone: string;
+    representativeEmail: string;
+    isApproved: boolean;
+    remarks: string;
+    players: {
+      playerId: string;
+      lastName: string;
+      firstName: string;
+      displayName: string;
+    }[];
+  }) => {
     // TODO: 実際のAPIコールでFirestoreに保存
     console.log("チーム情報を保存:", data);
 
@@ -54,11 +66,7 @@ export default function TeamEditPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <TeamEditForm
-        team={team}
-        onSave={handleSave}
-        onCancel={handleCancel}
-      />
+      <TeamEditForm team={team} onSave={handleSave} onCancel={handleCancel} />
     </div>
   );
 }

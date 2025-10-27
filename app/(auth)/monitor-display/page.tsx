@@ -42,24 +42,24 @@ export default function MonitorDisplayPage() {
 
   // BroadcastChannelでのデータ共有
   React.useEffect(() => {
-    const channel = new BroadcastChannel('monitor-display-channel');
+    const channel = new BroadcastChannel("monitor-display-channel");
 
     // メッセージ受信
     const handleMessage = (event: MessageEvent) => {
       try {
-        if (event.data && typeof event.data === 'object') {
+        if (event.data && typeof event.data === "object") {
           setData(event.data);
           setIsConnected(true);
         }
       } catch (err) {
-        console.error('BroadcastChannel メッセージ解析エラー:', err);
+        console.error("BroadcastChannel メッセージ解析エラー:", err);
       }
     };
 
-    channel.addEventListener('message', handleMessage);
+    channel.addEventListener("message", handleMessage);
 
     return () => {
-      channel.removeEventListener('message', handleMessage);
+      channel.removeEventListener("message", handleMessage);
       channel.close();
     };
   }, []);
@@ -67,11 +67,14 @@ export default function MonitorDisplayPage() {
   // Presentation API接続の確立
   React.useEffect(() => {
     // 表示側（receiver）としての処理
-    if ('presentation' in navigator) {
+    if ("presentation" in navigator) {
       // メッセージ接続の処理
       const handleConnection = (connection: unknown) => {
         const conn = connection as {
-          addEventListener: (event: string, handler: (e: Event) => void) => void;
+          addEventListener: (
+            event: string,
+            handler: (e: Event) => void
+          ) => void;
           close: () => void;
           terminate: () => void;
         };
@@ -79,23 +82,23 @@ export default function MonitorDisplayPage() {
         setIsConnected(true);
 
         // メッセージ受信リスナー
-        conn.addEventListener('message', (messageEvent: Event) => {
+        conn.addEventListener("message", (messageEvent: Event) => {
           const msgEvent = messageEvent as MessageEvent;
           try {
             const receivedData = JSON.parse(msgEvent.data);
             setData(receivedData);
           } catch (err) {
-            console.error('メッセージ解析エラー:', err);
-            setError('データの解析に失敗しました');
+            console.error("メッセージ解析エラー:", err);
+            setError("データの解析に失敗しました");
           }
         });
 
         // 接続終了リスナー
-        conn.addEventListener('close', () => {
+        conn.addEventListener("close", () => {
           setIsConnected(false);
         });
 
-        conn.addEventListener('terminate', () => {
+        conn.addEventListener("terminate", () => {
           setIsConnected(false);
         });
       };
@@ -103,53 +106,62 @@ export default function MonitorDisplayPage() {
       // 簡素化されたPresentationReceiver処理
       try {
         // 動的にPresentation APIにアクセス
-        const presentation = (navigator as unknown as Record<string, unknown>).presentation as {
+        const presentation = (navigator as unknown as Record<string, unknown>)
+          .presentation as {
           receiver?: {
             connectionList?: Promise<{
               connections?: unknown[];
-              addEventListener?: (event: string, handler: EventListener) => void;
+              addEventListener?: (
+                event: string,
+                handler: EventListener
+              ) => void;
             }>;
           };
         };
 
         if (presentation?.receiver?.connectionList) {
           presentation.receiver.connectionList
-            .then((list) => {
+            .then(list => {
               // 既存の接続があれば処理
-              list.connections?.forEach((connection) => {
+              list.connections?.forEach(connection => {
                 handleConnection(connection);
               });
 
               // 新しい接続を待機
-              list.addEventListener?.('connectionavailable', (event: Event) => {
+              list.addEventListener?.("connectionavailable", (event: Event) => {
                 const connectionEvent = event as {
                   detail?: { connection: unknown };
                   connection?: unknown;
                 };
-                const connection = connectionEvent.detail?.connection || connectionEvent.connection;
+                const connection =
+                  connectionEvent.detail?.connection ||
+                  connectionEvent.connection;
                 if (connection) {
                   handleConnection(connection);
                 }
               });
             })
             .catch((error: unknown) => {
-              console.warn('PresentationReceiver initialization failed:', error);
-              setError('プレゼンテーション接続の初期化に失敗しました');
+              console.warn(
+                "PresentationReceiver initialization failed:",
+                error
+              );
+              setError("プレゼンテーション接続の初期化に失敗しました");
             });
         }
       } catch (error) {
-        console.warn('Presentation API not available or failed:', error);
-        setError('プレゼンテーションAPIが利用できません');
+        console.warn("Presentation API not available or failed:", error);
+        setError("プレゼンテーションAPIが利用できません");
       }
-    }    // フォールバック: URLパラメータからの初期データ読み込み
+    } // フォールバック: URLパラメータからの初期データ読み込み
     const urlParams = new URLSearchParams(window.location.search);
-    const initialData = urlParams.get('data');
+    const initialData = urlParams.get("data");
     if (initialData) {
       try {
         const parsedData = JSON.parse(decodeURIComponent(initialData));
         setData(parsedData);
       } catch (err) {
-        console.error('URLパラメータ解析エラー:', err);
+        console.error("URLパラメータ解析エラー:", err);
       }
     }
   }, []);
@@ -158,7 +170,7 @@ export default function MonitorDisplayPage() {
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   // 非公開時の表示
@@ -177,16 +189,18 @@ export default function MonitorDisplayPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 p-8">
       {/* 接続状態表示 */}
       <div className="fixed top-4 right-4 z-50">
-        <div className={cn(
-          "px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2",
-          isConnected
-            ? "bg-green-500 text-white"
-            : "bg-yellow-500 text-white"
-        )}>
-          <div className={cn(
-            "w-2 h-2 rounded-full",
-            isConnected ? "bg-green-200 animate-pulse" : "bg-yellow-200"
-          )} />
+        <div
+          className={cn(
+            "px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2",
+            isConnected ? "bg-green-500 text-white" : "bg-yellow-500 text-white"
+          )}
+        >
+          <div
+            className={cn(
+              "w-2 h-2 rounded-full",
+              isConnected ? "bg-green-200 animate-pulse" : "bg-yellow-200"
+            )}
+          />
           {isConnected ? "データ同期中" : "スタンバイ中"}
         </div>
       </div>
@@ -195,7 +209,9 @@ export default function MonitorDisplayPage() {
       {!isConnected && (
         <div className="fixed top-16 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm max-w-xs">
           <p className="font-semibold mb-1">使用方法</p>
-          <p>スコアボード操作画面から「モニター表示開始」ボタンを押すと、このページにデータが表示されます。</p>
+          <p>
+            スコアボード操作画面から「モニター表示開始」ボタンを押すと、このページにデータが表示されます。
+          </p>
         </div>
       )}
 
@@ -243,16 +259,20 @@ export default function MonitorDisplayPage() {
 
               {/* タイマー */}
               <div className="text-center">
-                <div className={cn(
-                  "text-8xl font-mono font-bold mb-4",
-                  data.isTimerRunning ? "text-green-400" : "text-white"
-                )}>
+                <div
+                  className={cn(
+                    "text-8xl font-mono font-bold mb-4",
+                    data.isTimerRunning ? "text-green-400" : "text-white"
+                  )}
+                >
                   {formatTime(data.timeRemaining)}
                 </div>
-                <div className={cn(
-                  "text-2xl font-medium",
-                  data.isTimerRunning ? "text-green-400" : "text-gray-400"
-                )}>
+                <div
+                  className={cn(
+                    "text-2xl font-medium",
+                    data.isTimerRunning ? "text-green-400" : "text-gray-400"
+                  )}
+                >
                   {data.isTimerRunning ? "進行中" : "停止中"}
                 </div>
               </div>
@@ -279,9 +299,7 @@ export default function MonitorDisplayPage() {
 
         {/* 追加情報 */}
         <div className="text-center text-white/80">
-          <p className="text-lg">
-            試合ID: {data.matchId || "未設定"}
-          </p>
+          <p className="text-lg">試合ID: {data.matchId || "未設定"}</p>
         </div>
       </div>
     </div>

@@ -4,7 +4,12 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { cn } from "@/lib/utils";
@@ -22,19 +27,28 @@ const tournamentSettingsSchema = z.object({
   tournamentName: z.string().min(1, "大会名は必須です"),
   tournamentDate: z.string().min(1, "開催日は必須です"),
   location: z.string().min(1, "開催場所は必須です"),
-  defaultMatchTimeMinutes: z.number().min(1, "試合時間は1分以上で設定してください"),
-  defaultMatchTimeSeconds: z.number().min(0).max(59, "秒は0-59の範囲で入力してください"),
-  courts: z.array(z.object({
-    courtId: z.string(),
-    courtName: z.string().min(1, "コート名は必須です"),
-  })).min(1, "最低1つのコートを設定してください"),
+  defaultMatchTimeMinutes: z
+    .number()
+    .min(1, "試合時間は1分以上で設定してください"),
+  defaultMatchTimeSeconds: z
+    .number()
+    .min(0)
+    .max(59, "秒は0-59の範囲で入力してください"),
+  courts: z
+    .array(
+      z.object({
+        courtId: z.string(),
+        courtName: z.string().min(1, "コート名は必須です"),
+      })
+    )
+    .min(1, "最低1つのコートを設定してください"),
 });
 
 type TournamentSettingsData = z.infer<typeof tournamentSettingsSchema>;
 
 interface TournamentSettingsFormProps {
   tournament: Tournament;
-  onSave: (data: Omit<Tournament, 'createdAt' | 'updatedAt'>) => Promise<void>;
+  onSave: (data: Omit<Tournament, "createdAt" | "updatedAt">) => Promise<void>;
   className?: string;
 }
 
@@ -43,7 +57,8 @@ export function TournamentSettingsForm({
   onSave,
   className,
 }: TournamentSettingsFormProps) {
-  const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<Omit<Tournament, 'createdAt' | 'updatedAt'>>();
+  const { isLoading, handleSubmit: handleFormSubmission } =
+    useFormSubmit<Omit<Tournament, "createdAt" | "updatedAt">>();
   const { showWarning } = useToast();
 
   // 秒を分と秒に分割
@@ -77,9 +92,9 @@ export function TournamentSettingsForm({
       courtId: `court-${Date.now()}`,
       courtName: "",
     }),
-    onMinItemsRequired: (minItems) => {
-      showWarning('削除できません', `最低${minItems}コートが必要です`);
-    }
+    onMinItemsRequired: minItems => {
+      showWarning("削除できません", `最低${minItems}コートが必要です`);
+    },
   });
 
   // コートを追加（共通hookを使用）
@@ -91,7 +106,8 @@ export function TournamentSettingsForm({
   // フォーム送信
   const handleFormSubmit = async (data: TournamentSettingsData) => {
     // 分と秒を秒に変換
-    const totalSeconds = data.defaultMatchTimeMinutes * 60 + data.defaultMatchTimeSeconds;
+    const totalSeconds =
+      data.defaultMatchTimeMinutes * 60 + data.defaultMatchTimeSeconds;
 
     const tournamentData = {
       tournamentName: data.tournamentName,
@@ -102,8 +118,7 @@ export function TournamentSettingsForm({
     };
 
     await handleFormSubmission(onSave, tournamentData, {
-      onSuccess: () => {
-      }
+      onSuccess: () => {},
     });
   };
 
@@ -168,7 +183,9 @@ export function TournamentSettingsForm({
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex items-center gap-1">
                   <Input
-                    {...register("defaultMatchTimeMinutes", { valueAsNumber: true })}
+                    {...register("defaultMatchTimeMinutes", {
+                      valueAsNumber: true,
+                    })}
                     type="number"
                     min="0"
                     max="59"
@@ -180,7 +197,9 @@ export function TournamentSettingsForm({
 
                 <div className="flex items-center gap-1">
                   <Input
-                    {...register("defaultMatchTimeSeconds", { valueAsNumber: true })}
+                    {...register("defaultMatchTimeSeconds", {
+                      valueAsNumber: true,
+                    })}
                     type="number"
                     min="0"
                     max="59"
@@ -209,9 +228,7 @@ export function TournamentSettingsForm({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>会場のコート情報</CardTitle>
-              <AddButton onClick={addCourt}>
-                コートを追加
-              </AddButton>
+              <AddButton onClick={addCourt}>コートを追加</AddButton>
             </div>
           </CardHeader>
           <CardContent>
@@ -237,10 +254,8 @@ export function TournamentSettingsForm({
                 </div>
               ))}
 
-              {errors.courts && typeof errors.courts.message === 'string' && (
-                <p className="text-sm text-red-600">
-                  {errors.courts.message}
-                </p>
+              {errors.courts && typeof errors.courts.message === "string" && (
+                <p className="text-sm text-red-600">{errors.courts.message}</p>
               )}
             </div>
           </CardContent>

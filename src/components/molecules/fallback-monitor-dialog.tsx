@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import { Button } from "@/components/atoms/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { AlertTriangle, Monitor, ExternalLink } from "lucide-react";
 
 interface FallbackMonitorDialogProps {
@@ -35,7 +40,7 @@ export function FallbackMonitorDialog({
               外部モニターを検出できませんでした。
               代わりに新規タブでモニター画面を表示します。
             </p>
-            
+
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
@@ -52,16 +57,14 @@ export function FallbackMonitorDialog({
 
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Monitor className="h-4 w-4" />
-              <span>外部モニターを接続してもこの画面が表示される場合は、接続状況をご確認の上、再度お試しください。</span>
+              <span>
+                外部モニターを接続してもこの画面が表示される場合は、接続状況をご確認の上、再度お試しください。
+              </span>
             </div>
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={onCancel} className="flex-1">
               キャンセル
             </Button>
             <Button
