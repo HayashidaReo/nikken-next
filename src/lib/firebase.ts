@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
 
 // .env.localから接続情報を読み込む
 const firebaseConfig = {
@@ -18,3 +19,4 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // 各サービスをエクスポートする
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+export const cloudFunction = getFunctions(app);
