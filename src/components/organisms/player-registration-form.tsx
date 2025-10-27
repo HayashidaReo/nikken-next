@@ -15,7 +15,9 @@ import {
   FormTextarea,
   LoadingButton,
   type PlayerRegistrationData
-} from "@/components/molecules";// 選手登録フォーム用のスキーマ
+} from "@/components/molecules";
+
+// 選手登録フォーム用のスキーマ
 const playerRegistrationSchema = z.object({
   representativeName: z.string().min(1, "代表者名は必須です"),
   representativePhone: z.string().min(1, "代表者電話番号は必須です"),

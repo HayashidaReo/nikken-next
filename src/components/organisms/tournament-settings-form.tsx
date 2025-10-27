@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
@@ -13,6 +13,8 @@ import type { Tournament } from "@/types/tournament.schema";
 import { FormInput } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
 import { LoadingButton } from "@/components/molecules/loading-button";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
+import { useArrayField } from "@/hooks/useArrayField";
 
 // 大会設定フォーム用のスキーマ
 const tournamentSettingsSchema = z.object({
@@ -40,7 +42,7 @@ export function TournamentSettingsForm({
   onSave,
   className,
 }: TournamentSettingsFormProps) {
-  const [isLoading, setIsLoading] = React.useState(false);
+  const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<Omit<Tournament, 'createdAt' | 'updatedAt'>>();
 
   // 秒を分と秒に分割
   const defaultMinutes = Math.floor(tournament.defaultMatchTime / 60);
@@ -67,47 +69,34 @@ export function TournamentSettingsForm({
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "courts",
-  });
-
-  // コートを追加
-  const addCourt = () => {
-    append({
+  const { fields, addItem, removeItem } = useArrayField(control, "courts", {
+    minItems: 1,
+    defaultItem: () => ({
       courtId: `court-${Date.now()}`,
       courtName: "",
-    });
-  };
+    })
+  });
 
-  // コートを削除
-  const removeCourt = (index: number) => {
-    if (fields.length > 1) {
-      remove(index);
-    } else {
-      alert("最低1つのコートは必要です");
-    }
-  };
+  // コートを追加（共通hookを使用）
+  const addCourt = () => addItem();
+
+  // コートを削除（共通hookを使用）
+  const removeCourt = (index: number) => removeItem(index);
 
   // フォーム送信
   const handleFormSubmit = async (data: TournamentSettingsData) => {
-    setIsLoading(true);
-    try {
-      // 分と秒を秒に変換
-      const totalSeconds = data.defaultMatchTimeMinutes * 60 + data.defaultMatchTimeSeconds;
+    // 分と秒を秒に変換
+    const totalSeconds = data.defaultMatchTimeMinutes * 60 + data.defaultMatchTimeSeconds;
 
-      const tournamentData = {
-        tournamentName: data.tournamentName,
-        tournamentDate: data.tournamentDate,
-        location: data.location,
-        defaultMatchTime: totalSeconds,
-        courts: data.courts,
-      };
+    const tournamentData = {
+      tournamentName: data.tournamentName,
+      tournamentDate: data.tournamentDate,
+      location: data.location,
+      defaultMatchTime: totalSeconds,
+      courts: data.courts,
+    };
 
-      await onSave(tournamentData);
-    } finally {
-      setIsLoading(false);
-    }
+    await handleFormSubmission(onSave, tournamentData);
   };
 
   return (

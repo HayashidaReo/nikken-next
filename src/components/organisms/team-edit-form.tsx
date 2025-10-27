@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -17,6 +17,9 @@ import type { Team } from "@/types/team.schema";
 import { FormInput, FormTextarea } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
 import { LoadingButton } from "@/components/molecules/loading-button";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import { useArrayField } from "@/hooks/useArrayField";
 
 // 編集用のスキーマ
 const teamEditSchema = z.object({
@@ -49,16 +52,17 @@ export function TeamEditForm({
   onCancel,
   className,
 }: TeamEditFormProps) {
-  const [isLoading, setIsLoading] = React.useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<TeamEditData>();
+  const { confirmNavigation } = useUnsavedChanges(hasUnsavedChanges);
 
   const {
     register,
     control,
     handleSubmit,
-    watch,
     setValue,
-    formState: { errors },
+    getValues,
+    formState: { errors, isDirty },
   } = useForm<TeamEditData>({
     resolver: zodResolver(teamEditSchema),
     defaultValues: {
@@ -77,20 +81,36 @@ export function TeamEditForm({
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "players",
+  const { fields, addItem, removeItem } = useArrayField(control, "players", {
+    minItems: 1,
+    defaultItem: () => ({
+      playerId: `player-${Date.now()}`,
+      lastName: "",
+      firstName: "",
+      displayName: "",
+    }),
+    onRemove: () => {
+      // displayNameを再計算
+      setTimeout(updateDisplayNames, 100);
+    }
   });
 
-  // フォームの変更を監視
-  const watchedValues = watch();
+  // フォームの変更を監視（isDirtyフラグを使用）
   React.useEffect(() => {
-    setHasUnsavedChanges(true);
-  }, [watchedValues]);
+    setHasUnsavedChanges(isDirty);
+  }, [isDirty]);
+
+  // 承認状態を個別に監視
+  const isApprovedValue = useWatch({
+    control,
+    name: "isApproved",
+    defaultValue: team.isApproved,
+  });
 
   // displayNameを自動生成する関数
   const updateDisplayNames = () => {
-    const players = watchedValues.players;
+    const currentValues = getValues();
+    const players = currentValues.players;
 
     // 姓でグループ化
     const lastNameGroups: { [key: string]: number[] } = {};
@@ -130,22 +150,11 @@ export function TeamEditForm({
     });
   };
 
-  // 選手を追加
-  const addPlayer = () => {
-    append({
-      playerId: `player-${Date.now()}`,
-      lastName: "",
-      firstName: "",
-      displayName: "",
-    });
-  };
+  // 選手を追加（共通hookを使用）
+  const addPlayer = () => addItem();
 
-  // 選手を削除
-  const removePlayer = (index: number) => {
-    remove(index);
-    // displayNameを再計算
-    setTimeout(updateDisplayNames, 100);
-  };
+  // 選手を削除（共通hookを使用）
+  const removePlayer = (index: number) => removeItem(index);
 
   // 姓・名が変更されたときにdisplayNameを更新
   const handleNameChange = () => {
@@ -154,34 +163,13 @@ export function TeamEditForm({
 
   // フォーム送信
   const handleFormSubmit = async (data: TeamEditData) => {
-    setIsLoading(true);
-    try {
-      await onSave(data);
-      setHasUnsavedChanges(false);
-    } finally {
-      setIsLoading(false);
-    }
+    await handleFormSubmission(onSave, data, {
+      onSuccess: () => setHasUnsavedChanges(false)
+    });
   };
 
-  // ページを離れる際の確認
-  React.useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [hasUnsavedChanges]);
-
   const handleCancelClick = () => {
-    if (hasUnsavedChanges) {
-      if (confirm("編集内容が破棄されますがよろしいですか？")) {
-        onCancel();
-      }
-    } else {
+    if (confirmNavigation("編集内容が破棄されますがよろしいですか？")) {
       onCancel();
     }
   };
@@ -218,11 +206,11 @@ export function TeamEditForm({
             <div className="flex items-center space-x-3">
               <Switch
                 {...register("isApproved")}
-                checked={watchedValues.isApproved}
+                checked={isApprovedValue}
                 onCheckedChange={(checked) => setValue("isApproved", checked)}
               />
               <Label className="font-medium">
-                {watchedValues.isApproved ? "承認済み" : "未承認"}
+                {isApprovedValue ? "承認済み" : "未承認"}
               </Label>
             </div>
 
