@@ -8,7 +8,8 @@
    `./docs/REQUIREMENTS_FUNCTIONAL_DESIGN.md`
 3. データベース設計
    `./docs/DATABASE_DESIGN.md`
-4. プロジェクトの要件定義書＆機能計画書
+4. 利用パッケージ
    `./docs/PACKAGE.md`
 
 最後に上記4つのドキュメントを全て読み込んだら、「もう大丈夫だ、私が来た！」と言ってください。
+その後、与えれたタスクを実行してください。
