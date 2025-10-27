@@ -22,12 +22,12 @@ interface MatchListTableProps {
 }
 
 export function MatchListTable({ matches, tournamentName, className }: MatchListTableProps) {
-  // 得点に応じた文字色を決定する関数
+  // 得点に応じた文字色を決定する関数（固定色使用）
   const getPlayerTextColor = (playerScore: number, opponentScore: number) => {
     if (playerScore > opponentScore) {
-      return "text-blue-600 font-medium"; // 勝利（青色）
+      return "font-medium" + " " + "text-blue-600"; // 勝利（青色）
     } else if (playerScore === opponentScore) {
-      return "text-cyan-600"; // 引き分け（水色）
+      return "text-cyan-600"; // 引き分け（水色）  
     } else {
       return "text-gray-900"; // 敗北または通常（黒色）
     }
@@ -97,7 +97,7 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
                       <span className={playerAColor}>{playerA.score}</span>
                       <span className={playerBColor}>{playerB.score}</span>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs mt-1 text-gray-500">
                       反則: {getHansokuDisplay(playerA.hansoku)} / {getHansokuDisplay(playerB.hansoku)}
                     </div>
                   </TableCell>
@@ -113,7 +113,7 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
             })}
           </TableBody>
         </Table>
-        
+
         {matches.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             試合データがありません

@@ -51,13 +51,13 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
                 {team.isApproved ? "承認済み" : "未承認"}
               </Badge>
             </CardTitle>
-            <div className="mt-2 text-sm text-gray-600 space-y-1">
+            <div className="mt-2 text-sm space-y-1 text-gray-600">
               <div>代表者: {team.representativeName}</div>
               <div>電話: {team.representativePhone}</div>
               <div>メール: {team.representativeEmail}</div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Link href={`/teams/edit/${team.teamId}`}>
               <Button variant="outline" size="sm">
@@ -65,7 +65,7 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
                 編集
               </Button>
             </Link>
-            
+
             {team.isApproved ? (
               <Button
                 variant="outline"
@@ -85,7 +85,7 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {/* 選手数表示とトグルボタン */}
         <button
@@ -99,7 +99,7 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
           )}
           <span className="font-medium">選手数: {team.players.length}人</span>
         </button>
-        
+
         {/* 選手一覧（展開時） */}
         {isPlayersExpanded && (
           <div className="mt-3 pl-6 space-y-2">
@@ -118,7 +118,7 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
             ))}
           </div>
         )}
-        
+
         {/* 備考 */}
         {team.remarks && (
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
@@ -126,13 +126,13 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
             <div className="text-sm text-blue-800">{team.remarks}</div>
           </div>
         )}
-        
+
         {/* 登録日時 */}
         <div className="mt-4 text-xs text-gray-500">
           登録日時: {team.createdAt.toLocaleDateString('ja-JP')} {team.createdAt.toLocaleTimeString('ja-JP')}
         </div>
       </CardContent>
-      
+
       {/* 確認ダイアログ */}
       {showConfirmDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
