@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { SkewedBackground } from "@/components/atoms/skewed-background";
 
 interface MonitorDisplayData {
   matchId: string;
@@ -260,7 +261,7 @@ export default function MonitorDisplayPage() {
         </div>
 
         {/* 中央セクション - 大会情報とタイマー */}
-        <div className="bg-gray-900 py-6 px-16">
+        <div className="bg-gray-900 py-6 px-16 relative">
           <div className="flex items-center justify-between">
             {/* 左側：大会情報 */}
             <div className="flex items-center gap-8 text-white">
@@ -268,18 +269,22 @@ export default function MonitorDisplayPage() {
               <span className="text-2xl">{data.courtName}</span>
               <span className="text-2xl">{data.round}</span>
             </div>
+          </div>
 
-            {/* 右側：タイマー */}
-            <div className="text-right">
-              <div
-                className={cn(
-                  "text-6xl font-mono font-black",
-                  data.isTimerRunning ? "text-green-400" : "text-white"
-                )}
-              >
-                {formatTime(data.timeRemaining)}
+          {/* 右側：タイマー - 斜めカット背景（絶対位置で中央線を超えて表示） */}
+          <div className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10">
+            <SkewedBackground className="px-24 py-0">
+              <div className="text-right">
+                <div
+                  className={cn(
+                    "text-[10rem] font-mono font-black",
+                    data.isTimerRunning ? "text-green-400" : "text-white"
+                  )}
+                >
+                  {formatTime(data.timeRemaining)}
+                </div>
               </div>
-            </div>
+            </SkewedBackground>
           </div>
         </div>
 
