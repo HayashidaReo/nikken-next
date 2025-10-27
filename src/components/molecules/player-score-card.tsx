@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { Label } from "@/components/atoms/label";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 export interface Player {
   teamName: string;

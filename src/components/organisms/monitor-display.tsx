@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 interface MonitorDisplayProps {
   className?: string;

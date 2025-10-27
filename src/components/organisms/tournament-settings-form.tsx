@@ -12,7 +12,7 @@ import {
 } from "@/components/atoms/card";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type { Tournament } from "@/types/tournament.schema";
 
 import { FormInput } from "@/components/molecules/form-input";

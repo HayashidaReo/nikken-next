@@ -1,13 +1,7 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
 /**
- * Tailwind CSSのクラス名を結合する関数
- * clsx + tailwind-merge の組み合わせ
+ * 選手バリアントの型定義
  */
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export type PlayerVariant = "red" | "white";
 
 /**
  * displayNameを生成するロジック（Cloud Function用）
@@ -61,34 +55,42 @@ export function generateDisplayNames(
 }
 
 /**
- * 反則による得点自動計算
- * 赤反則時に相手の得点を+1する
+ * 選手バリアントに応じたスタイルクラスを取得
  */
-export function calculateScoreFromHansoku(
-  currentScore: number,
-  newHansoku: number,
-  oldHansoku: number = 0
-): number {
-  let scoreChange = 0;
+export const getPlayerVariantStyles = (variant: PlayerVariant) => {
+    const styles = {
+        red: {
+            background: "bg-gradient-to-br from-red-600 to-red-800",
+            text: "text-white",
+            accent: "text-red-100"
+        },
+        white: {
+            background: "bg-gradient-to-br from-gray-300 to-gray-400",
+            text: "text-black",
+            accent: "text-gray-700"
+        }
+    };
 
-  // 赤反則になった場合（2: red, 4: red_red）
-  if ((newHansoku === 2 || newHansoku === 4) && oldHansoku < 2) {
-    scoreChange += 1;
-  }
+    return styles[variant];
+};
 
-  // 赤+黄から赤+赤になった場合
-  if (newHansoku === 4 && oldHansoku === 3) {
-    scoreChange += 1;
-  }
+/**
+ * 選手バリアントに応じた表示名を取得
+ */
+export const getPlayerDisplayName = (variant: PlayerVariant, playerName?: string): string => {
+    const defaultNames = {
+        red: "選手A",
+        white: "選手B"
+    };
 
-  // 反則が戻された場合
-  if ((oldHansoku === 2 || oldHansoku === 4) && newHansoku < 2) {
-    scoreChange -= 1;
-  }
+    return playerName || defaultNames[variant];
+};
 
-  if (oldHansoku === 4 && newHansoku === 3) {
-    scoreChange -= 1;
-  }
-
-  return Math.max(0, Math.min(2, currentScore + scoreChange));
-}
+/**
+ * 選手の位置設定を取得（上から/下からの配置）
+ */
+export const getPlayerPositionClass = (variant: PlayerVariant): string => {
+    return variant === "red"
+        ? "absolute top-5 right-16"
+        : "absolute bottom-5 right-16";
+};

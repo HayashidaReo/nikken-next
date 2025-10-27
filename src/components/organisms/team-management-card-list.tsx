@@ -11,7 +11,7 @@ import {
 } from "@/components/atoms/card";
 import { Badge } from "@/components/atoms/badge";
 import { ChevronDown, ChevronRight, Edit } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type { Team } from "@/types/team.schema";
 import { useToast } from "@/components/providers/notification-provider";
 

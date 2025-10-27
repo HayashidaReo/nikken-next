@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/atoms/table";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type { Match } from "@/types/match.schema";
 
 interface MatchListTableProps {

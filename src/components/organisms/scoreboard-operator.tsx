@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { usePresentation } from "@/hooks/usePresentation";
 import { useToast } from "@/components/providers/notification-provider";

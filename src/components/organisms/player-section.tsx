@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ScoreDisplay } from "@/components/molecules/score-display";
 import { PenaltyCards } from "@/components/molecules/penalty-cards";
-import { getPlayerVariantStyles, getPlayerDisplayName, getPlayerPositionClass, type PlayerVariant } from "@/lib/player-utils";
+import { getPlayerVariantStyles, getPlayerDisplayName, getPlayerPositionClass, type PlayerVariant } from "@/lib/utils/player-utils";
 import { type PlayerData } from "@/types/common";
 
 interface PlayerSectionProps {

@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { Switch } from "@/components/atoms/switch";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type { Team } from "@/types/team.schema";
 
 import { FormInput, FormTextarea } from "@/components/molecules/form-input";

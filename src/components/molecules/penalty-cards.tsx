@@ -1,5 +1,5 @@
 import * as React from "react";
-import { getPenaltyCards, getCardStyles } from "@/lib/penalty-utils";
+import { getPenaltyCards, getCardStyles } from "@/lib/utils/penalty-utils";
 import { type HansokuLevel } from "@/types/common";
 import { PenaltyBackground } from "@/components/atoms";
 

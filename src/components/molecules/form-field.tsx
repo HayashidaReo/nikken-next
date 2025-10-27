@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Label } from "@/components/atoms/label";
 import { Input } from "@/components/atoms/input";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 interface FormFieldProps {
   label: string;

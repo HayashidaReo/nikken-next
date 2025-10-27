@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/atoms/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import {
   ConfirmationDialog,
   PlayerListForm,

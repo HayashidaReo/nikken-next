@@ -1,6 +1,6 @@
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import { formatTime } from "@/lib/time-utils";
+import { cn } from "@/lib/utils/utils";
+import { formatTime } from "@/lib/utils/time-utils";
 import { SkewedBackground } from "@/components/atoms";
 
 interface TimerDisplayProps {

@@ -13,6 +13,39 @@ export interface PenaltyCard {
 }
 
 /**
+ * 反則による得点自動計算
+ * 赤反則時に相手の得点を+1する
+ */
+export function calculateScoreFromHansoku(
+  currentScore: number,
+  newHansoku: number,
+  oldHansoku: number = 0
+): number {
+  let scoreChange = 0;
+
+  // 赤反則になった場合（2: red, 4: red_red）
+  if ((newHansoku === 2 || newHansoku === 4) && oldHansoku < 2) {
+    scoreChange += 1;
+  }
+
+  // 赤+黄から赤+赤になった場合
+  if (newHansoku === 4 && oldHansoku === 3) {
+    scoreChange += 1;
+  }
+
+  // 反則が戻された場合
+  if ((oldHansoku === 2 || oldHansoku === 4) && newHansoku < 2) {
+    scoreChange -= 1;
+  }
+
+  if (oldHansoku === 4 && newHansoku === 3) {
+    scoreChange -= 1;
+  }
+
+  return Math.max(0, Math.min(2, currentScore + scoreChange));
+}
+
+/**
  * 反則レベルに応じたカード配列を取得
  */
 export const getPenaltyCards = (hansokuLevel: HansokuLevel): PenaltyCard[] => {

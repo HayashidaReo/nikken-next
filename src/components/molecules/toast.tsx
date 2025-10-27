@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type { Notification, NotificationType } from "@/hooks/useNotifications";
 
 interface ToastProps {

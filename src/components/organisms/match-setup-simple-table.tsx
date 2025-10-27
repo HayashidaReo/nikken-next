@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/atoms/table";
 import { Plus, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type { Team, Player } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
 import { useToast } from "@/components/providers/notification-provider";
