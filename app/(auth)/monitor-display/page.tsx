@@ -51,9 +51,9 @@ export default function MonitorDisplayPage() {
           close: () => void;
           terminate: () => void;
         };
-        
+
         setIsConnected(true);
-        
+
         // メッセージ受信リスナー
         conn.addEventListener('message', (messageEvent: Event) => {
           const msgEvent = messageEvent as MessageEvent;
@@ -155,8 +155,8 @@ export default function MonitorDisplayPage() {
       <div className="fixed top-4 right-4 z-50">
         <div className={cn(
           "px-3 py-1 rounded-full text-sm font-medium",
-          isConnected 
-            ? "bg-green-500 text-white" 
+          isConnected
+            ? "bg-green-500 text-white"
             : "bg-red-500 text-white"
         )}>
           {isConnected ? "接続中" : "未接続"}
