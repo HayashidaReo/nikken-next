@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import { Settings, LogOut } from "lucide-react";
@@ -9,6 +11,9 @@ import {
   TabsContent,
 } from "@/components/atoms/tabs";
 import { cn } from "@/lib/utils/utils";
+import { useAuthStore } from "@/store/use-auth-store";
+import { useAuthGuard } from "@/hooks/useAuth";
+import { useToast } from "@/components/providers/notification-provider";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -22,11 +27,23 @@ interface HeaderProps {
 }
 
 function Header({ tournamentName = "第50回全国日本拳法大会" }: HeaderProps) {
+  const { signOut } = useAuthStore();
+  const { showSuccess, showError } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      showSuccess("ログアウトしました");
+    } catch {
+      showError("ログアウトに失敗しました");
+    }
+  };
+
   return (
     <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* 左側：ロゴエリア */}
+          {/* 左側：ロゴとタイトル */}
           <div className="flex items-center">
             <Link href="/dashboard" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center">
@@ -50,12 +67,10 @@ function Header({ tournamentName = "第50回全国日本拳法大会" }: HeaderP
                   大会設定
                 </Button>
               </Link>
-              <Link href="/login">
-                <Button variant="ghost" size="sm">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  ログアウト
-                </Button>
-              </Link>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-2" />
+                ログアウト
+              </Button>
             </div>
           </div>
         </div>
@@ -70,6 +85,25 @@ export function MainLayout({
   activeTab = "matches",
   className,
 }: MainLayoutProps) {
+  const { isLoading, isAuthenticated } = useAuthGuard();
+
+  // 認証チェック中はローディング表示
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">認証状態を確認中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 未認証の場合は何も表示しない（useAuthGuardがリダイレクトする）
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className={cn("min-h-screen bg-gray-50", className)}>
       <Header tournamentName={tournamentName} />
