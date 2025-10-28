@@ -128,8 +128,8 @@ export default function TournamentSettingsPage() {
             </Link>
           </div>
 
-          <AuthenticatedHeader 
-            title="大会設定" 
+          <AuthenticatedHeader
+            title="大会設定"
             subtitle={currentTournament ? `大会ID: ${currentTournament.tournamentId}` : "デフォルト大会を設定"}
           />
 
