@@ -7,10 +7,11 @@ import {
   getPlayerPositionClass,
   type PlayerVariant,
 } from "@/lib/utils/player-utils";
-import { type PlayerData, type HansokuLevel } from "@/types/common";
+import { type MatchPlayer } from "@/types/match.schema";
+import { type HansokuLevel } from "@/lib/utils/penalty-utils";
 
 interface PlayerSectionProps {
-  player: PlayerData;
+  player: MatchPlayer;
   variant: PlayerVariant;
   className?: string;
 }

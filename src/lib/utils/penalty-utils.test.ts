@@ -1,4 +1,4 @@
-import { HANSOKU_LEVELS } from "@/types/common";
+import { HANSOKU_LEVELS } from "./penalty-utils";
 import {
   getPenaltyCards,
   getHansokuDescription,

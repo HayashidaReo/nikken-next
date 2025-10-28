@@ -1,5 +1,24 @@
 import * as React from "react";
-import { type MatchData } from "@/types/common";
+
+// ローカルの型定義（monitor用）
+interface PlayerData {
+  displayName: string;
+  teamName: string;
+  score: number;
+  hansoku: number;
+}
+
+interface MatchData {
+  matchId: string;
+  tournamentName: string;
+  courtName: string;
+  round: string;
+  playerA: PlayerData;
+  playerB: PlayerData;
+  timeRemaining: number;
+  isTimerRunning: boolean;
+  isPublic: boolean;
+}
 
 export function useMonitorData() {
   const [data, setData] = React.useState<MatchData>({

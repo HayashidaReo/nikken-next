@@ -1,11 +1,11 @@
 import * as React from "react";
 import { PlayerSection } from "@/components/organisms/player-section";
 import { CenterSection } from "@/components/organisms/center-section";
-import { type PlayerData } from "@/types/common";
+import { type MatchPlayer } from "@/types/match.schema";
 
 interface MonitorLayoutProps {
-  playerA: PlayerData;
-  playerB: PlayerData;
+  playerA: MatchPlayer;
+  playerB: MatchPlayer;
   tournamentName: string;
   courtName: string;
   round: string;
