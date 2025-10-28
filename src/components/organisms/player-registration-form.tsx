@@ -36,7 +36,14 @@ const playerRegistrationSchema = z.object({
   players: z
     .array(
       z.object({
-        fullName: z.string().min(1, "選手名は必須です"),
+        fullName: z
+          .string()
+          .min(1, "選手名は必須です")
+          .refine((name) => {
+            const trimmed = name.trim();
+            const parts = trimmed.split(/\s+/);
+            return parts.length >= 2 && parts.every(part => part.length > 0);
+          }, "選手名は「姓 名」の形式で、姓と名の間に半角スペースを入れてください"),
       })
     )
     .min(1, "最低1人の選手を登録してください"),

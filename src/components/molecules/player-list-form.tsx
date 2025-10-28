@@ -42,12 +42,12 @@ export function PlayerListForm({
           <div key={field.id} className="flex gap-2 items-start">
             <div className="flex-1">
               <Label htmlFor={`players.${index}.fullName`}>
-                選手名 {index + 1}
+                選手名 {index + 1} <span className="text-sm text-gray-600">（姓と名の間に半角スペースを入力）</span>
               </Label>
               <Input
                 {...register(`players.${index}.fullName`)}
                 id={`players.${index}.fullName`}
-                placeholder="選手の氏名を入力"
+                placeholder="例: 山田 太郎"
                 className={
                   errors.players?.[index]?.fullName ? "border-red-500" : ""
                 }
