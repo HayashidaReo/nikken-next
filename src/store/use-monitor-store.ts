@@ -41,7 +41,7 @@ interface MonitorState {
   startTimer: () => void;
   stopTimer: () => void;
   togglePublic: () => void;
-  saveMatchResult: () => Promise<void>;
+  saveMatchResult: (onSuccess?: () => void) => Promise<void>;
 }
 
 export const useMonitorStore = create<MonitorState>((set, get) => ({
