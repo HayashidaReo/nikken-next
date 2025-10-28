@@ -14,23 +14,51 @@ export default function TournamentSettingsPage() {
   const { showSuccess, showError } = useToast();
   const { orgId } = useOrganizationId();
   const {
+    tournaments,
     currentTournament,
     isLoading,
     error,
     fetchTournaments,
     updateTournament,
+    selectTournament,
+    createOrganizationForUser,
   } = useTournament();
 
+  // showErrorを安定化
+  const stableShowError = React.useCallback((message: string) => {
+    showError(message);
+  }, [showError]);
+
   const [isNewTournament, setIsNewTournament] = React.useState(false);
+  const [isCreatingOrg, setIsCreatingOrg] = React.useState(false);
+
+  // 組織作成ハンドラー
+  const handleCreateOrganization = React.useCallback(async () => {
+    setIsCreatingOrg(true);
+    try {
+      const result = await createOrganizationForUser();
+      showSuccess(`組織が作成されました: ${result.orgId}`);
+
+      // 組織作成後、大会一覧を再取得
+      if (result.orgId) {
+        await fetchTournaments(result.orgId);
+      }
+    } catch (error) {
+      console.error("組織作成エラー:", error);
+      stableShowError(error instanceof Error ? error.message : "組織作成に失敗しました");
+    } finally {
+      setIsCreatingOrg(false);
+    }
+  }, [createOrganizationForUser, showSuccess, fetchTournaments, stableShowError]);
 
   // 組織IDが設定されたら大会一覧を取得
   React.useEffect(() => {
     if (orgId) {
       fetchTournaments(orgId).catch((error) => {
-        showError(error.message);
+        stableShowError(error.message);
       });
     }
-  }, [orgId, fetchTournaments, showError]);
+  }, [orgId, fetchTournaments, stableShowError]);
 
   const handleSave = async (data: {
     tournamentName: string;
@@ -46,6 +74,11 @@ export default function TournamentSettingsPage() {
 
     if (!currentTournament) {
       showError("大会が選択されていません");
+      return;
+    }
+
+    if (!currentTournament.tournamentId) {
+      showError("大会IDが無効です");
       return;
     }
 
@@ -105,9 +138,20 @@ export default function TournamentSettingsPage() {
             <AuthenticatedHeader title="大会設定" />
             <div className="mt-8 text-center">
               <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={() => window.location.reload()}>
-                再読み込み
-              </Button>
+              <div className="flex gap-4 justify-center">
+                <Button onClick={() => window.location.reload()}>
+                  再読み込み
+                </Button>
+                {error.includes("組織が見つかりません") && (
+                  <Button
+                    onClick={handleCreateOrganization}
+                    disabled={isCreatingOrg}
+                    variant="outline"
+                  >
+                    {isCreatingOrg ? "作成中..." : "🏢 組織を作成"}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

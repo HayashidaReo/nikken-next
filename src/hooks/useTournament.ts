@@ -1,32 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import type { Tournament } from "@/types/tournament.schema";
+import { useAuth } from "@/hooks/useAuth";
 
-interface Tournament {
-    tournamentId: string;
-    tournamentName: string;
-    tournamentDate: string;
-    location: string;
-    defaultMatchTime: number;
-    courts: Array<{ courtId: string; courtName: string }>;
+// APIレスポンス用の型（createdAt, updatedAtは文字列）
+interface TournamentResponse extends Omit<Tournament, 'createdAt' | 'updatedAt'> {
     createdAt: string;
     updatedAt: string;
+    tournamentId?: string;
 }
 
 /**
- * 大会データを管理するhook
+ * 大会管理用のカスタムフック
  * 組織内の大会取得、個別大会取得、大会更新を行う
  */
 export function useTournament() {
-    const [tournaments, setTournaments] = useState<Tournament[]>([]);
-    const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
+    const [tournaments, setTournaments] = useState<TournamentResponse[]>([]);
+    const [currentTournament, setCurrentTournament] = useState<TournamentResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { user } = useAuth();
+
+    /**
+     * 現在のユーザー用の組織を作成
+     */
+    const createOrganizationForUser = useCallback(async (): Promise<{ message: string; orgId: string }> => {
+        if (!user) {
+            throw new Error("ログインが必要です");
+        }
+
+        // Firebase Authから直接IDトークンを取得
+        const auth = await import("firebase/auth");
+        const currentUser = auth.getAuth().currentUser;
+        if (!currentUser) {
+            throw new Error("認証状態が無効です");
+        }
+
+        const token = await currentUser.getIdToken();
+
+        const response = await fetch("/api/organizations/create-for-user", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "組織作成に失敗しました");
+        }
+
+        return response.json();
+    }, [user]);
 
     /**
      * 組織内の全大会を取得
      */
-    const fetchTournaments = async (orgId: string) => {
+    const fetchTournaments = useCallback(async (orgId: string) => {
         setIsLoading(true);
         setError(null);
 
@@ -59,12 +91,12 @@ export function useTournament() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     /**
      * 特定の大会を取得
      */
-    const fetchTournament = async (orgId: string, tournamentId: string) => {
+    const fetchTournament = useCallback(async (orgId: string, tournamentId: string) => {
         setIsLoading(true);
         setError(null);
 
@@ -92,12 +124,12 @@ export function useTournament() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     /**
      * 大会情報を更新
      */
-    const updateTournament = async (
+    const updateTournament = useCallback(async (
         orgId: string,
         tournamentId: string,
         tournamentData: Partial<Tournament>
@@ -119,22 +151,8 @@ export function useTournament() {
                 throw new Error(errorData.error || "大会情報の更新に失敗しました");
             }
 
-            // ローカル状態を更新
-            if (currentTournament && currentTournament.tournamentId === tournamentId) {
-                setCurrentTournament({
-                    ...currentTournament,
-                    ...tournamentData,
-                });
-            }
-
-            // 大会一覧も更新
-            setTournaments(prev =>
-                prev.map(t =>
-                    t.tournamentId === tournamentId
-                        ? { ...t, ...tournamentData }
-                        : t
-                )
-            );
+            // 更新後に大会情報を再取得して状態を同期
+            await fetchTournament(orgId, tournamentId);
 
             return true;
         } catch (error) {
@@ -144,21 +162,21 @@ export function useTournament() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [fetchTournament]);
 
     /**
      * 現在の大会を設定
      */
-    const selectTournament = (tournament: Tournament) => {
+    const selectTournament = useCallback((tournament: TournamentResponse) => {
         setCurrentTournament(tournament);
-    };
+    }, []);
 
     /**
      * エラーをクリア
      */
-    const clearError = () => {
+    const clearError = useCallback(() => {
         setError(null);
-    };
+    }, []);
 
     return {
         tournaments,
@@ -170,31 +188,19 @@ export function useTournament() {
         updateTournament,
         selectTournament,
         clearError,
+        createOrganizationForUser,
     };
 }
 
 /**
- * 組織IDを管理するhook（現在は仮実装）
- * 実際にはログインユーザーの組織情報から取得する
+ * 組織IDを管理するhook
+ * ユーザーのUIDを組織IDとして使用
  */
 export function useOrganizationId() {
-    // TODO: 認証から組織IDを取得する実装
-    // 現在はハードコード（デモ用）
-    const [orgId, setOrgId] = useState<string | null>(() => {
-        // 初期値としてLocalStorageから取得
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem("currentOrgId");
-        }
-        return null;
-    });
+    const { user } = useAuth();
 
-    // 組織IDを設定し、LocalStorageにも保存
-    const updateOrgId = (newOrgId: string) => {
-        setOrgId(newOrgId);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem("currentOrgId", newOrgId);
-        }
-    };
+    // ユーザーのUIDを組織IDとして使用
+    const orgId = user?.uid || null;
 
-    return { orgId, setOrgId: updateOrgId };
+    return { orgId };
 }
