@@ -19,7 +19,6 @@ export default function MatchSetupPage() {
       playerBId: string;
     }[]
   ) => {
-    console.log("試合の組み合わせを保存:", matches);
     showSuccess(`${matches.length}件の試合を設定しました`);
   };
 

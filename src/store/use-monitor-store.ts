@@ -169,12 +169,6 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   },
 
   saveMatchResult: async (onSuccess?: () => void) => {
-    const state = get();
-    console.log("試合結果を保存:", {
-      matchId: state.matchId,
-      playerA: state.playerA,
-      playerB: state.playerB,
-    });
     // TODO: Firestoreへの保存ロジックを実装
 
     // 成功時のコールバック実行

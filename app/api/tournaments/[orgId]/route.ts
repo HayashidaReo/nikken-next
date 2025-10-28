@@ -12,23 +12,10 @@ export async function GET(
     let orgId: string | undefined;
 
     try {
-        console.log("=== Tournament API Debug Start ===");
-        console.log("Raw params (before await):", params);
-        console.log("Raw request URL:", request.url);
-
         const paramsResolved = await params;
         orgId = paramsResolved.orgId;
 
-        console.log("Resolved orgId:", orgId);
-        console.log("Type of orgId:", typeof orgId);
-        console.log("Length of orgId:", orgId?.length);
-
         if (!orgId || typeof orgId !== 'string' || orgId.trim() === '') {
-            console.log("❌ Invalid orgId - validation failed");
-            console.log("Validation details:");
-            console.log("  - !orgId:", !orgId);
-            console.log("  - typeof orgId !== 'string':", typeof orgId !== 'string');
-            console.log("  - orgId.trim() === '':", orgId?.trim() === '');
             return Response.json(
                 { error: '組織IDが無効です' },
                 { status: 400 }
@@ -42,22 +29,13 @@ export async function GET(
             throw new Error("Firebase Admin DB が初期化されていません");
         }
 
-        console.log("✅ Fetching tournaments for orgId:", orgId);
-
         // まず組織が存在するか確認
-        console.log("Checking if organization exists:", orgId);
         const orgDoc = await adminDb
             .collection("organizations")
             .doc(orgId)
             .get();
 
-        console.log("Organization document exists:", orgDoc.exists);
-        if (orgDoc.exists) {
-            console.log("Organization data:", orgDoc.data());
-        }
-
         if (!orgDoc.exists) {
-            console.log("Organization not found:", orgId);
             return NextResponse.json(
                 {
                     error: "指定された組織が見つかりません",
@@ -65,34 +43,29 @@ export async function GET(
                 },
                 { status: 404 }
             );
-        }
-
-        console.log("Organization exists, fetching tournaments");
-
-        // Firestoreから組織内の全大会を取得
-        const tournamentsSnapshot = await adminDb
+        }                // 大会一覧を取得
+        const tournamentsRef = adminDb
             .collection("organizations")
             .doc(orgId)
-            .collection("tournaments")
-            .orderBy("createdAt", "desc")
-            .get();
+            .collection("tournaments");
 
-        console.log("Found tournaments count:", tournamentsSnapshot.docs.length);
+        const snapshot = await tournamentsRef.get();
 
-        const tournaments = tournamentsSnapshot.docs.map(doc => {
+        const tournaments = snapshot.docs.map((doc) => {
             const data = doc.data();
-            console.log("Tournament raw data:", data);
+
             return {
-                tournamentId: doc.id,
+                id: doc.id,
                 ...data,
-                createdAt: data.createdAt?.toDate().toISOString(),
-                updatedAt: data.updatedAt?.toDate().toISOString(),
+                createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
+                updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
             };
         });
 
-        console.log("Processed tournaments:", tournaments);
-
-        return NextResponse.json({ tournaments });
+        return NextResponse.json({
+            success: true,
+            data: tournaments,
+        });
 
     } catch (error) {
         console.error("❌ Tournaments fetch error:", error);

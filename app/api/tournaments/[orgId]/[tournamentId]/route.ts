@@ -43,8 +43,6 @@ export async function GET(
             );
         }
 
-        console.log("Tournament raw data:", tournamentData);
-
         // TimestampをISOStringに変換
         const tournament = {
             tournamentId: tournamentDoc.id,
@@ -52,8 +50,6 @@ export async function GET(
             createdAt: tournamentData?.createdAt?.toDate().toISOString(),
             updatedAt: tournamentData?.updatedAt?.toDate().toISOString(),
         };
-
-        console.log("Tournament processed data:", tournament);
 
         return NextResponse.json({ tournament });
 

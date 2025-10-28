@@ -22,7 +22,6 @@ export default function PlayerRegistrationPage() {
     }
 
     const result = await response.json();
-    console.log("登録成功:", result);
 
     return result;
   };

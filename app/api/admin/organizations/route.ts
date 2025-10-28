@@ -75,20 +75,14 @@ export async function POST(request: NextRequest) {
             updatedAt: now,
         };
 
-        console.log("Creating default tournament:", defaultTournament);
-
         const tournamentRef = await adminDb
             .collection("organizations")
             .doc(orgRef.id)
             .collection("tournaments")
             .add(defaultTournament);
 
-        console.log("Created tournament with ID:", tournamentRef.id);
-
         // tournamentIdを追加
         await tournamentRef.update({ tournamentId: tournamentRef.id });
-
-        console.log("Updated tournament with tournamentId field");
 
         return NextResponse.json({
             success: true,

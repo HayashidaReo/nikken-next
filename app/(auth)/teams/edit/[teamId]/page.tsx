@@ -51,7 +51,6 @@ export default function TeamEditPage() {
     }[];
   }) => {
     // TODO: 実際のAPIコールでFirestoreに保存
-    console.log("チーム情報を保存:", data);
 
     // 保存完了のメッセージ
     showSuccess(`「${data.teamName}」の情報を更新しました`);

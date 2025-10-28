@@ -2,35 +2,51 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import { TournamentSettingsForm } from "@/components/organisms/tournament-settings-form";
+import { Input } from "@/components/atoms/input";
+import { Label } from "@/components/atoms/label";
 import { useToast } from "@/components/providers/notification-provider";
 import { useTournament, useOrganizationId } from "@/hooks/useTournament";
 import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
 import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
+import type { Tournament } from "@/types/tournament.schema";
 
 export default function TournamentSettingsPage() {
   const { showSuccess, showError } = useToast();
   const { orgId } = useOrganizationId();
   const {
     tournaments,
-    currentTournament,
     isLoading,
     error,
     fetchTournaments,
     updateTournament,
-    selectTournament,
     createOrganizationForUser,
   } = useTournament();
+
+  // 状態管理
+  const [selectedTournamentId, setSelectedTournamentId] = React.useState<string | null>(null);
+  const [isAddingNew, setIsAddingNew] = React.useState(false);
+  const [isCreatingOrg, setIsCreatingOrg] = React.useState(false);
+  const [formData, setFormData] = React.useState<Tournament>({
+    tournamentName: "",
+    tournamentDate: "",
+    location: "",
+    defaultMatchTime: 180, // 3分 = 180秒
+    courts: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  // 選択されている大会
+  const selectedTournament = selectedTournamentId
+    ? tournaments.find(t => t.tournamentId === selectedTournamentId)
+    : null;
 
   // showErrorを安定化
   const stableShowError = React.useCallback((message: string) => {
     showError(message);
   }, [showError]);
-
-  const [isNewTournament, setIsNewTournament] = React.useState(false);
-  const [isCreatingOrg, setIsCreatingOrg] = React.useState(false);
 
   // 組織作成ハンドラー
   const handleCreateOrganization = React.useCallback(async () => {
@@ -39,7 +55,6 @@ export default function TournamentSettingsPage() {
       const result = await createOrganizationForUser();
       showSuccess(`組織が作成されました: ${result.orgId}`);
 
-      // 組織作成後、大会一覧を再取得
       if (result.orgId) {
         await fetchTournaments(result.orgId);
       }
@@ -60,51 +75,122 @@ export default function TournamentSettingsPage() {
     }
   }, [orgId, fetchTournaments, stableShowError]);
 
-  const handleSave = async (data: {
-    tournamentName: string;
-    tournamentDate: string;
-    location: string;
-    defaultMatchTime: number;
-    courts: { courtId: string; courtName: string }[];
-  }) => {
+  // 大会選択ハンドラー
+  const handleSelectTournament = (tournamentId: string) => {
+    setSelectedTournamentId(tournamentId);
+    setIsAddingNew(false);
+
+    const tournament = tournaments.find(t => t.tournamentId === tournamentId);
+    if (tournament) {
+      setFormData({
+        tournamentName: tournament.tournamentName,
+        tournamentDate: tournament.tournamentDate,
+        location: tournament.location,
+        defaultMatchTime: tournament.defaultMatchTime,
+        courts: tournament.courts || [],
+        createdAt: new Date(tournament.createdAt),
+        updatedAt: new Date(tournament.updatedAt),
+      });
+    }
+  };
+
+  // 新規大会追加ハンドラー
+  const handleAddNewTournament = () => {
+    setSelectedTournamentId(null);
+    setIsAddingNew(true);
+    setFormData({
+      tournamentName: "",
+      tournamentDate: "",
+      location: "",
+      defaultMatchTime: 180,
+      courts: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  };
+
+  // フォーム保存ハンドラー
+  const handleSave = async () => {
     if (!orgId) {
       showError("組織IDが設定されていません");
       return;
     }
 
-    if (!currentTournament) {
-      showError("大会が選択されていません");
-      return;
-    }
-
-    if (!currentTournament.tournamentId) {
-      showError("大会IDが無効です");
+    if (!formData.tournamentName.trim()) {
+      showError("大会名を入力してください");
       return;
     }
 
     try {
-      await updateTournament(orgId, currentTournament.tournamentId, data);
-      showSuccess("大会設定を更新しました");
-      setIsNewTournament(false);
+      if (isAddingNew) {
+        // 新規作成
+        showError("新規作成機能は実装中です");
+      } else if (selectedTournamentId) {
+        // 更新
+        await updateTournament(orgId, selectedTournamentId, formData);
+        showSuccess("大会設定を更新しました");
+        await fetchTournaments(orgId);
+      }
     } catch (error) {
-      showError(error instanceof Error ? error.message : "大会の更新に失敗しました");
+      showError(error instanceof Error ? error.message : "保存に失敗しました");
     }
   };
 
-  // 組織IDが設定されていない場合の表示
+  // コート追加ハンドラー
+  const handleAddCourt = () => {
+    setFormData(prev => ({
+      ...prev,
+      courts: [...prev.courts, { courtId: "", courtName: "" }]
+    }));
+  };
+
+  // コート削除ハンドラー
+  const handleRemoveCourt = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      courts: prev.courts.filter((_, i) => i !== index)
+    }));
+  };
+
+  // コート更新ハンドラー
+  const handleUpdateCourt = (index: number, field: "courtId" | "courtName", value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      courts: prev.courts.map((court, i) =>
+        i === index ? { ...court, [field]: value } : court
+      )
+    }));
+  };
+
+  // フォームフィールド更新ハンドラー
+  const handleFormChange = (field: keyof Tournament, value: string | number | Date | { courtId: string; courtName: string }[]) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // 時間を分:秒形式に変換
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // 分:秒形式から秒に変換
+  const parseTime = (timeString: string) => {
+    const [minutes, seconds] = timeString.split(':').map(Number);
+    return (minutes || 0) * 60 + (seconds || 0);
+  };
+
+  // 組織IDが設定されていない場合
   if (!orgId) {
     return (
       <AuthGuardWrapper>
         <div className="min-h-screen bg-gray-50 py-8 px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <AuthenticatedHeader title="大会設定" />
             <div className="mt-8 text-center">
               <p className="text-gray-600 mb-4">
                 大会を設定するには、まず組織を選択してください。
               </p>
-              <Link href="/organization-management">
-                <Button>組織管理に戻る</Button>
-              </Link>
             </div>
           </div>
         </div>
@@ -117,7 +203,7 @@ export default function TournamentSettingsPage() {
     return (
       <AuthGuardWrapper>
         <div className="min-h-screen bg-gray-50 py-8 px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <AuthenticatedHeader title="大会設定" />
             <div className="mt-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -134,7 +220,7 @@ export default function TournamentSettingsPage() {
     return (
       <AuthGuardWrapper>
         <div className="min-h-screen bg-gray-50 py-8 px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <AuthenticatedHeader title="大会設定" />
             <div className="mt-8 text-center">
               <p className="text-red-600 mb-4">{error}</p>
@@ -162,7 +248,7 @@ export default function TournamentSettingsPage() {
   return (
     <AuthGuardWrapper>
       <div className="min-h-screen bg-gray-50 py-8 px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <Link href="/dashboard">
               <Button variant="outline">
@@ -174,28 +260,178 @@ export default function TournamentSettingsPage() {
 
           <AuthenticatedHeader
             title="大会設定"
-            subtitle={currentTournament ? `大会ID: ${currentTournament.tournamentId}` : "デフォルト大会を設定"}
+            subtitle="大会の編集・新規追加・削除を行う管理画面"
           />
 
-          <div className="mt-8">
-            {currentTournament ? (
-              <TournamentSettingsForm
-                tournament={{
-                  ...currentTournament,
-                  createdAt: new Date(currentTournament.createdAt),
-                  updatedAt: new Date(currentTournament.updatedAt),
-                }}
-                onSave={handleSave}
-                isNewTournament={isNewTournament}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-64 bg-white rounded-lg border border-gray-200">
-                <div className="text-center text-gray-500">
-                  <p className="text-lg font-medium">大会情報が見つかりません</p>
-                  <p className="text-sm">組織にデフォルト大会が作成されていない可能性があります</p>
+          <div className="mt-8 flex gap-8">
+            {/* 左側: 大会一覧エリア */}
+            <div className="w-1/3">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold mb-4">大会一覧</h3>
+
+                {/* 新規追加ボタン */}
+                <Button
+                  onClick={handleAddNewTournament}
+                  className="w-full mb-4"
+                  variant="outline"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  新しい大会を追加
+                </Button>
+
+                {/* 大会リスト */}
+                <div className="space-y-2">
+                  {tournaments.map((tournament) => (
+                    <button
+                      key={tournament.tournamentId}
+                      onClick={() => tournament.tournamentId && handleSelectTournament(tournament.tournamentId)}
+                      className={`w-full text-left p-3 rounded-md border transition-colors ${selectedTournamentId === tournament.tournamentId
+                          ? "bg-blue-50 border-blue-300 text-blue-900"
+                          : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                        }`}
+                    >
+                      <div className="font-medium">
+                        {tournament.tournamentName || "未設定の大会"}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {tournament.tournamentDate || "開催日未定"}
+                      </div>
+                    </button>
+                  ))}
+
+                  {tournaments.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                      <p>大会がありません</p>
+                      <p className="text-sm">新しい大会を追加してください</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* 右側: 大会詳細フォーム */}
+            <div className="flex-1">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-semibold">
+                    {isAddingNew ? "新規大会作成" : selectedTournament ? "大会編集" : "大会を選択してください"}
+                  </h3>
+                  {(selectedTournament || isAddingNew) && (
+                    <Button onClick={handleSave}>
+                      保存
+                    </Button>
+                  )}
+                </div>
+
+                {(selectedTournament || isAddingNew) ? (
+                  <div className="space-y-6">
+                    {/* 大会名 */}
+                    <div>
+                      <Label htmlFor="tournamentName">大会名</Label>
+                      <Input
+                        id="tournamentName"
+                        value={formData.tournamentName}
+                        onChange={(e) => handleFormChange("tournamentName", e.target.value)}
+                        placeholder="大会名を入力してください"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    {/* 開催日 */}
+                    <div>
+                      <Label htmlFor="tournamentDate">開催日</Label>
+                      <Input
+                        id="tournamentDate"
+                        value={formData.tournamentDate}
+                        onChange={(e) => handleFormChange("tournamentDate", e.target.value)}
+                        placeholder="例: 2024年3月15日"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    {/* 開催場所 */}
+                    <div>
+                      <Label htmlFor="location">開催場所</Label>
+                      <Input
+                        id="location"
+                        value={formData.location}
+                        onChange={(e) => handleFormChange("location", e.target.value)}
+                        placeholder="開催場所を入力してください"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    {/* デフォルト試合時間 */}
+                    <div>
+                      <Label htmlFor="defaultMatchTime">デフォルト試合時間</Label>
+                      <Input
+                        id="defaultMatchTime"
+                        value={formatTime(formData.defaultMatchTime)}
+                        onChange={(e) => handleFormChange("defaultMatchTime", parseTime(e.target.value))}
+                        placeholder="例: 03:00"
+                        className="mt-1"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">形式: MM:SS (例: 03:00 = 3分)</p>
+                    </div>
+
+                    {/* コート情報 */}
+                    <div>
+                      <div className="flex justify-between items-center mb-3">
+                        <Label>会場のコート情報</Label>
+                        <Button
+                          type="button"
+                          onClick={handleAddCourt}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          コート追加
+                        </Button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {formData.courts.map((court, index) => (
+                          <div key={index} className="flex gap-3 items-center">
+                            <div className="flex-1">
+                              <Input
+                                value={court.courtId}
+                                onChange={(e) => handleUpdateCourt(index, "courtId", e.target.value)}
+                                placeholder="コートID (例: A, B, 1, 2)"
+                              />
+                            </div>
+                            <div className="flex-2">
+                              <Input
+                                value={court.courtName}
+                                onChange={(e) => handleUpdateCourt(index, "courtName", e.target.value)}
+                                placeholder="コート名 (例: Aコート, メインコート)"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              onClick={() => handleRemoveCourt(index)}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+
+                        {formData.courts.length === 0 && (
+                          <div className="text-center text-gray-500 py-4 border-2 border-dashed border-gray-300 rounded-lg">
+                            コートが登録されていません
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-12">
+                    <p className="text-lg">左側から大会を選択するか、新しい大会を追加してください</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
