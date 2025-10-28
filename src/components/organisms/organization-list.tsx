@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
 import { useToast } from "@/components/providers/notification-provider";
+import { Button } from "@/components/atoms/button";
+import { useRouter } from "next/navigation";
+import { useOrganizationId } from "@/hooks/useTournament";
 
 interface Organization {
     id: string;
@@ -21,7 +24,9 @@ interface Organization {
 export function OrganizationList() {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
+    const router = useRouter();
+    const { setOrgId } = useOrganizationId();
 
     useEffect(() => {
         const fetchOrganizations = async () => {
@@ -50,6 +55,14 @@ export function OrganizationList() {
 
         fetchOrganizations();
     }, [showError]);
+
+    const handleManageOrganization = (orgId: string, orgName: string) => {
+        // 組織IDを設定
+        setOrgId(orgId);
+        showSuccess(`組織「${orgName}」を選択しました`);
+        // 大会設定ページに移動
+        router.push('/tournament-settings');
+    };
 
     if (isLoading) {
         return (
@@ -100,9 +113,18 @@ export function OrganizationList() {
                                         <span className="ml-2 font-mono text-xs">{org.adminUid}</span>
                                     </div>
                                 </div>
-                                <div className="flex justify-between text-xs text-gray-500 pt-2 border-t">
-                                    <span>作成日: {new Date(org.createdAt).toLocaleDateString()}</span>
-                                    <span>更新日: {new Date(org.updatedAt).toLocaleDateString()}</span>
+                                <div className="flex justify-between items-center pt-3 border-t">
+                                    <div className="text-xs text-gray-500 space-y-1">
+                                        <div>作成日: {new Date(org.createdAt).toLocaleDateString()}</div>
+                                        <div>更新日: {new Date(org.updatedAt).toLocaleDateString()}</div>
+                                    </div>
+                                    <Button
+                                        onClick={() => handleManageOrganization(org.id, org.orgName)}
+                                        size="sm"
+                                        variant="outline"
+                                    >
+                                        大会管理
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>

@@ -5,28 +5,32 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { TournamentSettingsForm } from "@/components/organisms/tournament-settings-form";
-import { TournamentList } from "@/components/organisms/tournament-list";
-import { useCreateTournament, useUpdateTournament } from "@/queries/use-tournaments";
 import { useToast } from "@/components/providers/notification-provider";
-import type { Tournament, TournamentCreate } from "@/types/tournament.schema";
+import { useTournament, useOrganizationId } from "@/hooks/useTournament";
+import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
+import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
 
 export default function TournamentSettingsPage() {
   const { showSuccess, showError } = useToast();
-  const { mutate: createTournament } = useCreateTournament();
-  const { mutate: updateTournament } = useUpdateTournament();
+  const { orgId } = useOrganizationId();
+  const {
+    currentTournament,
+    isLoading,
+    error,
+    fetchTournaments,
+    updateTournament,
+  } = useTournament();
 
-  const [selectedTournament, setSelectedTournament] = React.useState<Tournament | null>(null);
   const [isNewTournament, setIsNewTournament] = React.useState(false);
 
-  const handleTournamentSelect = (tournament: Tournament) => {
-    setSelectedTournament(tournament);
-    setIsNewTournament(false);
-  };
-
-  const handleNewTournament = () => {
-    setSelectedTournament(null);
-    setIsNewTournament(true);
-  };
+  // 組織IDが設定されたら大会一覧を取得
+  React.useEffect(() => {
+    if (orgId) {
+      fetchTournaments(orgId).catch((error) => {
+        showError(error.message);
+      });
+    }
+  }, [orgId, fetchTournaments, showError]);
 
   const handleSave = async (data: {
     tournamentName: string;
@@ -35,93 +39,122 @@ export default function TournamentSettingsPage() {
     defaultMatchTime: number;
     courts: { courtId: string; courtName: string }[];
   }) => {
-    if (isNewTournament) {
-      // 新規作成
-      const newTournament: TournamentCreate = {
-        tournamentName: data.tournamentName,
-        tournamentDate: data.tournamentDate,
-        location: data.location,
-        defaultMatchTime: data.defaultMatchTime,
-        courts: data.courts,
-      };
+    if (!orgId) {
+      showError("組織IDが設定されていません");
+      return;
+    }
 
-      createTournament(newTournament, {
-        onSuccess: (createdTournament) => {
-          showSuccess(`「${data.tournamentName}」を作成しました`);
-          setSelectedTournament(createdTournament);
-          setIsNewTournament(false);
-        },
-        onError: (error) => {
-          showError(`大会の作成に失敗しました: ${error.message}`);
-        },
-      });
-    } else if (selectedTournament) {
-      // 既存の大会を更新
-      updateTournament(
-        {
-          tournamentId: selectedTournament.tournamentId!,
-          patch: {
-            tournamentName: data.tournamentName,
-            tournamentDate: data.tournamentDate,
-            location: data.location,
-            defaultMatchTime: data.defaultMatchTime,
-            courts: data.courts,
-          },
-        },
-        {
-          onSuccess: (updatedTournament) => {
-            showSuccess(`「${data.tournamentName}」を更新しました`);
-            setSelectedTournament(updatedTournament);
-          },
-          onError: (error) => {
-            showError(`大会の更新に失敗しました: ${error.message}`);
-          },
-        }
-      );
+    if (!currentTournament) {
+      showError("大会が選択されていません");
+      return;
+    }
+
+    try {
+      await updateTournament(orgId, currentTournament.tournamentId, data);
+      showSuccess("大会設定を更新しました");
+      setIsNewTournament(false);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "大会の更新に失敗しました");
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <Link href="/dashboard">
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              ダッシュボードに戻る
-            </Button>
-          </Link>
+  // 組織IDが設定されていない場合の表示
+  if (!orgId) {
+    return (
+      <AuthGuardWrapper>
+        <div className="min-h-screen bg-gray-50 py-8 px-4">
+          <div className="max-w-4xl mx-auto">
+            <AuthenticatedHeader title="大会設定" />
+            <div className="mt-8 text-center">
+              <p className="text-gray-600 mb-4">
+                大会を設定するには、まず組織を選択してください。
+              </p>
+              <Link href="/organization-management">
+                <Button>組織管理に戻る</Button>
+              </Link>
+            </div>
+          </div>
         </div>
+      </AuthGuardWrapper>
+    );
+  }
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 左側: 大会一覧 */}
-          <div className="lg:col-span-1">
-            <TournamentList
-              selectedTournamentId={selectedTournament?.tournamentId || null}
-              onTournamentSelect={handleTournamentSelect}
-              onNewTournament={handleNewTournament}
-            />
+  // ローディング表示
+  if (isLoading) {
+    return (
+      <AuthGuardWrapper>
+        <div className="min-h-screen bg-gray-50 py-8 px-4">
+          <div className="max-w-4xl mx-auto">
+            <AuthenticatedHeader title="大会設定" />
+            <div className="mt-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">大会情報を読み込み中...</p>
+            </div>
+          </div>
+        </div>
+      </AuthGuardWrapper>
+    );
+  }
+
+  // エラー表示
+  if (error) {
+    return (
+      <AuthGuardWrapper>
+        <div className="min-h-screen bg-gray-50 py-8 px-4">
+          <div className="max-w-4xl mx-auto">
+            <AuthenticatedHeader title="大会設定" />
+            <div className="mt-8 text-center">
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()}>
+                再読み込み
+              </Button>
+            </div>
+          </div>
+        </div>
+      </AuthGuardWrapper>
+    );
+  }
+
+  return (
+    <AuthGuardWrapper>
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <Link href="/dashboard">
+              <Button variant="outline">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                ダッシュボードに戻る
+              </Button>
+            </Link>
           </div>
 
-          {/* 右側: 大会詳細フォーム */}
-          <div className="lg:col-span-2">
-            {selectedTournament || isNewTournament ? (
+          <AuthenticatedHeader 
+            title="大会設定" 
+            subtitle={currentTournament ? `大会ID: ${currentTournament.tournamentId}` : "デフォルト大会を設定"}
+          />
+
+          <div className="mt-8">
+            {currentTournament ? (
               <TournamentSettingsForm
-                tournament={selectedTournament}
+                tournament={{
+                  ...currentTournament,
+                  createdAt: new Date(currentTournament.createdAt),
+                  updatedAt: new Date(currentTournament.updatedAt),
+                }}
                 onSave={handleSave}
                 isNewTournament={isNewTournament}
               />
             ) : (
               <div className="flex items-center justify-center h-64 bg-white rounded-lg border border-gray-200">
                 <div className="text-center text-gray-500">
-                  <p className="text-lg font-medium">大会を選択してください</p>
-                  <p className="text-sm">左の一覧から編集する大会を選ぶか、新しい大会を作成してください</p>
+                  <p className="text-lg font-medium">大会情報が見つかりません</p>
+                  <p className="text-sm">組織にデフォルト大会が作成されていない可能性があります</p>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </AuthGuardWrapper>
   );
 }

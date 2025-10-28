@@ -53,7 +53,10 @@ export function OrganizationCreateForm() {
             }
 
             const result = await response.json();
-            showSuccess(`組織「${result.organization.name}」を作成し、管理者アカウントを発行しました`);
+            showSuccess(
+                `組織「${result.organization.name}」を作成し、管理者アカウントを発行しました。` +
+                `デフォルト大会も自動作成されました。`
+            );
             reset(); // フォームをリセット
 
         } catch (error) {

@@ -64,6 +64,26 @@ export async function POST(request: NextRequest) {
         // 3. organizationドキュメントにorgIdを追加
         await orgRef.update({ orgId: orgRef.id });
 
+        // 4. デフォルト大会を作成
+        const defaultTournament = {
+            tournamentName: "", // 空白で作成
+            tournamentDate: "", // 空白で作成
+            location: "", // 空白で作成
+            defaultMatchTime: 180, // デフォルトで3分（180秒）
+            courts: [], // 空配列で作成
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        const tournamentRef = await adminDb
+            .collection("organizations")
+            .doc(orgRef.id)
+            .collection("tournaments")
+            .add(defaultTournament);
+
+        // tournamentIdを追加
+        await tournamentRef.update({ tournamentId: tournamentRef.id });
+
         return NextResponse.json({
             success: true,
             organization: {
@@ -72,6 +92,10 @@ export async function POST(request: NextRequest) {
                 representativeName: orgData.representativeName,
                 adminEmail: orgData.adminEmail,
                 adminUid: userRecord.uid,
+            },
+            defaultTournament: {
+                id: tournamentRef.id,
+                name: "デフォルト大会（設定してください）"
             }
         });
 
