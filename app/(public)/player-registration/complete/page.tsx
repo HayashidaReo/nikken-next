@@ -23,8 +23,11 @@ export default function PlayerRegistrationCompletePage() {
           <CardContent className="space-y-6">
             <div className="text-center text-gray-600">
               <p className="mb-4">
-                選手登録の申請を受け付けました。
-                入力内容をメールに送信しましたのでご確認ください。
+                選手登録の申請をFirestoreに保存しました。
+                運営担当者による承認をお待ちください。
+              </p>
+              <p className="text-sm text-gray-500">
+                承認状況は管理画面で確認できます。
               </p>
             </div>
 
