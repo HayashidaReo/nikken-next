@@ -24,7 +24,7 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof badgeVariants> {
+    VariantProps<typeof badgeVariants> {
   // Composite interface extending HTMLDivElement and variant props
 }
 

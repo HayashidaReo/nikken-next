@@ -5,8 +5,8 @@ export { PlayerScoreCard } from "./player-score-card";
 export { TimerControl } from "./timer-control";
 export { MatchControlPanel } from "./match-control-panel";
 export {
-    ConfirmationDialog,
-    type PlayerRegistrationData,
+  ConfirmationDialog,
+  type PlayerRegistrationData,
 } from "./confirmation-dialog";
 export { PlayerListForm } from "./player-list-form";
 export { FormInput, FormTextarea } from "./form-input";

@@ -63,8 +63,11 @@ export function TournamentSettingsForm({
   const { showWarning } = useToast();
 
   // 秒を分と秒に分割
-  const defaultMinutes = Math.floor(tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE);
-  const defaultSeconds = tournament.defaultMatchTime % TIME_CONSTANTS.SECONDS_PER_MINUTE;
+  const defaultMinutes = Math.floor(
+    tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE
+  );
+  const defaultSeconds =
+    tournament.defaultMatchTime % TIME_CONSTANTS.SECONDS_PER_MINUTE;
 
   const {
     register,
@@ -119,7 +122,7 @@ export function TournamentSettingsForm({
     };
 
     await handleFormSubmission(onSave, tournamentData, {
-      onSuccess: () => { },
+      onSuccess: () => {},
     });
   };
 

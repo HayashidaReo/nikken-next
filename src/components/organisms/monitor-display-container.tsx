@@ -5,32 +5,36 @@ import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 
 interface MonitorDisplayContainerProps {
-    className?: string;
+  className?: string;
 }
 
-export function MonitorDisplayContainer({ className = "" }: MonitorDisplayContainerProps) {
-    const { data, isConnected, error } = useMonitorData();
+export function MonitorDisplayContainer({
+  className = "",
+}: MonitorDisplayContainerProps) {
+  const { data, isConnected, error } = useMonitorData();
 
-    // 非公開時の表示
-    if (!data.isPublic) {
-        return <StandbyScreen />;
-    }
+  // 非公開時の表示
+  if (!data.isPublic) {
+    return <StandbyScreen />;
+  }
 
-    return (
-        <div className={`min-h-screen bg-black text-white relative overflow-hidden ${className}`}>
-            {/* 接続状態とエラー表示 */}
-            <ConnectionStatus isConnected={isConnected} error={error} />
+  return (
+    <div
+      className={`min-h-screen bg-black text-white relative overflow-hidden ${className}`}
+    >
+      {/* 接続状態とエラー表示 */}
+      <ConnectionStatus isConnected={isConnected} error={error} />
 
-            {/* メイン画面レイアウト */}
-            <MonitorLayout
-                playerA={data.playerA}
-                playerB={data.playerB}
-                tournamentName={data.tournamentName}
-                courtName={data.courtName}
-                round={data.round}
-                timeRemaining={data.timeRemaining}
-                isTimerRunning={data.isTimerRunning}
-            />
-        </div>
-    );
+      {/* メイン画面レイアウト */}
+      <MonitorLayout
+        playerA={data.playerA}
+        playerB={data.playerB}
+        tournamentName={data.tournamentName}
+        courtName={data.courtName}
+        round={data.round}
+        timeRemaining={data.timeRemaining}
+        isTimerRunning={data.isTimerRunning}
+      />
+    </div>
+  );
 }

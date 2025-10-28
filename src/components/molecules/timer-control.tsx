@@ -8,7 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/atoms/card";
-import { splitSecondsToMinutesAndSeconds, combineMinutesAndSecondsToSeconds } from "@/lib/utils/time-utils";
+import {
+  splitSecondsToMinutesAndSeconds,
+  combineMinutesAndSecondsToSeconds,
+} from "@/lib/utils/time-utils";
 import { Play, Pause, RotateCcw } from "lucide-react";
 
 interface TimerControlProps {
@@ -47,7 +50,8 @@ export function TimerControl({
       if (isTimerRunning) return;
 
       const adjustTime = () => {
-        const { minutes, seconds } = splitSecondsToMinutesAndSeconds(timeRemaining);
+        const { minutes, seconds } =
+          splitSecondsToMinutesAndSeconds(timeRemaining);
 
         let newTime = timeRemaining;
 
@@ -70,7 +74,10 @@ export function TimerControl({
           case "seconds-down":
             const downSeconds = seconds - 1;
             const finalDownSeconds = downSeconds < 0 ? 59 : downSeconds;
-            newTime = combineMinutesAndSecondsToSeconds(minutes, finalDownSeconds);
+            newTime = combineMinutesAndSecondsToSeconds(
+              minutes,
+              finalDownSeconds
+            );
             break;
         }
 

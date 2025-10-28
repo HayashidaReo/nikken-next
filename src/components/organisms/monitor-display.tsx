@@ -20,7 +20,6 @@ export function MonitorDisplay({ className }: MonitorDisplayProps) {
     isPublic,
   } = useMonitorStore();
 
-
   // 反則状態を表示用に変換
   const getHansokuDisplay = (hansoku: number) => {
     switch (hansoku) {
