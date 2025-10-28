@@ -10,13 +10,14 @@ import {
     CardTitle,
 } from "@/components/atoms/card";
 import { Badge } from "@/components/atoms/badge";
-import { useTournaments, useDeleteTournament } from "@/queries/use-tournaments";
+import { useTournamentsByOrganization, useDeleteTournament } from "@/queries/use-tournaments";
 import { useToast } from "@/components/providers/notification-provider";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
 
 interface TournamentListProps {
+    orgId: string | null;
     selectedTournamentId: string | null;
     onTournamentSelect: (tournament: Tournament) => void;
     onNewTournament: () => void;
@@ -24,12 +25,13 @@ interface TournamentListProps {
 }
 
 export function TournamentList({
+    orgId,
     selectedTournamentId,
     onTournamentSelect,
     onNewTournament,
     className,
 }: TournamentListProps) {
-    const { data: tournaments = [], isLoading, error } = useTournaments();
+    const { data: tournaments = [], isLoading, error } = useTournamentsByOrganization(orgId);
     const { mutate: deleteTournament, isPending: isDeleting } = useDeleteTournament();
     const { showSuccess, showError } = useToast();
     const [deleteConfirm, setDeleteConfirm] = React.useState<{
@@ -43,17 +45,23 @@ export function TournamentList({
     };
 
     const handleDeleteConfirm = () => {
-        if (!deleteConfirm.tournament?.tournamentId) return;
+        if (!deleteConfirm.tournament?.tournamentId || !orgId) return;
 
-        deleteTournament(deleteConfirm.tournament.tournamentId, {
-            onSuccess: () => {
-                showSuccess(`「${deleteConfirm.tournament?.tournamentName}」を削除しました`);
-                setDeleteConfirm({ isOpen: false, tournament: null });
+        deleteTournament(
+            {
+                orgId,
+                tournamentId: deleteConfirm.tournament.tournamentId
             },
-            onError: (error) => {
-                showError(`大会の削除に失敗しました: ${error.message}`);
-            },
-        });
+            {
+                onSuccess: () => {
+                    showSuccess(`「${deleteConfirm.tournament?.tournamentName}」を削除しました`);
+                    setDeleteConfirm({ isOpen: false, tournament: null });
+                },
+                onError: (error) => {
+                    showError(`大会の削除に失敗しました: ${error.message}`);
+                },
+            }
+        );
     };
 
     if (isLoading) {

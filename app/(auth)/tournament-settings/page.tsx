@@ -7,27 +7,36 @@ import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { useToast } from "@/components/providers/notification-provider";
-import { useTournament, useOrganizationId } from "@/hooks/useTournament";
+import { useOrganizationId } from "@/hooks/useTournament";
+import {
+  useTournamentsByOrganization,
+  useCreateOrganization,
+  useUpdateTournamentByOrganization
+} from "@/queries/use-tournaments";
 import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
 import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
 import type { Tournament } from "@/types/tournament.schema";
 
+interface TournamentWithId extends Tournament {
+  tournamentId: string;
+}
+
 export default function TournamentSettingsPage() {
   const { showSuccess, showError } = useToast();
   const { orgId } = useOrganizationId();
+
   const {
-    tournaments,
+    data: tournaments = [],
     isLoading,
     error,
-    fetchTournaments,
-    updateTournament,
-    createOrganizationForUser,
-  } = useTournament();
+  } = useTournamentsByOrganization(orgId);
+
+  const { mutate: createOrganization, isPending: isCreatingOrg } = useCreateOrganization();
+  const { mutate: updateTournament } = useUpdateTournamentByOrganization();
 
   // 状態管理
   const [selectedTournamentId, setSelectedTournamentId] = React.useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = React.useState(false);
-  const [isCreatingOrg, setIsCreatingOrg] = React.useState(false);
   const [formData, setFormData] = React.useState<Tournament>({
     tournamentName: "",
     tournamentDate: "",
@@ -40,7 +49,7 @@ export default function TournamentSettingsPage() {
 
   // 選択されている大会
   const selectedTournament = selectedTournamentId
-    ? tournaments.find(t => t.tournamentId === selectedTournamentId)
+    ? tournaments.find((t: TournamentWithId) => t.tournamentId === selectedTournamentId)
     : null;
 
   // showErrorを安定化
@@ -50,36 +59,24 @@ export default function TournamentSettingsPage() {
 
   // 組織作成ハンドラー
   const handleCreateOrganization = React.useCallback(async () => {
-    setIsCreatingOrg(true);
-    try {
-      const result = await createOrganizationForUser();
-      showSuccess(`組織が作成されました: ${result.orgId}`);
-
-      if (result.orgId) {
-        await fetchTournaments(result.orgId);
+    createOrganization(undefined, {
+      onSuccess: (result) => {
+        showSuccess(`組織が作成されました: ${result.orgId}`);
+      },
+      onError: (error) => {
+        stableShowError(error instanceof Error ? error.message : "組織作成に失敗しました");
       }
-    } catch (error) {
-      stableShowError(error instanceof Error ? error.message : "組織作成に失敗しました");
-    } finally {
-      setIsCreatingOrg(false);
-    }
-  }, [createOrganizationForUser, showSuccess, fetchTournaments, stableShowError]);
+    });
+  }, [createOrganization, showSuccess, stableShowError]);
 
-  // 組織IDが設定されたら大会一覧を取得
-  React.useEffect(() => {
-    if (orgId) {
-      fetchTournaments(orgId).catch((error) => {
-        stableShowError(error.message);
-      });
-    }
-  }, [orgId, fetchTournaments, stableShowError]);
+  // React Queryで自動的にデータフェッチが行われるため、手動のuseEffectは不要
 
   // 大会選択ハンドラー
   const handleSelectTournament = (tournamentId: string) => {
     setSelectedTournamentId(tournamentId);
     setIsAddingNew(false);
 
-    const tournament = tournaments.find(t => t.tournamentId === tournamentId);
+    const tournament = tournaments.find((t: TournamentWithId) => t.tournamentId === tournamentId);
     if (tournament) {
       setFormData({
         tournamentName: tournament.tournamentName,
@@ -126,9 +123,17 @@ export default function TournamentSettingsPage() {
         showError("新規作成機能は実装中です");
       } else if (selectedTournamentId) {
         // 更新
-        await updateTournament(orgId, selectedTournamentId, formData);
-        showSuccess("大会設定を更新しました");
-        await fetchTournaments(orgId);
+        updateTournament(
+          { orgId, tournamentId: selectedTournamentId, patch: formData },
+          {
+            onSuccess: () => {
+              showSuccess("大会設定を更新しました");
+            },
+            onError: (error) => {
+              showError(error instanceof Error ? error.message : "保存に失敗しました");
+            }
+          }
+        );
       }
     } catch (error) {
       showError(error instanceof Error ? error.message : "保存に失敗しました");
@@ -222,12 +227,12 @@ export default function TournamentSettingsPage() {
           <div className="max-w-6xl mx-auto">
             <AuthenticatedHeader title="大会設定" />
             <div className="mt-8 text-center">
-              <p className="text-red-600 mb-4">{error}</p>
+              <p className="text-red-600 mb-4">{error?.message || String(error)}</p>
               <div className="flex gap-4 justify-center">
                 <Button onClick={() => window.location.reload()}>
                   再読み込み
                 </Button>
-                {error.includes("組織が見つかりません") && (
+                {String(error).includes("組織が見つかりません") && (
                   <Button
                     onClick={handleCreateOrganization}
                     disabled={isCreatingOrg}
@@ -280,7 +285,7 @@ export default function TournamentSettingsPage() {
 
                 {/* 大会リスト */}
                 <div className="space-y-2">
-                  {tournaments.map((tournament) => (
+                  {tournaments.map((tournament: TournamentWithId) => (
                     <button
                       key={tournament.tournamentId}
                       onClick={() => tournament.tournamentId && handleSelectTournament(tournament.tournamentId)}
