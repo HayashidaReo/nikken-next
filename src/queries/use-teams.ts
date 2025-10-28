@@ -4,6 +4,10 @@ import type { Team, TeamCreate } from "@/types/team.schema";
 
 /**
  * Team リポジトリのインスタンス（シングルトン）
+ * 
+ * 注意: このクエリは認証済みユーザー専用です
+ * - 管理画面（チーム一覧、承認機能など）で使用
+ * - 選手登録フォームでは API Route (/api/teams/register) を使用
  */
 const teamRepository = new FirestoreTeamRepository();
 

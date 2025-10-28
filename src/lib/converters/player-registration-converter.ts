@@ -89,31 +89,4 @@ export class PlayerRegistrationConverter {
             errors,
         };
     }
-
-    /**
-     * プレビュー用: 変換後のデータを表示用に整形
-     */
-    static previewConversion(formData: PlayerRegistrationData) {
-        try {
-            const teamCreate = this.toTeamCreate(formData);
-            return {
-                success: true,
-                data: {
-                    teamName: teamCreate.teamName,
-                    representativeName: teamCreate.representativeName,
-                    playersCount: teamCreate.players.length,
-                    players: teamCreate.players.map(p => ({
-                        displayName: p.displayName,
-                        fullName: `${p.lastName} ${p.firstName}`,
-                    })),
-                    remarks: teamCreate.remarks,
-                }
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : "変換エラーが発生しました",
-            };
-        }
-    }
 }
