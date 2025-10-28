@@ -2,7 +2,7 @@ import * as React from "react";
 import { ScoreDisplay } from "@/components/molecules/score-display";
 import { PenaltyCards } from "@/components/molecules/penalty-cards";
 import { getPlayerVariantStyles, getPlayerDisplayName, getPlayerPositionClass, type PlayerVariant } from "@/lib/utils/player-utils";
-import { type PlayerData } from "@/types/common";
+import { type PlayerData, type HansokuLevel } from "@/types/common";
 
 interface PlayerSectionProps {
     player: PlayerData;
@@ -33,7 +33,7 @@ export function PlayerSection({ player, variant, className = "" }: PlayerSection
             <div className={`${scorePositionClass} flex items-center gap-8`}>
                 <ScoreDisplay score={player.score} />
                 <PenaltyCards
-                    hansokuCount={player.hansoku as any}
+                    hansokuCount={player.hansoku as HansokuLevel}
                     variant={variant === "white" ? "flipped" : "normal"}
                 />
             </div>
