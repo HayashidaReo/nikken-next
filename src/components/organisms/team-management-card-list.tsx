@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/atoms/badge";
 import { ChevronDown, ChevronRight, Edit } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+import { DialogOverlay } from "@/components/molecules/dialog-overlay";
 import type { Team } from "@/types/team.schema";
 import { useToast } from "@/components/providers/notification-provider";
 
@@ -148,28 +149,26 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
       </CardContent>
 
       {/* 確認ダイアログ */}
-      {showConfirmDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">
-              {showConfirmDialog === "approve" ? "承認確認" : "承認取消確認"}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {showConfirmDialog === "approve"
-                ? `${team.teamName} を承認しますか？`
-                : `${team.teamName} の承認を取り消しますか？`}
-            </p>
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={cancelApprovalChange}>
-                キャンセル
-              </Button>
-              <Button onClick={confirmApprovalChange}>
-                {showConfirmDialog === "approve" ? "承認する" : "取り消す"}
-              </Button>
-            </div>
+      <DialogOverlay isOpen={!!showConfirmDialog} onClose={cancelApprovalChange}>
+        <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+          <h3 className="text-lg font-semibold mb-4">
+            {showConfirmDialog === "approve" ? "承認確認" : "承認取消確認"}
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {showConfirmDialog === "approve"
+              ? `${team.teamName} を承認しますか？`
+              : `${team.teamName} の承認を取り消しますか？`}
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button variant="outline" onClick={cancelApprovalChange}>
+              キャンセル
+            </Button>
+            <Button onClick={confirmApprovalChange}>
+              {showConfirmDialog === "approve" ? "承認する" : "取り消す"}
+            </Button>
           </div>
         </div>
-      )}
+      </DialogOverlay>
     </Card>
   );
 }
