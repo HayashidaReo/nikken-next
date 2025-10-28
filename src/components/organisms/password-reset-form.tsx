@@ -52,10 +52,10 @@ export function PasswordResetForm() {
       showSuccess(`${data.email}にパスワード再設定メールを送信しました。`);
     } catch (error) {
       console.error("Password reset error:", error);
-      
+
       // AuthServiceのエラーハンドリングを利用
-      const errorMessage = error instanceof Error 
-        ? error.message 
+      const errorMessage = error instanceof Error
+        ? error.message
         : "パスワード再設定メールの送信に失敗しました";
 
       showError(errorMessage);
