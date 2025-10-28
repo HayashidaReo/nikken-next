@@ -60,7 +60,7 @@ export function ConfirmationDialog({
         <div className="p-6">
           <div className="flex items-center gap-2 mb-6">
             <CheckCircle className="w-6 h-6 text-green-600" />
-            <h2 className="text-2xl font-bold">登録内容の確認</h2>
+            <h2 className="text-2xl font-bold text-gray-800">登録内容の確認</h2>
           </div>
 
           <div className="space-y-6">

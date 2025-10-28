@@ -165,7 +165,7 @@ export function PlayerRegistrationForm({
               </CardHeader>
               <CardContent>
                 <FormInput
-                  label="チーム名（所属名）"
+                  label="チーム名（団体名）"
                   name="teamName"
                   required
                   placeholder="○○道場 / ○○大学"
@@ -185,11 +185,11 @@ export function PlayerRegistrationForm({
             {/* 備考 */}
             <Card>
               <CardHeader>
-                <CardTitle>備考</CardTitle>
+                <CardTitle>備考欄</CardTitle>
               </CardHeader>
               <CardContent>
                 <FormTextarea
-                  label="備考"
+                  label="自由記述"
                   name="remarks"
                   placeholder="特別な配慮事項や連絡事項があれば記入してください"
                   rows={4}
