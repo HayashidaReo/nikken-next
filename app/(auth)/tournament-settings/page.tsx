@@ -59,7 +59,6 @@ export default function TournamentSettingsPage() {
         await fetchTournaments(result.orgId);
       }
     } catch (error) {
-      console.error("組織作成エラー:", error);
       stableShowError(error instanceof Error ? error.message : "組織作成に失敗しました");
     } finally {
       setIsCreatingOrg(false);
@@ -286,8 +285,8 @@ export default function TournamentSettingsPage() {
                       key={tournament.tournamentId}
                       onClick={() => tournament.tournamentId && handleSelectTournament(tournament.tournamentId)}
                       className={`w-full text-left p-3 rounded-md border transition-colors ${selectedTournamentId === tournament.tournamentId
-                          ? "bg-blue-50 border-blue-300 text-blue-900"
-                          : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                        ? "bg-blue-50 border-blue-300 text-blue-900"
+                        : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                         }`}
                     >
                       <div className="font-medium">

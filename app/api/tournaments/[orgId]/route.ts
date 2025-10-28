@@ -68,10 +68,6 @@ export async function GET(
         });
 
     } catch (error) {
-        console.error("❌ Tournaments fetch error:", error);
-        console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
-        console.error("Params orgId:", orgId);
-
         return NextResponse.json(
             {
                 error: "大会一覧の取得に失敗しました",
