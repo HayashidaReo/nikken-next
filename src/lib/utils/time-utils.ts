@@ -1,11 +1,29 @@
+import { TIME_CONSTANTS } from "@/lib/constants";
+
 /**
- * 秒数を分:秒形式(MM:SS)に変換する
- * @param seconds 秒数
- * @returns MM:SS形式の文字列
+ * 秒を分と秒に分割する
+ */
+export function splitSecondsToMinutesAndSeconds(totalSeconds: number): {
+    minutes: number;
+    seconds: number;
+} {
+    const minutes = Math.floor(totalSeconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
+    const seconds = totalSeconds % TIME_CONSTANTS.SECONDS_PER_MINUTE;
+    return { minutes, seconds };
+}
+
+/**
+ * 分と秒を秒に統合する
+ */
+export function combineMinutesAndSecondsToSeconds(minutes: number, seconds: number): number {
+    return minutes * TIME_CONSTANTS.SECONDS_PER_MINUTE + seconds;
+}
+
+/**
+ * 秒を "MM:SS" 形式でフォーマットする
  */
 export function formatTime(seconds: number): string {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
+    const { minutes, seconds: remainingSeconds } = splitSecondsToMinutesAndSeconds(seconds);
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
@@ -16,7 +34,7 @@ export function formatTime(seconds: number): string {
  */
 export function parseTimeString(timeString: string): number {
     const [minutes, seconds] = timeString.split(':').map(Number);
-    return (minutes || 0) * 60 + (seconds || 0);
+    return combineMinutesAndSecondsToSeconds(minutes || 0, seconds || 0);
 }
 
 /**
@@ -25,8 +43,7 @@ export function parseTimeString(timeString: string): number {
  * @returns 読みやすい形式の文字列
  */
 export function formatTimeReadable(seconds: number): string {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
+    const { minutes, seconds: remainingSeconds } = splitSecondsToMinutesAndSeconds(seconds);
 
     if (minutes === 0) {
         return `${remainingSeconds}秒`;

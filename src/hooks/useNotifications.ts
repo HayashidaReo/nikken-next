@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
 
 export type NotificationType = "success" | "error" | "warning" | "info";
 
@@ -30,7 +31,7 @@ export function useNotifications() {
             setNotifications(prev => [...prev, newNotification]);
 
             // 自動削除（デフォルト5秒）
-            const duration = notification.duration ?? 5000;
+            const duration = notification.duration ?? NOTIFICATION_CONSTANTS.DEFAULT_DURATION;
             if (duration > 0) {
                 setTimeout(() => {
                     removeNotification(id);

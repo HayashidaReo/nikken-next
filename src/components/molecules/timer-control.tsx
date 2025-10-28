@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/atoms/card";
+import { splitSecondsToMinutesAndSeconds, combineMinutesAndSecondsToSeconds } from "@/lib/utils/time-utils";
 import { Play, Pause, RotateCcw } from "lucide-react";
 
 interface TimerControlProps {
@@ -46,31 +47,30 @@ export function TimerControl({
       if (isTimerRunning) return;
 
       const adjustTime = () => {
-        const minutes = Math.floor(timeRemaining / 60);
-        const seconds = timeRemaining % 60;
+        const { minutes, seconds } = splitSecondsToMinutesAndSeconds(timeRemaining);
 
         let newTime = timeRemaining;
 
         switch (type) {
           case "minutes-up":
             if (minutes < 99) {
-              newTime = (minutes + 1) * 60 + seconds;
+              newTime = combineMinutesAndSecondsToSeconds(minutes + 1, seconds);
             }
             break;
           case "minutes-down":
             if (minutes > 0) {
-              newTime = (minutes - 1) * 60 + seconds;
+              newTime = combineMinutesAndSecondsToSeconds(minutes - 1, seconds);
             }
             break;
           case "seconds-up":
             const newSeconds = seconds + 1;
             const finalSeconds = newSeconds >= 60 ? 0 : newSeconds;
-            newTime = minutes * 60 + finalSeconds;
+            newTime = combineMinutesAndSecondsToSeconds(minutes, finalSeconds);
             break;
           case "seconds-down":
             const downSeconds = seconds - 1;
             const finalDownSeconds = downSeconds < 0 ? 59 : downSeconds;
-            newTime = minutes * 60 + finalDownSeconds;
+            newTime = combineMinutesAndSecondsToSeconds(minutes, finalDownSeconds);
             break;
         }
 
@@ -112,8 +112,7 @@ export function TimerControl({
     };
   }, [pressTimer, pressInterval]);
 
-  const minutes = Math.floor(timeRemaining / 60);
-  const seconds = timeRemaining % 60;
+  const { minutes, seconds } = splitSecondsToMinutesAndSeconds(timeRemaining);
 
   return (
     <Card className={className}>

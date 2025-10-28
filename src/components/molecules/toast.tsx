@@ -4,6 +4,7 @@ import * as React from "react";
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { Notification, NotificationType } from "@/hooks/useNotifications";
+import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
 
 interface ToastProps {
     notification: Notification;
@@ -39,7 +40,7 @@ export function Toast({ notification, onRemove }: ToastProps) {
     const { className, icon: Icon } = toastVariants[notification.type];
 
     React.useEffect(() => {
-        const duration = notification.duration ?? 5000;
+        const duration = notification.duration ?? NOTIFICATION_CONSTANTS.DEFAULT_DURATION;
         if (duration > 0) {
             const timer = setTimeout(() => {
                 onRemove(notification.id);

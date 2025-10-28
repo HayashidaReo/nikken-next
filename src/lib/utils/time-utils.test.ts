@@ -1,7 +1,9 @@
 import {
     formatTime,
     parseTimeString,
-    formatTimeReadable
+    formatTimeReadable,
+    splitSecondsToMinutesAndSeconds,
+    combineMinutesAndSecondsToSeconds,
 } from "./time-utils";
 
 describe("time-utils", () => {
@@ -133,6 +135,69 @@ describe("time-utils", () => {
                 const parsed = parseTimeString(timeString);
                 const formatted = formatTime(parsed);
                 expect(formatted).toBe(timeString);
+            });
+        });
+    });
+
+    describe("splitSecondsToMinutesAndSeconds", () => {
+        it("正しく秒を分と秒に分割する", () => {
+            const result = splitSecondsToMinutesAndSeconds(125); // 2分5秒
+            expect(result).toEqual({ minutes: 2, seconds: 5 });
+        });
+
+        it("1時間以上も正しく処理する", () => {
+            const result = splitSecondsToMinutesAndSeconds(3665); // 61分5秒
+            expect(result).toEqual({ minutes: 61, seconds: 5 });
+        });
+
+        it("0秒も正しく処理する", () => {
+            const result = splitSecondsToMinutesAndSeconds(0);
+            expect(result).toEqual({ minutes: 0, seconds: 0 });
+        });
+
+        it("60秒未満も正しく処理する", () => {
+            const result = splitSecondsToMinutesAndSeconds(45);
+            expect(result).toEqual({ minutes: 0, seconds: 45 });
+        });
+    });
+
+    describe("combineMinutesAndSecondsToSeconds", () => {
+        it("正しく分と秒を秒に統合する", () => {
+            const result = combineMinutesAndSecondsToSeconds(2, 5);
+            expect(result).toBe(125);
+        });
+
+        it("0分0秒も正しく処理する", () => {
+            const result = combineMinutesAndSecondsToSeconds(0, 0);
+            expect(result).toBe(0);
+        });
+
+        it("分のみの値も正しく処理する", () => {
+            const result = combineMinutesAndSecondsToSeconds(5, 0);
+            expect(result).toBe(300);
+        });
+
+        it("秒のみの値も正しく処理する", () => {
+            const result = combineMinutesAndSecondsToSeconds(0, 30);
+            expect(result).toBe(30);
+        });
+    });
+
+    describe("時間関数の組み合わせテスト", () => {
+        it("分割→統合の往復変換が正しく動作する", () => {
+            const originalSeconds = 3725; // 62分5秒
+            const { minutes, seconds } = splitSecondsToMinutesAndSeconds(originalSeconds);
+            const result = combineMinutesAndSecondsToSeconds(minutes, seconds);
+            expect(result).toBe(originalSeconds);
+        });
+
+        it("様々な値での往復変換テスト", () => {
+            const testValues = [0, 30, 60, 125, 3600, 7265];
+
+            testValues.forEach(originalSeconds => {
+                const { minutes, seconds } = splitSecondsToMinutesAndSeconds(originalSeconds);
+                const result = combineMinutesAndSecondsToSeconds(minutes, seconds);
+                expect(result).toBe(originalSeconds);
             });
         });
     });

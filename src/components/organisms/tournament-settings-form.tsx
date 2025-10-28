@@ -14,6 +14,7 @@ import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { cn } from "@/lib/utils/utils";
 import type { Tournament } from "@/types/tournament.schema";
+import { FORM_CONSTANTS, TIME_CONSTANTS } from "@/lib/constants";
 
 import { FormInput } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
@@ -62,8 +63,8 @@ export function TournamentSettingsForm({
   const { showWarning } = useToast();
 
   // 秒を分と秒に分割
-  const defaultMinutes = Math.floor(tournament.defaultMatchTime / 60);
-  const defaultSeconds = tournament.defaultMatchTime % 60;
+  const defaultMinutes = Math.floor(tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE);
+  const defaultSeconds = tournament.defaultMatchTime % TIME_CONSTANTS.SECONDS_PER_MINUTE;
 
   const {
     register,
@@ -187,8 +188,8 @@ export function TournamentSettingsForm({
                       valueAsNumber: true,
                     })}
                     type="number"
-                    min="0"
-                    max="59"
+                    min={FORM_CONSTANTS.TIME_INPUT_MIN}
+                    max={FORM_CONSTANTS.TIME_INPUT_MAX}
                     className="w-20"
                     placeholder="3"
                   />
@@ -201,8 +202,8 @@ export function TournamentSettingsForm({
                       valueAsNumber: true,
                     })}
                     type="number"
-                    min="0"
-                    max="59"
+                    min={FORM_CONSTANTS.TIME_INPUT_MIN}
+                    max={FORM_CONSTANTS.TIME_INPUT_MAX}
                     className="w-20"
                     placeholder="0"
                   />

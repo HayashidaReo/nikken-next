@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { cn } from "@/lib/utils/utils";
+import { formatTime } from "@/lib/utils/time-utils";
 
 interface MonitorDisplayProps {
   className?: string;
@@ -19,12 +20,6 @@ export function MonitorDisplay({ className }: MonitorDisplayProps) {
     isPublic,
   } = useMonitorStore();
 
-  // 時間を分:秒形式に変換
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
-  };
 
   // 反則状態を表示用に変換
   const getHansokuDisplay = (hansoku: number) => {
