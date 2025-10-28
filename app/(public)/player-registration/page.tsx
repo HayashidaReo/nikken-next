@@ -1,25 +1,30 @@
 "use client";
 
 import { PlayerRegistrationForm } from "@/components/organisms/player-registration-form";
-import { useCreateTeam } from "@/queries";
-import { PlayerRegistrationConverter } from "@/lib/converters/player-registration-converter";
 import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
 
 export default function PlayerRegistrationPage() {
-  const createTeamMutation = useCreateTeam();
-
   const handleSubmit = async (formData: PlayerRegistrationData) => {
-    // フォームデータの検証
-    const validation = PlayerRegistrationConverter.validateFormData(formData);
-    if (!validation.isValid) {
-      throw new Error(`入力データに問題があります: ${validation.errors.join(", ")}`);
+    // API Route経由でサーバーサイドに保存
+    const response = await fetch("/api/teams/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.details || errorData.error || "チーム登録に失敗しました"
+      );
     }
 
-    // PlayerRegistrationData を TeamCreate に変換
-    const teamCreate = PlayerRegistrationConverter.toTeamCreate(formData);
+    const result = await response.json();
+    console.log("登録成功:", result);
 
-    // Firestoreに保存
-    await createTeamMutation.mutateAsync(teamCreate);
+    return result;
   };
 
   return (
