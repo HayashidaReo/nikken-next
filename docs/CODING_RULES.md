@@ -283,14 +283,140 @@ export function TeamEditForm() {
 - Server Components, Route Handlers, Cloud Functions でのみ使用可能
 - クライアント側にバンドルされることを厳禁とする
 
-### 10. Cloud Functions (Backend Logic)
+### 10. データ層アーキテクチャ (ドメイン駆動設計)
+
+Firebaseとの接続において、以下の3層アーキテクチャによる関心の分離を徹底する：
+
+#### ドメイン層 (`src/domains/`)
+
+**役割**: ビジネスロジックと型定義を管理する最重要層
+
+**責務**:
+- `src/types/` のZodスキーマから導出された型定義をドメインエンティティとして扱う
+- ビジネスルール（例: 反則状態の変更による得点の自動計算）をドメインサービスとして定義する
+- Firebase特有の実装に依存しない、純粋なビジネスロジックのみを含む
+
+**ディレクトリ構造**:
+```
+src/domains/
+├── team/
+│   ├── entities/ # Team, Playerエンティティ
+│   └── services/ # displayName生成ロジック等
+├── match/
+│   ├── entities/ # Matchエンティティ
+│   └── services/ # 得点計算、反則処理ロジック等
+└── tournament/
+    ├── entities/ # Tournamentエンティティ
+    └── services/ # 大会関連ビジネスロジック
+```
+
+#### データ層 (`src/data/`)
+
+**役割**: Firebase特有のデータ変換とCRUD操作を担当
+
+**責務**:
+- Firestoreドキュメント ↔ ドメインエンティティ間の変換（マッピング）
+- Firebase Timestamp, DocumentReference等の特殊型の処理
+- Firestore特有のクエリ操作（コレクション参照、where句、orderBy等）
+- エラーハンドリングとFirebaseエラーの標準化
+
+**ディレクトリ構造**:
+```
+src/data/
+├── mappers/ # ドメインエンティティ ↔ Firestoreドキュメント変換
+│   ├── team-mapper.ts
+│   ├── match-mapper.ts
+│   └── tournament-mapper.ts
+└── firebase/ # Firebase直接操作層
+    ├── collections.ts # コレクション参照定数
+    ├── team-data.ts   # チーム関連のCRUD
+    ├── match-data.ts  # 試合関連のCRUD
+    └── tournament-data.ts # 大会関連のCRUD
+```
+
+#### リポジトリ層 (`src/repositories/`)
+
+**役割**: データアクセスの抽象化とTanStack Queryとの橋渡し
+
+**責務**:
+- ドメイン層が要求するインターフェースを実装
+- データ層を呼び出し、ドメインエンティティを返す
+- TanStack Queryのキー管理とキャッシュ戦略の定義
+- 複数のデータソースを組み合わせた複合的なデータ取得
+
+**ディレクトリ構造**:
+```
+src/repositories/
+├── interfaces/ # ドメイン層が期待するインターフェース定義
+│   ├── team-repository.interface.ts
+│   ├── match-repository.interface.ts
+│   └── tournament-repository.interface.ts
+└── implementations/ # 具体的な実装
+    ├── firebase-team-repository.ts
+    ├── firebase-match-repository.ts
+    └── firebase-tournament-repository.ts
+```
+
+#### 層間の依存関係ルール
+
+1. **ドメイン層**: 他の層に依存しない（完全に独立）
+2. **リポジトリ層**: ドメイン層のインターフェースに依存、データ層を利用
+3. **データ層**: ドメイン層のエンティティに依存、Firebase SDKを利用
+4. **コンポーネント層**: リポジトリ層のインターフェースに依存
+
+#### TanStack Queryとの統合ルール
+
+- `queries/` 配下のカスタムフックは、リポジトリ層のメソッドを呼び出す
+- リポジトリ層は、TanStack Queryのキー生成とキャッシュ無効化の責任を持つ
+- 各リポジトリは、対応するQueryキーファクトリーを提供する
+
+#### 実装例:
+
+```typescript
+// src/domains/match/entities/match.ts
+export type Match = z.infer<typeof matchSchema>;
+
+// src/domains/match/services/score-calculator.ts
+export class ScoreCalculator {
+  static calculateScoreFromHansoku(hansokuState: HansokuState): number {
+    // Firebase非依存の純粋なビジネスロジック
+  }
+}
+
+// src/repositories/interfaces/match-repository.interface.ts
+export interface MatchRepository {
+  findById(matchId: string): Promise<Match>;
+  updateScore(matchId: string, score: MatchScore): Promise<void>;
+}
+
+// src/repositories/implementations/firebase-match-repository.ts
+export class FirebaseMatchRepository implements MatchRepository {
+  constructor(private matchData: MatchData) {}
+  
+  async findById(matchId: string): Promise<Match> {
+    const doc = await this.matchData.getMatch(matchId);
+    return MatchMapper.toDomain(doc);
+  }
+}
+
+// src/queries/use-matches.ts
+export function useMatch(matchId: string) {
+  return useQuery({
+    queryKey: ['match', matchId],
+    queryFn: () => matchRepository.findById(matchId)
+  });
+}
+```
+
+
+### 11. Cloud Functions (Backend Logic)
 
 **ルール**:
 
 - 設計書にある「メール送信」「displayName生成」「matches同期」ロジックは、すべて `functions/` ディレクトリ内のCloud Functionsで実装する
 - フロントエンド（Next.js）は、これらのロジックを直接実行せず、Firestoreのトリガー（`onUpdate`, `onCreate`）経由で実行されるのを待つ
 
-### 11. セキュリティルール
+### 12. セキュリティルール
 
 **ルール**:
 
@@ -304,21 +430,21 @@ export function TeamEditForm() {
 
 ## 🚀 パフォーマンス最適化
 
-### 12. Server Componentsの徹底活用
+### 13. Server Componentsの徹底活用
 
 **ルール**:
 
 - パフォーマンス最適化の第一手段は、可能な限りServer Component（デフォルト）にすることである
 - `React.memo` や `useCallback` の使用は、Client Component内での不要な再レンダリングが明確に計測された場合のみに限定する
 
-### 13. TanStack QueryとZustandの最適化
+### 14. TanStack QueryとZustandの最適化
 
 **ルール**:
 
 - TanStack Query のキャッシュ（`staleTime`）を適切に設定し、不要なFirestoreへのリクエストを削減する
 - Zustand のストアを購読する際は、必ずセレクタ（`useMyStore(state => state.value)`）を使用し、ストア全体の変更による不要な再レンダリングを防ぐ
 
-### 14. Next.js標準機能の活用
+### 15. Next.js標準機能の活用
 
 **ルール**:
 
