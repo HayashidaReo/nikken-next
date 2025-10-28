@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useAuthStore } from "@/store/use-auth-store";
+import { isAuthenticated, isEmailVerified, getUserDisplayName } from "@/lib/auth/types";
 
 /**
  * 認証が必要なページで使用するhook
@@ -25,7 +26,9 @@ export function useAuthGuard() {
     return {
         user,
         isLoading: isLoading || !isInitialized,
-        isAuthenticated: !!user,
+        isAuthenticated: isAuthenticated(user),
+        isEmailVerified: isEmailVerified(user),
+        displayName: getUserDisplayName(user),
     };
 }
 
@@ -50,6 +53,34 @@ export function useGuestGuard() {
     return {
         user,
         isLoading: isLoading || !isInitialized,
-        isAuthenticated: !!user,
+        isAuthenticated: isAuthenticated(user),
+        isEmailVerified: isEmailVerified(user),
+        displayName: getUserDisplayName(user),
+    };
+}
+
+/**
+ * 認証状態にアクセスするためのフック（リダイレクトなし）
+ * @returns 認証状態と操作関数
+ */
+export function useAuth() {
+    const {
+        user,
+        isInitialized,
+        isLoading,
+        signOut: storeSignOut
+    } = useAuthStore();
+
+    const signOut = useCallback(async () => {
+        await storeSignOut();
+    }, [storeSignOut]);
+
+    return {
+        user,
+        isLoading: isLoading || !isInitialized,
+        isAuthenticated: isAuthenticated(user),
+        isEmailVerified: isEmailVerified(user),
+        displayName: getUserDisplayName(user),
+        signOut,
     };
 }

@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { sendPasswordResetEmail } from "firebase/auth";
 import { Button } from "@/components/atoms/button";
 import {
   Card,
@@ -16,7 +15,7 @@ import {
 import { FormInput } from "@/components/molecules/form-input";
 import { LoadingButton } from "@/components/molecules/loading-button";
 import { useToast } from "@/components/providers/notification-provider";
-import { auth } from "@/lib/firebase/client";
+import { AuthService } from "@/lib/auth/service";
 
 // パスワード再設定フォーム用のZodスキーマ
 const passwordResetSchema = z.object({
@@ -46,30 +45,18 @@ export function PasswordResetForm() {
     try {
       setIsLoading(true);
 
-      await sendPasswordResetEmail(auth, data.email);
+      await AuthService.sendPasswordResetEmail(data.email);
 
       setSubmittedEmail(data.email);
       setIsSubmitted(true);
       showSuccess(`${data.email}にパスワード再設定メールを送信しました。`);
     } catch (error) {
       console.error("Password reset error:", error);
-
-      let errorMessage = "パスワード再設定メールの送信に失敗しました";
-
-      if (error instanceof Error && 'code' in error) {
-        const firebaseError = error as { code: string };
-        switch (firebaseError.code) {
-          case "auth/user-not-found":
-            errorMessage = "このメールアドレスは登録されていません";
-            break;
-          case "auth/invalid-email":
-            errorMessage = "メールアドレスの形式が正しくありません";
-            break;
-          case "auth/too-many-requests":
-            errorMessage = "リクエストが多すぎます。しばらく待ってからお試しください";
-            break;
-        }
-      }
+      
+      // AuthServiceのエラーハンドリングを利用
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "パスワード再設定メールの送信に失敗しました";
 
       showError(errorMessage);
     } finally {
