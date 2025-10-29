@@ -32,10 +32,8 @@ export function useTournamentSettings() {
     const { mutate: createTournament } = useCreateTournament();
     const { mutate: updateTournament } = useUpdateTournamentByOrganization();
 
-    // 状態管理
-    const [selectedTournamentId, setSelectedTournamentId] = React.useState<string | null>(null);
-    const [isAddingNew, setIsAddingNew] = React.useState(false); // 明示的に新規作成を選んだ状態
-    const [formData, setFormData] = React.useState<Tournament>({
+    // フォームデータ初期化ヘルパー
+    const createEmptyFormData = React.useCallback((): Tournament => ({
         tournamentName: "",
         tournamentDate: new Date(),
         tournamentDetail: "",
@@ -44,7 +42,12 @@ export function useTournamentSettings() {
         courts: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-    });
+    }), []);
+
+    // 状態管理
+    const [selectedTournamentId, setSelectedTournamentId] = React.useState<string | null>(null);
+    const [isAddingNew, setIsAddingNew] = React.useState(false); // 明示的に新規作成を選んだ状態
+    const [formData, setFormData] = React.useState<Tournament>(createEmptyFormData);
 
     // 大会選択処理
     const handleSelectTournament = React.useCallback((tournament: Tournament) => {
@@ -66,33 +69,18 @@ export function useTournamentSettings() {
 
     // activeTournamentId が非同期で読み込まれたタイミングで selectedTournamentId を更新
     React.useEffect(() => {
-        console.log('🎯 activeTournamentId effect:', {
-            activeTournamentId,
-            selectedTournamentId,
-            isAddingNew
-        });
-
         // 新規作成を明示的に選んでいない場合のみ、activeTournamentId を反映
         if (!isAddingNew && activeTournamentId && !selectedTournamentId) {
-            console.log('🎯 Setting selectedTournamentId from activeTournamentId:', activeTournamentId);
             setSelectedTournamentId(activeTournamentId);
         }
     }, [activeTournamentId, selectedTournamentId, isAddingNew]);
 
     // 選択中の大会のフォームデータを設定
     React.useEffect(() => {
-        console.log('🎯 formData effect:', {
-            selectedTournamentId,
-            tournamentsLength: tournaments.length,
-            formDataName: formData.tournamentName
-        });
-
         if (selectedTournamentId && tournaments.length > 0) {
             const activeTournament = tournaments.find((t: Tournament & { tournamentId?: string }) => t.tournamentId === selectedTournamentId);
-            console.log('🎯 Found activeTournament:', activeTournament);
 
             if (activeTournament && formData.tournamentName === "") {
-                console.log('🎯 Setting form data for tournament:', activeTournament.tournamentName);
                 // フォームが空の場合のみ設定（既に入力済みの場合は上書きしない）
                 setFormData({
                     tournamentName: activeTournament.tournamentName,
@@ -112,17 +100,8 @@ export function useTournamentSettings() {
     const handleStartNew = React.useCallback(() => {
         setIsAddingNew(true); // 明示的に新規作成フラグを立てる
         setSelectedTournamentId(null);
-        setFormData({
-            tournamentName: "",
-            tournamentDate: new Date(),
-            tournamentDetail: "",
-            location: "",
-            defaultMatchTime: 180,
-            courts: [],
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        });
-    }, []);
+        setFormData(createEmptyFormData());
+    }, [createEmptyFormData]);
 
     // フォームフィールド更新処理
     const handleFormChange = React.useCallback((field: keyof Tournament, value: string | number | Date | { courtId: string; courtName: string }[]) => {
@@ -144,14 +123,8 @@ export function useTournamentSettings() {
         try {
             if (!selectedTournamentId) {
                 // 新規作成（selectedTournamentIdがnullの場合）
-                const tournamentData = {
-                    tournamentName: formData.tournamentName,
-                    tournamentDate: formData.tournamentDate,
-                    tournamentDetail: formData.tournamentDetail,
-                    location: formData.location,
-                    defaultMatchTime: formData.defaultMatchTime,
-                    courts: formData.courts
-                };
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { createdAt, updatedAt, ...tournamentData } = formData;
                 createTournament(
                     { orgId, tournamentData },
                     {
@@ -208,7 +181,7 @@ export function useTournamentSettings() {
         error,
         isCreatingOrg,
         selectedTournamentId,
-        isAddingNew: !selectedTournamentId, // selectedTournamentIdがnullの場合が新規作成
+        isAddingNew: isAddingNew || !selectedTournamentId, // 明示的な新規作成フラグまたはID未選択
         formData,
 
         // アクション
