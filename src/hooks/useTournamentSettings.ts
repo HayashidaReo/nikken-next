@@ -37,7 +37,8 @@ export function useTournamentSettings() {
     const [isAddingNew, setIsAddingNew] = React.useState(false);
     const [formData, setFormData] = React.useState<Tournament>({
         tournamentName: "",
-        tournamentDate: "",
+        tournamentDate: new Date(),
+        tournamentDetail: "",
         location: "",
         defaultMatchTime: 180, // 3分 = 180秒
         courts: [],
@@ -54,6 +55,7 @@ export function useTournamentSettings() {
         setFormData({
             tournamentName: tournament.tournamentName,
             tournamentDate: tournament.tournamentDate,
+            tournamentDetail: tournament.tournamentDetail || "",
             location: tournament.location,
             defaultMatchTime: tournament.defaultMatchTime,
             courts: tournament.courts,
@@ -78,7 +80,8 @@ export function useTournamentSettings() {
         setSelectedTournamentId(null);
         setFormData({
             tournamentName: "",
-            tournamentDate: "",
+            tournamentDate: new Date(),
+            tournamentDetail: "",
             location: "",
             defaultMatchTime: 180,
             courts: [],
@@ -110,6 +113,7 @@ export function useTournamentSettings() {
                 const tournamentData = {
                     tournamentName: formData.tournamentName,
                     tournamentDate: formData.tournamentDate,
+                    tournamentDetail: formData.tournamentDetail,
                     location: formData.location,
                     defaultMatchTime: formData.defaultMatchTime,
                     courts: formData.courts

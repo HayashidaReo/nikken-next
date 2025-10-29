@@ -46,7 +46,8 @@ export function useCreateTournament() {
             orgId: string;
             tournamentData: {
                 tournamentName: string;
-                tournamentDate: string;
+                tournamentDate: Date;
+                tournamentDetail: string;
                 location: string;
                 defaultMatchTime: number;
                 courts: { courtId: string; courtName: string }[];

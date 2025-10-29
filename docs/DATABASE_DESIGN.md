@@ -28,17 +28,19 @@
 
 ### フィールド
 
-| フィールド名         | データ型      | 説明                     |
-| -------------------- | ------------- | ------------------------ |
-| `tournamentName`     | String        | 大会名                   |
-| `tournamentDate`     | String        | 開催日                   |
-| `location`           | String        | 開催場所                 |
-| `defaultMatchTime`   | Int           | デフォルト試合時間（秒） |
-| `courts`             | Array of Maps | 会場のコート情報         |
-| `courts[].courtId`   | String        | コートID                 |
-| `courts[].courtName` | String        | コート名                 |
-| `createdAt`          | Timestamp     | データ作成日時           |
-| `updatedAt`          | Timestamp     | 最終編集日時             |
+| フィールド名         | データ型      | 説明                                     |
+| -------------------- | ------------- | ---------------------------------------- |
+| `tournamentId`       | String        | 大会ID（Firestoreの自動生成IDと同じ値）  |
+| `tournamentName`     | String        | 大会名                                   |
+| `tournamentDate`     | Timestamp     | 開催日（日付のみ、時間は00:00:00に設定） |
+| `tournamentDetail`   | String        | 大会概要（自由記述テキスト）             |
+| `location`           | String        | 開催場所                                 |
+| `defaultMatchTime`   | Int           | デフォルト試合時間（秒）                 |
+| `courts`             | Array of Maps | 会場のコート情報                         |
+| `courts[].courtId`   | String        | コートID                                 |
+| `courts[].courtName` | String        | コート名                                 |
+| `createdAt`          | Timestamp     | データ作成日時                           |
+| `updatedAt`          | Timestamp     | 最終編集日時                             |
 
 ## teams コレクション
 

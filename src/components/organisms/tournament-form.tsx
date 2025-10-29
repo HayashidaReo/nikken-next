@@ -2,6 +2,7 @@ import * as React from "react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
+import { Textarea } from "@/components/atoms/textarea";
 import { TimePicker } from "@/components/molecules/time-picker";
 import { CourtManager } from "@/components/molecules/court-manager";
 import type { Tournament } from "@/types/tournament.schema";
@@ -59,8 +60,24 @@ export function TournamentForm({
                     <Input
                         id="tournamentDate"
                         type="date"
-                        value={formData.tournamentDate}
-                        onChange={(e) => onFormChange("tournamentDate", e.target.value)}
+                        value={formData.tournamentDate instanceof Date
+                            ? formData.tournamentDate.toISOString().split('T')[0]
+                            : ''
+                        }
+                        onChange={(e) => onFormChange("tournamentDate", new Date(e.target.value))}
+                        className="mt-1"
+                    />
+                </div>
+
+                {/* 大会概要 */}
+                <div>
+                    <Label htmlFor="tournamentDetail">大会概要</Label>
+                    <Textarea
+                        id="tournamentDetail"
+                        value={formData.tournamentDetail || ""}
+                        onChange={(e) => onFormChange("tournamentDetail", e.target.value)}
+                        placeholder="大会の詳細情報や説明を入力してください"
+                        rows={4}
                         className="mt-1"
                     />
                 </div>

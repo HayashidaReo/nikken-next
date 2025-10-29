@@ -95,6 +95,15 @@ export async function PUT(
             updatedAt: Timestamp.now(),
         };
 
+        // tournamentDateがDate型の場合の処理
+        if (updateData.tournamentDate) {
+            if (typeof updateData.tournamentDate === 'string') {
+                updateData.tournamentDate = Timestamp.fromDate(new Date(updateData.tournamentDate));
+            } else if (updateData.tournamentDate instanceof Date) {
+                updateData.tournamentDate = Timestamp.fromDate(updateData.tournamentDate);
+            }
+        }
+
         // tournamentIdは更新しない
         delete updateData.tournamentId;
         delete updateData.createdAt;

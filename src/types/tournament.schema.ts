@@ -15,7 +15,8 @@ export const courtSchema = z.object({
 export const tournamentSchema = z.object({
   tournamentId: z.string().optional(), // Firestoreで自動生成
   tournamentName: z.string(), // 空文字許可（デフォルト大会用）
-  tournamentDate: z.string(), // 空文字許可（デフォルト大会用）
+  tournamentDate: z.date(), // Timestamp型（日付のみ）
+  tournamentDetail: z.string(), // 大会概要（自由記述）
   location: z.string(), // 空文字許可（デフォルト大会用）
   defaultMatchTime: z.number().min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema), // 空配列許可（デフォルト大会用）
@@ -29,7 +30,8 @@ export const tournamentSchema = z.object({
 export const tournamentFormSchema = z.object({
   tournamentId: z.string().optional(),
   tournamentName: z.string().min(1, "大会名は必須です"),
-  tournamentDate: z.string().min(1, "開催日は必須です"),
+  tournamentDate: z.date(),
+  tournamentDetail: z.string(),
   location: z.string().min(1, "開催場所は必須です"),
   defaultMatchTime: z.number().min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema).min(1, "最低1つのコートを設定してください"),

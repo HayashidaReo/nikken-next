@@ -133,7 +133,10 @@ export function TournamentList({
                                         </CardTitle>
                                         <div className="flex items-center gap-2 mt-1">
                                             <Badge variant="outline" className="text-xs">
-                                                {tournament.tournamentDate}
+                                                {tournament.tournamentDate instanceof Date
+                                                    ? tournament.tournamentDate.toLocaleDateString('ja-JP')
+                                                    : tournament.tournamentDate
+                                                }
                                             </Badge>
                                             <Badge variant="secondary" className="text-xs">
                                                 {tournament.courts.length}コート

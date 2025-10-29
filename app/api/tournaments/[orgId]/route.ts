@@ -58,6 +58,7 @@ export async function GET(
             return {
                 id: doc.id,
                 ...data,
+                tournamentDate: data.tournamentDate?.toDate?.() || null,
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
                 updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
             };
@@ -110,6 +111,7 @@ export async function POST(
             name,
             tournamentName = name, // nameフィールドも受け入れる
             tournamentDate,
+            tournamentDetail,
             location,
             defaultMatchTime,
             courts
@@ -146,9 +148,20 @@ export async function POST(
 
         // 大会データを作成
         const now = new Date();
+        // tournamentDateがDate型の場合の処理
+        let parsedTournamentDate = now;
+        if (tournamentDate) {
+            if (typeof tournamentDate === 'string') {
+                parsedTournamentDate = new Date(tournamentDate);
+            } else if (tournamentDate instanceof Date) {
+                parsedTournamentDate = tournamentDate;
+            }
+        }
+
         const tournamentData = {
             tournamentName: tournamentName.trim(),
-            tournamentDate: tournamentDate || '',
+            tournamentDate: parsedTournamentDate,
+            tournamentDetail: tournamentDetail || '',
             location: location || '',
             defaultMatchTime: typeof defaultMatchTime === 'number' ? defaultMatchTime : 180,
             courts: Array.isArray(courts) ? courts : [],
@@ -163,6 +176,11 @@ export async function POST(
             .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
             .add(tournamentData);
 
+        // 作成されたドキュメントにtournamentIdを追加保存
+        await docRef.update({
+            tournamentId: docRef.id
+        });
+
         // 作成された大会データを取得
         const createdDoc = await docRef.get();
         const createdData = createdDoc.data();
@@ -172,6 +190,7 @@ export async function POST(
             data: {
                 tournamentId: createdDoc.id,
                 ...createdData,
+                tournamentDate: createdData?.tournamentDate?.toDate?.() || null,
                 createdAt: createdData?.createdAt?.toDate?.()?.toISOString() || null,
                 updatedAt: createdData?.updatedAt?.toDate?.()?.toISOString() || null,
             }

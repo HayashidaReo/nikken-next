@@ -69,7 +69,10 @@ export function TournamentSelector({ className, onManageClick }: TournamentSelec
                             <div className="flex flex-col">
                                 <span className="font-medium">{tournament.tournamentName}</span>
                                 <span className="text-xs text-muted-foreground">
-                                    {tournament.tournamentDate} - {tournament.location}
+                                    {tournament.tournamentDate instanceof Date
+                                        ? tournament.tournamentDate.toLocaleDateString('ja-JP')
+                                        : tournament.tournamentDate
+                                    } - {tournament.location}
                                 </span>
                             </div>
                         </SelectItem>
