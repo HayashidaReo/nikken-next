@@ -40,31 +40,19 @@ export function TournamentSelectionDialog({
 
     const { data: tournaments = [], isLoading, error } = useTournamentsByOrganization(orgId);
 
-    // API呼び出しの詳細をログに出力
-    React.useEffect(() => {
-        if (orgId) {
-            console.log(`Fetching tournaments for orgId: ${orgId}`);
-            console.log(`API URL will be: /api/tournaments/${orgId}`);
-        }
-    }, [orgId]);
-
     const handleConfirm = () => {
         if (selectedTournamentId) {
-            // 「この大会で続行」ボタンが押された時のみLocalStorageに保存
             setActiveTournament(selectedTournamentId);
             // 明示的にダイアログを閉じる
             onClose?.();
         }
     };
 
-    // 大会選択時の処理（LocalStorageには保存せず、選択状態のみ更新）
-    const handleTournamentSelect = (value: string) => {
+    const handleTournamentChange = (value: string) => {
         setSelectedTournamentId(value);
-        // setActiveTournament(value); を削除 - ボタン押下まで待つ
     };
 
     const selectedTournament = tournaments.find((t: Tournament) => t.tournamentId === selectedTournamentId);
-
 
     if (!user) {
         return null; // 未ログイン時は表示しない
@@ -105,7 +93,7 @@ export function TournamentSelectionDialog({
                         <label className="text-sm font-medium">大会</label>
                         <Select
                             value={selectedTournamentId}
-                            onValueChange={handleTournamentSelect}
+                            onValueChange={handleTournamentChange}
                             disabled={isLoading}
                         >
                             <SelectTrigger className="w-full">
