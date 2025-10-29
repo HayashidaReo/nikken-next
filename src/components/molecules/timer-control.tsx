@@ -43,6 +43,8 @@ export function TimerControl({
                 onChange={onTimeChange}
                 disabled={isTimerRunning}
                 size="lg"
+                longPressDelay={300}
+                longPressInterval={80}
               />
             </div>
 
