@@ -27,9 +27,6 @@ export function TournamentSelector({ className, onManageClick }: TournamentSelec
 
     const { data: tournaments = [], isLoading, error } = useTournamentsByOrganization(orgId);
 
-    // 現在選択中の大会を見つける
-    const selectedTournament = tournaments.find((t: Tournament) => t.tournamentId === activeTournamentId);
-
     const handleTournamentChange = (value: string) => {
         if (value === "manage") {
             onManageClick?.();
@@ -51,14 +48,7 @@ export function TournamentSelector({ className, onManageClick }: TournamentSelec
     }
 
     return (
-        <div className={cn("flex items-center space-x-2", className)}>
-            {/* 大会名表示（選択されている場合） */}
-            {selectedTournament && (
-                <span className="text-sm font-medium text-foreground">
-                    {selectedTournament.tournamentName}
-                </span>
-            )}
-
+        <div className={cn("flex items-center", className)}>
             {/* 大会選択ドロップダウン */}
             <Select
                 value={activeTournamentId || ""}
