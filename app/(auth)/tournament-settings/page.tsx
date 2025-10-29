@@ -2,10 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
+import { TimePicker } from "@/components/molecules/time-picker";
+import { CourtManager } from "@/components/molecules/court-manager";
 import { useToast } from "@/components/providers/notification-provider";
 import { useOrganizationId } from "@/hooks/useTournament";
 import {
@@ -140,48 +142,9 @@ export default function TournamentSettingsPage() {
     }
   };
 
-  // コート追加ハンドラー
-  const handleAddCourt = () => {
-    setFormData(prev => ({
-      ...prev,
-      courts: [...prev.courts, { courtId: "", courtName: "" }]
-    }));
-  };
-
-  // コート削除ハンドラー
-  const handleRemoveCourt = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      courts: prev.courts.filter((_, i) => i !== index)
-    }));
-  };
-
-  // コート更新ハンドラー
-  const handleUpdateCourt = (index: number, field: "courtId" | "courtName", value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      courts: prev.courts.map((court, i) =>
-        i === index ? { ...court, [field]: value } : court
-      )
-    }));
-  };
-
   // フォームフィールド更新ハンドラー
   const handleFormChange = (field: keyof Tournament, value: string | number | Date | { courtId: string; courtName: string }[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  // 時間を分:秒形式に変換
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // 分:秒形式から秒に変換
-  const parseTime = (timeString: string) => {
-    const [minutes, seconds] = timeString.split(':').map(Number);
-    return (minutes || 0) * 60 + (seconds || 0);
   };
 
   // 組織IDが設定されていない場合
@@ -366,68 +329,17 @@ export default function TournamentSettingsPage() {
                     </div>
 
                     {/* デフォルト試合時間 */}
-                    <div>
-                      <Label htmlFor="defaultMatchTime">デフォルト試合時間</Label>
-                      <Input
-                        id="defaultMatchTime"
-                        value={formatTime(formData.defaultMatchTime)}
-                        onChange={(e) => handleFormChange("defaultMatchTime", parseTime(e.target.value))}
-                        placeholder="例: 03:00"
-                        className="mt-1"
-                      />
-                      <p className="text-sm text-gray-500 mt-1">形式: MM:SS (例: 03:00 = 3分)</p>
-                    </div>
+                    <TimePicker
+                      label="デフォルト試合時間"
+                      value={formData.defaultMatchTime}
+                      onChange={(seconds) => handleFormChange("defaultMatchTime", seconds)}
+                    />
 
                     {/* コート情報 */}
-                    <div>
-                      <div className="flex justify-between items-center mb-3">
-                        <Label>会場のコート情報</Label>
-                        <Button
-                          type="button"
-                          onClick={handleAddCourt}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          コート追加
-                        </Button>
-                      </div>
-
-                      <div className="space-y-3">
-                        {formData.courts.map((court, index) => (
-                          <div key={index} className="flex gap-3 items-center">
-                            <div className="flex-1">
-                              <Input
-                                value={court.courtId}
-                                onChange={(e) => handleUpdateCourt(index, "courtId", e.target.value)}
-                                placeholder="コートID (例: A, B, 1, 2)"
-                              />
-                            </div>
-                            <div className="flex-2">
-                              <Input
-                                value={court.courtName}
-                                onChange={(e) => handleUpdateCourt(index, "courtName", e.target.value)}
-                                placeholder="コート名 (例: Aコート, メインコート)"
-                              />
-                            </div>
-                            <Button
-                              type="button"
-                              onClick={() => handleRemoveCourt(index)}
-                              variant="outline"
-                              size="sm"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-
-                        {formData.courts.length === 0 && (
-                          <div className="text-center text-gray-500 py-4 border-2 border-dashed border-gray-300 rounded-lg">
-                            コートが登録されていません
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <CourtManager
+                      courts={formData.courts}
+                      onChange={(courts) => handleFormChange("courts", courts)}
+                    />
                   </div>
                 ) : (
                   <div className="text-center text-gray-500 py-12">
