@@ -99,10 +99,12 @@ export function TimeAdjuster({
                     newMinutes = Math.max(minutes - 1, 0);
                     break;
                 case "seconds-up":
-                    newSeconds = Math.min(seconds + 1, maxSeconds);
+                    // 59秒を超えたら0にループ
+                    newSeconds = seconds >= maxSeconds ? 0 : seconds + 1;
                     break;
                 case "seconds-down":
-                    newSeconds = Math.max(seconds - 1, 0);
+                    // 0秒未満になったら59にループ
+                    newSeconds = seconds <= 0 ? maxSeconds : seconds - 1;
                     break;
             }
 
