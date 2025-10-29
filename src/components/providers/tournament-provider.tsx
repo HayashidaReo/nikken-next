@@ -19,12 +19,25 @@ interface TournamentProviderProps {
 export function TournamentProvider({ children }: TournamentProviderProps) {
     const { user, isInitialized } = useAuthStore();
     const { hasTournamentSelected, isLoading: tournamentLoading } = useActiveTournament();
+    const [forceClose, setForceClose] = React.useState(false);
 
     // ダイアログ表示条件を計算で決定（副作用なし）
     const shouldShowDialog = isInitialized &&
         !tournamentLoading &&
         Boolean(user) &&
-        !hasTournamentSelected;
+        !hasTournamentSelected &&
+        !forceClose;
+
+    const handleDialogClose = () => {
+        setForceClose(true);
+    };
+
+    // 大会選択状態が変わった場合、forceCloseをリセット
+    React.useEffect(() => {
+        if (hasTournamentSelected) {
+            setForceClose(false);
+        }
+    }, [hasTournamentSelected]);
 
     // 初期化中は何も表示しない
     if (!isInitialized || tournamentLoading) {
@@ -46,6 +59,7 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
             <TournamentSelectionDialog
                 open={shouldShowDialog}
                 dismissible={false} // 必須選択のため閉じることはできない
+                onClose={handleDialogClose}
             />
         </>
     );

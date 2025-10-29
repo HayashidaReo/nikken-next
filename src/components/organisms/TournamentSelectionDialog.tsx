@@ -14,6 +14,8 @@ interface TournamentSelectionDialogProps {
     open: boolean;
     /** ダイアログが閉じることができるかどうか（必須選択の場合はfalse） */
     dismissible?: boolean;
+    /** ダイアログを閉じる際のコールバック */
+    onClose?: () => void;
 }
 
 /**
@@ -26,7 +28,8 @@ interface TournamentSelectionDialogProps {
  */
 export function TournamentSelectionDialog({
     open,
-    dismissible = false
+    dismissible = false,
+    onClose
 }: TournamentSelectionDialogProps) {
     const { user } = useAuthStore();
     const { setActiveTournament } = useActiveTournament();
@@ -37,21 +40,31 @@ export function TournamentSelectionDialog({
 
     const { data: tournaments = [], isLoading, error } = useTournamentsByOrganization(orgId);
 
+    // API呼び出しの詳細をログに出力
+    React.useEffect(() => {
+        if (orgId) {
+            console.log(`Fetching tournaments for orgId: ${orgId}`);
+            console.log(`API URL will be: /api/tournaments/${orgId}`);
+        }
+    }, [orgId]);
+
     const handleConfirm = () => {
         if (selectedTournamentId) {
+            // 「この大会で続行」ボタンが押された時のみLocalStorageに保存
             setActiveTournament(selectedTournamentId);
+            // 明示的にダイアログを閉じる
+            onClose?.();
         }
+    };
+
+    // 大会選択時の処理（LocalStorageには保存せず、選択状態のみ更新）
+    const handleTournamentSelect = (value: string) => {
+        setSelectedTournamentId(value);
+        // setActiveTournament(value); を削除 - ボタン押下まで待つ
     };
 
     const selectedTournament = tournaments.find((t: Tournament) => t.tournamentId === selectedTournamentId);
 
-    // デバッグ用ログ
-    console.log("TournamentSelectionDialog Debug:", {
-        selectedTournamentId,
-        tournamentsLength: tournaments.length,
-        isLoading,
-        buttonDisabled: !selectedTournamentId || isLoading
-    });
 
     if (!user) {
         return null; // 未ログイン時は表示しない
@@ -74,8 +87,17 @@ export function TournamentSelectionDialog({
                     </p>
 
                     {error && (
-                        <div className="text-sm text-destructive text-center">
-                            大会一覧の取得に失敗しました。
+                        <div className="text-sm text-destructive text-center space-y-2">
+                            <p>大会一覧の取得に失敗しました</p>
+                            {error.message.includes('組織が見つかりません') && (
+                                <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                                    <p>まず大会設定画面で組織と大会を作成してください。</p>
+                                </div>
+                            )}
+                            <details className="text-xs text-gray-500">
+                                <summary>詳細を表示</summary>
+                                <p className="mt-1">{error.message}</p>
+                            </details>
                         </div>
                     )}
 
@@ -83,7 +105,7 @@ export function TournamentSelectionDialog({
                         <label className="text-sm font-medium">大会</label>
                         <Select
                             value={selectedTournamentId}
-                            onValueChange={setSelectedTournamentId}
+                            onValueChange={handleTournamentSelect}
                             disabled={isLoading}
                         >
                             <SelectTrigger className="w-full">
@@ -104,9 +126,12 @@ export function TournamentSelectionDialog({
                                             </div>
                                         </SelectItem>
                                     ))}
-                                {tournaments.length === 0 && !isLoading && (
-                                    <div className="p-2 text-sm text-muted-foreground text-center">
-                                        利用可能な大会がありません
+                                {tournaments.length === 0 && !isLoading && !error && (
+                                    <div className="p-3 text-sm text-center space-y-2">
+                                        <p className="text-muted-foreground">利用可能な大会がありません</p>
+                                        <p className="text-xs text-gray-500">
+                                            大会設定画面で大会を作成してください
+                                        </p>
                                     </div>
                                 )}
                             </SelectContent>
@@ -125,7 +150,16 @@ export function TournamentSelectionDialog({
                         </div>
                     )}
 
-                    <div className="flex justify-end">
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                        {(tournaments.length === 0 || error) && (
+                            <Button
+                                variant="outline"
+                                onClick={() => window.location.href = '/tournament-settings'}
+                                className="w-full sm:w-auto"
+                            >
+                                大会を作成する
+                            </Button>
+                        )}
                         <Button
                             onClick={handleConfirm}
                             disabled={!selectedTournamentId || isLoading}
