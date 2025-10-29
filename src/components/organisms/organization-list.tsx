@@ -1,58 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
 import { useToast } from "@/components/providers/notification-provider";
 import { Button } from "@/components/atoms/button";
 import { useRouter } from "next/navigation";
-
-
-interface Organization {
-    id: string;
-    orgName: string;
-    representativeName: string;
-    representativePhone: string;
-    representativeEmail: string;
-    adminUid: string;
-    createdAt: string;
-    updatedAt: string;
-}
+import { useOrganizations } from "@/queries/use-organizations";
 
 /**
  * 組織一覧表示
  */
 export function OrganizationList() {
-    const [organizations, setOrganizations] = useState<Organization[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { data: organizations = [], isLoading, error } = useOrganizations();
     const { showError, showSuccess } = useToast();
     const router = useRouter();
-    useEffect(() => {
-        const fetchOrganizations = async () => {
-            try {
-                const response = await fetch("/api/admin/organizations", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.details || errorData.error || "組織一覧の取得に失敗しました");
-                }
-
-                const result = await response.json();
-                setOrganizations(result.organizations);
-
-            } catch (error) {
-                showError(error instanceof Error ? error.message : "組織一覧の取得に失敗しました");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchOrganizations();
-    }, [showError]);
+    // エラーハンドリング
+    if (error) {
+        showError(error instanceof Error ? error.message : "組織一覧の取得に失敗しました");
+    }
 
     const handleManageOrganization = (orgId: string, orgName: string) => {
         showSuccess(`組織「${orgName}」を選択しました`);

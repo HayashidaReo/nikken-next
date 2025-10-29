@@ -1,12 +1,12 @@
 import * as React from "react";
 import { useToast } from "@/components/providers/notification-provider";
-import { useOrganizationId } from "@/hooks/useTournament";
+import { useAuth } from "@/hooks/useAuth";
 import {
     useTournamentsByOrganization,
-    useCreateOrganization,
     useCreateTournament,
     useUpdateTournamentByOrganization
 } from "@/queries/use-tournaments";
+import { useCreateOrganizationForUser } from "@/queries/use-organizations";
 import type { Tournament } from "@/types/tournament.schema";
 
 /**
@@ -15,7 +15,9 @@ import type { Tournament } from "@/types/tournament.schema";
  */
 export function useTournamentSettings() {
     const { showSuccess, showError } = useToast();
-    const { orgId } = useOrganizationId();
+    const { user } = useAuth();
+    // ユーザーのUIDを組織IDとして使用
+    const orgId = user?.uid || null;
 
     // React Query hooks
     const {
@@ -24,7 +26,7 @@ export function useTournamentSettings() {
         error,
     } = useTournamentsByOrganization(orgId);
 
-    const { mutate: createOrganization, isPending: isCreatingOrg } = useCreateOrganization();
+    const { mutate: createOrganization, isPending: isCreatingOrg } = useCreateOrganizationForUser();
     const { mutate: createTournament } = useCreateTournament();
     const { mutate: updateTournament } = useUpdateTournamentByOrganization();
 
@@ -143,7 +145,7 @@ export function useTournamentSettings() {
             onSuccess: () => {
                 showSuccess("組織を作成しました");
             },
-            onError: (error) => {
+            onError: (error: Error) => {
                 showError(error instanceof Error ? error.message : "組織作成に失敗しました");
             }
         });

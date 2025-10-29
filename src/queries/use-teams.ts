@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FirestoreTeamRepository } from "@/repositories/firestore/team-repository";
 import type { Team, TeamCreate } from "@/types/team.schema";
+import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
 
 /**
  * Team リポジトリのインスタンス（シングルトン）
@@ -112,6 +113,33 @@ export function useApproveTeam() {
             updateTeam({ teamId, patch: { isApproved } });
         },
     };
+}
+
+/**
+ * チーム登録用のMutation（API Route経由）
+ * 認証なしで使用可能（公開フォーム用）
+ */
+export function useRegisterTeam() {
+    return useMutation({
+        mutationFn: async (formData: PlayerRegistrationData) => {
+            const response = await fetch("/api/teams/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(
+                    errorData.details || errorData.error || "チーム登録に失敗しました"
+                );
+            }
+
+            return response.json();
+        },
+    });
 }
 
 /**

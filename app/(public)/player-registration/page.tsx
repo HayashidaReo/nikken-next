@@ -1,29 +1,14 @@
 "use client";
 
 import { PlayerRegistrationForm } from "@/components/organisms/player-registration-form";
+import { useRegisterTeam } from "@/queries/use-teams";
 import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
 
 export default function PlayerRegistrationPage() {
+  const registerTeamMutation = useRegisterTeam();
+
   const handleSubmit = async (formData: PlayerRegistrationData) => {
-    // API Route経由でサーバーサイドに保存
-    const response = await fetch("/api/teams/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.details || errorData.error || "チーム登録に失敗しました"
-      );
-    }
-
-    const result = await response.json();
-
-    return result;
+    return await registerTeamMutation.mutateAsync(formData);
   };
 
   return (

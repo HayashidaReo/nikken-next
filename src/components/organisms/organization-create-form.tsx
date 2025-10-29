@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/atoms/button";
@@ -10,13 +9,14 @@ import { LoadingButton } from "@/components/molecules/loading-button";
 import { useToast } from "@/components/providers/notification-provider";
 import { organizationCreateWithAccountSchema } from "@/types/organization.schema";
 import type { OrganizationCreateWithAccount } from "@/types/organization.schema";
+import { useCreateOrganization } from "@/queries/use-organizations";
 
 /**
  * 組織作成フォーム
  */
 export function OrganizationCreateForm() {
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const { showSuccess, showError } = useToast();
+    const createOrganizationMutation = useCreateOrganization();
 
     const {
         register,
@@ -36,33 +36,16 @@ export function OrganizationCreateForm() {
     });
 
     const onSubmit = async (data: OrganizationCreateWithAccount) => {
-        setIsSubmitting(true);
-
         try {
-            const response = await fetch("/api/admin/organizations", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.details || errorData.error || "組織作成に失敗しました");
-            }
-
-            const result = await response.json();
+            const result = await createOrganizationMutation.mutateAsync(data);
             showSuccess(
-                `組織「${result.organization.name}」を作成し、管理者アカウントを発行しました。` +
+                `組織「${result.orgName}」を作成し、管理者アカウントを発行しました。` +
                 `デフォルト大会も自動作成されました。`
             );
             reset(); // フォームをリセット
 
         } catch (error) {
             showError(error instanceof Error ? error.message : "組織作成に失敗しました");
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -149,14 +132,14 @@ export function OrganizationCreateForm() {
                             type="button"
                             variant="outline"
                             onClick={() => reset()}
-                            disabled={isSubmitting}
+                            disabled={createOrganizationMutation.isPending}
                         >
                             リセット
                         </Button>
                         <LoadingButton
                             type="submit"
-                            isLoading={isSubmitting}
-                            disabled={isSubmitting}
+                            isLoading={createOrganizationMutation.isPending}
+                            disabled={createOrganizationMutation.isPending}
                         >
                             組織を作成
                         </LoadingButton>
