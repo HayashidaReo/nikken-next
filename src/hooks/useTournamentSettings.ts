@@ -1,13 +1,14 @@
 import * as React from "react";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveTournament } from "@/hooks/useActiveTournament";
 import {
     useTournamentsByOrganization,
     useCreateTournament,
     useUpdateTournamentByOrganization
 } from "@/queries/use-tournaments";
 import { useCreateOrganizationForUser } from "@/queries/use-organizations";
-import type { Tournament } from "@/types/tournament.schema";
+import type { Tournament, TournamentWithId } from "@/types/tournament.schema";
 
 /**
  * 大会設定ページの状態管理フック
@@ -16,6 +17,7 @@ import type { Tournament } from "@/types/tournament.schema";
 export function useTournamentSettings() {
     const { showSuccess, showError } = useToast();
     const { user } = useAuth();
+    const { activeTournamentId } = useActiveTournament();
     // ユーザーのUIDを組織IDとして使用
     const orgId = user?.uid || null;
 
@@ -30,8 +32,8 @@ export function useTournamentSettings() {
     const { mutate: createTournament } = useCreateTournament();
     const { mutate: updateTournament } = useUpdateTournamentByOrganization();
 
-    // 状態管理
-    const [selectedTournamentId, setSelectedTournamentId] = React.useState<string | null>(null);
+    // 状態管理 - 現在選択中の大会を初期値として設定
+    const [selectedTournamentId, setSelectedTournamentId] = React.useState<string | null>(activeTournamentId);
     const [isAddingNew, setIsAddingNew] = React.useState(false);
     const [formData, setFormData] = React.useState<Tournament>({
         tournamentName: "",
@@ -59,6 +61,16 @@ export function useTournamentSettings() {
             updatedAt: tournament.updatedAt,
         });
     }, []);
+
+    // 現在選択中の大会を初期表示時に設定
+    React.useEffect(() => {
+        if (activeTournamentId && tournaments.length > 0 && !selectedTournamentId) {
+            const activeTournament = tournaments.find((t: TournamentWithId) => t.tournamentId === activeTournamentId);
+            if (activeTournament) {
+                handleSelectTournament(activeTournament);
+            }
+        }
+    }, [activeTournamentId, tournaments, selectedTournamentId, handleSelectTournament]);
 
     // 新規作成開始処理
     const handleStartNew = React.useCallback(() => {
