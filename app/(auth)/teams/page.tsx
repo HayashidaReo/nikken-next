@@ -3,7 +3,6 @@
 import * as React from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
-import { mockTournament } from "@/lib/mock-data";
 import { useTeams, useApproveTeam } from "@/queries/use-teams";
 
 export default function TeamsPage() {
@@ -18,7 +17,6 @@ export default function TeamsPage() {
     return (
       <MainLayout
         activeTab="teams"
-        tournamentName={mockTournament.tournamentName}
       >
         <div className="flex justify-center items-center py-8">
           <div className="text-gray-600">チーム情報を読み込み中...</div>
@@ -31,7 +29,6 @@ export default function TeamsPage() {
     return (
       <MainLayout
         activeTab="teams"
-        tournamentName={mockTournament.tournamentName}
       >
         <div className="flex justify-center items-center py-8">
           <div className="text-red-600">
@@ -45,7 +42,6 @@ export default function TeamsPage() {
   return (
     <MainLayout
       activeTab="teams"
-      tournamentName={mockTournament.tournamentName}
     >
       <div className="space-y-6">
         <div className="flex justify-between items-center">

@@ -25,7 +25,6 @@ export default function MatchSetupPage() {
   return (
     <MainLayout
       activeTab="match-setup"
-      tournamentName={mockTournament.tournamentName}
     >
       <div className="space-y-6">
         <div className="flex justify-between items-center">

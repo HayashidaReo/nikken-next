@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Settings, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
   Tabs,
@@ -14,29 +15,34 @@ import { cn } from "@/lib/utils/utils";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useAuthGuard } from "@/hooks/useAuth";
 import { useToast } from "@/components/providers/notification-provider";
+import { TournamentSelector } from "@/components/molecules/TournamentSelector";
+import { useActiveTournament } from "@/hooks/useActiveTournament";
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  tournamentName?: string;
   activeTab?: "matches" | "match-setup" | "teams";
   className?: string;
 }
 
-interface HeaderProps {
-  tournamentName?: string;
-}
-
-function Header({ tournamentName = "第50回全国日本拳法大会" }: HeaderProps) {
+function Header() {
+  const router = useRouter();
   const { signOut } = useAuthStore();
   const { showSuccess, showError } = useToast();
+  const { clearActiveTournament } = useActiveTournament();
 
   const handleLogout = async () => {
     try {
+      // ログアウト時にLocalStorageから大会IDを削除
+      clearActiveTournament();
       await signOut();
       showSuccess("ログアウトしました");
     } catch {
       showError("ログアウトに失敗しました");
     }
+  };
+
+  const handleManageTournaments = () => {
+    router.push("/tournament-settings");
   };
 
   return (
@@ -55,18 +61,12 @@ function Header({ tournamentName = "第50回全国日本拳法大会" }: HeaderP
             </Link>
           </div>
 
-          {/* 右側：大会名と設定ボタン */}
+          {/* 右側：大会選択と設定ボタン */}
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-700 font-medium">
-              {tournamentName}
-            </span>
+            {/* 大会選択ドロップダウン */}
+            <TournamentSelector onManageClick={handleManageTournaments} />
+
             <div className="flex items-center space-x-2">
-              <Link href="/tournament-settings">
-                <Button variant="ghost" size="sm">
-                  <Settings className="w-4 h-4 mr-2" />
-                  大会設定
-                </Button>
-              </Link>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 ログアウト
@@ -81,7 +81,6 @@ function Header({ tournamentName = "第50回全国日本拳法大会" }: HeaderP
 
 export function MainLayout({
   children,
-  tournamentName,
   activeTab = "matches",
   className,
 }: MainLayoutProps) {
@@ -106,7 +105,7 @@ export function MainLayout({
 
   return (
     <div className={cn("min-h-screen bg-gray-50", className)}>
-      <Header tournamentName={tournamentName} />
+      <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} className="w-full">

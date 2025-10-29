@@ -4,6 +4,7 @@ import "./globals.css";
 import { NotificationProvider } from "@/components/providers/notification-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { AuthErrorBoundary } from "@/components/providers/auth-error-boundary";
+import { TournamentProvider } from "@/components/providers/tournament-provider";
 import { QueryProvider } from "@/lib/query-provider";
 
 const geistSans = Geist({
@@ -34,7 +35,9 @@ export default function RootLayout({
         <QueryProvider>
           <AuthErrorBoundary>
             <AuthProvider>
-              <NotificationProvider>{children}</NotificationProvider>
+              <TournamentProvider>
+                <NotificationProvider>{children}</NotificationProvider>
+              </TournamentProvider>
             </AuthProvider>
           </AuthErrorBoundary>
         </QueryProvider>

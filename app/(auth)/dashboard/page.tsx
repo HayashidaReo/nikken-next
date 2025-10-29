@@ -11,7 +11,6 @@ export default function DashboardPage() {
     <AuthGuardWrapper>
       <MainLayout
         activeTab="matches"
-        tournamentName={mockTournament.tournamentName}
       >
         <div className="space-y-6">
           <AuthenticatedHeader
