@@ -8,7 +8,7 @@ import { Timestamp } from "firebase-admin/firestore";
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { orgId: string; tournamentId: string } }
+    { params }: { params: Promise<{ orgId: string; tournamentId: string }> }
 ) {
     try {
         // TODO: 認証チェック実装
@@ -17,7 +17,7 @@ export async function GET(
         //   return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
         // }
 
-        const { orgId, tournamentId } = params;
+        const { orgId, tournamentId } = await params;
 
         // Firestoreから大会データを取得
         const tournamentDoc = await adminDb
@@ -72,13 +72,21 @@ export async function GET(
  */
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { orgId: string; tournamentId: string } }
+    { params }: { params: Promise<{ orgId: string; tournamentId: string }> }
 ) {
     try {
         // TODO: 認証チェック実装
 
-        const { orgId, tournamentId } = params;
+        const { orgId, tournamentId } = await params;
         const body = await request.json();
+
+        // パラメータのバリデーション
+        if (!orgId || !tournamentId) {
+            return NextResponse.json(
+                { error: "組織IDまたは大会IDが指定されていません" },
+                { status: 400 }
+            );
+        }
 
         // 更新データの準備
         const updateData = {
