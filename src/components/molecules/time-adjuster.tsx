@@ -74,11 +74,19 @@ export function TimeAdjuster({
 
     const styles = sizeClasses[size];
 
+    // 最新の値を参照するためのref
+    const latestValueRef = React.useRef(value);
+    React.useEffect(() => {
+        latestValueRef.current = value;
+    }, [value]);
+
     const adjustTime = React.useCallback(
         (type: TimeAdjustType) => {
             if (disabled) return;
 
-            const { minutes, seconds } = splitSecondsToMinutesAndSeconds(value);
+            console.log('adjustTime called with type:', type, 'current value:', latestValueRef.current); // デバッグ用
+
+            const { minutes, seconds } = splitSecondsToMinutesAndSeconds(latestValueRef.current);
 
             let newMinutes = minutes;
             let newSeconds = seconds;
@@ -102,9 +110,11 @@ export function TimeAdjuster({
                 newMinutes,
                 newSeconds
             );
+
+            console.log('Calling onChange with:', newTotalSeconds); // デバッグ用
             onChange(newTotalSeconds);
         },
-        [value, onChange, disabled, maxMinutes, maxSeconds]
+        [onChange, disabled, maxMinutes, maxSeconds] // value を依存配列から除去
     );
 
     // 各ボタンの長押しハンドラー（atomic思想に基づく分離）

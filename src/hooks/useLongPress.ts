@@ -21,6 +21,12 @@ export function useLongPress(
 
     const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
     const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
+    const callbackRef = React.useRef(callback);
+
+    // 最新のコールバックを常に参照
+    React.useEffect(() => {
+        callbackRef.current = callback;
+    }, [callback]);
 
     const clear = React.useCallback(() => {
         if (timeoutRef.current) {
@@ -36,14 +42,20 @@ export function useLongPress(
     const start = React.useCallback(() => {
         if (disabled) return;
 
+        console.log('Long press started'); // デバッグ用
+
         // 初回実行
-        callback();
+        callbackRef.current();
 
         // 長押し処理を開始
         timeoutRef.current = setTimeout(() => {
-            intervalRef.current = setInterval(callback, interval);
+            console.log('Long press timeout reached, starting interval'); // デバッグ用
+            intervalRef.current = setInterval(() => {
+                console.log('Long press interval callback'); // デバッグ用
+                callbackRef.current();
+            }, interval);
         }, delay);
-    }, [callback, delay, interval, disabled]);
+    }, [delay, interval, disabled]); // callback を依存配列から除去
 
     const stop = React.useCallback(() => {
         clear();
