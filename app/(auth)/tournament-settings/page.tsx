@@ -131,9 +131,16 @@ export default function TournamentSettingsPage() {
     try {
       if (isAddingNew) {
         // 新規作成
-        console.log("API呼び出しデータ:", { orgId, tournamentName: formData.tournamentName });
+        const tournamentData = {
+          tournamentName: formData.tournamentName,
+          tournamentDate: formData.tournamentDate,
+          location: formData.location,
+          defaultMatchTime: formData.defaultMatchTime,
+          courts: formData.courts
+        };
+        console.log("API呼び出しデータ:", { orgId, tournamentData });
         createTournament(
-          { orgId, tournamentName: formData.tournamentName },
+          { orgId, tournamentData },
           {
             onSuccess: (result) => {
               console.log("API成功レスポンス:", result);

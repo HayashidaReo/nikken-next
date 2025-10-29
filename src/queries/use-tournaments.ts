@@ -42,13 +42,22 @@ export function useCreateTournament() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ orgId, tournamentName }: { orgId: string; tournamentName: string }) => {
+        mutationFn: async ({ orgId, tournamentData }: {
+            orgId: string;
+            tournamentData: {
+                tournamentName: string;
+                tournamentDate: string;
+                location: string;
+                defaultMatchTime: number;
+                courts: { courtId: string; courtName: string }[];
+            }
+        }) => {
             const response = await fetch(`/api/tournaments/${orgId}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ tournamentName }),
+                body: JSON.stringify(tournamentData),
             });
 
             if (!response.ok) {
