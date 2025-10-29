@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { LogoutButton } from "@/components/molecules/logout-button";
 import { cn } from "@/lib/utils/utils";
 
 interface AuthenticatedHeaderProps {
@@ -22,21 +21,18 @@ export function AuthenticatedHeader({
     children
 }: AuthenticatedHeaderProps) {
     return (
-        <div className={cn("flex justify-between items-start", className)}>
-            <div className="flex-1">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-                    {subtitle && (
-                        <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
-                    )}
-                </div>
-                {children && (
-                    <div className="mt-4">
-                        {children}
-                    </div>
+        <div className={cn("", className)}>
+            <div>
+                <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+                {subtitle && (
+                    <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
                 )}
             </div>
-            <LogoutButton className="ml-4 flex-shrink-0" />
+            {children && (
+                <div className="mt-4">
+                    {children}
+                </div>
+            )}
         </div>
     );
 }
