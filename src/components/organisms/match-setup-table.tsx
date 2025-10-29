@@ -51,7 +51,7 @@ export function MatchSetupTable({
   const approvedTeams = teams.filter(team => team.isApproved); // 初期データを作成
   const initialData = React.useMemo(() => {
     return matches.map(match => ({
-      id: match.matchId,
+      id: match.matchId || '', // undefined の場合は空文字列
       courtId: match.courtId,
       round: match.round,
       playerATeamId: match.players.playerA.teamId,
