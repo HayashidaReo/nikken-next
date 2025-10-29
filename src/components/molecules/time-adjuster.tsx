@@ -84,8 +84,6 @@ export function TimeAdjuster({
         (type: TimeAdjustType) => {
             if (disabled) return;
 
-            console.log('adjustTime called with type:', type, 'current value:', latestValueRef.current); // デバッグ用
-
             const { minutes, seconds } = splitSecondsToMinutesAndSeconds(latestValueRef.current);
 
             let newMinutes = minutes;
@@ -113,7 +111,6 @@ export function TimeAdjuster({
                 newSeconds
             );
 
-            console.log('Calling onChange with:', newTotalSeconds); // デバッグ用
             onChange(newTotalSeconds);
         },
         [onChange, disabled, maxMinutes, maxSeconds] // value を依存配列から除去

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/car
 import { useToast } from "@/components/providers/notification-provider";
 import { Button } from "@/components/atoms/button";
 import { useRouter } from "next/navigation";
-import { useOrganizationId } from "@/hooks/useTournament";
+
 
 interface Organization {
     id: string;
@@ -26,8 +26,6 @@ export function OrganizationList() {
     const [isLoading, setIsLoading] = useState(true);
     const { showError, showSuccess } = useToast();
     const router = useRouter();
-    const { setOrgId } = useOrganizationId();
-
     useEffect(() => {
         const fetchOrganizations = async () => {
             try {
@@ -57,8 +55,6 @@ export function OrganizationList() {
     }, [showError]);
 
     const handleManageOrganization = (orgId: string, orgName: string) => {
-        // 組織IDを設定
-        setOrgId(orgId);
         showSuccess(`組織「${orgName}」を選択しました`);
         // 大会設定ページに移動
         router.push('/tournament-settings');

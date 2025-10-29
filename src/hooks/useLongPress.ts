@@ -42,16 +42,12 @@ export function useLongPress(
     const start = React.useCallback(() => {
         if (disabled) return;
 
-        console.log('Long press started'); // デバッグ用
-
         // 初回実行
         callbackRef.current();
 
         // 長押し処理を開始
         timeoutRef.current = setTimeout(() => {
-            console.log('Long press timeout reached, starting interval'); // デバッグ用
             intervalRef.current = setInterval(() => {
-                console.log('Long press interval callback'); // デバッグ用
                 callbackRef.current();
             }, interval);
         }, delay);

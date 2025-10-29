@@ -1,11 +1,13 @@
 import {
-  organizationSchema,
   courtSchema,
   tournamentSchema,
-  type Organization,
   type Court,
   type Tournament,
 } from "./tournament.schema";
+import {
+  organizationSchema,
+  type Organization,
+} from "./organization.schema";
 
 describe("Tournament Schema Validation", () => {
   describe("organizationSchema", () => {

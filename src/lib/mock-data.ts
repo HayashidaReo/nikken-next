@@ -1,6 +1,7 @@
 import type { Team } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
-import type { Tournament, Organization } from "@/types/tournament.schema";
+import type { Tournament } from "@/types/tournament.schema";
+import type { Organization } from "@/types/organization.schema";
 
 // モック組織データ
 export const mockOrganization: Organization = {
