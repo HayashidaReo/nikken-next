@@ -64,3 +64,45 @@ export type Tournament = z.infer<typeof tournamentSchema>;
 export type TournamentForm = z.infer<typeof tournamentFormSchema>;
 export type TournamentCreate = z.infer<typeof tournamentCreateSchema>;
 export type TournamentSettings = z.infer<typeof tournamentSettingsSchema>;
+
+/**
+ * 大会操作の状態を表す型
+ */
+export type TournamentOperationMode = 'view' | 'create' | 'edit';
+
+/**
+ * 大会設定フォームの操作結果型
+ */
+export interface TournamentFormResult {
+  success: boolean;
+  data?: Tournament;
+  error?: string;
+}
+
+/**
+ * 大会一覧表示用の拡張型（IDを必須にした型）
+ */
+export type TournamentWithId = Tournament & {
+  tournamentId: string;
+};
+
+/**
+ * 大会設定ページで使用する型安全なハンドラー関数の型定義
+ */
+export interface TournamentFormHandlers {
+  onSave: () => Promise<TournamentFormResult>;
+  onChange: <K extends keyof Tournament>(field: K, value: Tournament[K]) => void;
+  onCancel?: () => void;
+  onDelete?: (tournamentId: string) => Promise<void>;
+}
+
+/**
+ * 大会設定ページの状態管理型
+ */
+export interface TournamentSettingsState {
+  mode: TournamentOperationMode;
+  selectedTournamentId: string | null;
+  formData: Tournament;
+  isLoading: boolean;
+  errors: Partial<Record<keyof Tournament, string>>;
+}
