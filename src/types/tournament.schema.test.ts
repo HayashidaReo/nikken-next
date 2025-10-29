@@ -126,7 +126,8 @@ describe("Tournament Schema Validation", () => {
   describe("tournamentSchema", () => {
     const validTournament: Tournament = {
       tournamentName: "全国日本拳法選手権大会",
-      tournamentDate: "2024-03-15",
+      tournamentDate: new Date("2024-03-15"),
+      tournamentDetail: "テスト用の大会概要",
       location: "東京体育館",
       defaultMatchTime: 180, // 3分
       courts: [
@@ -260,7 +261,8 @@ describe("Tournament Schema Validation", () => {
 
       const tournament: Tournament = {
         tournamentName: "テスト大会",
-        tournamentDate: "2024-01-01",
+        tournamentDate: new Date("2024-01-01"),
+        tournamentDetail: "テスト用大会",
         location: "テスト会場",
         defaultMatchTime: 180,
         courts: [court],
@@ -281,7 +283,8 @@ describe("Tournament Schema Validation", () => {
 
       const tournament: Tournament = {
         tournamentName: longString,
-        tournamentDate: "2024-01-01",
+        tournamentDate: new Date("2024-01-01"),
+        tournamentDetail: "テスト用大会",
         location: longString,
         defaultMatchTime: 180,
         courts: [],
@@ -298,7 +301,8 @@ describe("Tournament Schema Validation", () => {
 
       const tournament: Tournament = {
         tournamentName: `テスト大会 ${specialChars}`,
-        tournamentDate: "2024-01-01",
+        tournamentDate: new Date("2024-01-01"),
+        tournamentDetail: "テスト用大会",
         location: `テスト会場 ${specialChars}`,
         defaultMatchTime: 180,
         courts: [],
@@ -313,7 +317,8 @@ describe("Tournament Schema Validation", () => {
     it("非常に大きな試合時間を処理", () => {
       const tournament: Tournament = {
         tournamentName: "テスト大会",
-        tournamentDate: "2024-01-01",
+        tournamentDate: new Date("2024-01-01"),
+        tournamentDetail: "テスト用大会",
         location: "テスト会場",
         defaultMatchTime: 86400, // 24時間
         courts: [],

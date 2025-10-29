@@ -17,7 +17,8 @@ export const mockOrganization: Organization = {
 // モック大会データ
 export const mockTournament: Tournament = {
   tournamentName: "第50回全国日本拳法大会",
-  tournamentDate: "2024-03-20",
+  tournamentDate: new Date("2024-03-20"),
+  tournamentDetail: "全国規模の日本拳法大会です",
   location: "東京体育館",
   defaultMatchTime: 180, // 3分
   courts: [

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 import { adminDb } from "@/lib/firebase-admin/server";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 
@@ -108,8 +109,7 @@ export async function POST(
         const body = await request.json();
 
         const {
-            name,
-            tournamentName = name, // nameフィールドも受け入れる
+            tournamentName,
             tournamentDate,
             tournamentDetail,
             location,
@@ -158,7 +158,11 @@ export async function POST(
             }
         }
 
+        // UUIDを生成
+        const tournamentId = uuidv4();
+
         const tournamentData = {
+            tournamentId,
             tournamentName: tournamentName.trim(),
             tournamentDate: parsedTournamentDate,
             tournamentDetail: tournamentDetail || '',
@@ -170,29 +174,25 @@ export async function POST(
         };
 
         // 大会を作成
-        const docRef = await adminDb
+        await adminDb
             .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgId)
             .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
-            .add(tournamentData);
-
-        // 作成されたドキュメントにtournamentIdを追加保存
-        await docRef.update({
-            tournamentId: docRef.id
-        });
-
-        // 作成された大会データを取得
-        const createdDoc = await docRef.get();
-        const createdData = createdDoc.data();
+            .doc(tournamentId)
+            .set(tournamentData);
 
         return NextResponse.json({
             success: true,
             data: {
-                tournamentId: createdDoc.id,
-                ...createdData,
-                tournamentDate: createdData?.tournamentDate?.toDate?.() || null,
-                createdAt: createdData?.createdAt?.toDate?.()?.toISOString() || null,
-                updatedAt: createdData?.updatedAt?.toDate?.()?.toISOString() || null,
+                tournamentId,
+                tournamentName: tournamentData.tournamentName,
+                tournamentDate: tournamentData.tournamentDate,
+                tournamentDetail: tournamentData.tournamentDetail,
+                location: tournamentData.location,
+                defaultMatchTime: tournamentData.defaultMatchTime,
+                courts: tournamentData.courts,
+                createdAt: tournamentData.createdAt.toISOString(),
+                updatedAt: tournamentData.updatedAt.toISOString(),
             }
         }, { status: 201 });
 
