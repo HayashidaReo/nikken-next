@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin/server";
 import { Timestamp } from "firebase-admin/firestore";
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 
 /**
  * 大会情報取得API Route
@@ -21,9 +22,9 @@ export async function GET(
 
         // Firestoreから大会データを取得
         const tournamentDoc = await adminDb
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgId)
-            .collection("tournaments")
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
             .doc(tournamentId)
             .get();
 
@@ -100,9 +101,9 @@ export async function PUT(
 
         // Firestoreの大会ドキュメントを更新
         await adminDb
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgId)
-            .collection("tournaments")
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
             .doc(tournamentId)
             .update(updateData);
 

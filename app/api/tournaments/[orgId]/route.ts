@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin/server";
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 
 /**
  * 組織内の大会一覧取得API Route
@@ -31,7 +32,7 @@ export async function GET(
 
         // まず組織が存在するか確認
         const orgDoc = await adminDb
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgId)
             .get();
 
@@ -45,9 +46,9 @@ export async function GET(
             );
         }                // 大会一覧を取得
         const tournamentsRef = adminDb
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgId)
-            .collection("tournaments");
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS);
 
         const snapshot = await tournamentsRef.get();
 
@@ -104,7 +105,6 @@ export async function POST(
 
         // リクエストボディを取得
         const body = await request.json();
-        console.log("受信したリクエストボディ:", body);
 
         const {
             name,
@@ -130,7 +130,7 @@ export async function POST(
 
         // 組織が存在するか確認
         const orgDoc = await adminDb
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgId)
             .get();
 
@@ -158,9 +158,9 @@ export async function POST(
 
         // 大会を作成
         const docRef = await adminDb
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgId)
-            .collection("tournaments")
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
             .add(tournamentData);
 
         // 作成された大会データを取得

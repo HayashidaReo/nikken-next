@@ -3,6 +3,7 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin/server";
 import { organizationCreateWithAccountSchema } from "@/types/organization.schema";
 import type { OrganizationCreateWithAccount } from "@/types/organization.schema";
 import { Timestamp } from "firebase-admin/firestore";
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 
 /**
  * 組織作成API Route（システム管理者専用）
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
             updatedAt: now,
         };
 
-        const orgRef = await adminDb.collection("organizations").add(organizationDoc);
+        const orgRef = await adminDb.collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS).add(organizationDoc);
 
         // 3. organizationドキュメントにorgIdを追加
         await orgRef.update({ orgId: orgRef.id });
@@ -76,9 +77,9 @@ export async function POST(request: NextRequest) {
         };
 
         const tournamentRef = await adminDb
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgRef.id)
-            .collection("tournaments")
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
             .add(defaultTournament);
 
         // tournamentIdを追加
@@ -131,7 +132,7 @@ export async function GET() {
         // TODO: 認証チェック実装
 
         const snapshot = await adminDb
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .orderBy("createdAt", "desc")
             .get();
 

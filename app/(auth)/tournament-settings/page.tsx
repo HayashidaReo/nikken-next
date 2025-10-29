@@ -116,13 +116,6 @@ export default function TournamentSettingsPage() {
       return;
     }
 
-    console.log("バリデーション確認:", {
-      tournamentName: formData.tournamentName,
-      trimmed: formData.tournamentName.trim(),
-      length: formData.tournamentName.trim().length,
-      isEmpty: !formData.tournamentName.trim()
-    });
-
     if (!formData.tournamentName.trim()) {
       showError("大会名を入力してください");
       return;
@@ -138,12 +131,10 @@ export default function TournamentSettingsPage() {
           defaultMatchTime: formData.defaultMatchTime,
           courts: formData.courts
         };
-        console.log("API呼び出しデータ:", { orgId, tournamentData });
         createTournament(
           { orgId, tournamentData },
           {
             onSuccess: (result) => {
-              console.log("API成功レスポンス:", result);
               showSuccess("大会を作成しました");
               setIsAddingNew(false);
               setSelectedTournamentId(result.data.tournamentId);
@@ -154,7 +145,6 @@ export default function TournamentSettingsPage() {
               }));
             },
             onError: (error) => {
-              console.error("API エラー詳細:", error);
               showError(error instanceof Error ? error.message : "大会の作成に失敗しました");
             }
           }
@@ -180,7 +170,6 @@ export default function TournamentSettingsPage() {
 
   // フォームフィールド更新ハンドラー
   const handleFormChange = (field: keyof Tournament, value: string | number | Date | { courtId: string; courtName: string }[]) => {
-    console.log("フォーム更新:", { field, value });
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

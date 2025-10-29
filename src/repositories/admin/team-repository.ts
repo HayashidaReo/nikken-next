@@ -4,16 +4,16 @@ import { TeamMapper } from "@/data/mappers/team-mapper";
 import type { Team, TeamCreate } from "@/types/team.schema";
 import type { TeamRepository } from "@/repositories/team-repository";
 import { Timestamp } from "firebase-admin/firestore";
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 
 /**
  * Firebase Admin SDK 実装の TeamRepository
  * サーバーサイド（API Routes等）での使用専用
  */
 export class AdminTeamRepository implements TeamRepository {
-    private collectionName = "teams";
 
     async getById(teamId: string): Promise<Team | null> {
-        const docRef = adminDb.collection(this.collectionName).doc(teamId);
+        const docRef = adminDb.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId);
         const snap = await docRef.get();
 
         if (!snap.exists) return null;
@@ -25,7 +25,7 @@ export class AdminTeamRepository implements TeamRepository {
 
     async listAll(): Promise<Team[]> {
         const snapshot = await adminDb
-            .collection(this.collectionName)
+            .collection(FIRESTORE_COLLECTIONS.TEAMS)
             .orderBy("createdAt", "desc")
             .get();
 
@@ -49,7 +49,7 @@ export class AdminTeamRepository implements TeamRepository {
             updatedAt: now,
         };
 
-        const docRef = await adminDb.collection(this.collectionName).add(docWithTimestamp);
+        const docRef = await adminDb.collection(FIRESTORE_COLLECTIONS.TEAMS).add(docWithTimestamp);
         const snap = await docRef.get();
         const data = snap.data();
 
@@ -57,7 +57,7 @@ export class AdminTeamRepository implements TeamRepository {
     }
 
     async update(teamId: string, patch: Partial<Team>): Promise<Team> {
-        const docRef = adminDb.collection(this.collectionName).doc(teamId);
+        const docRef = adminDb.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId);
         const updateData = TeamMapper.toFirestoreForUpdate(patch as any);
 
         // updatedAtをAdmin SDK用のTimestampに変換
@@ -75,7 +75,7 @@ export class AdminTeamRepository implements TeamRepository {
     }
 
     async delete(teamId: string): Promise<void> {
-        await adminDb.collection(this.collectionName).doc(teamId).delete();
+        await adminDb.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId).delete();
     }
 
     // Admin SDKではリアルタイム購読は実装しない（API Routesでは不要）
