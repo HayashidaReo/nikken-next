@@ -76,14 +76,17 @@ describe("Team Schema Validation", () => {
       const result = teamSchema.safeParse(invalidTeam);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("チーム名は必須です");
+        expect(result.error.issues[0].message).toBe("チーム名（所属名）は必須です");
       }
     });
 
-    it("選手配列が空でも有効", () => {
+    it("選手配列が空の場合はエラーになる", () => {
       const teamWithoutPlayers = { ...validTeam, players: [] };
       const result = teamSchema.safeParse(teamWithoutPlayers);
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe("最低1人の選手を登録してください");
+      }
     });
 
     it("isApprovedのデフォルト値はfalse", () => {

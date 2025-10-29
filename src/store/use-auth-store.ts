@@ -49,7 +49,8 @@ export const useAuthStore = create<AuthStore>()(
                         error: errorMessage,
                     });
 
-                    throw error;
+                    // Errorオブジェクトの場合はそのまま投げ、そうでなければ新しいErrorオブジェクトを作成
+                    throw error instanceof Error ? error : new Error(errorMessage);
                 }
             },
 
@@ -66,11 +67,13 @@ export const useAuthStore = create<AuthStore>()(
                         error: null,
                     });
                 } catch (error) {
+                    const errorMessage = "ログアウトに失敗しました";
                     set({
                         isLoading: false,
-                        error: "ログアウトに失敗しました",
+                        error: errorMessage,
                     });
-                    throw error;
+                    // Errorオブジェクトの場合はそのまま投げ、そうでなければ新しいErrorオブジェクトを作成
+                    throw error instanceof Error ? error : new Error(errorMessage);
                 }
             },
 
