@@ -13,6 +13,7 @@ import { useOrganizationId } from "@/hooks/useTournament";
 import {
   useTournamentsByOrganization,
   useCreateOrganization,
+  useCreateTournament,
   useUpdateTournamentByOrganization
 } from "@/queries/use-tournaments";
 import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
@@ -34,6 +35,7 @@ export default function TournamentSettingsPage() {
   } = useTournamentsByOrganization(orgId);
 
   const { mutate: createOrganization, isPending: isCreatingOrg } = useCreateOrganization();
+  const { mutate: createTournament } = useCreateTournament();
   const { mutate: updateTournament } = useUpdateTournamentByOrganization();
 
   // 状態管理
@@ -114,6 +116,13 @@ export default function TournamentSettingsPage() {
       return;
     }
 
+    console.log("バリデーション確認:", {
+      tournamentName: formData.tournamentName,
+      trimmed: formData.tournamentName.trim(),
+      length: formData.tournamentName.trim().length,
+      isEmpty: !formData.tournamentName.trim()
+    });
+
     if (!formData.tournamentName.trim()) {
       showError("大会名を入力してください");
       return;
@@ -122,7 +131,27 @@ export default function TournamentSettingsPage() {
     try {
       if (isAddingNew) {
         // 新規作成
-        showError("新規作成機能は実装中です");
+        console.log("API呼び出しデータ:", { orgId, tournamentName: formData.tournamentName });
+        createTournament(
+          { orgId, tournamentName: formData.tournamentName },
+          {
+            onSuccess: (result) => {
+              console.log("API成功レスポンス:", result);
+              showSuccess("大会を作成しました");
+              setIsAddingNew(false);
+              setSelectedTournamentId(result.data.tournamentId);
+              // 作成された大会のデータでフォームを更新
+              setFormData(prev => ({
+                ...prev,
+                ...result.data
+              }));
+            },
+            onError: (error) => {
+              console.error("API エラー詳細:", error);
+              showError(error instanceof Error ? error.message : "大会の作成に失敗しました");
+            }
+          }
+        );
       } else if (selectedTournamentId) {
         // 更新
         updateTournament(
@@ -144,6 +173,7 @@ export default function TournamentSettingsPage() {
 
   // フォームフィールド更新ハンドラー
   const handleFormChange = (field: keyof Tournament, value: string | number | Date | { courtId: string; courtName: string }[]) => {
+    console.log("フォーム更新:", { field, value });
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

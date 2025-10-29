@@ -36,6 +36,38 @@ export function useTournamentsByOrganization(orgId: string | null) {
 }
 
 /**
+ * 組織内の大会作成のMutation
+ */
+export function useCreateTournament() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ orgId, tournamentName }: { orgId: string; tournamentName: string }) => {
+            const response = await fetch(`/api/tournaments/${orgId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ tournamentName }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "大会の作成に失敗しました");
+            }
+
+            return response.json();
+        },
+        onSuccess: (_, { orgId }) => {
+            // 大会一覧キャッシュを無効化してリフレッシュ
+            queryClient.invalidateQueries({
+                queryKey: [...tournamentKeys.lists(), 'organization', orgId]
+            });
+        },
+    });
+}
+
+/**
  * 組織内の大会更新のMutation
  */
 export function useUpdateTournamentByOrganization() {
