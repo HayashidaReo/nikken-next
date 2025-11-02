@@ -61,7 +61,7 @@ export function TournamentForm({
                     <Input
                         id="tournamentDate"
                         type="date"
-                        value={formatDateToInputValue(formData.tournamentDate, isAddingNew)}
+                        value={formatDateToInputValue(formData.tournamentDate)}
                         onChange={(e) => onFormChange("tournamentDate", parseInputValueToDate(e.target.value))}
                         className="mt-1"
                         required
