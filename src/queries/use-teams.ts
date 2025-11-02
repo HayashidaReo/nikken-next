@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FirestoreTeamRepository } from "@/repositories/firestore/team-repository";
 import type { Team, TeamCreate } from "@/types/team.schema";
-import type { PlayerRegistrationData } from "@/types/player-registration.schema";
+import type { TeamFormData } from "@/types/team-form.schema";
 
 /**
  * Team リポジトリのインスタンス（シングルトン）
@@ -121,7 +121,7 @@ export function useApproveTeam() {
  */
 export function useRegisterTeam() {
     return useMutation({
-        mutationFn: async (formData: PlayerRegistrationData) => {
+        mutationFn: async (formData: TeamFormData) => {
             const response = await fetch("/api/teams/register", {
                 method: "POST",
                 headers: {
@@ -148,7 +148,7 @@ export function useRegisterTeam() {
  */
 export function useRegisterTeamWithParams(orgId: string, tournamentId: string) {
     return useMutation({
-        mutationFn: async (formData: PlayerRegistrationData) => {
+        mutationFn: async (formData: TeamFormData) => {
             const response = await fetch(`/api/teams/register`, {
                 method: "POST",
                 headers: {

@@ -1,17 +1,17 @@
 import { v4 as uuidv4 } from "uuid";
-import type { PlayerRegistrationData } from "@/types/player-registration.schema";
+import type { TeamFormData } from "@/types/team-form.schema";
 import type { TeamCreate, Player } from "@/types/team.schema";
 import { DisplayNameService } from "@/domains/team/services/display-name.service";
 import { splitPlayerName, validatePlayerNames } from "@/lib/utils/player-name-utils";
 
 /**
- * 選手登録フォームのデータをFirestore用のTeamCreateに変換
+ * チーム登録フォームのデータをFirestore用のTeamCreateに変換
  */
-export class PlayerRegistrationConverter {
+export class TeamFormConverter {
     /**
-     * PlayerRegistrationDataをTeamCreateに変換
+     * TeamFormDataをTeamCreateに変換
      */
-    static toTeamCreate(formData: PlayerRegistrationData): TeamCreate {
+    static toTeamCreate(formData: TeamFormData): TeamCreate {
         // フォームの選手データ（fullName）を姓名に分割してPlayerオブジェクトに変換
         const players: Player[] = formData.players.map((player) => {
             const nameResult = splitPlayerName(player.fullName);
@@ -43,7 +43,7 @@ export class PlayerRegistrationConverter {
     /**
      * バリデーション: フォームデータが有効かチェック
      */
-    static validateFormData(formData: PlayerRegistrationData): {
+    static validateFormData(formData: TeamFormData): {
         isValid: boolean;
         errors: string[]
     } {

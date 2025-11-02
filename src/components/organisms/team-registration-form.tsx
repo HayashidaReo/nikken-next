@@ -19,24 +19,24 @@ import {
   FormTextarea,
   LoadingButton,
 } from "@/components/molecules";
-import type { PlayerRegistrationData } from "@/types/player-registration.schema";
-import { playerRegistrationSchema } from "@/types/player-registration.schema";
+import type { TeamFormData } from "@/types/team-form.schema";
+import { teamFormSchema } from "@/types/team-form.schema";
 import { useFormSubmit } from "@/hooks";
 import { useToast } from "@/components/providers/notification-provider";
 
-interface PlayerRegistrationFormProps {
-  onSubmit: (data: PlayerRegistrationData) => Promise<void>;
+interface TeamRegistrationFormProps {
+  onSubmit: (data: TeamFormData) => Promise<void>;
   className?: string;
   orgId?: string;
   tournamentId?: string;
 }
 
-export function PlayerRegistrationForm({
+export function TeamRegistrationForm({
   onSubmit,
   className,
   orgId,
   tournamentId,
-}: PlayerRegistrationFormProps) {
+}: TeamRegistrationFormProps) {
   const router = useRouter();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const { showError, showSuccess } = useToast();
@@ -48,8 +48,8 @@ export function PlayerRegistrationForm({
     trigger,
     getValues,
     formState: { errors },
-  } = useForm<PlayerRegistrationData>({
-    resolver: zodResolver(playerRegistrationSchema),
+  } = useForm<TeamFormData>({
+    resolver: zodResolver(teamFormSchema),
     defaultValues: {
       representativeName: "",
       representativePhone: "",
@@ -73,7 +73,7 @@ export function PlayerRegistrationForm({
     const formData = getValues();
     await submitForm(
       async (data: unknown) => {
-        const typedData = data as PlayerRegistrationData;
+        const typedData = data as TeamFormData;
         await onSubmit(typedData);
         showSuccess(`選手登録が完了しました（チーム: ${typedData.teamName}）`);
 

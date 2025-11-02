@@ -1,8 +1,8 @@
 "use client";
 
-import { PlayerRegistrationForm, TournamentInfoBanner } from "@/components/organisms";
+import { TeamRegistrationForm, TournamentInfoBanner } from "@/components/organisms";
 import { useRegisterTeamWithParams } from "@/queries/use-teams";
-import type { PlayerRegistrationData } from "@/types/player-registration.schema";
+import type { TeamFormData } from "@/types/team-form.schema";
 
 interface TeamsFormPageContentProps {
     orgId: string;
@@ -15,7 +15,7 @@ export function TeamsFormPageContent({
 }: TeamsFormPageContentProps) {
     const registerTeamMutation = useRegisterTeamWithParams(orgId, tournamentId);
 
-    const handleSubmit = async (formData: PlayerRegistrationData) => {
+    const handleSubmit = async (formData: TeamFormData) => {
         return await registerTeamMutation.mutateAsync(formData);
     };
 
@@ -24,8 +24,8 @@ export function TeamsFormPageContent({
             {/* 大会情報バナー */}
             <TournamentInfoBanner orgId={orgId} tournamentId={tournamentId} />
 
-            {/* 選手登録フォーム */}
-            <PlayerRegistrationForm
+            {/* チーム登録フォーム */}
+            <TeamRegistrationForm
                 onSubmit={handleSubmit}
                 orgId={orgId}
                 tournamentId={tournamentId}

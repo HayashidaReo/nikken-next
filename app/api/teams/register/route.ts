@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AdminTeamRepository } from "@/repositories/admin/team-repository";
-import { PlayerRegistrationConverter } from "@/lib/converters/player-registration-converter";
-import type { PlayerRegistrationData, PlayerRegistrationWithParams } from "@/types/player-registration.schema";
+import { TeamFormConverter } from "@/lib/converters/team-form-converter";
+import type { TeamFormData, TeamFormWithParams } from "@/types/team-form.schema";
 
 /**
  * 選手登録API Route
@@ -10,7 +10,7 @@ import type { PlayerRegistrationData, PlayerRegistrationWithParams } from "@/typ
 export async function POST(request: NextRequest) {
     try {
         // リクエストボディの取得と検証
-        const body: PlayerRegistrationWithParams = await request.json();
+        const body: TeamFormWithParams = await request.json();
         const { orgId, tournamentId, ...formData } = body;
 
         if (!orgId || !tournamentId) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
             );
         }
         // 入力データの検証
-        const validation = PlayerRegistrationConverter.validateFormData(formData as PlayerRegistrationData);
+        const validation = TeamFormConverter.validateFormData(formData as TeamFormData);
         if (!validation.isValid) {
             return NextResponse.json(
                 {
@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // PlayerRegistrationData を TeamCreate に変換
-        const teamCreate = PlayerRegistrationConverter.toTeamCreate(formData as PlayerRegistrationData);
+        // TeamFormData を TeamCreate に変換
+        const teamCreate = TeamFormConverter.toTeamCreate(formData as TeamFormData);
 
         // サーバーサイドでFirestoreに保存
 

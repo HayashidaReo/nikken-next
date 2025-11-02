@@ -9,11 +9,11 @@ import {
 } from "@/components/atoms/card";
 import { CheckCircle } from "lucide-react";
 import { DialogOverlay } from "./dialog-overlay";
-import type { PlayerRegistrationData } from "@/types/player-registration.schema";
+import type { TeamFormData } from "@/types/team-form.schema";
 import { splitPlayerName } from "@/lib/utils/player-name-utils";
 
 interface ConfirmationDialogProps {
-  data: PlayerRegistrationData;
+  data: TeamFormData;
   onConfirm: () => void;
   onCancel: () => void;
   isVisible: boolean;
