@@ -22,3 +22,11 @@ export {
 
 // Time-related utilities
 export { formatTime, parseTimeString, formatTimeReadable } from "./time-utils";
+
+// Date-related utilities
+export {
+  formatDateToInputValue,
+  parseInputValueToDate,
+  formatDateForDisplay,
+  isSameDate,
+} from "./date-utils";

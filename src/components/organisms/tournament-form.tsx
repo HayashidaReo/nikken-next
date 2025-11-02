@@ -5,49 +5,13 @@ import { Label } from "@/components/atoms/label";
 import { Textarea } from "@/components/atoms/textarea";
 import { TimePicker } from "@/components/molecules/time-picker";
 import { CourtManager } from "@/components/molecules/court-manager";
-import type { Tournament } from "@/types/tournament.schema";
-
-/**
- * Date型をYYYY-MM-DD形式の文字列に変換
- */
-const formatDateToInput = (date: Date): string => {
-    if (!date) {
-        return "";
-    }
-
-    // Date オブジェクトに変換を試行
-    let dateObj: Date;
-    if (date instanceof Date) {
-        dateObj = date;
-    } else if (typeof date === 'string') {
-        dateObj = new Date(date);
-    } else {
-        console.warn('formatDateToInput: Invalid date format', date);
-        return "";
-    }
-
-    // 有効なDateかチェック
-    if (isNaN(dateObj.getTime())) {
-        console.warn('formatDateToInput: Invalid date', date);
-        return "";
-    }
-
-    return dateObj.toISOString().split('T')[0];
-};
-
-/**
- * input[type="date"]の値をDate型に変換（タイムゾーン考慮）
- */
-const parseInputToDate = (dateString: string): Date => {
-    if (!dateString) return new Date();
-    // YYYY-MM-DD形式の文字列を現地時間の00:00:00として解釈
-    return new Date(dateString);
-};
+import { formatDateToInputValue, parseInputValueToDate } from "@/lib/utils/date-utils";
+import type { TournamentFormData } from "@/types/tournament.schema";
 
 interface TournamentFormProps {
-    formData: Tournament;
+    formData: TournamentFormData;
     isAddingNew: boolean;
-    onFormChange: (field: keyof Tournament, value: string | number | Date | { courtId: string; courtName: string }[]) => void;
+    onFormChange: (field: keyof TournamentFormData, value: string | number | Date | null | { courtId: string; courtName: string }[]) => void;
     onSave: () => void;
     onCancel?: () => void;
     className?: string;
@@ -97,8 +61,8 @@ export function TournamentForm({
                     <Input
                         id="tournamentDate"
                         type="date"
-                        value={formatDateToInput(formData.tournamentDate)}
-                        onChange={(e) => onFormChange("tournamentDate", parseInputToDate(e.target.value))}
+                        value={formatDateToInputValue(formData.tournamentDate, isAddingNew)}
+                        onChange={(e) => onFormChange("tournamentDate", parseInputValueToDate(e.target.value))}
                         className="mt-1"
                         required
                     />

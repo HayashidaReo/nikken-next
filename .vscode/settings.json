@@ -8,5 +8,9 @@
     "node_modules": true,
     ".next": true,
     "coverage": true
-  }
+  },
+  "cSpell.words": [
+    "firestore",
+    "Hansoku"
+  ]
 }

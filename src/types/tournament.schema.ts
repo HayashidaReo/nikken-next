@@ -40,6 +40,14 @@ export const tournamentFormSchema = z.object({
 });
 
 /**
+ * フォーム編集用の部分的なTournament型
+ * tournamentDateをnullableにしてフォーム表示で空白を許可
+ */
+export type TournamentFormData = Omit<Tournament, 'tournamentDate'> & {
+  tournamentDate: Date | null;
+};
+
+/**
  * 大会作成用のスキーマ
  */
 export const tournamentCreateSchema = tournamentSchema.omit({

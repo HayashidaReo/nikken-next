@@ -8,7 +8,7 @@ import {
     useUpdateTournamentByOrganization
 } from "@/queries/use-tournaments";
 import { useCreateOrganizationForUser } from "@/queries/use-organizations";
-import type { Tournament } from "@/types/tournament.schema";
+import type { Tournament, TournamentFormData } from "@/types/tournament.schema";
 
 /**
  * 大会設定ページの状態管理フック
@@ -33,9 +33,9 @@ export function useTournamentSettings() {
     const { mutate: updateTournament } = useUpdateTournamentByOrganization();
 
     // フォームデータ初期化ヘルパー
-    const createEmptyFormData = React.useCallback((): Tournament => ({
+    const createEmptyFormData = React.useCallback((): TournamentFormData => ({
         tournamentName: "",
-        tournamentDate: new Date(),
+        tournamentDate: null, // 初期値は空白（null）
         tournamentDetail: "",
         location: "",
         defaultMatchTime: 180, // 3分 = 180秒
@@ -47,7 +47,7 @@ export function useTournamentSettings() {
     // 状態管理
     const [selectedTournamentId, setSelectedTournamentId] = React.useState<string | null>(null);
     const [isAddingNew, setIsAddingNew] = React.useState(false); // 明示的に新規作成を選んだ状態
-    const [formData, setFormData] = React.useState<Tournament>(createEmptyFormData);
+    const [formData, setFormData] = React.useState<TournamentFormData>(createEmptyFormData);
 
     // 大会選択処理
     const handleSelectTournament = React.useCallback((tournament: Tournament) => {
@@ -105,7 +105,7 @@ export function useTournamentSettings() {
     }, [createEmptyFormData]);
 
     // フォームフィールド更新処理
-    const handleFormChange = React.useCallback((field: keyof Tournament, value: string | number | Date | { courtId: string; courtName: string }[]) => {
+    const handleFormChange = React.useCallback((field: keyof Tournament, value: string | number | Date | null | { courtId: string; courtName: string }[]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     }, []);
 
@@ -121,11 +121,21 @@ export function useTournamentSettings() {
             return;
         }
 
+        // 開催日が未設定の場合はエラー
+        if (!formData.tournamentDate) {
+            showError("開催日を入力してください");
+            return;
+        }
+
         try {
             if (!selectedTournamentId) {
                 // 新規作成（selectedTournamentIdがnullの場合）
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { createdAt, updatedAt, ...tournamentData } = formData;
+                const { createdAt, updatedAt, ...formDataWithoutDates } = formData;
+                const tournamentData = {
+                    ...formDataWithoutDates,
+                    tournamentDate: formData.tournamentDate as Date, // nullチェック済みなのでDate型として安全
+                };
                 createTournament(
                     { orgId, tournamentData },
                     {
@@ -145,8 +155,12 @@ export function useTournamentSettings() {
                 );
             } else if (selectedTournamentId) {
                 // 更新
+                const patchData = {
+                    ...formData,
+                    tournamentDate: formData.tournamentDate as Date, // nullチェック済みなのでDate型として安全
+                };
                 updateTournament(
-                    { orgId, tournamentId: selectedTournamentId, patch: formData },
+                    { orgId, tournamentId: selectedTournamentId, patch: patchData },
                     {
                         onSuccess: () => {
                             showSuccess("大会設定を更新しました");
