@@ -3,6 +3,7 @@ import type { TeamFormData } from "@/types/team-form.schema";
 import type { TeamCreate, Player } from "@/types/team.schema";
 import { DisplayNameService } from "@/domains/team/services/display-name.service";
 import { splitPlayerName, validatePlayerNames } from "@/lib/utils/player-name-utils";
+import { teamFormSchema } from "@/types/team-form.schema";
 
 /**
  * チーム登録フォームのデータをFirestore用のTeamCreateに変換
@@ -47,41 +48,27 @@ export class TeamFormConverter {
         isValid: boolean;
         errors: string[]
     } {
-        const errors: string[] = [];
-
-        // 必須フィールドのチェック
-        if (!formData.teamName.trim()) {
-            errors.push("チーム名は必須です");
-        }
-        if (!formData.representativeName.trim()) {
-            errors.push("代表者名は必須です");
-        }
-        if (!formData.representativePhone.trim()) {
-            errors.push("代表者電話番号は必須です");
-        }
-        if (!formData.representativeEmail.trim()) {
-            errors.push("代表者メールアドレスは必須です");
+        // Zod スキーマで検証して、エラーメッセージを集約する
+        const result = teamFormSchema.safeParse(formData);
+        if (result.success) {
+            return { isValid: true, errors: [] };
         }
 
-        // 選手データのチェック
-        if (formData.players.length === 0) {
-            errors.push("最低1人の選手を登録してください");
-        }
+        // Zod の error からメッセージをフラット化して返す
+        const messages: string[] = result.error.issues.map((issue) => {
+            return issue.message;
+        });
 
-        // 選手名バリデーション
-        const invalidPlayerIndices = validatePlayerNames(formData.players.map(p => p.fullName));
-        invalidPlayerIndices.forEach(index => {
+        const invalidPlayerIndices = validatePlayerNames(formData.players.map((p) => p.fullName));
+        invalidPlayerIndices.forEach((index) => {
             const fullName = formData.players[index].fullName.trim();
             if (!fullName) {
-                errors.push(`選手${index + 1}: 選手名は必須です`);
+                messages.push(`選手${index + 1}: 選手名は必須です`);
             } else {
-                errors.push(`選手${index + 1}: 選手名は「姓 名」の形式で入力してください`);
+                messages.push(`選手${index + 1}: 選手名は「姓 名」の形式で入力してください`);
             }
         });
 
-        return {
-            isValid: errors.length === 0,
-            errors,
-        };
+        return { isValid: false, errors: Array.from(new Set(messages)) };
     }
 }
