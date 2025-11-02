@@ -50,9 +50,9 @@ describe('date-utils', () => {
             expect(formatDateToInputValue({} as unknown as Date)).toBe('');
         });
 
-        it('新規作成時でも過去の日付の場合は正しく変換する', () => {
+        it('過去の日付でも正しく変換する', () => {
             const pastDate = new Date('2024-03-15');
-            const result = formatDateToInputValue(pastDate, true);
+            const result = formatDateToInputValue(pastDate);
             expect(result).toBe('2024-03-15');
         });
     });
@@ -75,6 +75,12 @@ describe('date-utils', () => {
             const result = parseInputValueToDate('');
             expect(result).toBeNull();
         });
+
+        it('不正な形式の文字列の場合はnullを返す', () => {
+            expect(parseInputValueToDate('invalid-date')).toBeNull();
+            expect(parseInputValueToDate('2024-13-01')).toBeNull(); // 無効な月
+            expect(parseInputValueToDate('2024-02-30')).toBeNull(); // 無効な日
+        });
     });
 
     describe('formatDateForDisplay', () => {
@@ -92,6 +98,8 @@ describe('date-utils', () => {
 
         it('無効な日付の場合は空文字列を返す', () => {
             expect(formatDateForDisplay(new Date('invalid'))).toBe('');
+            expect(formatDateForDisplay(null)).toBe('');
+            expect(formatDateForDisplay(undefined)).toBe('');
         });
     });
 

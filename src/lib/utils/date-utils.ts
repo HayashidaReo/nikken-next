@@ -3,50 +3,102 @@
  */
 
 /**
- * Date型をYYYY-MM-DD形式の文字列に変換（HTML input[type="date"]用）
- * @param date 変換するDate型またはstring型の日付
- * @param allowEmpty 空文字列を許可するかどうか（新規作成時用）
- * @returns YYYY-MM-DD形式の文字列、無効な場合は空文字列
+ * 入力が有効な日付かどうかを判定する型ガード
  */
-export function formatDateToInputValue(date: Date | string | null | undefined, allowEmpty: boolean = false): string {
-    if (!date) {
-        return "";
+function isValidDate(date: unknown): date is Date {
+    return date instanceof Date && !isNaN(date.getTime());
+}
+
+/**
+ * ISO形式の文字列かどうかを判定
+ */
+function isISOString(str: string): boolean {
+    return str.includes('T') && str.includes('Z');
+}
+
+/**
+ * UTC時間のISO文字列を現地時間のDateオブジェクトに変換
+ */
+function convertUTCStringToLocalDate(isoString: string): Date {
+    const utcDate = new Date(isoString);
+    const year = utcDate.getFullYear();
+    const month = utcDate.getMonth();
+    const day = utcDate.getDate();
+    return new Date(year, month, day, 0, 0, 0, 0);
+}
+
+/**
+ * 任意の日付入力を安全にDateオブジェクトに変換
+ */
+function parseToDate(input: Date | string | null | undefined): Date | null {
+    if (!input) {
+        return null;
     }
 
     let dateObj: Date;
 
-    if (date instanceof Date) {
-        dateObj = date;
-    } else if (typeof date === 'string') {
-        // ISO形式の場合はUTC時間を現地時間に変換してから日付を取得
-        if (date.includes('T') && date.includes('Z')) {
-            // UTC時間として解釈してから現地時間の日付を取得
-            const utcDate = new Date(date);
-            const year = utcDate.getFullYear();
-            const month = utcDate.getMonth();
-            const day = utcDate.getDate();
-            dateObj = new Date(year, month, day, 0, 0, 0, 0); // 現地時間の0時として設定
+    if (input instanceof Date) {
+        dateObj = input;
+    } else if (typeof input === 'string') {
+        if (isISOString(input)) {
+            dateObj = convertUTCStringToLocalDate(input);
         } else {
-            dateObj = new Date(date);
+            dateObj = new Date(input);
         }
     } else {
-        console.warn('formatDateToInputValue: Invalid date format', date);
-        return "";
+        return null;
     }
 
-    // 有効なDateかチェック
-    if (isNaN(dateObj.getTime())) {
-        console.warn('formatDateToInputValue: Invalid date', date);
-        return "";
-    }
+    return isValidDate(dateObj) ? dateObj : null;
+}
 
-
-
-    // タイムゾーンを考慮してローカル時間の年月日を取得
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // 月は0ベースなので+1
-    const day = String(dateObj.getDate()).padStart(2, '0');
+/**
+ * DateオブジェクトをYYYY-MM-DD形式の文字列に変換
+ */
+function formatDateToString(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+/**
+ * Date型をYYYY-MM-DD形式の文字列に変換（HTML input[type="date"]用）
+ * @param date 変換するDate型またはstring型の日付
+ * @returns YYYY-MM-DD形式の文字列、無効な場合は空文字列
+ */
+export function formatDateToInputValue(date: Date | string | null | undefined): string {
+    const dateObj = parseToDate(date);
+
+    if (!dateObj) {
+        return "";
+    }
+
+    return formatDateToString(dateObj);
+}
+/**
+ * YYYY-MM-DD形式の文字列を現地時間の00:00:00のDateオブジェクトに変換
+ */
+function parseYMDStringToDate(dateString: string): Date | null {
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return null;
+
+    const [year, month, day] = parts.map(Number);
+
+    // 基本的な範囲チェック
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+    if (year < 1900 || year > 2100) return null;
+    if (month < 1 || month > 12) return null;
+    if (day < 1 || day > 31) return null;
+
+    const date = new Date(year, month - 1, day, 0, 0, 0, 0);
+
+    // 実際の日付として有効かチェック（例：2024-02-30は無効）
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+        return null;
+    }
+
+    return date;
 }
 
 /**
@@ -59,10 +111,11 @@ export function parseInputValueToDate(dateString: string): Date | null {
         return null;
     }
 
-    // YYYY-MM-DD形式の文字列を現地時間の00:00:00として解釈
-    // new Date("2025-11-06")だとUTCベースになるため、明示的に現地時間として設定
-    const [year, month, day] = dateString.split('-').map(Number);
-    return new Date(year, month - 1, day, 0, 0, 0, 0); // monthは0ベースなので-1
+    try {
+        return parseYMDStringToDate(dateString);
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -71,8 +124,8 @@ export function parseInputValueToDate(dateString: string): Date | null {
  * @param locale ロケール（デフォルト: 'ja-JP'）
  * @returns 表示用の日付文字列（例: "2024年3月15日"）
  */
-export function formatDateForDisplay(date: Date, locale: string = 'ja-JP'): string {
-    if (!date || isNaN(date.getTime())) {
+export function formatDateForDisplay(date: Date | null | undefined, locale: string = 'ja-JP'): string {
+    if (!isValidDate(date)) {
         return "";
     }
 
@@ -89,8 +142,10 @@ export function formatDateForDisplay(date: Date, locale: string = 'ja-JP'): stri
  * @param date2 比較する日付2
  * @returns 同じ日の場合true
  */
-export function isSameDate(date1: Date, date2: Date): boolean {
-    if (!date1 || !date2) return false;
+export function isSameDate(date1: Date | null | undefined, date2: Date | null | undefined): boolean {
+    if (!isValidDate(date1) || !isValidDate(date2)) {
+        return false;
+    }
 
     return (
         date1.getFullYear() === date2.getFullYear() &&
