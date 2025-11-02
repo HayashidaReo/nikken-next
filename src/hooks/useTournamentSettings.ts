@@ -55,6 +55,7 @@ export function useTournamentSettings() {
 
         setIsAddingNew(false); // 明示的に選択したので新規作成ではない
         setSelectedTournamentId(tournament.tournamentId);
+        // 大会選択時に即座にフォームデータを設定
         setFormData({
             tournamentName: tournament.tournamentName,
             tournamentDate: tournament.tournamentDate,
@@ -77,14 +78,14 @@ export function useTournamentSettings() {
 
     // 選択中の大会のフォームデータを設定
     React.useEffect(() => {
-        if (selectedTournamentId && tournaments.length > 0) {
+        if (selectedTournamentId && tournaments.length > 0 && !isAddingNew) {
             const activeTournament = tournaments.find((t: Tournament & { tournamentId?: string }) => t.tournamentId === selectedTournamentId);
 
-            if (activeTournament && formData.tournamentName === "") {
-                // フォームが空の場合のみ設定（既に入力済みの場合は上書きしない）
+            if (activeTournament) {
+                // 既存大会を選択した場合は常にフォームデータを設定（開催日の初期値を含む）
                 setFormData({
                     tournamentName: activeTournament.tournamentName,
-                    tournamentDate: activeTournament.tournamentDate,
+                    tournamentDate: activeTournament.tournamentDate, // Date型の開催日を初期値として設定
                     tournamentDetail: activeTournament.tournamentDetail || "",
                     location: activeTournament.location,
                     defaultMatchTime: activeTournament.defaultMatchTime,
@@ -94,7 +95,7 @@ export function useTournamentSettings() {
                 });
             }
         }
-    }, [selectedTournamentId, tournaments, formData.tournamentName]);
+    }, [selectedTournamentId, tournaments, isAddingNew]);
 
     // 新規作成開始処理
     const handleStartNew = React.useCallback(() => {

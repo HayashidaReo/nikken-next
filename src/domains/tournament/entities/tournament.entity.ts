@@ -15,8 +15,12 @@ export class TournamentEntity {
         return this.data.tournamentName;
     }
 
-    get date(): string {
+    get date(): Date {
         return this.data.tournamentDate;
+    }
+
+    get dateString(): string {
+        return this.data.tournamentDate.toISOString().split('T')[0];
     }
 
     get location(): string {
@@ -90,7 +94,7 @@ export class TournamentEntity {
     get isValid(): boolean {
         return (
             this.data.tournamentName.trim().length > 0 &&
-            this.data.tournamentDate.trim().length > 0 &&
+            this.data.tournamentDate instanceof Date && !isNaN(this.data.tournamentDate.getTime()) &&
             this.data.location.trim().length > 0 &&
             this.data.defaultMatchTime > 0 &&
             this.data.courts.length > 0 &&

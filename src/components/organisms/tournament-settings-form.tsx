@@ -26,7 +26,7 @@ import { useToast } from "@/components/providers/notification-provider";
 // 大会設定フォーム用のスキーマ
 const tournamentSettingsSchema = z.object({
   tournamentName: z.string().min(1, "大会名は必須です"),
-  tournamentDate: z.string().min(1, "開催日は必須です"),
+  tournamentDate: z.string().min(1, "開催日は必須です"), // フォームでは文字列として扱う
   location: z.string().min(1, "開催場所は必須です"),
   defaultMatchTimeMinutes: z
     .number()
@@ -94,7 +94,9 @@ export function TournamentSettingsForm({
     resolver: zodResolver(tournamentSettingsSchema),
     defaultValues: {
       tournamentName: tournament?.tournamentName || "",
-      tournamentDate: tournament?.tournamentDate || "",
+      tournamentDate: tournament?.tournamentDate instanceof Date
+        ? tournament.tournamentDate.toISOString().split('T')[0]
+        : "",
       location: tournament?.location || "",
       defaultMatchTimeMinutes: defaultMinutes,
       defaultMatchTimeSeconds: defaultSeconds,

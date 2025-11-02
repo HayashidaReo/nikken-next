@@ -290,7 +290,7 @@ describe("TournamentMapper", () => {
     const mockFirestoreTournament: FirestoreTournamentDoc = {
         tournamentId: "tournament-001",
         tournamentName: "第1回テスト大会",
-        tournamentDate: "2024-01-15",
+        tournamentDate: new Date("2024-01-15"),
         location: "テスト会場",
         defaultMatchTime: 180,
         courts: [mockFirestoreCourt],

@@ -7,6 +7,43 @@ import { TimePicker } from "@/components/molecules/time-picker";
 import { CourtManager } from "@/components/molecules/court-manager";
 import type { Tournament } from "@/types/tournament.schema";
 
+/**
+ * Date型をYYYY-MM-DD形式の文字列に変換
+ */
+const formatDateToInput = (date: Date): string => {
+    if (!date) {
+        return "";
+    }
+
+    // Date オブジェクトに変換を試行
+    let dateObj: Date;
+    if (date instanceof Date) {
+        dateObj = date;
+    } else if (typeof date === 'string') {
+        dateObj = new Date(date);
+    } else {
+        console.warn('formatDateToInput: Invalid date format', date);
+        return "";
+    }
+
+    // 有効なDateかチェック
+    if (isNaN(dateObj.getTime())) {
+        console.warn('formatDateToInput: Invalid date', date);
+        return "";
+    }
+
+    return dateObj.toISOString().split('T')[0];
+};
+
+/**
+ * input[type="date"]の値をDate型に変換（タイムゾーン考慮）
+ */
+const parseInputToDate = (dateString: string): Date => {
+    if (!dateString) return new Date();
+    // YYYY-MM-DD形式の文字列を現地時間の00:00:00として解釈
+    return new Date(dateString);
+};
+
 interface TournamentFormProps {
     formData: Tournament;
     isAddingNew: boolean;
@@ -60,13 +97,17 @@ export function TournamentForm({
                     <Input
                         id="tournamentDate"
                         type="date"
-                        value={formData.tournamentDate instanceof Date
-                            ? formData.tournamentDate.toISOString().split('T')[0]
-                            : ''
-                        }
-                        onChange={(e) => onFormChange("tournamentDate", new Date(e.target.value))}
+                        value={formatDateToInput(formData.tournamentDate)}
+                        onChange={(e) => onFormChange("tournamentDate", parseInputToDate(e.target.value))}
                         className="mt-1"
+                        required
                     />
+                    {/* デバッグ用 - 本番環境では削除 */}
+                    {process.env.NODE_ENV === 'development' && (
+                        <div className="text-xs text-gray-500 mt-1">
+                            Debug: {formData.tournamentDate ? formData.tournamentDate.toString() : 'null'} (type: {typeof formData.tournamentDate})
+                        </div>
+                    )}
                 </div>
 
                 {/* 大会概要 */}

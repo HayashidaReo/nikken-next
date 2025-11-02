@@ -7,7 +7,7 @@ import { tournamentSchema } from "@/types/tournament.schema";
  */
 export interface FirestoreTournamentCreateDoc {
     tournamentName: string;
-    tournamentDate: string;
+    tournamentDate: Date;
     location: string;
     defaultMatchTime: number;
     courts: FirestoreCourtDoc[];
