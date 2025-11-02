@@ -54,8 +54,15 @@ export function useMonitorData() {
     const handleMessage = (event: MessageEvent) => {
       try {
         if (event.data && typeof event.data === "object") {
-          setData(event.data);
-          setIsConnected(true);
+          // MatchDataの最低限の必須フィールドをチェック
+          const hasRequiredFields =
+            typeof event.data.tournamentName === "string" &&
+            typeof event.data.matchId === "string";
+
+          if (hasRequiredFields) {
+            setData(event.data);
+            setIsConnected(true);
+          }
         }
       } catch (err) {
         console.error("BroadcastChannel メッセージ解析エラー:", err);
@@ -160,20 +167,6 @@ export function useMonitorData() {
         setTimeout(() => {
           setError("プレゼンテーションAPIが利用できません");
         }, 0);
-      }
-    }
-
-    // フォールバック: URLパラメータからの初期データ読み込み
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialData = urlParams.get("data");
-    if (initialData) {
-      try {
-        const parsedData = JSON.parse(decodeURIComponent(initialData));
-        setTimeout(() => {
-          setData(parsedData);
-        }, 0);
-      } catch (err) {
-        console.error("URLパラメータ解析エラー:", err);
       }
     }
   }, []);

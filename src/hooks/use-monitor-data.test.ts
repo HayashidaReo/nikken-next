@@ -18,15 +18,7 @@ Object.defineProperty(global, 'BroadcastChannel', {
 const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => { });
 
-// URL検索パラメータをモック
-const mockURLSearchParams = {
-    get: jest.fn(),
-};
 
-Object.defineProperty(window, 'URLSearchParams', {
-    value: jest.fn(() => mockURLSearchParams),
-    writable: true,
-});
 
 // Presentation APIをモック
 const mockPresentation = {
@@ -56,15 +48,6 @@ Object.defineProperty(navigator, 'presentation', {
 describe("useMonitorData", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockURLSearchParams.get.mockReturnValue(null);
-
-        // locationの値をリセット（再定義ではなく値の変更）
-        if (window.location && typeof window.location.search === 'string') {
-            // すでに定義されている場合は値を変更
-            (window.location as { search: string }).search = '';
-        }
-
-        // navigatorのpresentationは既存のものをそのまま使用（テスト環境では通常undefined）
     });
 
     afterEach(() => {
@@ -188,59 +171,7 @@ describe("useMonitorData", () => {
         });
     });
 
-    describe("URLパラメータ初期化", () => {
-        it("URLパラメータからデータが読み込まれる", () => {
-            const testData = {
-                matchId: "url-match",
-                tournamentName: "URL大会",
-                courtName: "URLコート",
-                round: "URL回戦",
-                playerA: {
-                    displayName: "URL選手A",
-                    teamName: "URLチームA",
-                    score: 2,
-                    hansoku: 0,
-                },
-                playerB: {
-                    displayName: "URL選手B",
-                    teamName: "URLチームB",
-                    score: 4,
-                    hansoku: 0,
-                },
-                timeRemaining: 240,
-                isTimerRunning: false,
-                isPublic: true,
-            };
 
-            mockURLSearchParams.get.mockReturnValue(
-                encodeURIComponent(JSON.stringify(testData))
-            );
-
-            const { result } = renderHook(() => useMonitorData());
-
-            expect(result.current.data).toEqual(testData);
-        });
-
-        it("URLパラメータがない場合はデフォルト値のまま", () => {
-            mockURLSearchParams.get.mockReturnValue(null);
-
-            const { result } = renderHook(() => useMonitorData());
-
-            expect(result.current.data.tournamentName).toBe("大会名未設定");
-        });
-
-        it("無効なURLパラメータでもエラーにならない", () => {
-            mockURLSearchParams.get.mockReturnValue("invalid json");
-
-            const { result } = renderHook(() => useMonitorData());
-
-            expect(result.current.data.tournamentName).toBe("大会名未設定");
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                "URLパラメータ解析エラー:",
-                expect.any(Error)
-            );
-        });
-    });
 
     describe("Presentation API", () => {
         it("Presentation APIが利用できない場合は警告が出る", () => {
@@ -288,26 +219,38 @@ describe("useMonitorData", () => {
     });
 
     describe("エラーハンドリング", () => {
-        it("BroadcastChannelメッセージ処理でエラーが発生してもハンドリングされる", () => {
-            const { result } = renderHook(() => useMonitorData());
+        it("BroadcastChannelメッセージ処理でエラーが発生してもハンドリングされる", async () => {
+            const { result } = renderHook(() => useMonitorData());            // 初期状態確認
+            expect(result.current.data.tournamentName).toBe("大会名未設定");
 
             const messageHandler = mockBroadcastChannel.addEventListener.mock.calls
                 .find(call => call[0] === "message")?.[1];
 
-            // 循環参照を持つオブジェクトでエラーをシミュレート
-            const circularObj: Record<string, unknown> = { data: {} };
+            // tournamentNameのないオブジェクトは無視される
+            const incompleteObj = { data: { matchId: "test" } };
+
+            act(() => {
+                messageHandler?.({ data: incompleteObj } as MessageEvent);
+            });
+
+            // 無効なデータは無視され、初期値を保持する
+            expect(result.current.data.tournamentName).toBe("大会名未設定");
+            expect(result.current.data.matchId).toBe(""); // 初期値のまま
+
+            // エラーが発生する場合をテスト: 循環参照
+            const circularObj: Record<string, unknown> = {
+                tournamentName: "テスト大会",
+                matchId: "test-match",
+                data: {}
+            };
             (circularObj.data as Record<string, unknown>).self = circularObj;
 
             act(() => {
                 messageHandler?.({ data: circularObj } as MessageEvent);
             });
 
-            // エラーが発生してもアプリケーションが落ちない
-            expect(result.current.data.tournamentName).toBe("大会名未設定");
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                "BroadcastChannel メッセージ解析エラー:",
-                expect.any(Error)
-            );
+            // 有効なtournamentNameとmatchIdがあるので更新される
+            expect(result.current.data.tournamentName).toBe("テスト大会");
         });
     });
 
@@ -316,6 +259,7 @@ describe("useMonitorData", () => {
             const { result } = renderHook(() => useMonitorData());
 
             const partialData = {
+                matchId: "partial-match",
                 tournamentName: "部分的な大会",
                 playerA: {
                     displayName: "部分選手A",
@@ -329,11 +273,13 @@ describe("useMonitorData", () => {
                 messageHandler?.({ data: partialData } as MessageEvent);
             });
 
-            expect(result.current.data).toEqual(partialData);
+            // 部分的なデータが受け入れられて更新される
+            expect(result.current.data.tournamentName).toBe("部分的な大会");
+            expect(result.current.data.matchId).toBe("partial-match");
             expect(result.current.isConnected).toBe(true);
         });
 
-        it("空のオブジェクトでも受け入れられる", () => {
+        it("空のオブジェクトは無視される", () => {
             const { result } = renderHook(() => useMonitorData());
 
             const messageHandler = mockBroadcastChannel.addEventListener.mock.calls
@@ -343,8 +289,9 @@ describe("useMonitorData", () => {
                 messageHandler?.({ data: {} } as MessageEvent);
             });
 
-            expect(result.current.data).toEqual({});
-            expect(result.current.isConnected).toBe(true);
+            // 空のオブジェクトは無視され、初期値を保持
+            expect(result.current.data.tournamentName).toBe("大会名未設定");
+            expect(result.current.isConnected).toBe(false); // データが受信されていないため
         });
     });
 });
