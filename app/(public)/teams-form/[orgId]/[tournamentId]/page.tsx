@@ -2,10 +2,10 @@ import { Suspense } from "react";
 import { TeamsFormPageContent } from "./page-content";
 
 interface TeamsFormPageProps {
-    params: {
+    params: Promise<{
         orgId: string;
         tournamentId: string;
-    };
+    }>;
 }
 
 function LoadingSpinner() {
@@ -16,8 +16,8 @@ function LoadingSpinner() {
     );
 }
 
-export default function TeamsFormPage({ params }: TeamsFormPageProps) {
-    const { orgId, tournamentId } = params;
+export default async function TeamsFormPage({ params }: TeamsFormPageProps) {
+    const { orgId, tournamentId } = await params;
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4">

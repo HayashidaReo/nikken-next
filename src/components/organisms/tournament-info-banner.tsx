@@ -3,6 +3,7 @@
 import { useTournament } from "@/queries/use-tournaments";
 import { Card, CardContent } from "@/components/atoms/card";
 import { CalendarIcon, MapPinIcon, TrophyIcon, InfoIcon } from "lucide-react";
+import { formatDateForDisplay } from "@/lib/utils/date-utils";
 
 interface TournamentInfoBannerProps {
     orgId: string;
@@ -51,15 +52,10 @@ export function TournamentInfoBanner({ orgId, tournamentId }: TournamentInfoBann
         return null;
     }
 
-    // 日付の形式化
-    const formatTournamentDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('ja-JP', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            weekday: 'long'
-        });
+    // 日付の形式化（utilsを使用）
+    const formatTournamentDate = (dateValue: Date) => {
+        // date-utilsの関数を使用して統一的な日付処理
+        return formatDateForDisplay(dateValue);
     };
 
     return (

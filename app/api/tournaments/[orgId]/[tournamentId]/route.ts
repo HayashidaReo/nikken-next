@@ -48,6 +48,7 @@ export async function GET(
         const tournament = {
             tournamentId: tournamentDoc.id,
             ...tournamentData,
+            tournamentDate: tournamentData?.tournamentDate?.toDate().toISOString(),
             createdAt: tournamentData?.createdAt?.toDate().toISOString(),
             updatedAt: tournamentData?.updatedAt?.toDate().toISOString(),
         };
