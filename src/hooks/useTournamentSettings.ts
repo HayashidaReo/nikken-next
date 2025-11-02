@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveTournament } from "@/hooks/useActiveTournament";
@@ -32,24 +32,23 @@ export function useTournamentSettings() {
     const { mutate: updateTournament } = useUpdateTournamentByOrganization();
 
     // フォームデータ初期化ヘルパー
-    const createEmptyFormData = React.useCallback((): TournamentFormData => ({
+    const createEmptyFormData = useCallback((): TournamentFormData => ({
+        tournamentId: "",
         tournamentName: "",
         tournamentDate: null,
-        tournamentDetail: "",
         location: "",
+        tournamentDetail: "",
         defaultMatchTime: 180, // 3分 = 180秒
-        courts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        courts: []
     }), []);
 
     // 状態管理
-    const [selectedTournamentId, setSelectedTournamentId] = React.useState<string | null>(null);
-    const [isAddingNew, setIsAddingNew] = React.useState(false); // 明示的に新規作成を選んだ状態
-    const [formData, setFormData] = React.useState<TournamentFormData>(createEmptyFormData);
+    const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null);
+    const [isAddingNew, setIsAddingNew] = useState(false); // 明示的に新規作成を選んだ状態
+    const [formData, setFormData] = useState<TournamentFormData>(createEmptyFormData);
 
     // 大会選択処理
-    const handleSelectTournament = React.useCallback((tournament: Tournament) => {
+    const handleSelectTournament = useCallback((tournament: Tournament) => {
         if (!tournament.tournamentId) return;
 
         setIsAddingNew(false); // 明示的に選択したので新規作成ではない
@@ -67,49 +66,58 @@ export function useTournamentSettings() {
         });
     }, []);
 
-    // activeTournamentId が非同期で読み込まれたタイミングで selectedTournamentId を更新
-    React.useEffect(() => {
+    // activeTournamentId の初期設定（一度だけ実行）
+    useEffect(() => {
         // 新規作成を明示的に選んでいない場合のみ、activeTournamentId を反映
         if (!isAddingNew && activeTournamentId && !selectedTournamentId) {
-            setSelectedTournamentId(activeTournamentId);
+            // フラッシュ更新を避けるため、次のティックで実行
+            const timeoutId = setTimeout(() => {
+                setSelectedTournamentId(activeTournamentId);
+            }, 0);
+
+            return () => clearTimeout(timeoutId);
         }
     }, [activeTournamentId, selectedTournamentId, isAddingNew]);
 
     // 選択中の大会のフォームデータを設定
-    React.useEffect(() => {
+    useEffect(() => {
         if (selectedTournamentId && tournaments.length > 0 && !isAddingNew) {
             const activeTournament = tournaments.find((t: Tournament & { tournamentId?: string }) => t.tournamentId === selectedTournamentId);
 
             if (activeTournament) {
-                // 既存大会を選択した場合は常にフォームデータを設定
-                setFormData({
-                    tournamentName: activeTournament.tournamentName,
-                    tournamentDate: activeTournament.tournamentDate,
-                    tournamentDetail: activeTournament.tournamentDetail || "",
-                    location: activeTournament.location,
-                    defaultMatchTime: activeTournament.defaultMatchTime,
-                    courts: activeTournament.courts,
-                    createdAt: activeTournament.createdAt,
-                    updatedAt: activeTournament.updatedAt,
-                });
+                // フラッシュ更新を避けるため、次のティックで実行
+                const timeoutId = setTimeout(() => {
+                    setFormData({
+                        tournamentName: activeTournament.tournamentName,
+                        tournamentDate: activeTournament.tournamentDate,
+                        tournamentDetail: activeTournament.tournamentDetail || "",
+                        location: activeTournament.location,
+                        defaultMatchTime: activeTournament.defaultMatchTime,
+                        courts: activeTournament.courts,
+                        createdAt: activeTournament.createdAt,
+                        updatedAt: activeTournament.updatedAt,
+                    });
+                }, 0);
+
+                return () => clearTimeout(timeoutId);
             }
         }
     }, [selectedTournamentId, tournaments, isAddingNew]);
 
     // 新規作成開始処理
-    const handleStartNew = React.useCallback(() => {
+    const handleStartNew = useCallback(() => {
         setIsAddingNew(true); // 明示的に新規作成フラグを立てる
         setSelectedTournamentId(null);
         setFormData(createEmptyFormData());
     }, [createEmptyFormData]);
 
     // フォームフィールド更新処理
-    const handleFormChange = React.useCallback((field: keyof Tournament, value: string | number | Date | null | { courtId: string; courtName: string }[]) => {
+    const handleFormChange = useCallback((field: keyof Tournament, value: string | number | Date | null | { courtId: string; courtName: string }[]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     }, []);
 
     // 大会保存処理
-    const handleSave = React.useCallback(async () => {
+    const handleSave = useCallback(async () => {
         if (!orgId) {
             showError("組織IDが設定されていません");
             return;
@@ -176,7 +184,7 @@ export function useTournamentSettings() {
     }, [orgId, formData, selectedTournamentId, createTournament, updateTournament, showSuccess, showError]);
 
     // 組織作成処理
-    const handleCreateOrganization = React.useCallback(() => {
+    const handleCreateOrganization = useCallback(() => {
         createOrganization(undefined, {
             onSuccess: () => {
                 showSuccess("組織を作成しました");

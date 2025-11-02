@@ -243,7 +243,61 @@ export function TeamEditForm() {
 
 ## 🎨 UI & コーディングスタイル
 
-### 6. Shadcn/ui と Tailwind CSS
+### 6. React インポートルール
+
+**ルール**: 現代のReactでは、必要なフックやコンポーネントのみを個別にインポートすることを必須とする
+
+#### ✅ 推奨される書き方:
+```typescript
+// ✅ 使用するフックのみを個別にインポート
+import { useState, useEffect, useCallback } from "react";
+
+const MyComponent = () => {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    // ...
+  }, []);
+  
+  return <div>{count}</div>;
+};
+```
+
+#### ❌ 非推奨の書き方:
+```typescript
+// ❌ すべてをReactオブジェクトとしてインポート（非推奨）
+import * as React from "react";
+
+const MyComponent = () => {
+  const [count, setCount] = React.useState(0);
+  
+  React.useEffect(() => {
+    // ...
+  }, []);
+  
+  return <div>{count}</div>;
+};
+```
+
+#### 例外: React オブジェクトが必要な場合
+以下の機能を使用する場合は、`import React from "react";` を使用する:
+- `React.memo`
+- `React.forwardRef`
+- `React.Children`
+- `React.createElement` (手動使用時)
+
+```typescript
+// ✅ React オブジェクトが必要な場合の正しいインポート
+import React from "react";
+import { useState } from "react";
+
+const MyComponent = React.memo(() => {
+  const [count, setCount] = useState(0);
+  return <div>{count}</div>;
+});
+```
+
+### 7. Shadcn/ui と Tailwind CSS
 
 **ルール**:
 
@@ -252,7 +306,7 @@ export function TeamEditForm() {
 - クラス名の結合には `src/lib/utils.ts` の `cn()` 関数（clsx + tailwind-merge）を必須で利用する
 - アイコンは `lucide-react` を標準とする
 
-### 7. ファイル・変数命名規則
+### 8. ファイル・変数命名規則
 
 - **コンポーネント**: `PascalCase.tsx`
 - **フック**: `useCamelCase.ts` (例: `useMatches.ts`)
@@ -260,7 +314,7 @@ export function TeamEditForm() {
 - **Zodスキーマ**: `camelCase.schema.ts` (例: `team.schema.ts`)
 - **ユーティリティ**: `camelCase.ts` (例: `utils.ts`)
 
-### 8. インポート順とエイリアス
+### 9. インポート順とエイリアス
 
 **ルール**:
 
@@ -269,7 +323,7 @@ export function TeamEditForm() {
 
 ## 🔥 Firebase & Backendルール
 
-### 9. Firebase SDKの使い分け
+### 10. Firebase SDKの使い分け
 
 #### firebase (クライアントSDK):
 
@@ -283,7 +337,7 @@ export function TeamEditForm() {
 - Server Components, Route Handlers, Cloud Functions でのみ使用可能
 - クライアント側にバンドルされることを厳禁とする
 
-### 10. データ層アーキテクチャ (ドメイン駆動設計)
+### 11. データ層アーキテクチャ (ドメイン駆動設計)
 
 Firebaseとの接続において、以下の3層アーキテクチャによる関心の分離を徹底する：
 

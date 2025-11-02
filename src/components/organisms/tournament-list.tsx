@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
@@ -35,7 +35,7 @@ export function TournamentList({
     const { data: tournaments = [], isLoading, error } = useTournamentsByOrganization(orgId);
     const { mutate: deleteTournament, isPending: isDeleting } = useDeleteTournament();
     const { showSuccess, showError } = useToast();
-    const [deleteConfirm, setDeleteConfirm] = React.useState<{
+    const [deleteConfirm, setDeleteConfirm] = useState<{
         isOpen: boolean;
         tournament: Tournament | null;
     }>({ isOpen: false, tournament: null });
