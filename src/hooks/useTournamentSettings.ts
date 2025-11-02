@@ -12,7 +12,6 @@ import type { Tournament, TournamentFormData } from "@/types/tournament.schema";
 
 /**
  * 大会設定ページの状態管理フック
- * 複雑な大会操作ロジックを分離してコンポーネントを簡素化
  */
 export function useTournamentSettings() {
     const { showSuccess, showError } = useToast();
@@ -35,7 +34,7 @@ export function useTournamentSettings() {
     // フォームデータ初期化ヘルパー
     const createEmptyFormData = React.useCallback((): TournamentFormData => ({
         tournamentName: "",
-        tournamentDate: null, // 初期値は空白（null）
+        tournamentDate: null,
         tournamentDetail: "",
         location: "",
         defaultMatchTime: 180, // 3分 = 180秒
@@ -82,10 +81,10 @@ export function useTournamentSettings() {
             const activeTournament = tournaments.find((t: Tournament & { tournamentId?: string }) => t.tournamentId === selectedTournamentId);
 
             if (activeTournament) {
-                // 既存大会を選択した場合は常にフォームデータを設定（開催日の初期値を含む）
+                // 既存大会を選択した場合は常にフォームデータを設定
                 setFormData({
                     tournamentName: activeTournament.tournamentName,
-                    tournamentDate: activeTournament.tournamentDate, // Date型の開催日を初期値として設定
+                    tournamentDate: activeTournament.tournamentDate,
                     tournamentDetail: activeTournament.tournamentDetail || "",
                     location: activeTournament.location,
                     defaultMatchTime: activeTournament.defaultMatchTime,
