@@ -56,6 +56,32 @@ export class AdminTeamRepository implements TeamRepository {
         return TeamMapper.toDomain({ ...data, id: snap.id } as any);
     }
 
+    async createWithParams(team: TeamCreate, orgId: string, tournamentId: string): Promise<Team> {
+        const firestoreDoc = TeamMapper.toFirestoreForCreate(team as any);
+
+        // Firebase Admin SDKではTimestampの作成方法が異なる
+        const now = Timestamp.now();
+        const docWithTimestamp = {
+            ...firestoreDoc,
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        // Firestoreに保存
+        const docRef = await adminDb
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
+            .doc(orgId)
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
+            .doc(tournamentId)
+            .collection(FIRESTORE_COLLECTIONS.TEAMS)
+            .add(docWithTimestamp);
+
+        const snap = await docRef.get();
+        const data = snap.data();
+
+        return TeamMapper.toDomain({ ...data, id: snap.id } as any);
+    }
+
     async update(teamId: string, patch: Partial<Team>): Promise<Team> {
         const docRef = adminDb.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId);
         const updateData = TeamMapper.toFirestoreForUpdate(patch as any);

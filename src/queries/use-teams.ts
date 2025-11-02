@@ -143,6 +143,37 @@ export function useRegisterTeam() {
 }
 
 /**
+ * チーム登録用のMutation（組織ID・大会IDパラメータ付き）
+ * 認証なしで使用可能（公開フォーム用）
+ */
+export function useRegisterTeamWithParams(orgId: string, tournamentId: string) {
+    return useMutation({
+        mutationFn: async (formData: PlayerRegistrationData) => {
+            const response = await fetch(`/api/teams/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    orgId,
+                    tournamentId,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(
+                    errorData.details || errorData.error || "チーム登録に失敗しました"
+                );
+            }
+
+            return response.json();
+        },
+    });
+}
+
+/**
  * リアルタイム購読用のフック（オプション）
  * 使用例: チーム管理画面でリアルタイム更新が必要な場合
  */

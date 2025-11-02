@@ -1,6 +1,6 @@
 "use client";
 
-import {  useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -53,11 +53,15 @@ const playerRegistrationSchema = z.object({
 interface PlayerRegistrationFormProps {
   onSubmit: (data: PlayerRegistrationData) => Promise<void>;
   className?: string;
+  orgId?: string;
+  tournamentId?: string;
 }
 
 export function PlayerRegistrationForm({
   onSubmit,
   className,
+  orgId,
+  tournamentId,
 }: PlayerRegistrationFormProps) {
   const router = useRouter();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -98,7 +102,10 @@ export function PlayerRegistrationForm({
         const typedData = data as PlayerRegistrationData;
         await onSubmit(typedData);
         showSuccess(`選手登録が完了しました（チーム: ${typedData.teamName}）`);
-        router.push("/player-registration/complete");
+
+       
+        router.push(`/teams-form/${orgId}/${tournamentId}/complete`);
+        
       },
       formData,
       {

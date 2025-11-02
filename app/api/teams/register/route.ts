@@ -4,16 +4,31 @@ import { PlayerRegistrationConverter } from "@/lib/converters/player-registratio
 import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
 
 /**
+ * 選手登録データの型定義（組織ID・大会IDを含む）
+ */
+interface PlayerRegistrationWithParams extends PlayerRegistrationData {
+    orgId?: string;
+    tournamentId?: string;
+}
+
+/**
  * 選手登録API Route
  * POST /api/teams/register
  */
 export async function POST(request: NextRequest) {
     try {
         // リクエストボディの取得と検証
-        const body: PlayerRegistrationData = await request.json();
-
+        const body: PlayerRegistrationWithParams = await request.json();
+        const { orgId, tournamentId, ...formData } = body;
+        
+        if (!orgId || !tournamentId) {
+            return NextResponse.json(
+                { error: "orgIdおよびtournamentIdは必須です" },
+                { status: 400 }
+            );
+        }
         // 入力データの検証
-        const validation = PlayerRegistrationConverter.validateFormData(body);
+        const validation = PlayerRegistrationConverter.validateFormData(formData as PlayerRegistrationData);
         if (!validation.isValid) {
             return NextResponse.json(
                 {
@@ -25,11 +40,12 @@ export async function POST(request: NextRequest) {
         }
 
         // PlayerRegistrationData を TeamCreate に変換
-        const teamCreate = PlayerRegistrationConverter.toTeamCreate(body);
+        const teamCreate = PlayerRegistrationConverter.toTeamCreate(formData as PlayerRegistrationData);
 
         // サーバーサイドでFirestoreに保存
+
         const adminRepository = new AdminTeamRepository();
-        const savedTeam = await adminRepository.create(teamCreate);
+        const savedTeam = await adminRepository.createWithParams(teamCreate, orgId, tournamentId);
 
         return NextResponse.json({
             success: true,
