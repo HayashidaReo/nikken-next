@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { initializeAuthListener } from "@/store/use-auth-store";
 
 /**
@@ -8,7 +8,7 @@ import { initializeAuthListener } from "@/store/use-auth-store";
  * アプリケーション起動時に認証状態の監視を開始
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    React.useEffect(() => {
+    useEffect(() => {
         // Firebase Auth状態変更の監視を開始
         const unsubscribe = initializeAuthListener();
 

@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {  useState } from "react";
 import { Button } from "@/components/atoms/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/providers/notification-provider";
@@ -25,7 +25,7 @@ export function LogoutButton({
 }: LogoutButtonProps) {
     const { signOut } = useAuth();
     const { showSuccess, showError } = useToast();
-    const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const handleLogout = async () => {
         try {

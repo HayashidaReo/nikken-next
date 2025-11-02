@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useMonitorData } from "@/hooks/use-monitor-data";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { MonitorLayout } from "@/components/templates/monitor-layout";

@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {  useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -60,7 +60,7 @@ export function PlayerRegistrationForm({
   className,
 }: PlayerRegistrationFormProps) {
   const router = useRouter();
-  const [showConfirmation, setShowConfirmation] = React.useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const { showError, showSuccess } = useToast();
 
   const {

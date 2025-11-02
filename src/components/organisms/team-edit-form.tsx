@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {  useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -62,7 +62,7 @@ export function TeamEditForm({
   onCancel,
   className,
 }: TeamEditFormProps) {
-  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { isLoading, handleSubmit: handleFormSubmission } =
     useFormSubmit<TeamEditData>();
   const { confirmNavigation } = useUnsavedChanges(hasUnsavedChanges);
@@ -111,7 +111,7 @@ export function TeamEditForm({
   });
 
   // フォームの変更を監視（isDirtyフラグを使用）
-  React.useEffect(() => {
+  useEffect(() => {
     setHasUnsavedChanges(isDirty);
   }, [isDirty]);
 

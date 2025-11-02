@@ -1,4 +1,3 @@
-import * as React from "react";
 import { PlayerSection } from "@/components/organisms/player-section";
 import { CenterSection } from "@/components/organisms/center-section";
 import { type MatchPlayer } from "@/types/match.schema";

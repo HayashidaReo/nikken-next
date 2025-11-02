@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {  useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -45,7 +45,7 @@ export function LoginForm() {
   });
 
   // エラーをクリアする（入力時）
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       clearError();
     }

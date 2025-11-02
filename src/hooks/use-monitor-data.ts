@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 
 // ローカルの型定義（monitor用）
 interface PlayerData {
@@ -21,7 +21,7 @@ interface MatchData {
 }
 
 export function useMonitorData() {
-  const [data, setData] = React.useState<MatchData>({
+  const [data, setData] = useState<MatchData>({
     matchId: "",
     tournamentName: "大会名未設定",
     courtName: "コート名未設定",
@@ -43,11 +43,11 @@ export function useMonitorData() {
     isPublic: false,
   });
 
-  const [isConnected, setIsConnected] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // BroadcastChannelでのデータ共有
-  React.useEffect(() => {
+  useEffect(() => {
     const channel = new BroadcastChannel("monitor-display-channel");
 
     // メッセージ受信
@@ -71,7 +71,7 @@ export function useMonitorData() {
   }, []);
 
   // Presentation API接続の確立
-  React.useEffect(() => {
+  useEffect(() => {
     // 表示側（receiver）としての処理
     if ("presentation" in navigator) {
       // メッセージ接続の処理
@@ -157,7 +157,9 @@ export function useMonitorData() {
         }
       } catch (error) {
         console.warn("Presentation API not available or failed:", error);
-        setError("プレゼンテーションAPIが利用できません");
+        setTimeout(() => {
+          setError("プレゼンテーションAPIが利用できません");
+        }, 0);
       }
     }
 
@@ -167,7 +169,9 @@ export function useMonitorData() {
     if (initialData) {
       try {
         const parsedData = JSON.parse(decodeURIComponent(initialData));
-        setData(parsedData);
+        setTimeout(() => {
+          setData(parsedData);
+        }, 0);
       } catch (err) {
         console.error("URLパラメータ解析エラー:", err);
       }

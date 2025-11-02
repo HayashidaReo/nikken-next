@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { useTeams, useApproveTeam } from "@/queries/use-teams";

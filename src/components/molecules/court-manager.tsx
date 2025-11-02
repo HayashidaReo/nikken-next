@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {  useState } from "react";
 import { Plus, Minus, GripVertical } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
@@ -23,8 +23,8 @@ function generateCourtId(): string {
 }
 
 export function CourtManager({ courts, onChange, className }: CourtManagerProps) {
-    const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
-    const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     const handleAddCourt = () => {
         const newCourt: Court = {

@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {  useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,9 +29,9 @@ type PasswordResetFormData = z.infer<typeof passwordResetSchema>;
 
 export function PasswordResetForm() {
   const { showSuccess, showError } = useToast();
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isSubmitted, setIsSubmitted] = React.useState(false);
-  const [submittedEmail, setSubmittedEmail] = React.useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
 
   const {
     register,

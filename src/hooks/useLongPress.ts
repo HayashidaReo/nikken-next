@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useEffect, useCallback, useRef } from "react";
 
 interface UseLongPressOptions {
     /** 長押し開始までの遅延時間（ms） */
@@ -19,16 +19,16 @@ export function useLongPress(
 ) {
     const { delay = 500, interval = 100, disabled = false } = options;
 
-    const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-    const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
-    const callbackRef = React.useRef(callback);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const callbackRef = useRef(callback);
 
     // 最新のコールバックを常に参照
-    React.useEffect(() => {
+    useEffect(() => {
         callbackRef.current = callback;
     }, [callback]);
 
-    const clear = React.useCallback(() => {
+    const clear = useCallback(() => {
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
@@ -39,7 +39,7 @@ export function useLongPress(
         }
     }, []);
 
-    const start = React.useCallback(() => {
+    const start = useCallback(() => {
         if (disabled) return;
 
         // 初回実行
@@ -53,12 +53,12 @@ export function useLongPress(
         }, delay);
     }, [delay, interval, disabled]); // callback を依存配列から除去
 
-    const stop = React.useCallback(() => {
+    const stop = useCallback(() => {
         clear();
     }, [clear]);
 
     // クリーンアップ
-    React.useEffect(() => {
+    useEffect(() => {
         return clear;
     }, [clear]);
 

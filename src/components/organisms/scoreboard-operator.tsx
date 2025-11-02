@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {  useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { usePresentation } from "@/hooks/usePresentation";
@@ -48,18 +48,18 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
     sendMessage,
   } = usePresentation(`${window.location.origin}/monitor-display`);
 
-  const timerIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // フォールバックダイアログの状態
-  const [showFallbackDialog, setShowFallbackDialog] = React.useState(false);
+  const [showFallbackDialog, setShowFallbackDialog] = useState(false);
 
   // 接続解除確認ダイアログの状態
-  const [showDisconnectDialog, setShowDisconnectDialog] = React.useState(false);
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
 
   // BroadcastChannel for data sharing
-  const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // BroadcastChannelの初期化
     broadcastChannelRef.current = new BroadcastChannel(
       "monitor-display-channel"
@@ -71,7 +71,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
   }, []);
 
   // データ送信関数（Presentation API + BroadcastChannel）
-  const sendDataToMonitor = React.useCallback(
+  const sendDataToMonitor = useCallback(
     (data: unknown) => {
       // Presentation APIで送信
       sendMessage(data);
@@ -87,7 +87,7 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
   );
 
   // タイマー処理
-  React.useEffect(() => {
+  useEffect(() => {
     if (isTimerRunning) {
       timerIntervalRef.current = setInterval(() => {
         const currentTime = useMonitorStore.getState().timeRemaining;
@@ -110,9 +110,9 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
   }, [isTimerRunning]);
 
   // データが変更されたときにモニター画面に送信（タイマー更新は制限）
-  const lastSendTimeRef = React.useRef<number>(0);
+  const lastSendTimeRef = useRef<number>(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const now = Date.now();
     const isTimerOnlyUpdate =
       lastSendTimeRef.current > 0 && now - lastSendTimeRef.current < 2000;

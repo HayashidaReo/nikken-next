@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useActiveTournament } from "@/hooks/useActiveTournament";
 import { TournamentSelectionDialog } from "@/components/organisms/TournamentSelectionDialog";
@@ -19,7 +19,7 @@ interface TournamentProviderProps {
 export function TournamentProvider({ children }: TournamentProviderProps) {
     const { user, isInitialized } = useAuthStore();
     const { hasTournamentSelected, isLoading: tournamentLoading } = useActiveTournament();
-    const [forceClose, setForceClose] = React.useState(false);
+    const [forceClose, setForceClose] = useState(false);
 
     // ダイアログ表示条件を計算で決定（副作用なし）
     const shouldShowDialog = isInitialized &&
@@ -33,9 +33,13 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
     };
 
     // 大会選択状態が変わった場合、forceCloseをリセット
-    React.useEffect(() => {
+    useEffect(() => {
         if (hasTournamentSelected) {
-            setForceClose(false);
+            const timeoutId = setTimeout(() => {
+                setForceClose(false);
+            }, 0);
+
+            return () => clearTimeout(timeoutId);
         }
     }, [hasTournamentSelected]);
 

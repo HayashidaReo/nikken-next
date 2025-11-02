@@ -1,4 +1,3 @@
-import * as React from "react";
 import { TimerDisplay } from "@/components/molecules/timer-display";
 import { TournamentInfo } from "@/components/molecules/tournament-info";
 

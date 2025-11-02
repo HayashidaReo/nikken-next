@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TeamEditForm } from "@/components/organisms/team-edit-form";
 import { mockTeams } from "@/lib/mock-data";

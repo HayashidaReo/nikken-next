@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useRef, useEffect, useCallback } from "react";
 import {
     splitSecondsToMinutesAndSeconds,
     combineMinutesAndSecondsToSeconds,
@@ -75,12 +75,12 @@ export function TimeAdjuster({
     const styles = sizeClasses[size];
 
     // 最新の値を参照するためのref
-    const latestValueRef = React.useRef(value);
-    React.useEffect(() => {
+    const latestValueRef = useRef(value);
+    useEffect(() => {
         latestValueRef.current = value;
     }, [value]);
 
-    const adjustTime = React.useCallback(
+    const adjustTime = useCallback(
         (type: TimeAdjustType) => {
             if (disabled) return;
 

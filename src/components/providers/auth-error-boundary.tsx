@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/atoms/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
 
@@ -118,17 +118,17 @@ function DefaultAuthErrorFallback({
  * useAuthErrorBoundary - 関数型コンポーネントでエラー境界を使用するためのhook
  */
 export function useAuthErrorHandler() {
-    const [error, setError] = React.useState<Error | null>(null);
+    const [error, setError] = useState<Error | null>(null);
 
-    const resetError = React.useCallback(() => {
+    const resetError = useCallback(() => {
         setError(null);
     }, []);
 
-    const captureError = React.useCallback((error: Error) => {
+    const captureError = useCallback((error: Error) => {
         setError(error);
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (error) {
             throw error;
         }

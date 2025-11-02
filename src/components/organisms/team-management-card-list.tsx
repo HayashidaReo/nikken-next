@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {  useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/atoms/button";
 import {
@@ -28,8 +28,8 @@ interface TeamCardProps {
 }
 
 function TeamCard({ team, onApprovalChange }: TeamCardProps) {
-  const [isPlayersExpanded, setIsPlayersExpanded] = React.useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = React.useState<
+  const [isPlayersExpanded, setIsPlayersExpanded] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<
     "approve" | "unapprove" | null
   >(null);
   const { showSuccess } = useToast();
@@ -179,7 +179,7 @@ export function TeamManagementCardList({
   className,
 }: TeamManagementCardListProps) {
   // 承認済みと未承認でソート
-  const sortedTeams = React.useMemo(() => {
+  const sortedTeams = useMemo(() => {
     return [...teams].sort((a, b) => {
       // 未承認を上に表示
       if (a.isApproved !== b.isApproved) {

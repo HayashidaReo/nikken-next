@@ -1,4 +1,3 @@
-import * as React from "react";
 import { ScoreDisplay } from "@/components/molecules/score-display";
 import { PenaltyCards } from "@/components/molecules/penalty-cards";
 import {
