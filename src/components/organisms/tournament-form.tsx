@@ -66,12 +66,6 @@ export function TournamentForm({
                         className="mt-1"
                         required
                     />
-                    {/* デバッグ用 - 本番環境では削除 */}
-                    {process.env.NODE_ENV === 'development' && (
-                        <div className="text-xs text-gray-500 mt-1">
-                            Debug: {formData.tournamentDate ? formData.tournamentDate.toString() : 'null'} (type: {typeof formData.tournamentDate})
-                        </div>
-                    )}
                 </div>
 
                 {/* 大会概要 */}
