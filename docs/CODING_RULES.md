@@ -176,9 +176,74 @@ src/
 
 **特例**: 「モニター操作画面」（`ScoreboardOperator` Organism）は、設計書に基づき `useReducer` を活用してローカル状態を管理し、`postMessage` で別ウィンドウに送信する
 
+### 4. Next.js 16対応ルール
+
+#### ① Dynamic Route Parameters (params) の扱い
+
+**重要**: Next.js 16では、動的ルートの`params`がPromiseオブジェクトになりました。
+
+**必須対応**:
+- ページコンポーネント（`page.tsx`）では、`params`を`await`で展開する
+- API Routes（`route.ts`）では、`params`を`await`で展開する
+- レイアウトコンポーネント（`layout.tsx`）でも同様に対応する
+
+#### 実装例:
+
+```typescript
+// ✅ ページコンポーネントの正しい書き方
+interface PageProps {
+  params: Promise<{ id: string; category: string }>;
+}
+
+export default async function MyPage({ params }: PageProps) {
+  const { id, category } = await params;
+  // ...
+}
+
+// ✅ API Routeの正しい書き方
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  // ...
+}
+
+// ❌ 古い書き方（Next.js 15以前）
+interface PageProps {
+  params: { id: string; category: string }; // ❌ Promiseではない
+}
+
+export default function MyPage({ params }: PageProps) {
+  const { id, category } = params; // ❌ awaitなし
+  // ...
+}
+```
+
+#### ② 既存コンポーネント・関数の重複チェック
+
+**ルール**: 新しい関数やコンポーネントを作成する前に、必ず既存のコードベースを確認する
+
+**確認手順**:
+1. `file_search`ツールで類似の名前やファイルが存在しないか検索
+2. `grep_search`ツールで同じ機能の実装がないか確認
+3. 既存のutilsフォルダ（`src/lib/utils/`）に同等の機能がないか確認
+4. 同じ責務を持つコンポーネントがAtomic Design階層に存在しないか確認
+
+```bash
+# 例: 日付フォーマット関数を作る前の確認
+file_search "**/utils/**date*"
+grep_search "formatDate|toLocaleDateString" true
+```
+
+**重複発見時の対応**:
+- 既存の実装を使用し、必要に応じてパラメータや戻り値の型を拡張する
+- 既存実装が不十分な場合は、新規作成ではなく既存を改善する
+- やむを得ず新規作成する場合は、明確な命名差別化と用途の違いをコメントで説明する
+
 ## 🔒 型安全性ルール (Zod-First)
 
-### 4. Zodスキーマによる型定義
+### 5. Zodスキーマによる型定義
 
 **ルール**:
 - すべての主要なデータ構造（Team, Match, Player）は、まず `src/types/` 配下に Zodスキーマ (`.schema.ts`) として定義する
@@ -212,7 +277,7 @@ export type Player = z.infer<typeof playerSchema>;
 export type Team = z.infer<typeof teamSchema>;
 ````
 
-### 5. フォームとバリデーション
+### 6. フォームとバリデーション
 
 **ルール**:
 
@@ -243,7 +308,7 @@ export function TeamEditForm() {
 
 ## 🎨 UI & コーディングスタイル
 
-### 6. React インポートルール
+### 7. React インポートルール
 
 **ルール**: 現代のReactでは、必要なフックやコンポーネントのみを個別にインポートすることを必須とする
 
@@ -297,7 +362,7 @@ const MyComponent = React.memo(() => {
 });
 ```
 
-### 7. Shadcn/ui と Tailwind CSS
+### 8. Shadcn/ui と Tailwind CSS
 
 **ルール**:
 
