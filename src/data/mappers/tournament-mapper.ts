@@ -8,6 +8,7 @@ import { tournamentSchema } from "@/types/tournament.schema";
 export interface FirestoreTournamentCreateDoc {
     tournamentName: string;
     tournamentDate: Date;
+    tournamentDetail: string;
     location: string;
     defaultMatchTime: number;
     courts: FirestoreCourtDoc[];
@@ -50,6 +51,7 @@ export class TournamentMapper {
             tournamentId,
             tournamentName: doc.tournamentName,
             tournamentDate: doc.tournamentDate,
+            tournamentDetail: doc.tournamentDetail,
             location: doc.location,
             defaultMatchTime: doc.defaultMatchTime,
             courts: doc.courts.map(court => ({
@@ -78,6 +80,7 @@ export class TournamentMapper {
         return {
             tournamentName: tournament.tournamentName,
             tournamentDate: tournament.tournamentDate,
+            tournamentDetail: tournament.tournamentDetail,
             location: tournament.location,
             defaultMatchTime: tournament.defaultMatchTime,
             courts: tournament.courts.map(court => ({
@@ -102,6 +105,9 @@ export class TournamentMapper {
         }
         if (tournament.tournamentDate !== undefined) {
             updateDoc.tournamentDate = tournament.tournamentDate;
+        }
+        if (tournament.tournamentDetail !== undefined) {
+            updateDoc.tournamentDetail = tournament.tournamentDetail;
         }
         if (tournament.location !== undefined) {
             updateDoc.location = tournament.location;

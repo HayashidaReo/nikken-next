@@ -291,6 +291,7 @@ describe("TournamentMapper", () => {
         tournamentId: "tournament-001",
         tournamentName: "第1回テスト大会",
         tournamentDate: new Date("2024-01-15"),
+        tournamentDetail: "テスト大会の詳細情報",
         location: "テスト会場",
         defaultMatchTime: 180,
         courts: [mockFirestoreCourt],
@@ -299,21 +300,29 @@ describe("TournamentMapper", () => {
     };
 
     describe("toDomain", () => {
-        it("実装の制限により現在はtournamentDetailが不足してバリデーションエラーが発生する", () => {
+        it("正常なFirestoreドキュメントをドメインエンティティに変換できる", () => {
             const firestoreDoc = {
                 ...mockFirestoreTournament,
                 id: "tournament-001"
             };
 
-            // 現在の実装では tournamentDetail が不足し、tournamentDate が Date 型でないためエラー
-            expect(() => TournamentMapper.toDomain(firestoreDoc)).toThrow("Invalid tournament data:");
+            const result = TournamentMapper.toDomain(firestoreDoc);
+
+            expect(result.tournamentId).toBe("tournament-001");
+            expect(result.tournamentName).toBe("第1回テスト大会");
+            expect(result.tournamentDetail).toBe("テスト大会の詳細情報");
+            expect(result.location).toBe("テスト会場");
+            expect(result.defaultMatchTime).toBe(180);
+            expect(result.courts).toHaveLength(1);
+            expect(result.courts[0].courtId).toBe("court-001");
+            expect(result.courts[0].courtName).toBe("Aコート");
         });
 
-        it("tournamentIdフィールドが設定されている場合でもバリデーションエラーが発生する", () => {
+        it("tournamentIdフィールドが設定されている場合も正常に変換される", () => {
             const docWithTournamentId = { ...mockFirestoreTournament };
 
-            // 同様の理由でバリデーションエラー
-            expect(() => TournamentMapper.toDomain(docWithTournamentId)).toThrow("Invalid tournament data:");
+            const result = TournamentMapper.toDomain(docWithTournamentId);
+            expect(result.tournamentId).toBe("tournament-001");
         });
 
         it("IDが存在しない場合はエラーを投げる", () => {
@@ -339,7 +348,7 @@ describe("TournamentMapper", () => {
 
             const invalidDoc = {
                 ...mockFirestoreTournament,
-                tournamentName: "", // 空文字列は無効
+                defaultMatchTime: 0, // 0は無効（1以上である必要がある）
                 id: "tournament-001",
             };
 
