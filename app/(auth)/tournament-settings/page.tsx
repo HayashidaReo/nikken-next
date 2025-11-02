@@ -7,7 +7,8 @@ import { Button } from "@/components/atoms/button";
 import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
 import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
 import { TournamentList } from "@/components/organisms/tournament-list";
-import { TournamentForm, TournamentFormPlaceholder } from "@/components/organisms/tournament-form";
+import { TournamentForm } from "@/components/organisms/tournament-form";
+import { TournamentFormPlaceholder } from "@/components/organisms/tournament-form-placeholder";
 import { useTournamentSettings } from "@/hooks/useTournamentSettings";
 import type { TournamentWithId } from "@/types/tournament.schema";
 

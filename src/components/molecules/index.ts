@@ -1,5 +1,7 @@
 // Molecules - Composite components
 export { FormField } from "./form-field";
+export { FormHeader } from "./form-header";
+export { FormActions } from "./form-actions";
 export { MatchHeader } from "./match-header";
 export { PlayerScoreCard } from "./player-score-card";
 export { TimerControl } from "./timer-control";
