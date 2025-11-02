@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AdminTeamRepository } from "@/repositories/admin/team-repository";
 import { TeamFormConverter } from "@/lib/converters/team-form-converter";
 import type { TeamFormData, TeamFormWithParams } from "@/types/team-form.schema";
+import { teamFormSchema } from "@/types/team-form.schema";
 
 /**
  * 選手登録API Route
@@ -19,13 +20,14 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
-        // 入力データの検証
-        const validation = TeamFormConverter.validateFormData(formData as TeamFormData);
-        if (!validation.isValid) {
+        // 入力データの検証（Zod スキーマで厳密に検証）
+        const parsed = teamFormSchema.safeParse(formData);
+        if (!parsed.success) {
+            const details = parsed.error.issues.map((i) => i.message);
             return NextResponse.json(
                 {
                     error: "入力データが無効です",
-                    details: validation.errors
+                    details,
                 },
                 { status: 400 }
             );

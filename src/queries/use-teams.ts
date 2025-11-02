@@ -119,15 +119,16 @@ export function useApproveTeam() {
  * チーム登録用のMutation（API Route経由）
  * 認証なしで使用可能（公開フォーム用）
  */
-export function useRegisterTeam() {
+function useRegisterTeamBase(orgId?: string, tournamentId?: string) {
     return useMutation({
         mutationFn: async (formData: TeamFormData) => {
+            const payload = orgId && tournamentId ? { ...formData, orgId, tournamentId } : formData;
             const response = await fetch("/api/teams/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
@@ -142,35 +143,16 @@ export function useRegisterTeam() {
     });
 }
 
+export function useRegisterTeam() {
+    return useRegisterTeamBase();
+}
+
 /**
  * チーム登録用のMutation（組織ID・大会IDパラメータ付き）
  * 認証なしで使用可能（公開フォーム用）
  */
 export function useRegisterTeamWithParams(orgId: string, tournamentId: string) {
-    return useMutation({
-        mutationFn: async (formData: TeamFormData) => {
-            const response = await fetch(`/api/teams/register`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    orgId,
-                    tournamentId,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(
-                    errorData.details || errorData.error || "チーム登録に失敗しました"
-                );
-            }
-
-            return response.json();
-        },
-    });
+    return useRegisterTeamBase(orgId, tournamentId);
 }
 
 /**

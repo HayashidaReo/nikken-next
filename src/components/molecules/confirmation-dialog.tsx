@@ -10,7 +10,7 @@ import {
 import { CheckCircle } from "lucide-react";
 import { DialogOverlay } from "./dialog-overlay";
 import type { TeamFormData } from "@/types/team-form.schema";
-import { splitPlayerName } from "@/lib/utils/player-name-utils";
+import PlayerName from "./player-name";
 
 interface ConfirmationDialogProps {
   data: TeamFormData;
@@ -81,23 +81,15 @@ export function ConfirmationDialog({
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {data.players.map((player, index) => {
-                    const { lastName, firstName } = splitPlayerName(player.fullName);
-                    return (
-                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <p className="text-xs text-gray-600">姓</p>
-                            <p className="font-medium">{lastName}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-600">名</p>
-                            <p className="font-medium">{firstName || '（未入力）'}</p>
-                          </div>
+                  {data.players.map((player, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <PlayerName fullName={player.fullName} />
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
