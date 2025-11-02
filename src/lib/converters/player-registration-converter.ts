@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
-import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
+import type { PlayerRegistrationData } from "@/types/player-registration.schema";
 import type { TeamCreate, Player } from "@/types/team.schema";
 import { DisplayNameService } from "@/domains/team/services/display-name.service";
+import { splitPlayerName, validatePlayerNames } from "@/lib/utils/player-name-utils";
 
 /**
  * 選手登録フォームのデータをFirestore用のTeamCreateに変換
@@ -13,17 +14,12 @@ export class PlayerRegistrationConverter {
     static toTeamCreate(formData: PlayerRegistrationData): TeamCreate {
         // フォームの選手データ（fullName）を姓名に分割してPlayerオブジェクトに変換
         const players: Player[] = formData.players.map((player) => {
-            const fullName = player.fullName.trim();
-            const nameParts = fullName.split(/\s+/);
-
-            // 最初の部分を姓、残りを名として結合
-            const lastName = nameParts[0];
-            const firstName = nameParts.slice(1).join(" ");
+            const nameResult = splitPlayerName(player.fullName);
 
             return {
                 playerId: `player_${uuidv4()}`,
-                lastName,
-                firstName,
+                lastName: nameResult.lastName,
+                firstName: nameResult.firstName,
                 displayName: "", // 初期値（DisplayNameServiceで後から生成）
             };
         });
@@ -72,15 +68,14 @@ export class PlayerRegistrationConverter {
             errors.push("最低1人の選手を登録してください");
         }
 
-        formData.players.forEach((player, index) => {
-            const fullName = player.fullName.trim();
+        // 選手名バリデーション
+        const invalidPlayerIndices = validatePlayerNames(formData.players.map(p => p.fullName));
+        invalidPlayerIndices.forEach(index => {
+            const fullName = formData.players[index].fullName.trim();
             if (!fullName) {
                 errors.push(`選手${index + 1}: 選手名は必須です`);
             } else {
-                const nameParts = fullName.split(/\s+/);
-                if (nameParts.length < 2 || nameParts.some(part => part.length === 0)) {
-                    errors.push(`選手${index + 1}: 選手名は「姓 名」の形式で入力してください`);
-                }
+                errors.push(`選手${index + 1}: 選手名は「姓 名」の形式で入力してください`);
             }
         });
 

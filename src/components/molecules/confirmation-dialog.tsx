@@ -9,34 +9,8 @@ import {
 } from "@/components/atoms/card";
 import { CheckCircle } from "lucide-react";
 import { DialogOverlay } from "./dialog-overlay";
-
-// 姓名を分割するユーティリティ関数
-function splitFullName(fullName: string): { lastName: string; firstName: string } {
-  const trimmed = fullName.trim();
-  const parts = trimmed.split(/\s+/);
-
-  if (parts.length >= 2) {
-    return {
-      lastName: parts[0],
-      firstName: parts.slice(1).join(' '), // 複数の名前の部分を結合
-    };
-  }
-
-  // スペースがない場合のフォールバック
-  return {
-    lastName: trimmed,
-    firstName: '',
-  };
-}
-
-export interface PlayerRegistrationData {
-  representativeName: string;
-  representativePhone: string;
-  representativeEmail: string;
-  teamName: string;
-  players: { fullName: string }[];
-  remarks: string;
-}
+import type { PlayerRegistrationData } from "@/types/player-registration.schema";
+import { splitPlayerName } from "@/lib/utils/player-name-utils";
 
 interface ConfirmationDialogProps {
   data: PlayerRegistrationData;
@@ -108,7 +82,7 @@ export function ConfirmationDialog({
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {data.players.map((player, index) => {
-                    const { lastName, firstName } = splitFullName(player.fullName);
+                    const { lastName, firstName } = splitPlayerName(player.fullName);
                     return (
                       <div key={index} className="p-3 bg-gray-50 rounded-lg">
                         <div className="grid grid-cols-2 gap-2">

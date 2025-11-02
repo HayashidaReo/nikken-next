@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FirestoreTeamRepository } from "@/repositories/firestore/team-repository";
 import type { Team, TeamCreate } from "@/types/team.schema";
-import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
+import type { PlayerRegistrationData } from "@/types/player-registration.schema";
 
 /**
  * Team リポジトリのインスタンス（シングルトン）

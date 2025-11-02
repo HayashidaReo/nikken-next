@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AdminTeamRepository } from "@/repositories/admin/team-repository";
 import { PlayerRegistrationConverter } from "@/lib/converters/player-registration-converter";
-import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
-
-/**
- * 選手登録データの型定義（組織ID・大会IDを含む）
- */
-interface PlayerRegistrationWithParams extends PlayerRegistrationData {
-    orgId?: string;
-    tournamentId?: string;
-}
+import type { PlayerRegistrationData, PlayerRegistrationWithParams } from "@/types/player-registration.schema";
 
 /**
  * 選手登録API Route
@@ -20,7 +12,7 @@ export async function POST(request: NextRequest) {
         // リクエストボディの取得と検証
         const body: PlayerRegistrationWithParams = await request.json();
         const { orgId, tournamentId, ...formData } = body;
-        
+
         if (!orgId || !tournamentId) {
             return NextResponse.json(
                 { error: "orgIdおよびtournamentIdは必須です" },

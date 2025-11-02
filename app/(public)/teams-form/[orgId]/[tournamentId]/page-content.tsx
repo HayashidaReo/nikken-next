@@ -2,7 +2,7 @@
 
 import { PlayerRegistrationForm, TournamentInfoBanner } from "@/components/organisms";
 import { useRegisterTeamWithParams } from "@/queries/use-teams";
-import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
+import type { PlayerRegistrationData } from "@/types/player-registration.schema";
 
 interface TeamsFormPageContentProps {
     orgId: string;

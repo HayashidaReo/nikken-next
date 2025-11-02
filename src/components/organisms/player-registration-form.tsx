@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/button";
 import {
@@ -19,36 +18,11 @@ import {
   FormInput,
   FormTextarea,
   LoadingButton,
-  type PlayerRegistrationData,
 } from "@/components/molecules";
+import type { PlayerRegistrationData } from "@/types/player-registration.schema";
+import { playerRegistrationSchema } from "@/types/player-registration.schema";
 import { useFormSubmit } from "@/hooks";
 import { useToast } from "@/components/providers/notification-provider";
-
-// 選手登録フォーム用のスキーマ
-const playerRegistrationSchema = z.object({
-  representativeName: z.string().min(1, "代表者名は必須です"),
-  representativePhone: z.string().min(1, "代表者電話番号は必須です"),
-  representativeEmail: z
-    .string()
-    .min(1, "代表者メールアドレスは必須です")
-    .email("正しいメールアドレスを入力してください"),
-  teamName: z.string().min(1, "チーム名（所属名）は必須です"),
-  players: z
-    .array(
-      z.object({
-        fullName: z
-          .string()
-          .min(1, "選手名は必須です")
-          .refine((name) => {
-            const trimmed = name.trim();
-            const parts = trimmed.split(/\s+/);
-            return parts.length >= 2 && parts.every(part => part.length > 0);
-          }, "選手名は「姓 名」の形式で、姓と名の間に半角スペースを入れてください"),
-      })
-    )
-    .min(1, "最低1人の選手を登録してください"),
-  remarks: z.string(),
-});
 
 interface PlayerRegistrationFormProps {
   onSubmit: (data: PlayerRegistrationData) => Promise<void>;
@@ -103,9 +77,9 @@ export function PlayerRegistrationForm({
         await onSubmit(typedData);
         showSuccess(`選手登録が完了しました（チーム: ${typedData.teamName}）`);
 
-       
+
         router.push(`/teams-form/${orgId}/${tournamentId}/complete`);
-        
+
       },
       formData,
       {

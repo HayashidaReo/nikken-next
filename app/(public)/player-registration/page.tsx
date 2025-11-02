@@ -2,7 +2,7 @@
 
 import { PlayerRegistrationForm } from "@/components/organisms/player-registration-form";
 import { useRegisterTeam } from "@/queries/use-teams";
-import type { PlayerRegistrationData } from "@/components/molecules/confirmation-dialog";
+import type { PlayerRegistrationData } from "@/types/player-registration.schema";
 
 export default function PlayerRegistrationPage() {
   const registerTeamMutation = useRegisterTeam();
