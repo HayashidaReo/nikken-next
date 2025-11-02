@@ -125,11 +125,13 @@ export function parseInputValueToDate(dateString: string): Date | null {
  * @returns 表示用の日付文字列（例: "2024年3月15日"）
  */
 export function formatDateForDisplay(date: Date | null | undefined, locale: string = 'ja-JP'): string {
-    if (!isValidDate(date)) {
+    const dateObj = parseToDate(date);
+
+    if (!dateObj) {
         return "";
     }
 
-    return date.toLocaleDateString(locale, {
+    return dateObj.toLocaleDateString(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric'

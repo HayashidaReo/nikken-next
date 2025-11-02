@@ -15,6 +15,7 @@ import { useToast } from "@/components/providers/notification-provider";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
+import { formatDateForDisplay } from "@/lib/utils/date-utils";
 
 interface TournamentListProps {
     orgId: string | null;
@@ -133,10 +134,7 @@ export function TournamentList({
                                         </CardTitle>
                                         <div className="flex items-center gap-2 mt-1">
                                             <Badge variant="outline" className="text-xs">
-                                                {tournament.tournamentDate instanceof Date
-                                                    ? tournament.tournamentDate.toLocaleDateString('ja-JP')
-                                                    : tournament.tournamentDate
-                                                }
+                                                {formatDateForDisplay(tournament.tournamentDate)}
                                             </Badge>
                                             <Badge variant="secondary" className="text-xs">
                                                 {tournament.courts.length}コート
