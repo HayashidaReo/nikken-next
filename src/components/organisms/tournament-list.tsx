@@ -10,6 +10,7 @@ import {
     CardTitle,
 } from "@/components/atoms/card";
 import { Badge } from "@/components/atoms/badge";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useTournamentsByOrganization, useDeleteTournament } from "@/queries/use-tournaments";
 import { useToast } from "@/components/providers/notification-provider";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
@@ -71,9 +72,10 @@ export function TournamentList({
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-gray-900">大会一覧</h2>
                 </div>
-                <div className="flex justify-center py-8">
-                    <div className="text-gray-600">大会一覧を読み込み中...</div>
-                </div>
+                <LoadingIndicator
+                    message="大会一覧を読み込み中..."
+                    className="py-8"
+                />
             </div>
         );
     }

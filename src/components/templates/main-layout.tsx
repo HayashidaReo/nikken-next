@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/atoms/button";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import {
   Tabs,
   TabsList,
@@ -89,12 +90,11 @@ export function MainLayout({
   // 認証チェック中はローディング表示
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">認証状態を確認中...</p>
-        </div>
-      </div>
+      <LoadingIndicator
+        message="認証状態を確認中..."
+        size="lg"
+        fullScreen={true}
+      />
     );
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useActiveTournament } from "@/hooks/useActiveTournament";
 import { TournamentSelectionDialog } from "@/components/organisms/TournamentSelectionDialog";
@@ -43,15 +44,13 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
         }
     }, [hasTournamentSelected]);
 
-    // 初期化中は何も表示しない
     if (!isInitialized || tournamentLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">初期化中...</p>
-                </div>
-            </div>
+            <LoadingIndicator
+                message="準備中..."
+                size="lg"
+                fullScreen={true}
+            />
         );
     }
 

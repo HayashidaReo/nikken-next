@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { notFound, useRouter } from "next/navigation";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { TeamRegistrationForm, TournamentInfoBanner } from "@/components/organisms";
 import { useRegisterTeamWithParams } from "@/queries/use-teams";
 import { useTournament } from "@/queries/use-tournaments";
@@ -49,14 +50,11 @@ export function TeamsFormPageContent({
     if (isLoading || (!isLoading && error)) {
         return (
             <div className="max-w-4xl mx-auto">
-                <div className="flex justify-center items-center min-h-[400px]">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p className="text-gray-600">
-                            {isLoading ? "大会情報を読み込み中..." : "大会情報を確認中..."}
-                        </p>
-                    </div>
-                </div>
+                <LoadingIndicator
+                    message={isLoading ? "大会情報を読み込み中..." : "大会情報を確認中..."}
+                    size="xl"
+                    className="min-h-[400px]"
+                />
             </div>
         );
     }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/atoms/button";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
 import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
 import { TournamentList } from "@/components/organisms/tournament-list";
@@ -49,9 +50,11 @@ export default function TournamentSettingsPage() {
         <div className="min-h-screen bg-gray-50 py-8 px-4">
           <div className="max-w-6xl mx-auto">
             <AuthenticatedHeader title="大会設定" />
-            <div className="mt-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">大会情報を読み込み中...</p>
+            <div className="mt-8">
+              <LoadingIndicator
+                message="大会情報を読み込み中..."
+                size="lg"
+              />
             </div>
           </div>
         </div>
