@@ -1,6 +1,7 @@
 "use client";
 
 import { useFieldArray } from "react-hook-form";
+import { Control, FieldErrors, UseFormRegister } from "react-hook-form";
 import {
   Card,
   CardContent,
@@ -11,14 +12,12 @@ import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 
 import { AddButton, RemoveButton } from "./action-buttons";
+import type { TeamFormData } from "@/types/team-form.schema";
 
 interface PlayerListFormProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  control: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errors: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: any;
+  control: Control<TeamFormData>;
+  errors: FieldErrors<TeamFormData>;
+  register: UseFormRegister<TeamFormData>;
 }
 
 export function PlayerListForm({
