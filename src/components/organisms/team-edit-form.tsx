@@ -26,6 +26,7 @@ import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useArrayField } from "@/hooks/useArrayField";
+import { createDefaultTeamEditValues } from "@/lib/form-defaults";
 
 // 編集用のスキーマ
 const teamEditSchema = z.object({
@@ -77,20 +78,7 @@ export function TeamEditForm({
     formState: { errors, isDirty },
   } = useForm<TeamEditData>({
     resolver: zodResolver(teamEditSchema),
-    defaultValues: {
-      teamName: team.teamName,
-      representativeName: team.representativeName,
-      representativePhone: team.representativePhone,
-      representativeEmail: team.representativeEmail,
-      isApproved: team.isApproved,
-      remarks: team.remarks || "",
-      players: team.players.map(player => ({
-        playerId: player.playerId,
-        lastName: player.lastName,
-        firstName: player.firstName,
-        displayName: player.displayName,
-      })),
-    },
+    defaultValues: createDefaultTeamEditValues(team),
   });
 
   const { fields, addItem, removeItem } = useArrayField(control, "players", {

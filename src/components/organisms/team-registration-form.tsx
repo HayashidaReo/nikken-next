@@ -23,6 +23,7 @@ import type { TeamFormData } from "@/types/team-form.schema";
 import { teamFormSchema } from "@/types/team-form.schema";
 import { useFormSubmit } from "@/hooks";
 import { useToast } from "@/components/providers/notification-provider";
+import { defaultTeamFormValues } from "@/lib/form-defaults";
 
 interface TeamRegistrationFormProps {
   onSubmit: (data: TeamFormData) => Promise<void>;
@@ -50,14 +51,7 @@ export function TeamRegistrationForm({
     formState: { errors },
   } = useForm<TeamFormData>({
     resolver: zodResolver(teamFormSchema),
-    defaultValues: {
-      representativeName: "",
-      representativePhone: "",
-      representativeEmail: "",
-      teamName: "",
-      players: [{ fullName: "" }],
-      remarks: "",
-    },
+    defaultValues: defaultTeamFormValues,
   });
 
   const { handleSubmit: submitForm, isLoading, error } = useFormSubmit();

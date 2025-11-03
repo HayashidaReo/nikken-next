@@ -21,6 +21,7 @@ import { LoadingButton } from "@/components/molecules/loading-button";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useArrayField } from "@/hooks/useArrayField";
 import { useToast } from "@/components/providers/notification-provider";
+import { createDefaultTournamentSettingsValues } from "@/lib/form-defaults";
 
 // 大会設定フォーム用のスキーマ
 const tournamentSettingsSchema = z.object({
@@ -91,19 +92,7 @@ export function TournamentSettingsForm({
     formState: { errors },
   } = useForm<TournamentSettingsData>({
     resolver: zodResolver(tournamentSettingsSchema),
-    defaultValues: {
-      tournamentName: tournament?.tournamentName || "",
-      tournamentDate: tournament?.tournamentDate instanceof Date
-        ? tournament.tournamentDate.toISOString().split('T')[0]
-        : "",
-      location: tournament?.location || "",
-      defaultMatchTimeMinutes: defaultMinutes,
-      defaultMatchTimeSeconds: defaultSeconds,
-      courts: tournament?.courts?.map(court => ({
-        courtId: court.courtId,
-        courtName: court.courtName,
-      })) || [{ courtId: "court-1", courtName: "" }],
-    },
+    defaultValues: createDefaultTournamentSettingsValues(tournament, defaultMinutes, defaultSeconds),
   });
 
   const { fields, addItem, removeItem } = useArrayField(control, "courts", {

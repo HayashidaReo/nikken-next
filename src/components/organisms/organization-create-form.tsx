@@ -10,6 +10,7 @@ import { useToast } from "@/components/providers/notification-provider";
 import { organizationCreateWithAccountSchema } from "@/types/organization.schema";
 import type { OrganizationCreateWithAccount } from "@/types/organization.schema";
 import { useCreateOrganization } from "@/queries/use-organizations";
+import { defaultOrganizationCreateValues } from "@/lib/form-defaults";
 
 /**
  * 組織作成フォーム
@@ -25,14 +26,7 @@ export function OrganizationCreateForm() {
         reset,
     } = useForm<OrganizationCreateWithAccount>({
         resolver: zodResolver(organizationCreateWithAccountSchema),
-        defaultValues: {
-            orgName: "",
-            representativeName: "",
-            representativePhone: "",
-            representativeEmail: "",
-            adminEmail: "",
-            adminPassword: "",
-        },
+        defaultValues: defaultOrganizationCreateValues,
     });
 
     const onSubmit = async (data: OrganizationCreateWithAccount) => {
