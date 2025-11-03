@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Tournament } from "@/types/tournament.schema";
+import { createApiError } from "@/lib/utils/api-error";
 
 /**
  * Query Keys for Tournament entities
@@ -23,8 +24,7 @@ export function useTournamentsByOrganization(orgId: string | null) {
 
             const response = await fetch(`/api/tournaments/${orgId}`);
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || '大会一覧の取得に失敗しました');
+                throw await createApiError(response);
             }
 
             const data = await response.json();
@@ -48,8 +48,7 @@ export function useTournament(orgId: string | null, tournamentId: string | null)
 
             const response = await fetch(`/api/tournaments/${orgId}/${tournamentId}`);
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || '大会情報の取得に失敗しました');
+                throw await createApiError(response);
             }
 
             const data = await response.json();

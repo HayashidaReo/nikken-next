@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { notFound } from "next/navigation";
 import { Button } from "@/components/atoms/button";
 import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
 import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
@@ -38,20 +39,7 @@ export default function TournamentSettingsPage() {
 
   // 組織IDが設定されていない場合
   if (!orgId) {
-    return (
-      <AuthGuardWrapper>
-        <div className="min-h-screen bg-gray-50 py-8 px-4">
-          <div className="max-w-6xl mx-auto">
-            <AuthenticatedHeader title="大会設定" />
-            <div className="mt-8 text-center">
-              <p className="text-gray-600 mb-4">
-                大会を設定するには、まず組織を選択してください。
-              </p>
-            </div>
-          </div>
-        </div>
-      </AuthGuardWrapper>
-    );
+    notFound();
   }
 
   // ローディング表示
