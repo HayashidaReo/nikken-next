@@ -32,11 +32,14 @@ export function TeamsFormPageContent({
         if (!isLoading && error && !hasNotifiedRef.current) {
             hasNotifiedRef.current = true;
             const timer = setTimeout(() => {
+                // 元のURLをセッションストレージに保存
+                const originalUrl = `/teams-form/${orgId}/${tournamentId}`;
+                sessionStorage.setItem('originalUrl', originalUrl);
                 router.replace('/not-found');
             }, 300);
             return () => clearTimeout(timer);
         }
-    }, [isLoading, error, tournament, router]);
+    }, [isLoading, error, tournament, router, orgId, tournamentId]);
 
     const handleSubmit = async (formData: TeamFormData) => {
         return await registerTeamMutation.mutateAsync(formData);

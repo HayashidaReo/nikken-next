@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { RefreshCw, AlertTriangle, Mail } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 
@@ -18,10 +20,25 @@ export function PublicNotFoundContent({
     showRetryButton = true,
     showContactInfo = true,
 }: PublicNotFoundContentProps) {
+    const router = useRouter();
+    const [originalUrl] = useState<string | null>(() => {
+        // 初期化時にセッションストレージから元のURLを取得
+        if (typeof window !== 'undefined') {
+            return sessionStorage.getItem('originalUrl');
+        }
+        return null;
+    });
+
     const handleRetry = () => {
         if (onRetry) {
             onRetry();
+        } else if (originalUrl) {
+            // セッションストレージをクリア
+            sessionStorage.removeItem('originalUrl');
+            // 元のURLに戻る
+            router.push(originalUrl);
         } else {
+            // フォールバックとしてリロード
             window.location.reload();
         }
     };
