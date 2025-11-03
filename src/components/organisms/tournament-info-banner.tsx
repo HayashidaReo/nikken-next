@@ -4,7 +4,6 @@ import { useTournament } from "@/queries/use-tournaments";
 import { Card, CardContent } from "@/components/atoms/card";
 import { CalendarIcon, MapPinIcon, TrophyIcon, InfoIcon } from "lucide-react";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
-import { ApiError } from "@/lib/utils/api-error";
 
 interface TournamentInfoBannerProps {
     orgId: string;
@@ -35,11 +34,6 @@ export function TournamentInfoBanner({ orgId, tournamentId }: TournamentInfoBann
     }
 
     if (error) {
-        // 404エラーの場合は親コンポーネントで処理するため、何も表示しない
-        if (error instanceof ApiError && error.isNotFound()) {
-            return null;
-        }
-
         return (
             <div className="max-w-4xl mx-auto mb-8">
                 <Card className="border-red-200 bg-red-50">

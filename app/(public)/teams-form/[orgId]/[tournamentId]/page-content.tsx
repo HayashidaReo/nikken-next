@@ -5,7 +5,6 @@ import { notFound, useRouter } from "next/navigation";
 import { TeamRegistrationForm, TournamentInfoBanner } from "@/components/organisms";
 import { useRegisterTeamWithParams } from "@/queries/use-teams";
 import { useTournament } from "@/queries/use-tournaments";
-import { ApiError } from "@/lib/utils/api-error";
 import type { TeamFormData } from "@/types/team-form.schema";
 
 interface TeamsFormPageContentProps {
@@ -31,21 +30,11 @@ export function TeamsFormPageContent({
     // 404エラーの処理
     useEffect(() => {
         if (!isLoading && error && !hasNotifiedRef.current) {
-            console.log('Error detected:', error);
-            console.log('Error instanceof ApiError:', error instanceof ApiError);
-            console.log('Error constructor name:', error.constructor.name);
-            console.log('Tournament data:', tournament);
-
-            // エラーが発生した場合は404ページにリダイレクト
             hasNotifiedRef.current = true;
-            console.log('Attempting redirect to public 404 page');
-
-            // public配下のnot-foundページにリダイレクト
             const timer = setTimeout(() => {
-                console.log('Executing redirect...');
-                // publicグループ内の404ページへリダイレクト
                 router.replace('/not-found');
-            }, 300); return () => clearTimeout(timer);
+            }, 300);
+            return () => clearTimeout(timer);
         }
     }, [isLoading, error, tournament, router]);
 

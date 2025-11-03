@@ -1,7 +1,5 @@
-import { notFound } from "next/navigation";
+import { PublicNotFoundContent } from "@/components/templates";
 
-// このページは直接アクセスされたときに404を表示するためのページです
-export default function PublicNotFoundPage() {
-    // not-found.tsxが表示されるようにする
-    notFound();
+export default function NotFoundPage() {
+    return <PublicNotFoundContent />;
 }
