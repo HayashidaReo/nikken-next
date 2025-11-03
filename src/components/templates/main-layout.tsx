@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import {
   Tabs,
   TabsList,
@@ -14,7 +13,6 @@ import {
 } from "@/components/atoms/tabs";
 import { cn } from "@/lib/utils/utils";
 import { useAuthStore } from "@/store/use-auth-store";
-import { useAuthGuard } from "@/hooks/useAuth";
 import { useToast } from "@/components/providers/notification-provider";
 import { TournamentSelector } from "@/components/molecules/TournamentSelector";
 import { useActiveTournament } from "@/hooks/useActiveTournament";
@@ -85,24 +83,6 @@ export function MainLayout({
   activeTab = "matches",
   className,
 }: MainLayoutProps) {
-  const { isLoading, isAuthenticated } = useAuthGuard();
-
-  // 認証チェック中はローディング表示
-  if (isLoading) {
-    return (
-      <LoadingIndicator
-        message="認証状態を確認中..."
-        size="lg"
-        fullScreen={true}
-      />
-    );
-  }
-
-  // 未認証の場合は何も表示しない（useAuthGuardがリダイレクトする）
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
     <div className={cn("min-h-screen bg-gray-50", className)}>
       <Header />
