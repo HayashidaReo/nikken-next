@@ -60,7 +60,7 @@ export function TeamRegistrationForm({
     },
   });
 
-  const { handleSubmit: submitForm, isLoading } = useFormSubmit();
+  const { handleSubmit: submitForm, isLoading, error } = useFormSubmit();
 
   const handleFormSubmit = async () => {
     const isValid = await trigger();
@@ -69,19 +69,15 @@ export function TeamRegistrationForm({
     setShowConfirmation(true);
   };
 
-  const handleConfirmSubmit = async () => {
-    const formData = getValues();
+  const handleConfirmSubmit = async (data: TeamFormData) => {
     await submitForm(
-      async (data: unknown) => {
-        const typedData = data as TeamFormData;
-        await onSubmit(typedData);
-        showSuccess(`選手登録が完了しました（チーム: ${typedData.teamName}）`);
-
-
+      async (typedData: unknown) => {
+        const teamData = typedData as TeamFormData;
+        await onSubmit(teamData);
+        showSuccess(`選手登録が完了しました（チーム: ${teamData.teamName}）`);
         router.push(`/teams-form/${orgId}/${tournamentId}/complete`);
-
       },
-      formData,
+      data,
       {
         onError: (error: Error) => {
           showError(`登録に失敗しました: ${error.message}`);
@@ -91,6 +87,10 @@ export function TeamRegistrationForm({
     setShowConfirmation(false);
   };
 
+  const handleConfirmDialog = () => {
+    handleSubmit(handleConfirmSubmit)();
+  };
+
   return (
     <div className={cn("max-w-4xl mx-auto", className)}>
       <Card>
@@ -98,6 +98,12 @@ export function TeamRegistrationForm({
           <CardTitle className="text-2xl">選手登録フォーム</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-800 font-medium">送信エラー</p>
+              <p className="text-red-700 text-sm mt-1">{error}</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
             {/* 代表者情報 */}
             <Card>
@@ -198,7 +204,7 @@ export function TeamRegistrationForm({
       <ConfirmationDialog
         isVisible={showConfirmation}
         data={getValues()}
-        onConfirm={handleConfirmSubmit}
+        onConfirm={handleConfirmDialog}
         onCancel={() => setShowConfirmation(false)}
       />
     </div>

@@ -9,6 +9,7 @@ import {
 } from "@/components/atoms/card";
 import { CheckCircle } from "lucide-react";
 import { DialogOverlay } from "./dialog-overlay";
+import { InfoCard } from "./info-card";
 import type { TeamFormData } from "@/types/team-form.schema";
 import PlayerName from "./player-name";
 
@@ -37,11 +38,8 @@ export function ConfirmationDialog({
           </div>
 
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">代表者情報</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <InfoCard title="代表者情報">
+              <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium text-gray-600">代表者名</p>
                   <p className="font-medium">{data.representativeName}</p>
@@ -56,22 +54,17 @@ export function ConfirmationDialog({
                   </p>
                   <p className="font-medium">{data.representativeEmail}</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </InfoCard>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">チーム情報</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    チーム名（所属名）
-                  </p>
-                  <p className="font-medium">{data.teamName}</p>
-                </div>
-              </CardContent>
-            </Card>
+            <InfoCard title="チーム情報">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  チーム名（所属名）
+                </p>
+                <p className="font-medium">{data.teamName}</p>
+              </div>
+            </InfoCard>
 
             <Card>
               <CardHeader>
@@ -95,14 +88,9 @@ export function ConfirmationDialog({
             </Card>
 
             {data.remarks && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">備考</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap">{data.remarks}</p>
-                </CardContent>
-              </Card>
+              <InfoCard title="備考">
+                <p className="whitespace-pre-wrap">{data.remarks}</p>
+              </InfoCard>
             )}
           </div>
 
