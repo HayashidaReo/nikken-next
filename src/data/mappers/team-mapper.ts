@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import type { Team, Player } from "@/types/team.schema";
+import type { Team, Player, TeamCreate } from "@/types/team.schema";
 import { teamSchema, playerSchema } from "@/types/team.schema";
 
 /**
@@ -89,7 +89,7 @@ export class TeamMapper {
   /**
    * 新規作成用のFirestoreドキュメントに変換（タイムスタンプを自動設定）
    */
-  static toFirestoreForCreate(team: Partial<Team>): FirestoreTeamCreateDoc {
+  static toFirestoreForCreate(team: TeamCreate): FirestoreTeamCreateDoc {
     const now = Timestamp.now();
 
     return {
@@ -97,7 +97,7 @@ export class TeamMapper {
       representativeName: team.representativeName!,
       representativePhone: team.representativePhone!,
       representativeEmail: team.representativeEmail!,
-      players: (team.players || []).map(player =>
+      players: team.players.map((player: Player) =>
         this.playerToFirestore(player)
       ),
       remarks: team.remarks || "",

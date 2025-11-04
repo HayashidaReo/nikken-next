@@ -59,7 +59,7 @@ export class FirestoreTeamRepository implements TeamRepository {
 
   async create(team: TeamCreate): Promise<Team> {
     const firestoreDoc: FirestoreTeamCreateDoc =
-      TeamMapper.toFirestoreForCreate(team as unknown as Partial<Team>);
+      TeamMapper.toFirestoreForCreate(team);
     const ref = await addDoc(this.collectionRef, firestoreDoc);
     const snap: DocumentSnapshot<DocumentData> = await getDoc(ref);
     const data = snap.data() as FirestoreTeamDoc | undefined;
