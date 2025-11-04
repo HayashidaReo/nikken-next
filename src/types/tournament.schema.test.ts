@@ -4,10 +4,7 @@ import {
   type Court,
   type Tournament,
 } from "./tournament.schema";
-import {
-  organizationSchema,
-  type Organization,
-} from "./organization.schema";
+import { organizationSchema, type Organization } from "./organization.schema";
 
 describe("Tournament Schema Validation", () => {
   describe("organizationSchema", () => {
@@ -59,7 +56,9 @@ describe("Tournament Schema Validation", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("団体代表者電話番号は必須です");
+        expect(result.error.issues[0].message).toBe(
+          "団体代表者電話番号は必須です"
+        );
       }
     });
 
@@ -153,7 +152,9 @@ describe("Tournament Schema Validation", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("Invalid input: expected date, received string");
+        expect(result.error.issues[0].message).toBe(
+          "Invalid input: expected date, received string"
+        );
       }
     });
 
@@ -212,7 +213,10 @@ describe("Tournament Schema Validation", () => {
       const dateStrings = ["2024-03-15", "2024/03/15"];
 
       dateStrings.forEach(dateStr => {
-        const tournament = { ...validTournament, tournamentDate: new Date(dateStr) };
+        const tournament = {
+          ...validTournament,
+          tournamentDate: new Date(dateStr),
+        };
         const result = tournamentSchema.safeParse(tournament);
         expect(result.success).toBe(true);
       });

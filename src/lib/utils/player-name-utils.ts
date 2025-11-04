@@ -3,9 +3,9 @@
  */
 
 export interface SplitNameResult {
-    lastName: string;
-    firstName: string;
-    isValid: boolean;
+  lastName: string;
+  firstName: string;
+  isValid: boolean;
 }
 
 /**
@@ -14,33 +14,33 @@ export interface SplitNameResult {
  * @returns 分割結果と有効性フラグ
  */
 export function splitPlayerName(fullName: string): SplitNameResult {
-    const trimmed = fullName.trim();
+  const trimmed = fullName.trim();
 
-    if (!trimmed) {
-        return {
-            lastName: '',
-            firstName: '',
-            isValid: false,
-        };
-    }
-
-    const parts = trimmed.split(/\s+/);
-
-    // 2つ以上の部分があり、すべて空でない場合のみ有効
-    if (parts.length >= 2 && parts.every(part => part.length > 0)) {
-        return {
-            lastName: parts[0],
-            firstName: parts.slice(1).join(' '), // 複数の名前の部分を結合
-            isValid: true,
-        };
-    }
-
-    // 無効な場合はフォールバック（表示用）
+  if (!trimmed) {
     return {
-        lastName: trimmed,
-        firstName: '',
-        isValid: false,
+      lastName: "",
+      firstName: "",
+      isValid: false,
     };
+  }
+
+  const parts = trimmed.split(/\s+/);
+
+  // 2つ以上の部分があり、すべて空でない場合のみ有効
+  if (parts.length >= 2 && parts.every(part => part.length > 0)) {
+    return {
+      lastName: parts[0],
+      firstName: parts.slice(1).join(" "), // 複数の名前の部分を結合
+      isValid: true,
+    };
+  }
+
+  // 無効な場合はフォールバック（表示用）
+  return {
+    lastName: trimmed,
+    firstName: "",
+    isValid: false,
+  };
 }
 
 /**
@@ -49,7 +49,7 @@ export function splitPlayerName(fullName: string): SplitNameResult {
  * @returns バリデーション結果
  */
 export function validatePlayerName(fullName: string): boolean {
-    return splitPlayerName(fullName).isValid;
+  return splitPlayerName(fullName).isValid;
 }
 
 /**
@@ -58,8 +58,8 @@ export function validatePlayerName(fullName: string): boolean {
  * @returns 無効な選手名のインデックス配列
  */
 export function validatePlayerNames(playerNames: string[]): number[] {
-    return playerNames
-        .map((name, index) => ({ name, index }))
-        .filter(({ name }) => !validatePlayerName(name))
-        .map(({ index }) => index);
+  return playerNames
+    .map((name, index) => ({ name, index }))
+    .filter(({ name }) => !validatePlayerName(name))
+    .map(({ index }) => index);
 }

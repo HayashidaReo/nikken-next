@@ -121,16 +121,16 @@ export function useMonitorData() {
         // 動的にPresentation APIにアクセス
         const presentation = (navigator as unknown as Record<string, unknown>)
           .presentation as {
-            receiver?: {
-              connectionList?: Promise<{
-                connections?: unknown[];
-                addEventListener?: (
-                  event: string,
-                  handler: EventListener
-                ) => void;
-              }>;
-            };
+          receiver?: {
+            connectionList?: Promise<{
+              connections?: unknown[];
+              addEventListener?: (
+                event: string,
+                handler: EventListener
+              ) => void;
+            }>;
           };
+        };
 
         if (presentation?.receiver?.connectionList) {
           presentation.receiver.connectionList

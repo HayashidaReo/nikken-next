@@ -1,6 +1,6 @@
 "use client";
 
-import {  useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/atoms/button";
 import {
   Card,
@@ -60,7 +60,7 @@ export function MatchSetupTable({
   // 初期データを作成
   const initialData = useMemo(() => {
     return matches.map(match => ({
-      id: match.matchId || '', // undefined の場合は空文字列
+      id: match.matchId || "", // undefined の場合は空文字列
       courtId: match.courtId,
       round: match.round,
       playerATeamId: match.players.playerA.teamId,

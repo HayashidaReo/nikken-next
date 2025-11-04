@@ -35,7 +35,9 @@ export default function TournamentSettingsPage() {
 
   // 選択されている大会
   const selectedTournament = selectedTournamentId
-    ? tournaments.find((t: TournamentWithId) => t.tournamentId === selectedTournamentId)
+    ? tournaments.find(
+        (t: TournamentWithId) => t.tournamentId === selectedTournamentId
+      )
     : null;
 
   // 組織IDが設定されていない場合
@@ -51,10 +53,7 @@ export default function TournamentSettingsPage() {
           <div className="max-w-6xl mx-auto">
             <AuthenticatedHeader title="大会設定" />
             <div className="mt-8">
-              <LoadingIndicator
-                message="大会情報を読み込み中..."
-                size="lg"
-              />
+              <LoadingIndicator message="大会情報を読み込み中..." size="lg" />
             </div>
           </div>
         </div>
@@ -70,7 +69,9 @@ export default function TournamentSettingsPage() {
           <div className="max-w-6xl mx-auto">
             <AuthenticatedHeader title="大会設定" />
             <div className="mt-8 text-center">
-              <p className="text-red-600 mb-4">{error?.message || String(error)}</p>
+              <p className="text-red-600 mb-4">
+                {error?.message || String(error)}
+              </p>
               <div className="flex gap-4 justify-center">
                 <Button onClick={() => window.location.reload()}>
                   再読み込み
@@ -121,7 +122,7 @@ export default function TournamentSettingsPage() {
             />
 
             {/* 右側: 大会詳細フォーム */}
-            {(selectedTournament || isAddingNew) ? (
+            {selectedTournament || isAddingNew ? (
               <TournamentForm
                 formData={formData}
                 isAddingNew={isAddingNew}

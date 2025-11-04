@@ -23,9 +23,7 @@ export default function MatchSetupPage() {
   };
 
   return (
-    <MainLayout
-      activeTab="match-setup"
-    >
+    <MainLayout activeTab="match-setup">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">

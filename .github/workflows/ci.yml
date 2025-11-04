@@ -15,7 +15,7 @@ jobs:
     name: Test and Build
     runs-on: ubuntu-latest
     env:
-      TZ: 'Asia/Tokyo' # テストランナーのタイムゾーン
+      TZ: "Asia/Tokyo" # テストランナーのタイムゾーン
 
     strategy:
       matrix:

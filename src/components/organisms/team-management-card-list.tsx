@@ -1,6 +1,6 @@
 "use client";
 
-import {  useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/atoms/button";
 import {
@@ -149,7 +149,10 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
       </CardContent>
 
       {/* 確認ダイアログ */}
-      <DialogOverlay isOpen={!!showConfirmDialog} onClose={cancelApprovalChange}>
+      <DialogOverlay
+        isOpen={!!showConfirmDialog}
+        onClose={cancelApprovalChange}
+      >
         <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
           <h3 className="text-lg font-semibold mb-4">
             {showConfirmDialog === "approve" ? "承認確認" : "承認取消確認"}

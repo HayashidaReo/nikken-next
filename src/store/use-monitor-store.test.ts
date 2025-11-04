@@ -37,7 +37,7 @@ const mockMatch: Match = {
 let consoleSpy: jest.SpyInstance;
 
 beforeEach(() => {
-  consoleSpy = jest.spyOn(console, "log").mockImplementation(() => { });
+  consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
   // ストアをリセット
   useMonitorStore.setState({
     matchId: null,

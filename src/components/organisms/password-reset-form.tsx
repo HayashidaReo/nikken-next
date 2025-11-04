@@ -1,6 +1,6 @@
 "use client";
 
-import {  useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -54,9 +54,10 @@ export function PasswordResetForm() {
       console.error("Password reset error:", error);
 
       // AuthServiceのエラーハンドリングを利用
-      const errorMessage = error instanceof Error
-        ? error.message
-        : "パスワード再設定メールの送信に失敗しました";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "パスワード再設定メールの送信に失敗しました";
 
       showError(errorMessage);
     } finally {
@@ -103,11 +104,7 @@ export function PasswordResetForm() {
             register={register}
             error={errors.email?.message}
           />{" "}
-          <LoadingButton
-            type="submit"
-            className="w-full"
-            isLoading={isLoading}
-          >
+          <LoadingButton type="submit" className="w-full" isLoading={isLoading}>
             {isLoading ? "送信中..." : "再設定メールを送信"}
           </LoadingButton>
           <div className="text-center">

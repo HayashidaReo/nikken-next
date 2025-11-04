@@ -3,33 +3,37 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useCallback } from "react";
 import { useAuthStore } from "@/store/use-auth-store";
-import { isAuthenticated, isEmailVerified, getUserDisplayName } from "@/lib/auth/types";
+import {
+  isAuthenticated,
+  isEmailVerified,
+  getUserDisplayName,
+} from "@/lib/auth/types";
 
 /**
  * 認証が必要なページで使用するhook
  * ログインしていない場合はログイン画面にリダイレクト
  */
 export function useAuthGuard() {
-    const { user, isInitialized, isLoading } = useAuthStore();
-    const router = useRouter();
+  const { user, isInitialized, isLoading } = useAuthStore();
+  const router = useRouter();
 
-    useEffect(() => {
-        // 初期化が完了し、ローディング中でない場合のみチェック
-        if (isInitialized && !isLoading) {
-            if (!user) {
-                // 未認証の場合はログイン画面にリダイレクト
-                router.replace("/login");
-            }
-        }
-    }, [user, isInitialized, isLoading, router]);
+  useEffect(() => {
+    // 初期化が完了し、ローディング中でない場合のみチェック
+    if (isInitialized && !isLoading) {
+      if (!user) {
+        // 未認証の場合はログイン画面にリダイレクト
+        router.replace("/login");
+      }
+    }
+  }, [user, isInitialized, isLoading, router]);
 
-    return {
-        user,
-        isLoading: isLoading || !isInitialized,
-        isAuthenticated: isAuthenticated(user),
-        isEmailVerified: isEmailVerified(user),
-        displayName: getUserDisplayName(user),
-    };
+  return {
+    user,
+    isLoading: isLoading || !isInitialized,
+    isAuthenticated: isAuthenticated(user),
+    isEmailVerified: isEmailVerified(user),
+    displayName: getUserDisplayName(user),
+  };
 }
 
 /**
@@ -37,26 +41,26 @@ export function useAuthGuard() {
  * ログイン済みの場合はダッシュボードにリダイレクト
  */
 export function useGuestGuard() {
-    const { user, isInitialized, isLoading } = useAuthStore();
-    const router = useRouter();
+  const { user, isInitialized, isLoading } = useAuthStore();
+  const router = useRouter();
 
-    useEffect(() => {
-        // 初期化が完了し、ローディング中でない場合のみチェック
-        if (isInitialized && !isLoading) {
-            if (user) {
-                // 認証済みの場合はダッシュボードにリダイレクト
-                router.replace("/dashboard");
-            }
-        }
-    }, [user, isInitialized, isLoading, router]);
+  useEffect(() => {
+    // 初期化が完了し、ローディング中でない場合のみチェック
+    if (isInitialized && !isLoading) {
+      if (user) {
+        // 認証済みの場合はダッシュボードにリダイレクト
+        router.replace("/dashboard");
+      }
+    }
+  }, [user, isInitialized, isLoading, router]);
 
-    return {
-        user,
-        isLoading: isLoading || !isInitialized,
-        isAuthenticated: isAuthenticated(user),
-        isEmailVerified: isEmailVerified(user),
-        displayName: getUserDisplayName(user),
-    };
+  return {
+    user,
+    isLoading: isLoading || !isInitialized,
+    isAuthenticated: isAuthenticated(user),
+    isEmailVerified: isEmailVerified(user),
+    displayName: getUserDisplayName(user),
+  };
 }
 
 /**
@@ -64,23 +68,23 @@ export function useGuestGuard() {
  * @returns 認証状態と操作関数
  */
 export function useAuth() {
-    const {
-        user,
-        isInitialized,
-        isLoading,
-        signOut: storeSignOut
-    } = useAuthStore();
+  const {
+    user,
+    isInitialized,
+    isLoading,
+    signOut: storeSignOut,
+  } = useAuthStore();
 
-    const signOut = useCallback(async () => {
-        await storeSignOut();
-    }, [storeSignOut]);
+  const signOut = useCallback(async () => {
+    await storeSignOut();
+  }, [storeSignOut]);
 
-    return {
-        user,
-        isLoading: isLoading || !isInitialized,
-        isAuthenticated: isAuthenticated(user),
-        isEmailVerified: isEmailVerified(user),
-        displayName: getUserDisplayName(user),
-        signOut,
-    };
+  return {
+    user,
+    isLoading: isLoading || !isInitialized,
+    isAuthenticated: isAuthenticated(user),
+    isEmailVerified: isEmailVerified(user),
+    displayName: getUserDisplayName(user),
+    signOut,
+  };
 }

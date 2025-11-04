@@ -1,6 +1,6 @@
 "use client";
 
-import {  useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -99,11 +99,7 @@ export function LoginForm() {
             </div>
           )}
 
-          <LoadingButton
-            type="submit"
-            className="w-full"
-            isLoading={isLoading}
-          >
+          <LoadingButton type="submit" className="w-full" isLoading={isLoading}>
             {isLoading ? "ログイン中..." : "ログイン"}
           </LoadingButton>
 

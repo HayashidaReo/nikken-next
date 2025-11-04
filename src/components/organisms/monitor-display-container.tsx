@@ -28,16 +28,16 @@ export function MonitorDisplayContainer({
       <MonitorLayout
         playerA={{
           displayName: data.playerA.displayName,
-          playerId: '', // PlayerDataには含まれていない
-          teamId: '', // PlayerDataには含まれていない
+          playerId: "", // PlayerDataには含まれていない
+          teamId: "", // PlayerDataには含まれていない
           teamName: data.playerA.teamName,
           score: data.playerA.score,
           hansoku: data.playerA.hansoku,
         }}
         playerB={{
           displayName: data.playerB.displayName,
-          playerId: '', // PlayerDataには含まれていない
-          teamId: '', // PlayerDataには含まれていない
+          playerId: "", // PlayerDataには含まれていない
+          teamId: "", // PlayerDataには含まれていない
           teamName: data.playerB.teamName,
           score: data.playerB.score,
           hansoku: data.playerB.hansoku,

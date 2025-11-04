@@ -76,7 +76,9 @@ describe("Team Schema Validation", () => {
       const result = teamSchema.safeParse(invalidTeam);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("チーム名（所属名）は必須です");
+        expect(result.error.issues[0].message).toBe(
+          "チーム名（所属名）は必須です"
+        );
       }
     });
 
@@ -85,7 +87,9 @@ describe("Team Schema Validation", () => {
       const result = teamSchema.safeParse(teamWithoutPlayers);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("最低1人の選手を登録してください");
+        expect(result.error.issues[0].message).toBe(
+          "最低1人の選手を登録してください"
+        );
       }
     });
 

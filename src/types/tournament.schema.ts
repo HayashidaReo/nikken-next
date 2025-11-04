@@ -18,7 +18,9 @@ export const tournamentSchema = z.object({
   tournamentDate: z.date(), // Timestamp型（日付のみ）
   tournamentDetail: z.string(), // 大会概要（自由記述）
   location: z.string(), // 空文字許可（デフォルト大会用）
-  defaultMatchTime: z.number().min(1, "デフォルト試合時間は1秒以上である必要があります"),
+  defaultMatchTime: z
+    .number()
+    .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema), // 空配列許可（デフォルト大会用）
   createdAt: z.date().optional(), // Firestoreで自動設定
   updatedAt: z.date().optional(), // Firestoreで自動設定
@@ -33,7 +35,9 @@ export const tournamentFormSchema = z.object({
   tournamentDate: z.date(),
   tournamentDetail: z.string(),
   location: z.string().min(1, "開催場所は必須です"),
-  defaultMatchTime: z.number().min(1, "デフォルト試合時間は1秒以上である必要があります"),
+  defaultMatchTime: z
+    .number()
+    .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema).min(1, "最低1つのコートを設定してください"),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
@@ -43,7 +47,7 @@ export const tournamentFormSchema = z.object({
  * フォーム編集用の部分的なTournament型
  * tournamentDateをnullableにしてフォーム表示で空白を許可
  */
-export type TournamentFormData = Omit<Tournament, 'tournamentDate'> & {
+export type TournamentFormData = Omit<Tournament, "tournamentDate"> & {
   tournamentDate: Date | null;
 };
 
@@ -78,7 +82,7 @@ export type TournamentSettings = z.infer<typeof tournamentSettingsSchema>;
 /**
  * 大会操作の状態を表す型
  */
-export type TournamentOperationMode = 'view' | 'create' | 'edit';
+export type TournamentOperationMode = "view" | "create" | "edit";
 
 /**
  * 大会設定フォームの操作結果型
@@ -101,7 +105,10 @@ export type TournamentWithId = Tournament & {
  */
 export interface TournamentFormHandlers {
   onSave: () => Promise<TournamentFormResult>;
-  onChange: <K extends keyof Tournament>(field: K, value: Tournament[K]) => void;
+  onChange: <K extends keyof Tournament>(
+    field: K,
+    value: Tournament[K]
+  ) => void;
   onCancel?: () => void;
   onDelete?: (tournamentId: string) => Promise<void>;
 }

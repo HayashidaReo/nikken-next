@@ -14,9 +14,7 @@ export default function TeamsPage() {
 
   if (isLoading) {
     return (
-      <MainLayout
-        activeTab="teams"
-      >
+      <MainLayout activeTab="teams">
         <div className="flex justify-center items-center py-8">
           <div className="text-gray-600">チーム情報を読み込み中...</div>
         </div>
@@ -26,12 +24,11 @@ export default function TeamsPage() {
 
   if (error) {
     return (
-      <MainLayout
-        activeTab="teams"
-      >
+      <MainLayout activeTab="teams">
         <div className="flex justify-center items-center py-8">
           <div className="text-red-600">
-            エラーが発生しました: {error instanceof Error ? error.message : "不明なエラー"}
+            エラーが発生しました:{" "}
+            {error instanceof Error ? error.message : "不明なエラー"}
           </div>
         </div>
       </MainLayout>
@@ -39,9 +36,7 @@ export default function TeamsPage() {
   }
 
   return (
-    <MainLayout
-      activeTab="teams"
-    >
+    <MainLayout activeTab="teams">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">チーム・選手管理</h1>

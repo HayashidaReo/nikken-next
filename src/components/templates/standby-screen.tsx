@@ -1,4 +1,3 @@
-
 interface StandbyScreenProps {
   className?: string;
 }

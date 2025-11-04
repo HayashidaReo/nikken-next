@@ -9,13 +9,9 @@ import { mockMatches, mockTournament } from "@/lib/mock-data";
 export default function DashboardPage() {
   return (
     <AuthGuardWrapper>
-      <MainLayout
-        activeTab="matches"
-      >
+      <MainLayout activeTab="matches">
         <div className="space-y-6">
-          <AuthenticatedHeader
-            title="試合一覧"
-          />
+          <AuthenticatedHeader title="試合一覧" />
 
           <MatchListTable
             matches={mockMatches}

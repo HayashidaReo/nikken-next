@@ -3,229 +3,233 @@ import { useUnsavedChanges } from "./useUnsavedChanges";
 
 // window.confirmをモック
 const mockConfirm = jest.fn();
-Object.defineProperty(window, 'confirm', {
-    value: mockConfirm,
-    writable: true,
+Object.defineProperty(window, "confirm", {
+  value: mockConfirm,
+  writable: true,
 });
 
 describe("useUnsavedChanges", () => {
-    let addEventListener: jest.SpyInstance;
-    let removeEventListener: jest.SpyInstance;
+  let addEventListener: jest.SpyInstance;
+  let removeEventListener: jest.SpyInstance;
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockConfirm.mockClear();
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockConfirm.mockClear();
 
-        // window.addEventListenerとremoveEventListenerをモック
-        addEventListener = jest.spyOn(window, 'addEventListener');
-        removeEventListener = jest.spyOn(window, 'removeEventListener');
+    // window.addEventListenerとremoveEventListenerをモック
+    addEventListener = jest.spyOn(window, "addEventListener");
+    removeEventListener = jest.spyOn(window, "removeEventListener");
+  });
+
+  afterEach(() => {
+    addEventListener.mockRestore();
+    removeEventListener.mockRestore();
+  });
+
+  describe("beforeunloadイベントリスナー", () => {
+    it("hasUnsavedChanges=falseの場合、イベントリスナーが登録される", () => {
+      renderHook(() => useUnsavedChanges(false));
+
+      expect(addEventListener).toHaveBeenCalledWith(
+        "beforeunload",
+        expect.any(Function)
+      );
     });
 
-    afterEach(() => {
-        addEventListener.mockRestore();
-        removeEventListener.mockRestore();
+    it("hasUnsavedChanges=trueの場合、イベントリスナーが登録される", () => {
+      renderHook(() => useUnsavedChanges(true));
+
+      expect(addEventListener).toHaveBeenCalledWith(
+        "beforeunload",
+        expect.any(Function)
+      );
     });
 
-    describe("beforeunloadイベントリスナー", () => {
-        it("hasUnsavedChanges=falseの場合、イベントリスナーが登録される", () => {
-            renderHook(() => useUnsavedChanges(false));
+    it("コンポーネントアンマウント時にイベントリスナーが削除される", () => {
+      const { unmount } = renderHook(() => useUnsavedChanges(false));
 
-            expect(addEventListener).toHaveBeenCalledWith(
-                "beforeunload",
-                expect.any(Function)
-            );
-        });
+      unmount();
 
-        it("hasUnsavedChanges=trueの場合、イベントリスナーが登録される", () => {
-            renderHook(() => useUnsavedChanges(true));
-
-            expect(addEventListener).toHaveBeenCalledWith(
-                "beforeunload",
-                expect.any(Function)
-            );
-        });
-
-        it("コンポーネントアンマウント時にイベントリスナーが削除される", () => {
-            const { unmount } = renderHook(() => useUnsavedChanges(false));
-
-            unmount();
-
-            expect(removeEventListener).toHaveBeenCalledWith(
-                "beforeunload",
-                expect.any(Function)
-            );
-        });
-
-        it("hasUnsavedChangesが変更されると新しいイベントリスナーが設定される", () => {
-            const { rerender } = renderHook(
-                ({ hasUnsaved }) => useUnsavedChanges(hasUnsaved),
-                { initialProps: { hasUnsaved: false } }
-            );
-
-            // 最初の登録
-            expect(addEventListener).toHaveBeenCalledTimes(1);
-
-            // プロパティ変更
-            rerender({ hasUnsaved: true });
-
-            // 古いリスナー削除 + 新しいリスナー登録
-            expect(removeEventListener).toHaveBeenCalledTimes(1);
-            expect(addEventListener).toHaveBeenCalledTimes(2);
-        });
+      expect(removeEventListener).toHaveBeenCalledWith(
+        "beforeunload",
+        expect.any(Function)
+      );
     });
 
-    describe("beforeunloadイベントハンドラ", () => {
-        it("hasUnsavedChanges=falseの場合、イベントを阻止しない", () => {
-            renderHook(() => useUnsavedChanges(false));
+    it("hasUnsavedChangesが変更されると新しいイベントリスナーが設定される", () => {
+      const { rerender } = renderHook(
+        ({ hasUnsaved }) => useUnsavedChanges(hasUnsaved),
+        { initialProps: { hasUnsaved: false } }
+      );
 
-            // 登録されたイベントハンドラを取得
-            const eventHandler = addEventListener.mock.calls[0][1];
+      // 最初の登録
+      expect(addEventListener).toHaveBeenCalledTimes(1);
 
-            const mockEvent = {
-                preventDefault: jest.fn(),
-                returnValue: "",
-            } as unknown as BeforeUnloadEvent;
+      // プロパティ変更
+      rerender({ hasUnsaved: true });
 
-            eventHandler(mockEvent);
+      // 古いリスナー削除 + 新しいリスナー登録
+      expect(removeEventListener).toHaveBeenCalledTimes(1);
+      expect(addEventListener).toHaveBeenCalledTimes(2);
+    });
+  });
 
-            expect(mockEvent.preventDefault).not.toHaveBeenCalled();
-            expect(mockEvent.returnValue).toBe("");
-        });
+  describe("beforeunloadイベントハンドラ", () => {
+    it("hasUnsavedChanges=falseの場合、イベントを阻止しない", () => {
+      renderHook(() => useUnsavedChanges(false));
 
-        it("hasUnsavedChanges=trueの場合、イベントを阻止してメッセージを設定", () => {
-            renderHook(() => useUnsavedChanges(true));
+      // 登録されたイベントハンドラを取得
+      const eventHandler = addEventListener.mock.calls[0][1];
 
-            // 登録されたイベントハンドラを取得
-            const eventHandler = addEventListener.mock.calls[0][1];
+      const mockEvent = {
+        preventDefault: jest.fn(),
+        returnValue: "",
+      } as unknown as BeforeUnloadEvent;
 
-            const mockEvent = {
-                preventDefault: jest.fn(),
-                returnValue: "",
-            } as unknown as BeforeUnloadEvent;
+      eventHandler(mockEvent);
 
-            eventHandler(mockEvent);
-
-            expect(mockEvent.preventDefault).toHaveBeenCalled();
-            expect(mockEvent.returnValue).toBe("変更が保存されていません。このページを離れますか？");
-        });
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+      expect(mockEvent.returnValue).toBe("");
     });
 
-    describe("confirmNavigation", () => {
-        it("hasUnsavedChanges=falseの場合、常にtrueを返す", () => {
-            const { result } = renderHook(() => useUnsavedChanges(false));
+    it("hasUnsavedChanges=trueの場合、イベントを阻止してメッセージを設定", () => {
+      renderHook(() => useUnsavedChanges(true));
 
-            const navigationResult = result.current.confirmNavigation();
+      // 登録されたイベントハンドラを取得
+      const eventHandler = addEventListener.mock.calls[0][1];
 
-            expect(navigationResult).toBe(true);
-            expect(mockConfirm).not.toHaveBeenCalled();
-        });
+      const mockEvent = {
+        preventDefault: jest.fn(),
+        returnValue: "",
+      } as unknown as BeforeUnloadEvent;
 
-        it("hasUnsavedChanges=trueの場合、confirmを呼び出しその結果を返す", () => {
-            mockConfirm.mockReturnValue(true);
+      eventHandler(mockEvent);
 
-            const { result } = renderHook(() => useUnsavedChanges(true));
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(mockEvent.returnValue).toBe(
+        "変更が保存されていません。このページを離れますか？"
+      );
+    });
+  });
 
-            const navigationResult = result.current.confirmNavigation();
+  describe("confirmNavigation", () => {
+    it("hasUnsavedChanges=falseの場合、常にtrueを返す", () => {
+      const { result } = renderHook(() => useUnsavedChanges(false));
 
-            expect(mockConfirm).toHaveBeenCalledWith(
-                "変更が保存されていません。このページを離れますか？"
-            );
-            expect(navigationResult).toBe(true);
-        });
+      const navigationResult = result.current.confirmNavigation();
 
-        it("hasUnsavedChanges=trueでconfirmがfalseの場合、falseを返す", () => {
-            mockConfirm.mockReturnValue(false);
-
-            const { result } = renderHook(() => useUnsavedChanges(true));
-
-            const navigationResult = result.current.confirmNavigation();
-
-            expect(navigationResult).toBe(false);
-        });
-
-        it("カスタムメッセージを使用できる", () => {
-            mockConfirm.mockReturnValue(true);
-
-            const { result } = renderHook(() => useUnsavedChanges(true));
-            const customMessage = "カスタム確認メッセージ";
-
-            result.current.confirmNavigation(customMessage);
-
-            expect(mockConfirm).toHaveBeenCalledWith(customMessage);
-        });
-
-        it("空文字列のカスタムメッセージでもデフォルトメッセージが使用される", () => {
-            mockConfirm.mockReturnValue(true);
-
-            const { result } = renderHook(() => useUnsavedChanges(true));
-
-            result.current.confirmNavigation("");
-
-            expect(mockConfirm).toHaveBeenCalledWith(
-                "変更が保存されていません。このページを離れますか？"
-            );
-        });
+      expect(navigationResult).toBe(true);
+      expect(mockConfirm).not.toHaveBeenCalled();
     });
 
-    describe("状態変更のテスト", () => {
-        it("hasUnsavedChangesが動的に変更されても正しく動作する", () => {
-            mockConfirm.mockReturnValue(true);
+    it("hasUnsavedChanges=trueの場合、confirmを呼び出しその結果を返す", () => {
+      mockConfirm.mockReturnValue(true);
 
-            const { result, rerender } = renderHook(
-                ({ hasUnsaved }) => useUnsavedChanges(hasUnsaved),
-                { initialProps: { hasUnsaved: false } }
-            );
+      const { result } = renderHook(() => useUnsavedChanges(true));
 
-            // 最初は未保存変更なし
-            expect(result.current.confirmNavigation()).toBe(true);
-            expect(mockConfirm).not.toHaveBeenCalled();
+      const navigationResult = result.current.confirmNavigation();
 
-            mockConfirm.mockClear();
-
-            // 未保存変更ありに変更
-            rerender({ hasUnsaved: true });
-
-            expect(result.current.confirmNavigation()).toBe(true);
-            expect(mockConfirm).toHaveBeenCalled();
-
-            mockConfirm.mockClear();
-
-            // 再び未保存変更なしに戻す
-            rerender({ hasUnsaved: false });
-
-            expect(result.current.confirmNavigation()).toBe(true);
-            expect(mockConfirm).not.toHaveBeenCalled();
-        });
+      expect(mockConfirm).toHaveBeenCalledWith(
+        "変更が保存されていません。このページを離れますか？"
+      );
+      expect(navigationResult).toBe(true);
     });
 
-    describe("エッジケース", () => {
-        it("同じ状態での再レンダリングが正しく処理される", () => {
-            addEventListener.mockClear();
+    it("hasUnsavedChanges=trueでconfirmがfalseの場合、falseを返す", () => {
+      mockConfirm.mockReturnValue(false);
 
-            const { rerender } = renderHook(
-                ({ hasUnsaved }) => useUnsavedChanges(hasUnsaved),
-                { initialProps: { hasUnsaved: false } }
-            );
+      const { result } = renderHook(() => useUnsavedChanges(true));
 
-            const initialCallCount = addEventListener.mock.calls.length;
+      const navigationResult = result.current.confirmNavigation();
 
-            // 状態を変更
-            rerender({ hasUnsaved: true });
-
-            // イベントリスナーの登録が発生する
-            expect(addEventListener.mock.calls.length).toBeGreaterThan(initialCallCount);
-        });
-
-        it("undefinedやnullのメッセージでもデフォルトメッセージが使用される", () => {
-            mockConfirm.mockReturnValue(true);
-
-            const { result } = renderHook(() => useUnsavedChanges(true));
-
-            result.current.confirmNavigation(undefined);
-
-            expect(mockConfirm).toHaveBeenCalledWith(
-                "変更が保存されていません。このページを離れますか？"
-            );
-        });
+      expect(navigationResult).toBe(false);
     });
+
+    it("カスタムメッセージを使用できる", () => {
+      mockConfirm.mockReturnValue(true);
+
+      const { result } = renderHook(() => useUnsavedChanges(true));
+      const customMessage = "カスタム確認メッセージ";
+
+      result.current.confirmNavigation(customMessage);
+
+      expect(mockConfirm).toHaveBeenCalledWith(customMessage);
+    });
+
+    it("空文字列のカスタムメッセージでもデフォルトメッセージが使用される", () => {
+      mockConfirm.mockReturnValue(true);
+
+      const { result } = renderHook(() => useUnsavedChanges(true));
+
+      result.current.confirmNavigation("");
+
+      expect(mockConfirm).toHaveBeenCalledWith(
+        "変更が保存されていません。このページを離れますか？"
+      );
+    });
+  });
+
+  describe("状態変更のテスト", () => {
+    it("hasUnsavedChangesが動的に変更されても正しく動作する", () => {
+      mockConfirm.mockReturnValue(true);
+
+      const { result, rerender } = renderHook(
+        ({ hasUnsaved }) => useUnsavedChanges(hasUnsaved),
+        { initialProps: { hasUnsaved: false } }
+      );
+
+      // 最初は未保存変更なし
+      expect(result.current.confirmNavigation()).toBe(true);
+      expect(mockConfirm).not.toHaveBeenCalled();
+
+      mockConfirm.mockClear();
+
+      // 未保存変更ありに変更
+      rerender({ hasUnsaved: true });
+
+      expect(result.current.confirmNavigation()).toBe(true);
+      expect(mockConfirm).toHaveBeenCalled();
+
+      mockConfirm.mockClear();
+
+      // 再び未保存変更なしに戻す
+      rerender({ hasUnsaved: false });
+
+      expect(result.current.confirmNavigation()).toBe(true);
+      expect(mockConfirm).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("エッジケース", () => {
+    it("同じ状態での再レンダリングが正しく処理される", () => {
+      addEventListener.mockClear();
+
+      const { rerender } = renderHook(
+        ({ hasUnsaved }) => useUnsavedChanges(hasUnsaved),
+        { initialProps: { hasUnsaved: false } }
+      );
+
+      const initialCallCount = addEventListener.mock.calls.length;
+
+      // 状態を変更
+      rerender({ hasUnsaved: true });
+
+      // イベントリスナーの登録が発生する
+      expect(addEventListener.mock.calls.length).toBeGreaterThan(
+        initialCallCount
+      );
+    });
+
+    it("undefinedやnullのメッセージでもデフォルトメッセージが使用される", () => {
+      mockConfirm.mockReturnValue(true);
+
+      const { result } = renderHook(() => useUnsavedChanges(true));
+
+      result.current.confirmNavigation(undefined);
+
+      expect(mockConfirm).toHaveBeenCalledWith(
+        "変更が保存されていません。このページを離れますか？"
+      );
+    });
+  });
 });

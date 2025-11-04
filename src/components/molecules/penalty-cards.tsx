@@ -1,4 +1,8 @@
-import { getPenaltyCards, getCardStyles, type HansokuLevel } from "@/lib/utils/penalty-utils";
+import {
+  getPenaltyCards,
+  getCardStyles,
+  type HansokuLevel,
+} from "@/lib/utils/penalty-utils";
 import { PenaltyBackground } from "@/components/atoms";
 
 interface PenaltyCardsProps {

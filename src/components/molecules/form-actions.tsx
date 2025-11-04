@@ -3,9 +3,9 @@
 import { Button } from "@/components/atoms/button";
 
 interface FormActionsProps {
-    onSave: () => void;
-    saveButtonText: string;
-    className?: string;
+  onSave: () => void;
+  saveButtonText: string;
+  className?: string;
 }
 
 /**
@@ -13,15 +13,15 @@ interface FormActionsProps {
  * 保存ボタンなどのアクションボタンを含む
  */
 export function FormActions({
-    onSave,
-    saveButtonText,
-    className = ""
+  onSave,
+  saveButtonText,
+  className = "",
 }: FormActionsProps) {
-    return (
-        <div className={`flex justify-end pt-4 ${className}`}>
-            <Button onClick={onSave} className="px-8">
-                {saveButtonText}
-            </Button>
-        </div>
-    );
+  return (
+    <div className={`flex justify-end pt-4 ${className}`}>
+      <Button onClick={onSave} className="px-8">
+        {saveButtonText}
+      </Button>
+    </div>
+  );
 }

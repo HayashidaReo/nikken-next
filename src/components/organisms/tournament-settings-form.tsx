@@ -66,19 +66,20 @@ export function TournamentSettingsForm({
   isNewTournament = false,
   className,
 }: TournamentSettingsFormProps) {
-  const { isLoading, handleSubmit: handleFormSubmission } =
-    useFormSubmit<{
-      tournamentName: string;
-      tournamentDate: string;
-      location: string;
-      defaultMatchTime: number;
-      courts: { courtId: string; courtName: string }[];
-    }>();
+  const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<{
+    tournamentName: string;
+    tournamentDate: string;
+    location: string;
+    defaultMatchTime: number;
+    courts: { courtId: string; courtName: string }[];
+  }>();
   const { showWarning } = useToast();
 
   // 秒を分と秒に分割（新規作成時はデフォルト値）
   const defaultMinutes = tournament
-    ? Math.floor(tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE)
+    ? Math.floor(
+        tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE
+      )
     : 3; // デフォルト3分
   const defaultSeconds = tournament
     ? tournament.defaultMatchTime % TIME_CONSTANTS.SECONDS_PER_MINUTE
@@ -92,7 +93,11 @@ export function TournamentSettingsForm({
     formState: { errors },
   } = useForm<TournamentSettingsData>({
     resolver: zodResolver(tournamentSettingsSchema),
-    defaultValues: createDefaultTournamentSettingsValues(tournament, defaultMinutes, defaultSeconds),
+    defaultValues: createDefaultTournamentSettingsValues(
+      tournament,
+      defaultMinutes,
+      defaultSeconds
+    ),
   });
 
   const { fields, addItem, removeItem } = useArrayField(control, "courts", {
@@ -127,7 +132,7 @@ export function TournamentSettingsForm({
     };
 
     await handleFormSubmission(onSave, tournamentData, {
-      onSuccess: () => { },
+      onSuccess: () => {},
     });
   };
 

@@ -9,8 +9,5 @@
     ".next": true,
     "coverage": true
   },
-  "cSpell.words": [
-    "firestore",
-    "Hansoku"
-  ]
+  "cSpell.words": ["firestore", "Hansoku"]
 }

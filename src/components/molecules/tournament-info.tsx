@@ -1,4 +1,3 @@
-
 interface TournamentInfoProps {
   tournamentName: string;
   courtName: string;

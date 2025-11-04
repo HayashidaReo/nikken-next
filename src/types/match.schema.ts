@@ -5,11 +5,11 @@ import { z } from "zod";
  * データベース設計のhansokuフィールドに対応
  */
 export const hansokuStateEnum = z.enum([
-  "none",        // 0: 反則なし
-  "yellow",      // 1: 黄
-  "red",         // 2: 赤  
-  "red_yellow",  // 3: 赤+黄
-  "red_red",     // 4: 赤+赤
+  "none", // 0: 反則なし
+  "yellow", // 1: 黄
+  "red", // 2: 赤
+  "red_yellow", // 3: 赤+黄
+  "red_red", // 4: 赤+赤
 ]);
 
 /**
