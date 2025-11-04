@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/atoms/button";
 import { ConflictDetailsDisplay } from "@/components/molecules/conflict-details-display";
+import type { Match } from "@/types/match.schema";
 
 interface ConflictDetails {
     matchId: string;
@@ -35,6 +36,8 @@ interface ConflictDetails {
 interface MatchSetupSaveConflictDialogProps {
     open: boolean;
     conflicts: ConflictDetails[];
+    addedMatches?: Match[];
+    deletedMatches?: Match[];
     onConfirm: () => void;
     onCancel: () => void;
 }
@@ -46,10 +49,14 @@ interface MatchSetupSaveConflictDialogProps {
 export function MatchSetupSaveConflictDialog({
     open,
     conflicts,
+    addedMatches = [],
+    deletedMatches = [],
     onConfirm,
     onCancel,
 }: MatchSetupSaveConflictDialogProps) {
-    if (conflicts.length === 0) return null;
+    const hasAnyChanges = conflicts.length > 0 || addedMatches.length > 0 || deletedMatches.length > 0;
+
+    if (!hasAnyChanges) return null;
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
@@ -69,6 +76,8 @@ export function MatchSetupSaveConflictDialog({
                             <ConflictDetailsDisplay
                                 conflicts={conflicts}
                                 draftLabel="あなたの編集"
+                                addedMatches={addedMatches}
+                                deletedMatches={deletedMatches}
                             />
                         </div>
                     </DialogDescription>

@@ -45,12 +45,15 @@ export type PlayerInfo = {
 
 /**
  * リアルタイム監視で検出された変更の型
- * matchId -> フィールド名 -> { initial, server } のマップ
  */
-export type DetectedChanges = Record<
-    string,
-    Record<string, { initial: string; server: string }>
->;
+export type DetectedChanges = {
+    /** 既存試合のフィールド変更: matchId -> フィールド名 -> { initial, server } */
+    fieldChanges: Record<string, Record<string, { initial: string; server: string }>>;
+    /** 他端末で追加された試合 */
+    addedMatches: Match[];
+    /** 他端末で削除された試合 */
+    deletedMatches: Match[];
+};
 
 /**
  * チームデータから選手情報を検索する
@@ -83,9 +86,10 @@ export function findPlayerInfo(
  * 試合データの競合を検出する
  * 
  * 3点比較（初期状態、ユーザーの編集、サーバーの最新状態）を行い、
- * 2種類の競合を検出する：
+ * 以下を検出する：
  * 1. directConflicts: 両方が同じフィールドを異なる値に変更した場合
  * 2. serverOnlyChanges: 他端末のみが変更した場合（ユーザーは変更していない）
+ * 3. serverDeletedMatches: 他端末で削除された試合（ユーザーは編集している）
  * 
  * @param draftData - ユーザーが編集した試合データ
  * @param initialState - ページを開いた時点の初期状態
@@ -109,6 +113,26 @@ export function detectMatchConflicts(
 
         const initialMatch = initialState.find(m => m.matchId === draft.id);
         const serverMatch = serverData.find(m => m.matchId === draft.id);
+
+        // サーバー側で削除されている場合の競合検出
+        if (initialMatch && !serverMatch) {
+            // 却下済みの削除はスキップ
+            const rejected = rejectedChanges[draft.id] || {};
+            if (rejected._deleted) {
+                return;
+            }
+
+            // ユーザーがこの試合を編集しようとしているが、他端末で削除された
+            conflicts.push({
+                matchId: draft.id,
+                directConflicts: {
+                    // 削除競合を特殊なケースとして表現
+                    courtId: { draft: draft.courtId, server: "[削除済み]" },
+                },
+                serverOnlyChanges: {},
+            });
+            return;
+        }
 
         // 初期状態かサーバーデータがない場合はスキップ
         if (!initialMatch || !serverMatch) return;
@@ -203,11 +227,12 @@ export function detectMatchConflicts(
  * @returns ConflictDetails の配列
  */
 export function convertDetectedChangesToConflicts(
-    detectedChanges: Record<string, Record<string, { initial: string; server: string }>>
+    detectedChanges: DetectedChanges
 ): ConflictDetails[] {
     const conflicts: ConflictDetails[] = [];
 
-    Object.entries(detectedChanges).forEach(([matchId, changes]) => {
+    // フィールド変更を変換
+    Object.entries(detectedChanges.fieldChanges).forEach(([matchId, changes]) => {
         const serverOnlyChanges: ConflictDetails['serverOnlyChanges'] = {};
 
         Object.entries(changes).forEach(([fieldName, change]) => {

@@ -3,6 +3,8 @@
  * 保存時・更新時の両ダイアログで使用される競合内容の表示ロジック
  */
 
+import type { Match } from "@/types/match.schema";
+
 interface ConflictDetails {
     matchId: string;
     directConflicts: {
@@ -22,6 +24,8 @@ interface ConflictDetails {
 interface ConflictDetailsDisplayProps {
     conflicts: ConflictDetails[];
     draftLabel?: string; // デフォルト: "あなたの編集"
+    addedMatches?: Match[]; // 他端末で追加された試合
+    deletedMatches?: Match[]; // 他端末で削除された試合
 }
 
 /**
@@ -31,9 +35,46 @@ interface ConflictDetailsDisplayProps {
 export function ConflictDetailsDisplay({
     conflicts,
     draftLabel = "あなたの編集",
+    addedMatches = [],
+    deletedMatches = [],
 }: ConflictDetailsDisplayProps) {
     return (
         <div className="space-y-3">
+            {/* 他端末で追加された試合 */}
+            {addedMatches.length > 0 && (
+                <div className="border-l-4 border-l-green-500 pl-3 space-y-2">
+                    <div className="font-semibold text-sm text-green-700">
+                        ✅ 他端末で追加された試合 ({addedMatches.length}件)
+                    </div>
+                    {addedMatches.map((match, idx) => (
+                        <div key={match.matchId || idx} className="text-sm bg-green-50 p-2 rounded">
+                            <div><strong>コート:</strong> {match.courtId}</div>
+                            <div><strong>ラウンド:</strong> {match.round}</div>
+                            <div><strong>選手A:</strong> {match.players.playerA.displayName}</div>
+                            <div><strong>選手B:</strong> {match.players.playerB.displayName}</div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* 他端末で削除された試合 */}
+            {deletedMatches.length > 0 && (
+                <div className="border-l-4 border-l-red-500 pl-3 space-y-2">
+                    <div className="font-semibold text-sm text-red-700">
+                        ❌ 他端末で削除された試合 ({deletedMatches.length}件)
+                    </div>
+                    {deletedMatches.map((match, idx) => (
+                        <div key={match.matchId || idx} className="text-sm bg-red-50 p-2 rounded line-through opacity-70">
+                            <div><strong>コート:</strong> {match.courtId}</div>
+                            <div><strong>ラウンド:</strong> {match.round}</div>
+                            <div><strong>選手A:</strong> {match.players.playerA.displayName}</div>
+                            <div><strong>選手B:</strong> {match.players.playerB.displayName}</div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* 既存試合のフィールド変更 */}
             {conflicts.map((conflict, index) => {
                 const hasDirectConflicts =
                     Object.keys(conflict.directConflicts).length > 0;
