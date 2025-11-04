@@ -310,14 +310,15 @@ export function useMatchesRealtime() {
 
             return new Promise<Match[]>(resolve => {
                 // リアルタイム購読を開始
-                const unsubscribe = matchRepository.listenAll(orgId, activeTournamentId, (matches: Match[]) => {
-                    // キャッシュを更新
-                    queryClient.setQueryData(matchKeys.list({ orgId, tournamentId: activeTournamentId }), matches);
+                const listKey = matchKeys.list({ orgId, tournamentId: activeTournamentId });
+                const realtimeKey = [...matchKeys.lists(), "realtime", { orgId, tournamentId: activeTournamentId }];
+
+                matchRepository.listenAll(orgId, activeTournamentId, (matches: Match[]) => {
+                    // リアルタイム購読側の query と 通常の list query 両方を更新する
+                    queryClient.setQueryData(realtimeKey, matches);
+                    queryClient.setQueryData(listKey, matches);
                     resolve(matches);
                 });
-
-                // クリーンアップ関数を返す
-                return () => unsubscribe();
             });
         },
         enabled: Boolean(isReady && orgId && activeTournamentId),
