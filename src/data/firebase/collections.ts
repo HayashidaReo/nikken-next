@@ -1,6 +1,7 @@
 import { db } from "@/lib/firebase/client";
 import { adminDb } from "@/lib/firebase-admin/server";
 import { collection, doc } from "firebase/firestore";
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 
 /**
  * Firestore コレクション参照の定数定義
@@ -12,13 +13,13 @@ export const clientCollections = {
   /**
    * organizations コレクション
    */
-  organizations: () => collection(db, "organizations"),
+  organizations: () => collection(db, FIRESTORE_COLLECTIONS.ORGANIZATIONS),
 
   /**
    * 特定の組織の tournaments サブコレクション
    */
   tournaments: (orgId: string) =>
-    collection(db, "organizations", orgId, "tournaments"),
+    collection(db, FIRESTORE_COLLECTIONS.ORGANIZATIONS, orgId, FIRESTORE_COLLECTIONS.TOURNAMENTS),
 
   /**
    * 特定の大会の teams サブコレクション
@@ -26,11 +27,11 @@ export const clientCollections = {
   teams: (orgId: string, tournamentId: string) =>
     collection(
       db,
-      "organizations",
+      FIRESTORE_COLLECTIONS.ORGANIZATIONS,
       orgId,
-      "tournaments",
+      FIRESTORE_COLLECTIONS.TOURNAMENTS,
       tournamentId,
-      "teams"
+      FIRESTORE_COLLECTIONS.TEAMS
     ),
 
   /**
@@ -39,11 +40,11 @@ export const clientCollections = {
   matches: (orgId: string, tournamentId: string) =>
     collection(
       db,
-      "organizations",
+      FIRESTORE_COLLECTIONS.ORGANIZATIONS,
       orgId,
-      "tournaments",
+      FIRESTORE_COLLECTIONS.TOURNAMENTS,
       tournamentId,
-      "matches"
+      FIRESTORE_COLLECTIONS.MATCHES
     ),
 } as const;
 
@@ -52,13 +53,13 @@ export const clientDocs = {
   /**
    * 特定の組織のドキュメント参照
    */
-  organization: (orgId: string) => doc(db, "organizations", orgId),
+  organization: (orgId: string) => doc(db, FIRESTORE_COLLECTIONS.ORGANIZATIONS, orgId),
 
   /**
    * 特定の大会のドキュメント参照
    */
   tournament: (orgId: string, tournamentId: string) =>
-    doc(db, "organizations", orgId, "tournaments", tournamentId),
+    doc(db, FIRESTORE_COLLECTIONS.ORGANIZATIONS, orgId, FIRESTORE_COLLECTIONS.TOURNAMENTS, tournamentId),
 
   /**
    * 特定のチームのドキュメント参照
@@ -66,11 +67,11 @@ export const clientDocs = {
   team: (orgId: string, tournamentId: string, teamId: string) =>
     doc(
       db,
-      "organizations",
+      FIRESTORE_COLLECTIONS.ORGANIZATIONS,
       orgId,
-      "tournaments",
+      FIRESTORE_COLLECTIONS.TOURNAMENTS,
       tournamentId,
-      "teams",
+      FIRESTORE_COLLECTIONS.TEAMS,
       teamId
     ),
 
@@ -80,11 +81,11 @@ export const clientDocs = {
   match: (orgId: string, tournamentId: string, matchId: string) =>
     doc(
       db,
-      "organizations",
+      FIRESTORE_COLLECTIONS.ORGANIZATIONS,
       orgId,
-      "tournaments",
+      FIRESTORE_COLLECTIONS.TOURNAMENTS,
       tournamentId,
-      "matches",
+      FIRESTORE_COLLECTIONS.MATCHES,
       matchId
     ),
 } as const;
@@ -94,35 +95,35 @@ export const adminCollections = {
   /**
    * organizations コレクション
    */
-  organizations: () => adminDb.collection("organizations"),
+  organizations: () => adminDb.collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS),
 
   /**
    * 特定の組織の tournaments サブコレクション
    */
   tournaments: (orgId: string) =>
-    adminDb.collection("organizations").doc(orgId).collection("tournaments"),
+    adminDb.collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS).doc(orgId).collection(FIRESTORE_COLLECTIONS.TOURNAMENTS),
 
   /**
    * 特定の大会の teams サブコレクション
    */
   teams: (orgId: string, tournamentId: string) =>
     adminDb
-      .collection("organizations")
+      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
       .doc(orgId)
-      .collection("tournaments")
+      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
       .doc(tournamentId)
-      .collection("teams"),
+      .collection(FIRESTORE_COLLECTIONS.TEAMS),
 
   /**
    * 特定の大会の matches サブコレクション
    */
   matches: (orgId: string, tournamentId: string) =>
     adminDb
-      .collection("organizations")
+      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
       .doc(orgId)
-      .collection("tournaments")
+      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
       .doc(tournamentId)
-      .collection("matches"),
+      .collection(FIRESTORE_COLLECTIONS.MATCHES),
 } as const;
 
 // Admin SDK用のドキュメント参照（サーバーサイドのみ）
@@ -131,16 +132,16 @@ export const adminDocs = {
    * 特定の組織のドキュメント参照
    */
   organization: (orgId: string) =>
-    adminDb.collection("organizations").doc(orgId),
+    adminDb.collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS).doc(orgId),
 
   /**
    * 特定の大会のドキュメント参照
    */
   tournament: (orgId: string, tournamentId: string) =>
     adminDb
-      .collection("organizations")
+      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
       .doc(orgId)
-      .collection("tournaments")
+      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
       .doc(tournamentId),
 
   /**
@@ -148,11 +149,11 @@ export const adminDocs = {
    */
   team: (orgId: string, tournamentId: string, teamId: string) =>
     adminDb
-      .collection("organizations")
+      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
       .doc(orgId)
-      .collection("tournaments")
+      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
       .doc(tournamentId)
-      .collection("teams")
+      .collection(FIRESTORE_COLLECTIONS.TEAMS)
       .doc(teamId),
 
   /**
@@ -160,11 +161,11 @@ export const adminDocs = {
    */
   match: (orgId: string, tournamentId: string, matchId: string) =>
     adminDb
-      .collection("organizations")
+      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
       .doc(orgId)
-      .collection("tournaments")
+      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
       .doc(tournamentId)
-      .collection("matches")
+      .collection(FIRESTORE_COLLECTIONS.MATCHES)
       .doc(matchId),
 } as const;
 
@@ -175,23 +176,23 @@ export const pathBuilder = {
   /**
    * 組織のパスを構築
    */
-  organizationPath: (orgId: string) => `organizations/${orgId}`,
+  organizationPath: (orgId: string) => `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}`,
 
   /**
    * 大会のパスを構築
    */
   tournamentPath: (orgId: string, tournamentId: string) =>
-    `organizations/${orgId}/tournaments/${tournamentId}`,
+    `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}`,
 
   /**
    * チームのパスを構築
    */
   teamPath: (orgId: string, tournamentId: string, teamId: string) =>
-    `organizations/${orgId}/tournaments/${tournamentId}/teams/${teamId}`,
+    `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.TEAMS}/${teamId}`,
 
   /**
    * 試合のパスを構築
    */
   matchPath: (orgId: string, tournamentId: string, matchId: string) =>
-    `organizations/${orgId}/tournaments/${tournamentId}/matches/${matchId}`,
+    `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.MATCHES}/${matchId}`,
 } as const;

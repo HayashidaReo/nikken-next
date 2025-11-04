@@ -3,7 +3,7 @@ import {
   doc,
   getDoc,
   getDocs,
-  addDoc,
+  setDoc,
   updateDoc as firestoreUpdateDoc,
   deleteDoc,
   query,
@@ -58,9 +58,15 @@ export class FirestoreTournamentRepository implements TournamentRepository {
   }
 
   async create(tournamentCreate: TournamentCreate): Promise<Tournament> {
+    // ドキュメントIDを生成
+    const docRef = doc(this.collectionRef);
+    const tournamentId = docRef.id;
+
+    // ドキュメントIDをフィールドに含めて保存
     const createDoc: FirestoreTournamentCreateDoc =
-      TournamentMapper.toFirestoreCreate(tournamentCreate);
-    const docRef = await addDoc(this.collectionRef, createDoc);
+      TournamentMapper.toFirestoreCreate({ ...tournamentCreate, id: tournamentId });
+
+    await setDoc(docRef, createDoc);
 
     // 作成されたドキュメントを取得して返す
     const createdSnap = await getDoc(docRef);

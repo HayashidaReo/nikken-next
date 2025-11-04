@@ -1,5 +1,5 @@
 import {
-  addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   getDoc,
@@ -10,6 +10,7 @@ import {
   onSnapshot,
   Unsubscribe,
   QueryConstraint,
+  doc,
 } from "firebase/firestore";
 import { clientCollections, clientDocs } from "./collections";
 import { TeamMapper, type FirestoreTeamDoc } from "../mappers/team-mapper";
@@ -23,7 +24,7 @@ export class TeamData {
   constructor(
     private readonly orgId: string,
     private readonly tournamentId: string
-  ) {}
+  ) { }
 
   /**
    * 新しいチームを作成
@@ -33,10 +34,19 @@ export class TeamData {
       this.orgId,
       this.tournamentId
     );
-    const firestoreData = TeamMapper.toFirestoreForCreate(team);
 
-    const docRef = await addDoc(teamsCollection, firestoreData);
-    return docRef.id;
+    // ドキュメントIDを生成
+    const teamDocRef = doc(teamsCollection);
+    const teamId = teamDocRef.id;
+
+    // ドキュメントIDをフィールドに含めて保存
+    const firestoreData = TeamMapper.toFirestoreForCreate({
+      ...team,
+      id: teamId,
+    });
+
+    await setDoc(teamDocRef, firestoreData);
+    return teamId;
   }
 
   /**

@@ -3,9 +3,10 @@ import type { Team, Player } from "@/types/team.schema";
 import { teamSchema, playerSchema } from "@/types/team.schema";
 
 /**
- * Firestore ドキュメント型（新規作成用）
+ * Firestore ドキュメント型
  */
-export interface FirestoreTeamCreateDoc {
+export interface FirestoreTeamDoc {
+  teamId: string; // ドキュメントIDをフィールドとして保存
   teamName: string;
   representativeName: string;
   representativePhone: string;
@@ -17,12 +18,7 @@ export interface FirestoreTeamCreateDoc {
   updatedAt: Timestamp;
 }
 
-/**
- * Firestore ドキュメント型（取得時・更新時）
- */
-export interface FirestoreTeamDoc extends FirestoreTeamCreateDoc {
-  teamId?: string; // ドキュメントIDとして別途取得
-}
+export type FirestoreTeamCreateDoc = FirestoreTeamDoc;
 
 export interface FirestorePlayerDoc {
   playerId: string;
@@ -89,10 +85,11 @@ export class TeamMapper {
   /**
    * 新規作成用のFirestoreドキュメントに変換（タイムスタンプを自動設定）
    */
-  static toFirestoreForCreate(team: Partial<Team>): FirestoreTeamCreateDoc {
+  static toFirestoreForCreate(team: Partial<Team> & { id: string }): FirestoreTeamCreateDoc {
     const now = Timestamp.now();
 
     return {
+      teamId: team.id,
       teamName: team.teamName!,
       representativeName: team.representativeName!,
       representativePhone: team.representativePhone!,

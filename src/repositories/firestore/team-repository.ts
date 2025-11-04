@@ -3,7 +3,7 @@ import {
   doc,
   getDoc,
   getDocs,
-  addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -59,10 +59,17 @@ export class FirestoreTeamRepository implements TeamRepository {
 
   async create(orgId: string, tournamentId: string, team: TeamCreate): Promise<Team> {
     const collectionRef = this.getCollectionRef(orgId, tournamentId);
+
+    // ドキュメントIDを生成
+    const docRef = doc(collectionRef);
+    const teamId = docRef.id;
+
+    // ドキュメントIDをフィールドに含めて保存
     const firestoreDoc: FirestoreTeamCreateDoc =
-      TeamMapper.toFirestoreForCreate(team);
-    const ref = await addDoc(collectionRef, firestoreDoc);
-    const snap: DocumentSnapshot<DocumentData> = await getDoc(ref);
+      TeamMapper.toFirestoreForCreate({ ...team, id: teamId });
+
+    await setDoc(docRef, firestoreDoc);
+    const snap: DocumentSnapshot<DocumentData> = await getDoc(docRef);
     const data = snap.data() as FirestoreTeamDoc | undefined;
     if (!data) throw new Error("Created document has no data");
     return TeamMapper.toDomain({ ...data, id: snap.id });

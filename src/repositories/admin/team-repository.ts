@@ -3,6 +3,7 @@ import { TeamMapper, FirestoreTeamDoc } from "@/data/mappers/team-mapper";
 import type { Team, TeamCreate } from "@/types/team.schema";
 import type { TeamRepository } from "@/repositories/team-repository";
 import { Timestamp } from "firebase-admin/firestore";
+import { adminCollections } from "@/data/firebase/collections";
 
 
 /**
@@ -43,7 +44,12 @@ export class AdminTeamRepositoryImpl implements TeamRepository {
     }
 
     async create(orgId: string, tournamentId: string, team: TeamCreate): Promise<Team> {
-        const firestoreDoc = TeamMapper.toFirestoreForCreate(team);
+        // ドキュメントIDを生成
+        const teamsCollection = adminCollections.teams(orgId, tournamentId);
+        const teamDocRef = teamsCollection.doc();
+        const teamId = teamDocRef.id;
+
+        const firestoreDoc = TeamMapper.toFirestoreForCreate({ ...team, id: teamId });
 
         // Firebase Admin SDKではTimestampの作成方法が異なる
         const now = Timestamp.now();
@@ -53,8 +59,8 @@ export class AdminTeamRepositoryImpl implements TeamRepository {
             updatedAt: now,
         };
 
-        const docRef = await this.getCollectionRef(orgId, tournamentId).add(docWithTimestamp);
-        const snap = await docRef.get();
+        await teamDocRef.set(docWithTimestamp);
+        const snap = await teamDocRef.get();
         const data = snap.data() as FirestoreTeamDoc;
 
         return TeamMapper.toDomain({ ...data, id: snap.id });
