@@ -45,12 +45,7 @@ jest.mock("../queries/use-tournaments", () => ({
   }),
 }));
 
-jest.mock("../queries/use-organizations", () => ({
-  useCreateOrganizationForUser: () => ({
-    mutate: jest.fn(),
-    isPending: false,
-  }),
-}));
+
 
 describe("useTournamentSettings", () => {
   it("フックが正常に初期化される", () => {
@@ -58,7 +53,6 @@ describe("useTournamentSettings", () => {
 
     expect(result.current).toBeDefined();
     expect(typeof result.current.handleSelectTournament).toBe("function");
-    expect(typeof result.current.handleCreateOrganization).toBe("function");
     expect(result.current.tournaments).toBeDefined();
     expect(result.current.isLoading).toBeDefined();
   });

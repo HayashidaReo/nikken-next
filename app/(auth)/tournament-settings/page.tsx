@@ -20,7 +20,6 @@ export default function TournamentSettingsPage() {
     tournaments,
     isLoading,
     error,
-    isCreatingOrg,
     selectedTournamentId,
     isAddingNew,
     formData,
@@ -30,14 +29,13 @@ export default function TournamentSettingsPage() {
     handleStartNew,
     handleFormChange,
     handleSave,
-    handleCreateOrganization,
   } = useTournamentSettings();
 
   // 選択されている大会
   const selectedTournament = selectedTournamentId
     ? tournaments.find(
-        (t: TournamentWithId) => t.tournamentId === selectedTournamentId
-      )
+      (t: TournamentWithId) => t.tournamentId === selectedTournamentId
+    )
     : null;
 
   // 組織IDが設定されていない場合
@@ -77,13 +75,9 @@ export default function TournamentSettingsPage() {
                   再読み込み
                 </Button>
                 {String(error).includes("組織が見つかりません") && (
-                  <Button
-                    onClick={handleCreateOrganization}
-                    disabled={isCreatingOrg}
-                    variant="outline"
-                  >
-                    {isCreatingOrg ? "作成中..." : "🏢 組織を作成"}
-                  </Button>
+                  <p className="text-gray-600 mt-4">
+                    組織が見つかりません。管理者にお問い合わせください。
+                  </p>
                 )}
               </div>
             </div>

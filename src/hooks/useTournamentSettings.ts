@@ -7,7 +7,6 @@ import {
     useCreateTournament,
     useUpdateTournamentByOrganization,
 } from "@/queries/use-tournaments";
-import { useCreateOrganizationForUser } from "@/queries/use-organizations";
 import type { Tournament, TournamentFormData } from "@/types/tournament.schema";
 
 /**
@@ -27,8 +26,6 @@ export function useTournamentSettings() {
         error,
     } = useTournamentsByOrganization(orgId);
 
-    const { mutate: createOrganization, isPending: isCreatingOrg } =
-        useCreateOrganizationForUser();
     const { mutate: createTournament } = useCreateTournament();
     const { mutate: updateTournament } = useUpdateTournamentByOrganization();
 
@@ -221,19 +218,7 @@ export function useTournamentSettings() {
         showError,
     ]);
 
-    // 組織作成処理
-    const handleCreateOrganization = useCallback(() => {
-        createOrganization(undefined, {
-            onSuccess: () => {
-                showSuccess("組織を作成しました");
-            },
-            onError: (error: Error) => {
-                showError(
-                    error instanceof Error ? error.message : "組織作成に失敗しました"
-                );
-            },
-        });
-    }, [createOrganization, showSuccess, showError]);
+
 
     return {
         // 状態
@@ -241,7 +226,6 @@ export function useTournamentSettings() {
         tournaments,
         isLoading,
         error,
-        isCreatingOrg,
         selectedTournamentId,
         isAddingNew: isAddingNew || !selectedTournamentId, // 明示的な新規作成フラグまたはID未選択
         formData,
@@ -251,6 +235,5 @@ export function useTournamentSettings() {
         handleStartNew,
         handleFormChange,
         handleSave,
-        handleCreateOrganization,
     };
 }

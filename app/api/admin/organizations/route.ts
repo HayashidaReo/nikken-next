@@ -49,8 +49,11 @@ export async function POST(request: NextRequest) {
     });
 
     // 2. organizationsコレクションに組織情報を保存
+    // orgIdとしてユーザーのuidを使用
+    const orgId = userRecord.uid;
     const now = Timestamp.now();
     const organizationDoc = {
+      orgId: orgId,
       orgName: orgData.orgName,
       representativeName: orgData.representativeName,
       representativePhone: orgData.representativePhone,
@@ -60,15 +63,20 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
-    const orgRef = await adminDb
+    const orgRef = adminDb
       .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
-      .add(organizationDoc);
+      .doc(orgId); // ユーザーのuidをドキュメントIDとして使用
 
-    // 3. organizationドキュメントにorgIdを追加
-    await orgRef.update({ orgId: orgRef.id });
+    // 3. 組織ドキュメントを作成
+    await orgRef.set(organizationDoc);
 
     // 4. デフォルト大会を作成
+    const tournamentsCollection = orgRef.collection(FIRESTORE_COLLECTIONS.TOURNAMENTS);
+    const tournamentRef = tournamentsCollection.doc(); // ランダムIDを生成
+    const tournamentId = tournamentRef.id;
+
     const defaultTournament = {
+      tournamentId: tournamentId,
       tournamentName: "", // 空白で作成
       tournamentDate: "", // 空白で作成
       location: "", // 空白で作成
@@ -78,26 +86,19 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
-    const tournamentRef = await adminDb
-      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
-      .doc(orgRef.id)
-      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
-      .add(defaultTournament);
-
-    // tournamentIdを追加
-    await tournamentRef.update({ tournamentId: tournamentRef.id });
+    await tournamentRef.set(defaultTournament);
 
     return NextResponse.json({
       success: true,
       organization: {
-        id: orgRef.id,
+        id: orgId,
         name: orgData.orgName,
         representativeName: orgData.representativeName,
         adminEmail: orgData.adminEmail,
         adminUid: userRecord.uid,
       },
       defaultTournament: {
-        id: tournamentRef.id,
+        id: tournamentId,
         name: "デフォルト大会（設定してください）",
       },
     });

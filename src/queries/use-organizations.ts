@@ -108,42 +108,4 @@ export function useCreateOrganization() {
   });
 }
 
-/**
- * 現在のユーザー用の組織を作成するMutation
- * 認証されたユーザーのUIDを使用して組織を作成
- */
-export function useCreateOrganizationForUser() {
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (): Promise<{ message: string; orgId: string }> => {
-      // Firebase Authから直接IDトークンを取得
-      const auth = await import("firebase/auth");
-      const currentUser = auth.getAuth().currentUser;
-      if (!currentUser) {
-        throw new Error("認証状態が無効です");
-      }
-
-      const token = await currentUser.getIdToken();
-
-      const response = await fetch("/api/organizations/create-for-user", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "組織作成に失敗しました");
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      // 組織一覧のキャッシュを無効化
-      queryClient.invalidateQueries({ queryKey: organizationKeys.all });
-    },
-  });
-}
