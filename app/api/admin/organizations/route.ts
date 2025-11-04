@@ -77,11 +77,11 @@ export async function POST(request: NextRequest) {
 
     const defaultTournament = {
       tournamentId: tournamentId,
-      tournamentName: "", // 空白で作成
-      tournamentDate: "", // 空白で作成
-      location: "", // 空白で作成
-      defaultMatchTime: 180, // デフォルトで3分（180秒）
-      courts: [], // 空配列で作成
+      tournamentName: "大会名（変更してください）",
+      tournamentDate: "",
+      location: "開催場所",
+      defaultMatchTime: 180,
+      courts: [],
       createdAt: now,
       updatedAt: now,
     };
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       },
       defaultTournament: {
         id: tournamentId,
-        name: "デフォルト大会（設定してください）",
+        name: "大会名（変更してください）",
       },
     });
   } catch (error) {
