@@ -4,6 +4,7 @@ import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { useTeams, useApproveTeam } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 
 export default function TeamsPage() {
   const { needsTournamentSelection, isLoading: authLoading } = useAuthContext();
@@ -32,9 +33,7 @@ export default function TeamsPage() {
   if (isLoading) {
     return (
       <MainLayout activeTab="teams">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-gray-600">チーム情報を読み込み中...</div>
-        </div>
+        <LoadingIndicator message="チーム情報を読み込み中..." size="lg" />
       </MainLayout>
     );
   }

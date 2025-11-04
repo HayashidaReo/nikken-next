@@ -10,6 +10,7 @@ import { useMonitorStore } from "@/store/use-monitor-store";
 import { useMatch } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -64,7 +65,9 @@ export default function MonitorControlPage() {
             </Link>
           </div>
           <div className="flex justify-center items-center py-16">
-            <div className="text-gray-600">試合データを読み込み中...</div>
+            <div className="w-full">
+              <LoadingIndicator message="試合データを読み込み中..." size="lg" />
+            </div>
           </div>
         </div>
       </div>

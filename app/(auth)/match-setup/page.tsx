@@ -7,6 +7,7 @@ import { useMatches, useCreateMatches, useDeleteMatches } from "@/queries/use-ma
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import type { MatchCreate } from "@/types/match.schema";
 
 export default function MatchSetupPage() {
@@ -127,9 +128,7 @@ export default function MatchSetupPage() {
   if (isLoading) {
     return (
       <MainLayout activeTab="match-setup">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-gray-600">データを読み込み中...</div>
-        </div>
+        <LoadingIndicator message="データを読み込み中..." size="lg" />
       </MainLayout>
     );
   }

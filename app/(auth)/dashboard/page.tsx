@@ -7,6 +7,7 @@ import { MatchListTable } from "@/components/organisms/match-list-table";
 import { useMatchesRealtime } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 
 export default function DashboardPage() {
   const { needsTournamentSelection, activeTournamentId, orgId, isLoading: authLoading } = useAuthContext();
@@ -35,9 +36,7 @@ export default function DashboardPage() {
 
           {/* ローディング状態 */}
           {!needsTournamentSelection && isLoading && (
-            <div className="flex justify-center items-center py-8">
-              <div className="text-gray-600">試合データを読み込み中...</div>
-            </div>
+            <LoadingIndicator message="試合データを読み込み中..." size="lg" />
           )}
 
           {/* エラー状態 */}
