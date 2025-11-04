@@ -9,6 +9,11 @@ export interface MatchRepository {
     listAll(orgId: string, tournamentId: string): Promise<Match[]>;
     create(orgId: string, tournamentId: string, match: MatchCreate): Promise<Match>;
     createMultiple(orgId: string, tournamentId: string, matches: MatchCreate[]): Promise<Match[]>;
+    /**
+     * Transaction を使って安全に更新（競合回避）
+     * 複数端末での同時編集に対応
+     * 最新データを読み取り、差分をマージしてから書き込む
+     */
     update(orgId: string, tournamentId: string, matchId: string, patch: Partial<Match>): Promise<Match>;
     delete(orgId: string, tournamentId: string, matchId: string): Promise<void>;
     deleteMultiple(orgId: string, tournamentId: string, matchIds: string[]): Promise<void>;

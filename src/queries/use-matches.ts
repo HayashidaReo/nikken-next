@@ -210,7 +210,8 @@ export function useCreateMatches() {
 }
 
 /**
- * 試合更新のMutation
+ * 試合更新のMutation（Transaction版で競合を回避）
+ * 複数端末での同時編集に対応
  */
 export function useUpdateMatch() {
     const queryClient = useQueryClient();

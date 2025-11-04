@@ -1,15 +1,23 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { MatchSetupTable } from "@/components/organisms/match-setup-table";
 import { useTeams } from "@/queries/use-teams";
-import { useMatches, useCreateMatches, useUpdateMatch, useDeleteMatches } from "@/queries/use-matches";
+import {
+  useMatches,
+  useMatchesRealtime,
+  useCreateMatches,
+  useUpdateMatch,
+  useDeleteMatches
+} from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
-import type { MatchCreate } from "@/types/match.schema";
+import { ConcurrentEditDialog } from "@/components/molecules/concurrent-edit-dialog";
+import type { MatchCreate, Match } from "@/types/match.schema";
 
 export default function MatchSetupPage() {
   const { showSuccess, showError } = useToast();
@@ -20,26 +28,187 @@ export default function MatchSetupPage() {
   const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatches();
   const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(orgId, activeTournamentId);
 
+  // リアルタイム購読（serverState） - 他端末の変更を常に監視
+  const { data: realtimeMatches = [] } = useMatchesRealtime();
+
+  // ページを開いた時点の初期状態を保持（競合検出の基準点）
+  const [initialMatches, setInitialMatches] = useState<Match[]>([]);
+
+  // matches が最初に取得されたタイミングで初期状態を保存
+  useEffect(() => {
+    if (matches.length > 0 && initialMatches.length === 0) {
+      setInitialMatches(matches);
+    }
+  }, [matches, initialMatches.length]);
+
   // Firebase操作のフック
   const createMatchesMutation = useCreateMatches();
-  const updateMatchMutation = useUpdateMatch();
+  const updateMatchMutation = useUpdateMatch(); // Transaction版（競合回避）
   const deleteMatchesMutation = useDeleteMatches();
 
+  // 競合ダイアログの状態
+  type MatchSetupData = {
+    id: string;
+    courtId: string;
+    round: string;
+    playerATeamId: string;
+    playerAId: string;
+    playerBTeamId: string;
+    playerBId: string;
+  };
+
+  const [conflictDialog, setConflictDialog] = useState<{
+    open: boolean;
+    conflicts: Array<{
+      matchId: string;
+      directConflicts: {
+        courtId?: { draft: string; server: string };
+        round?: { draft: string; server: string };
+        playerA?: { draft: string; server: string };
+        playerB?: { draft: string; server: string };
+      };
+      serverOnlyChanges: {
+        courtId?: { initial: string; server: string };
+        round?: { initial: string; server: string };
+        playerA?: { initial: string; server: string };
+        playerB?: { initial: string; server: string };
+      };
+    }>;
+    pendingSaveData: MatchSetupData[] | null;
+  }>({
+    open: false,
+    conflicts: [],
+    pendingSaveData: null,
+  });
+
   const handleSave = async (
-    matchSetupData: {
-      id: string;
-      courtId: string;
-      round: string;
-      playerATeamId: string;
-      playerAId: string;
-      playerBTeamId: string;
-      playerBId: string;
-    }[]
+    matchSetupData: MatchSetupData[]
   ) => {
+    // Step 1: 差分検出（自分の編集 vs 他端末の編集）
+    const conflicts = detectConflicts(matchSetupData, initialMatches, realtimeMatches, teams);
+
+    if (conflicts.length > 0) {
+      // 競合がある場合はダイアログ表示
+      setConflictDialog({
+        open: true,
+        conflicts,
+        pendingSaveData: matchSetupData,
+      });
+      return;
+    }
+
+    // Step 2: 競合がない場合は直接保存
+    await executeSave(matchSetupData);
+  };
+
+  // 競合を検出する関数
+  // - initialState: ページを開いた時点の状態
+  // - draftData: ユーザーが編集した内容
+  // - serverData: リアルタイム購読で取得した最新の状態
+  // 
+  // 検出する競合の種類:
+  // 1. directConflicts: 両方が同じフィールドを異なる値に変更
+  // 2. serverOnlyChanges: 他端末のみが変更（ユーザーは変更していない）
+  const detectConflicts = (
+    draftData: MatchSetupData[],
+    initialState: Match[],
+    serverData: Match[],
+    teamsData: typeof teams
+  ) => {
+    const conflicts: typeof conflictDialog.conflicts = [];
+
+    draftData.forEach(draft => {
+      // 新規作成（id が "match-" で始まる or 空）の場合はスキップ
+      if (!draft.id || draft.id.startsWith("match-")) return;
+
+      const initialMatch = initialState.find(m => m.matchId === draft.id);
+      const serverMatch = serverData.find(m => m.matchId === draft.id);
+
+      // 初期状態かサーバーデータがない場合はスキップ
+      if (!initialMatch || !serverMatch) return;
+
+      const directConflicts: typeof conflicts[0]['directConflicts'] = {};
+      const serverOnlyChanges: typeof conflicts[0]['serverOnlyChanges'] = {};
+      let hasAnyConflict = false;
+
+      // === courtId のチェック ===
+      const userChangedCourtId = draft.courtId !== initialMatch.courtId;
+      const serverChangedCourtId = serverMatch.courtId !== initialMatch.courtId;
+
+      if (userChangedCourtId && serverChangedCourtId && draft.courtId !== serverMatch.courtId) {
+        // 直接競合: 両方が異なる値に変更
+        directConflicts.courtId = { draft: draft.courtId, server: serverMatch.courtId };
+        hasAnyConflict = true;
+      } else if (!userChangedCourtId && serverChangedCourtId) {
+        // 間接競合: 他端末のみが変更
+        serverOnlyChanges.courtId = { initial: initialMatch.courtId, server: serverMatch.courtId };
+        hasAnyConflict = true;
+      }
+
+      // === round のチェック ===
+      const userChangedRound = draft.round !== initialMatch.round;
+      const serverChangedRound = serverMatch.round !== initialMatch.round;
+
+      if (userChangedRound && serverChangedRound && draft.round !== serverMatch.round) {
+        directConflicts.round = { draft: draft.round, server: serverMatch.round };
+        hasAnyConflict = true;
+      } else if (!userChangedRound && serverChangedRound) {
+        serverOnlyChanges.round = { initial: initialMatch.round, server: serverMatch.round };
+        hasAnyConflict = true;
+      }
+
+      // === 選手A のチェック ===
+      const userChangedPlayerA = draft.playerAId !== initialMatch.players.playerA.playerId;
+      const serverChangedPlayerA = serverMatch.players.playerA.playerId !== initialMatch.players.playerA.playerId;
+
+      if (userChangedPlayerA && serverChangedPlayerA && draft.playerAId !== serverMatch.players.playerA.playerId) {
+        const draftPlayerAName = findPlayerInfo(draft.playerATeamId, draft.playerAId, teamsData)?.displayName || "";
+        const serverPlayerAName = serverMatch.players.playerA.displayName;
+        directConflicts.playerA = { draft: draftPlayerAName, server: serverPlayerAName };
+        hasAnyConflict = true;
+      } else if (!userChangedPlayerA && serverChangedPlayerA) {
+        const initialPlayerAName = initialMatch.players.playerA.displayName;
+        const serverPlayerAName = serverMatch.players.playerA.displayName;
+        serverOnlyChanges.playerA = { initial: initialPlayerAName, server: serverPlayerAName };
+        hasAnyConflict = true;
+      }
+
+      // === 選手B のチェック ===
+      const userChangedPlayerB = draft.playerBId !== initialMatch.players.playerB.playerId;
+      const serverChangedPlayerB = serverMatch.players.playerB.playerId !== initialMatch.players.playerB.playerId;
+
+      if (userChangedPlayerB && serverChangedPlayerB && draft.playerBId !== serverMatch.players.playerB.playerId) {
+        const draftPlayerBName = findPlayerInfo(draft.playerBTeamId, draft.playerBId, teamsData)?.displayName || "";
+        const serverPlayerBName = serverMatch.players.playerB.displayName;
+        directConflicts.playerB = { draft: draftPlayerBName, server: serverPlayerBName };
+        hasAnyConflict = true;
+      } else if (!userChangedPlayerB && serverChangedPlayerB) {
+        const initialPlayerBName = initialMatch.players.playerB.displayName;
+        const serverPlayerBName = serverMatch.players.playerB.displayName;
+        serverOnlyChanges.playerB = { initial: initialPlayerBName, server: serverPlayerBName };
+        hasAnyConflict = true;
+      }
+
+      // score/hansoku は競合として扱わない（自動マージ）
+
+      if (hasAnyConflict) {
+        conflicts.push({
+          matchId: draft.id,
+          directConflicts,
+          serverOnlyChanges,
+        });
+      }
+    });
+
+    return conflicts;
+  };
+
+  // 実際の保存処理
+  const executeSave = async (matchSetupData: MatchSetupData[]) => {
     try {
       // 1. 既存試合のIDセットを作成（undefined を除外）
       const existingMatchIds = new Set(
-        matches.map(m => m.matchId).filter((id): id is string => Boolean(id))
+        realtimeMatches.map(m => m.matchId).filter((id): id is string => Boolean(id))
       );
       const setupMatchIds = new Set(
         matchSetupData.map(d => d.id).filter(id => id && !id.startsWith("match-"))
@@ -52,8 +221,8 @@ export default function MatchSetupPage() {
       }
 
       // 3. 更新対象と新規作成対象に分ける
-      const matchesToUpdate: Array<{ matchId: string; data: typeof matchSetupData[0] }> = [];
-      const matchesToCreate: typeof matchSetupData = [];
+      const matchesToUpdate: Array<{ matchId: string; data: MatchSetupData }> = [];
+      const matchesToCreate: MatchSetupData[] = [];
 
       matchSetupData.forEach(setupData => {
         // id が存在し、かつ "match-" で始まらない場合は既存試合
@@ -64,10 +233,11 @@ export default function MatchSetupPage() {
         }
       });
 
-      // 4. 既存試合を更新（得点・反則を保持）
+      // 4. 既存試合を更新（Transaction 使用 + score/hansoku を realtimeMatches から取得）
       for (const { matchId, data: setupData } of matchesToUpdate) {
-        const existingMatch = matches.find(m => m.matchId === matchId);
-        if (!existingMatch) continue;
+        // リアルタイム購読データから最新の score/hansoku を取得
+        const latestMatch = realtimeMatches.find(m => m.matchId === matchId);
+        if (!latestMatch) continue;
 
         // 選手AとBの新しい情報を取得
         const playerA = findPlayerInfo(setupData.playerATeamId, setupData.playerAId, teams);
@@ -80,7 +250,7 @@ export default function MatchSetupPage() {
           throw new Error(`選手B (${setupData.playerBId}) の情報が見つかりません`);
         }
 
-        // 既存の得点・反則を保持したまま選手情報を更新
+        // Transaction ベースの更新で、最新の score/hansoku を保持
         await updateMatchMutation.mutateAsync({
           matchId,
           patch: {
@@ -92,16 +262,16 @@ export default function MatchSetupPage() {
                 playerId: playerA.playerId,
                 teamId: playerA.teamId,
                 teamName: playerA.teamName,
-                score: existingMatch.players.playerA.score, // 既存の得点を保持
-                hansoku: existingMatch.players.playerA.hansoku, // 既存の反則を保持
+                score: latestMatch.players.playerA.score, // リアルタイムの最新値
+                hansoku: latestMatch.players.playerA.hansoku, // リアルタイムの最新値
               },
               playerB: {
                 displayName: playerB.displayName,
                 playerId: playerB.playerId,
                 teamId: playerB.teamId,
                 teamName: playerB.teamName,
-                score: existingMatch.players.playerB.score, // 既存の得点を保持
-                hansoku: existingMatch.players.playerB.hansoku, // 既存の反則を保持
+                score: latestMatch.players.playerB.score, // リアルタイムの最新値
+                hansoku: latestMatch.players.playerB.hansoku, // リアルタイムの最新値
               },
             },
           },
@@ -150,6 +320,9 @@ export default function MatchSetupPage() {
 
       const totalCount = matchesToUpdate.length + matchesToCreate.length;
       showSuccess(`${totalCount}件の試合を設定しました`);
+
+      // ダイアログを閉じる
+      setConflictDialog({ open: false, conflicts: [], pendingSaveData: null });
     } catch (error) {
       console.error("試合設定の保存に失敗:", error);
       showError(
@@ -158,6 +331,17 @@ export default function MatchSetupPage() {
           : "試合設定の保存に失敗しました"
       );
     }
+  };
+
+  // 競合ダイアログでの「保存する」アクション
+  const handleConflictConfirm = async () => {
+    if (!conflictDialog.pendingSaveData) return;
+    await executeSave(conflictDialog.pendingSaveData);
+  };
+
+  // 競合ダイアログでの「キャンセル」アクション
+  const handleConflictCancel = () => {
+    setConflictDialog({ open: false, conflicts: [], pendingSaveData: null });
   };
 
   // ヘルパー関数: 選手情報を検索
@@ -241,6 +425,14 @@ export default function MatchSetupPage() {
           matches={matches}
           onSave={handleSave}
           isSaving={isSaving}
+        />
+
+        {/* 競合確認ダイアログ */}
+        <ConcurrentEditDialog
+          open={conflictDialog.open}
+          conflicts={conflictDialog.conflicts}
+          onConfirm={handleConflictConfirm}
+          onCancel={handleConflictCancel}
         />
       </div>
     </MainLayout>
