@@ -37,6 +37,7 @@ interface MatchSetupTableProps {
   courts: Array<{ courtId: string; courtName: string }>;
   matches: Match[];
   onSave: (matches: MatchSetupData[]) => void;
+  isSaving?: boolean;
   className?: string;
 }
 
@@ -45,6 +46,7 @@ export function MatchSetupTable({
   courts,
   matches,
   onSave,
+  isSaving = false,
   className,
 }: MatchSetupTableProps) {
   // 承認済みのチームのみフィルター
@@ -120,12 +122,21 @@ export function MatchSetupTable({
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">試合設定</h2>
         <div className="flex gap-2">
-          <Button onClick={addRow} variant="outline" size="sm">
+          <Button
+            onClick={addRow}
+            variant="outline"
+            size="sm"
+            disabled={isSaving}
+          >
             <Plus className="h-4 w-4 mr-1" />
             試合追加
           </Button>
-          <Button onClick={handleSave} size="sm">
-            保存
+          <Button
+            onClick={handleSave}
+            size="sm"
+            disabled={isSaving}
+          >
+            {isSaving ? "保存中..." : "保存"}
           </Button>
         </div>
       </div>
