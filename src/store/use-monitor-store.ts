@@ -41,7 +41,11 @@ interface MonitorState {
   startTimer: () => void;
   stopTimer: () => void;
   togglePublic: () => void;
-  saveMatchResult: (onSuccess?: () => void) => Promise<void>;
+  saveMatchResult: (
+    organizationId: string,
+    tournamentId: string,
+    onSuccess?: () => void
+  ) => Promise<void>;
 }
 
 export const useMonitorStore = create<MonitorState>((set, get) => ({
@@ -168,10 +172,54 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     set({ isPublic: !currentState.isPublic });
   },
 
-  saveMatchResult: async (onSuccess?: () => void) => {
-    // TODO: Firestoreへの保存ロジックを実装
+  saveMatchResult: async (
+    organizationId: string,
+    tournamentId: string,
+    onSuccess?: () => void
+  ) => {
+    const currentState = get();
 
-    // 成功時のコールバック実行
-    onSuccess?.();
+    if (!currentState.matchId) {
+      console.error("Match ID is not available for saving");
+      return;
+    }
+
+    try {
+      // APIエンドポイントに部分更新データを送信
+      const response = await fetch(`/api/matches/${currentState.matchId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          organizationId,
+          tournamentId,
+          players: {
+            playerA: {
+              score: currentState.playerA.score,
+              hansoku: currentState.playerA.hansoku,
+            },
+            playerB: {
+              score: currentState.playerB.score,
+              hansoku: currentState.playerB.hansoku,
+            },
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save match result");
+      }
+
+      const updatedMatch = await response.json();
+      console.log("Match result saved successfully:", updatedMatch);
+
+      // 成功時のコールバック実行
+      onSuccess?.();
+    } catch (error) {
+      console.error("Failed to save match result:", error);
+      throw error;
+    }
   },
 }));

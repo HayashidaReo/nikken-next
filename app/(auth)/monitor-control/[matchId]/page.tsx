@@ -137,7 +137,10 @@ export default function MonitorControlPage() {
           </Link>
         </div>
 
-        <ScoreboardOperator />
+        <ScoreboardOperator
+          organizationId={orgId || ""}
+          tournamentId={activeTournamentId || ""}
+        />
       </div>
     </div>
   );

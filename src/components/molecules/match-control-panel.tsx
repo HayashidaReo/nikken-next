@@ -10,7 +10,9 @@ import { useToast } from "@/components/providers/notification-provider";
 interface MatchControlPanelProps {
   isPublic: boolean;
   onTogglePublic: () => void;
-  onSaveResult: () => void;
+  onSaveResult: (organizationId: string, tournamentId: string) => void;
+  organizationId: string;
+  tournamentId: string;
   className?: string;
 }
 
@@ -18,13 +20,19 @@ export function MatchControlPanel({
   isPublic,
   onTogglePublic,
   onSaveResult,
+  organizationId,
+  tournamentId,
   className,
 }: MatchControlPanelProps) {
   const { showSuccess } = useToast();
 
-  const handleSave = () => {
-    onSaveResult();
-    showSuccess("試合結果を保存しました");
+  const handleSave = async () => {
+    try {
+      await onSaveResult(organizationId, tournamentId);
+      showSuccess("試合結果を保存しました");
+    } catch (error) {
+      console.error("保存エラー:", error);
+    }
   };
 
   return (

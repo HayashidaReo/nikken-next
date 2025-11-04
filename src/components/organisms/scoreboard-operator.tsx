@@ -15,10 +15,16 @@ import {
 } from "@/components/molecules";
 
 interface ScoreboardOperatorProps {
+  organizationId: string;
+  tournamentId: string;
   className?: string;
 }
 
-export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
+export function ScoreboardOperator({
+  organizationId,
+  tournamentId,
+  className
+}: ScoreboardOperatorProps) {
   const {
     matchId,
     courtName,
@@ -244,6 +250,8 @@ export function ScoreboardOperator({ className }: ScoreboardOperatorProps) {
         isPublic={isPublic}
         onTogglePublic={togglePublic}
         onSaveResult={saveMatchResult}
+        organizationId={organizationId}
+        tournamentId={tournamentId}
       />
 
       {/* フォールバック確認ダイアログ */}
