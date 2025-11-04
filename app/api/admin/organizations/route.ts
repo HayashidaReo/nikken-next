@@ -4,6 +4,31 @@ import { organizationCreateWithAccountSchema } from "@/types/organization.schema
 import type { OrganizationCreateWithAccount } from "@/types/organization.schema";
 import { Timestamp } from "firebase-admin/firestore";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+import { createErrorResponse, handleFirebaseAuthError, createValidationErrorResponse } from "@/lib/api-helpers";
+
+/**
+ * デフォルト大会を作成するヘルパー関数
+ */
+async function createDefaultTournament(orgRef: FirebaseFirestore.DocumentReference, now: Timestamp) {
+  const tournamentsCollection = orgRef.collection(FIRESTORE_COLLECTIONS.TOURNAMENTS);
+  const tournamentRef = tournamentsCollection.doc(); // ランダムIDを生成
+  const tournamentId = tournamentRef.id;
+
+  const defaultTournament = {
+    tournamentId: tournamentId, // ドキュメントIDをフィールドとして保存
+    tournamentName: "大会名（変更してください）",
+    tournamentDate: "",
+    location: "",
+    tournamentDetail: "",
+    defaultMatchTime: 180, // デフォルトで3分（180秒）
+    courts: [], // 空配列で作成
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await tournamentRef.set(defaultTournament);
+  return { tournamentId, tournamentName: defaultTournament.tournamentName };
+}
 
 /**
  * 組織作成API Route（システム管理者専用）
@@ -30,13 +55,7 @@ export async function POST(request: NextRequest) {
     // 入力データの検証
     const validation = organizationCreateWithAccountSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json(
-        {
-          error: "入力データが無効です",
-          details: validation.error.issues.map(e => e.message),
-        },
-        { status: 400 }
-      );
+      return createValidationErrorResponse(validation.error);
     }
 
     const orgData = validation.data;
@@ -58,7 +77,7 @@ export async function POST(request: NextRequest) {
       representativeName: orgData.representativeName,
       representativePhone: orgData.representativePhone,
       representativeEmail: orgData.representativeEmail,
-      adminUid: userRecord.uid, // 管理者のUID
+      adminUid: orgId, // orgId と同じ値なので統一
       createdAt: now,
       updatedAt: now,
     };
@@ -71,22 +90,7 @@ export async function POST(request: NextRequest) {
     await orgRef.set(organizationDoc);
 
     // 4. デフォルト大会を作成
-    const tournamentsCollection = orgRef.collection(FIRESTORE_COLLECTIONS.TOURNAMENTS);
-    const tournamentRef = tournamentsCollection.doc(); // ランダムIDを生成
-    const tournamentId = tournamentRef.id;
-
-    const defaultTournament = {
-      tournamentId: tournamentId,
-      tournamentName: "大会名（変更してください）",
-      tournamentDate: "",
-      location: "開催場所",
-      defaultMatchTime: 180,
-      courts: [],
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    await tournamentRef.set(defaultTournament);
+    const defaultTournamentResult = await createDefaultTournament(orgRef, now);
 
     return NextResponse.json({
       success: true,
@@ -95,34 +99,24 @@ export async function POST(request: NextRequest) {
         name: orgData.orgName,
         representativeName: orgData.representativeName,
         adminEmail: orgData.adminEmail,
-        adminUid: userRecord.uid,
+        adminUid: orgId,
       },
       defaultTournament: {
-        id: tournamentId,
-        name: "大会名（変更してください）",
+        id: defaultTournamentResult.tournamentId,
+        name: defaultTournamentResult.tournamentName,
       },
     });
   } catch (error) {
     console.error("Organization creation error:", error);
 
-    // Firebase Auth エラーの詳細処理
-    if (error instanceof Error) {
-      if (error.message.includes("email-already-exists")) {
-        return NextResponse.json(
-          { error: "指定されたメールアドレスは既に使用されています" },
-          { status: 400 }
-        );
-      }
+    // Firebase Auth の特定エラーをチェック
+    const authErrorResponse = handleFirebaseAuthError(error);
+    if (authErrorResponse) {
+      return authErrorResponse;
     }
 
-    return NextResponse.json(
-      {
-        error: "組織作成に失敗しました",
-        details:
-          error instanceof Error ? error.message : "不明なエラーが発生しました",
-      },
-      { status: 500 }
-    );
+    // その他のエラー
+    return createErrorResponse(error, "組織作成に失敗しました");
   }
 }
 
@@ -150,13 +144,6 @@ export async function GET() {
   } catch (error) {
     console.error("Organizations fetch error:", error);
 
-    return NextResponse.json(
-      {
-        error: "組織一覧の取得に失敗しました",
-        details:
-          error instanceof Error ? error.message : "不明なエラーが発生しました",
-      },
-      { status: 500 }
-    );
+    return createErrorResponse(error, "組織一覧の取得に失敗しました");
   }
 }
