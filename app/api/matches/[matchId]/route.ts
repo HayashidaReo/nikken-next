@@ -1,22 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AdminMatchRepositoryImpl } from "@/repositories/admin/match-repository";
+import { createErrorResponse, createValidationErrorResponse, createNotFoundResponse } from "@/lib/api-helpers";
+import { matchUpdateRequestSchema } from "@/types/match.schema";
 import { z } from "zod";
-
-// 部分更新用のスキーマ
-const MatchUpdateRequestSchema = z.object({
-    organizationId: z.string(),
-    tournamentId: z.string(),
-    players: z.object({
-        playerA: z.object({
-            score: z.number().min(0).max(2),
-            hansoku: z.number().min(0).max(4),
-        }),
-        playerB: z.object({
-            score: z.number().min(0).max(2),
-            hansoku: z.number().min(0).max(4),
-        }),
-    }),
-});
 
 export async function PATCH(
     request: NextRequest,
@@ -27,7 +13,7 @@ export async function PATCH(
         const body = await request.json();
 
         // リクエストボディの検証
-        const validatedData = MatchUpdateRequestSchema.parse(body);
+        const validatedData = matchUpdateRequestSchema.parse(body);
 
         const matchRepository = new AdminMatchRepositoryImpl();
 
@@ -39,7 +25,7 @@ export async function PATCH(
         );
 
         if (!existingMatch) {
-            return NextResponse.json({ error: "Match not found" }, { status: 404 });
+            return createNotFoundResponse("試合");
         }
 
         // 部分更新データを作成
@@ -71,15 +57,9 @@ export async function PATCH(
         console.error("Failed to update match:", error);
 
         if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Invalid request data", details: error.issues },
-                { status: 400 }
-            );
+            return createValidationErrorResponse(error);
         }
 
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        );
+        return createErrorResponse(error, "試合結果の更新に失敗しました", 500);
     }
 }

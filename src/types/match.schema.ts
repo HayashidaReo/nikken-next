@@ -88,9 +88,29 @@ export const matchUpdateSchema = z.object({
   }),
 });
 
+/**
+ * 試合結果更新API用のリクエストスキーマ
+ * organizationId, tournamentId を含む
+ */
+export const matchUpdateRequestSchema = z.object({
+  organizationId: z.string().min(1, "組織IDは必須です"),
+  tournamentId: z.string().min(1, "大会IDは必須です"),
+  players: z.object({
+    playerA: z.object({
+      score: z.number().min(0).max(2),
+      hansoku: z.number().min(0).max(4),
+    }),
+    playerB: z.object({
+      score: z.number().min(0).max(2),
+      hansoku: z.number().min(0).max(4),
+    }),
+  }),
+});
+
 // TypeScriptの型を自動導出
 export type HansokuState = z.infer<typeof hansokuStateEnum>;
 export type MatchPlayer = z.infer<typeof matchPlayerSchema>;
 export type Match = z.infer<typeof matchSchema>;
 export type MatchCreate = z.infer<typeof matchCreateSchema>;
 export type MatchUpdate = z.infer<typeof matchUpdateSchema>;
+export type MatchUpdateRequest = z.infer<typeof matchUpdateRequestSchema>;

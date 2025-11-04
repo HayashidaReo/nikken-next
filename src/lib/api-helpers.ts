@@ -61,3 +61,13 @@ export function createValidationErrorResponse(validationError: { issues: Array<{
         { status: 400 }
     );
 }
+
+/**
+ * 404 Not Found レスポンスを生成
+ */
+export function createNotFoundResponse(resourceName: string): NextResponse {
+    return NextResponse.json(
+        { error: `${resourceName}が見つかりません` },
+        { status: 404 }
+    );
+}
