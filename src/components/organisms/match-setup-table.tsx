@@ -186,6 +186,12 @@ export function MatchSetupTable({
     onSave(data);
   };
 
+  // 赤枠がある場合は保存ボタンを無効化
+  const hasConflicts = 
+    Object.keys(detectedChanges.fieldChanges).length > 0 ||
+    detectedChanges.addedMatches.length > 0 ||
+    detectedChanges.deletedMatches.length > 0;
+
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex justify-between items-center">
@@ -203,7 +209,7 @@ export function MatchSetupTable({
           <Button
             onClick={handleSave}
             size="sm"
-            disabled={isSaving}
+            disabled={isSaving || hasConflicts}
           >
             {isSaving ? "保存中..." : "保存"}
           </Button>
