@@ -1,9 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
 import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
-import { MatchListTable } from "@/components/organisms/match-list-table";
+import { MatchListTableMemo } from "@/components/organisms/match-list-table";
 import { useMatchesRealtime } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -16,6 +17,13 @@ export default function DashboardPage() {
   // Firebase からデータを取得（リアルタイム更新対応）
   const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatchesRealtime();
   const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(orgId, activeTournamentId);
+
+  // matches リストをメモ化して不要な再レンダリングを防止
+  const memoizedMatches = useMemo(() => matches, [matches]);
+
+  // tournament データをメモ化
+  const memoizedTournament = useMemo(() => tournament, [tournament]);
+  const memoizedCourts = useMemo(() => tournament?.courts ?? [], [tournament?.courts]);
 
   const isLoading = authLoading || matchesLoading || tournamentLoading;
   const hasError = matchesError || tournamentError;
@@ -50,7 +58,7 @@ export default function DashboardPage() {
           )}
 
           {/* 大会情報が取得できない場合 */}
-          {!needsTournamentSelection && !isLoading && !hasError && !tournament && (
+          {!needsTournamentSelection && !isLoading && !hasError && !memoizedTournament && (
             <InfoDisplay
               variant="warning"
               title="大会情報が見つかりません"
@@ -59,11 +67,11 @@ export default function DashboardPage() {
           )}
 
           {/* 正常時の表示 */}
-          {!needsTournamentSelection && !isLoading && !hasError && tournament && (
-            <MatchListTable
-              matches={matches}
-              tournamentName={tournament.tournamentName}
-              courts={tournament.courts}
+          {!needsTournamentSelection && !isLoading && !hasError && memoizedTournament && (
+            <MatchListTableMemo
+              matches={memoizedMatches}
+              tournamentName={memoizedTournament.tournamentName}
+              courts={memoizedCourts}
             />
           )}
         </div>

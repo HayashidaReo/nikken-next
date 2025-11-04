@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useRouter } from "next/navigation";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { Button } from "@/components/atoms/button";
@@ -153,3 +154,6 @@ export function MatchListTable({
     </Card>
   );
 }
+
+// React.memo でラップして、props が変わらない限り再レンダリングされないようにする
+export const MatchListTableMemo = memo(MatchListTable);
