@@ -1,24 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Button } from "@/components/atoms/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/atoms/select";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/atoms/table";
-import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+import { MatchRow } from "@/components/molecules/match-row";
+import { SaveControls } from "@/components/molecules/match-setup-controls";
 import type { Team, Player } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
 import type { DetectedChanges } from "@/lib/utils/match-conflict-detection";
@@ -196,24 +188,7 @@ export function MatchSetupTable({
     <div className={cn("space-y-4", className)}>
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">試合設定</h2>
-        <div className="flex gap-2">
-          <Button
-            onClick={addRow}
-            variant="outline"
-            size="sm"
-            disabled={isSaving}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            試合追加
-          </Button>
-          <Button
-            onClick={handleSave}
-            size="sm"
-            disabled={isSaving || hasConflicts}
-          >
-            {isSaving ? "保存中..." : "保存"}
-          </Button>
-        </div>
+        <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} />
       </div>
 
       <div className="rounded-md border">
@@ -231,194 +206,29 @@ export function MatchSetupTable({
           </TableHeader>
           <TableBody>
             {data.map((row, index) => {
-              // この行が他端末で追加された試合かチェック
               const isAddedMatch = detectedChanges.addedMatches.some(m => m.matchId === row.id);
-              // この行が他端末で削除された試合かチェック
               const isDeletedMatch = detectedChanges.deletedMatches.some(m => m.matchId === row.id);
+              const rowChanges = detectedChanges.fieldChanges[row.id] || {};
 
               return (
-                <TableRow
+                <MatchRow
                   key={row.id}
-                  className={cn(
-                    isAddedMatch && "bg-green-50 border-l-4 border-l-green-500",
-                    isDeletedMatch && "bg-red-50 border-l-4 border-l-red-500 line-through opacity-60"
-                  )}
-                >
-                  {/* コート選択 */}
-                  <TableCell>
-                    <div
-                      className={cn(
-                        "rounded-md",
-                        detectedChanges.fieldChanges[row.id]?.courtId && "ring-2 ring-red-500"
-                      )}
-                    >
-                      <Select
-                        value={row.courtId}
-                        onValueChange={value => updateData(index, "courtId", value)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="コート選択" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {courts.map(court => (
-                            <SelectItem key={court.courtId} value={court.courtId}>
-                              {court.courtName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TableCell>
-
-                  {/* 回戦選択 */}
-                  <TableCell>
-                    <div
-                      className={cn(
-                        "rounded-md",
-                        detectedChanges.fieldChanges[row.id]?.round && "ring-2 ring-red-500"
-                      )}
-                    >
-                      <Select
-                        value={row.round}
-                        onValueChange={value => updateData(index, "round", value)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="回戦選択" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="予選1回戦">予選1回戦</SelectItem>
-                          <SelectItem value="予選2回戦">予選2回戦</SelectItem>
-                          <SelectItem value="決勝トーナメント1回戦">
-                            決勝トーナメント1回戦
-                          </SelectItem>
-                          <SelectItem value="決勝トーナメント2回戦">
-                            決勝トーナメント2回戦
-                          </SelectItem>
-                          <SelectItem value="準決勝">準決勝</SelectItem>
-                          <SelectItem value="決勝">決勝</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TableCell>
-
-                  {/* 選手A所属チーム */}
-                  <TableCell>
-                    <Select
-                      value={row.playerATeamId}
-                      onValueChange={value =>
-                        updateData(index, "playerATeamId", value)
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="チーム選択" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {approvedTeams.map(team => (
-                          <SelectItem key={team.teamId} value={team.teamId}>
-                            {team.teamName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-
-                  {/* 選手A */}
-                  <TableCell>
-                    <div
-                      className={cn(
-                        "rounded-md",
-                        detectedChanges.fieldChanges[row.id]?.playerA && "ring-2 ring-red-500"
-                      )}
-                    >
-                      <Select
-                        value={row.playerAId}
-                        onValueChange={value =>
-                          updateData(index, "playerAId", value)
-                        }
-                        disabled={!row.playerATeamId}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="選手選択" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getPlayersFromTeam(row.playerATeamId).map(player => (
-                            <SelectItem
-                              key={player.playerId}
-                              value={player.playerId}
-                            >
-                              {player.displayName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TableCell>
-
-                  {/* 選手B所属チーム */}
-                  <TableCell>
-                    <Select
-                      value={row.playerBTeamId}
-                      onValueChange={value =>
-                        updateData(index, "playerBTeamId", value)
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="チーム選択" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {approvedTeams.map(team => (
-                          <SelectItem key={team.teamId} value={team.teamId}>
-                            {team.teamName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-
-                  {/* 選手B */}
-                  <TableCell>
-                    <div
-                      className={cn(
-                        "rounded-md",
-                        detectedChanges.fieldChanges[row.id]?.playerB && "ring-2 ring-red-500"
-                      )}
-                    >
-                      <Select
-                        value={row.playerBId}
-                        onValueChange={value =>
-                          updateData(index, "playerBId", value)
-                        }
-                        disabled={!row.playerBTeamId}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="選手選択" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getPlayersFromTeam(row.playerBTeamId).map(player => (
-                            <SelectItem
-                              key={player.playerId}
-                              value={player.playerId}
-                            >
-                              {player.displayName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TableCell>
-
-                  {/* 削除ボタン */}
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeRow(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                  row={row}
+                  index={index}
+                  approvedTeams={approvedTeams}
+                  courts={courts}
+                  detectedRowChanges={{
+                    courtId: Boolean(rowChanges.courtId),
+                    round: Boolean(rowChanges.round),
+                    playerA: Boolean(rowChanges.playerA),
+                    playerB: Boolean(rowChanges.playerB),
+                  }}
+                  isAdded={isAddedMatch}
+                  isDeleted={isDeletedMatch}
+                  getPlayersFromTeam={getPlayersFromTeam}
+                  onUpdate={updateData}
+                  onRemove={removeRow}
+                />
               );
             })}
           </TableBody>

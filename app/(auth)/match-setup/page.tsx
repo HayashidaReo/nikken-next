@@ -488,11 +488,11 @@ export default function MatchSetupPage() {
   const isSaving = createMatchesMutation.isPending || updateMatchMutation.isPending || deleteMatchesMutation.isPending;
   const hasError = teamsError || matchesError || tournamentError;
 
-  // 差分があるかチェック
-  const hasDetectedChanges =
-    Object.keys(detectedChanges.fieldChanges).length > 0 ||
-    detectedChanges.addedMatches.length > 0 ||
-    detectedChanges.deletedMatches.length > 0;
+  // 検出された差分の総数（ヘッダー表示用）
+  const detectedCount =
+    Object.keys(detectedChanges.fieldChanges).length +
+    detectedChanges.addedMatches.length +
+    detectedChanges.deletedMatches.length;
 
   // マージ済みの matches を作成（initialMatches をベースに）
   const mergedMatches = useMemo(() => {
@@ -561,8 +561,8 @@ export default function MatchSetupPage() {
       <div className="space-y-6">
         <MatchSetupHeader
           title="試合の組み合わせ設定"
-          hasDetectedChanges={hasDetectedChanges}
-          onUpdateClick={handleUpdateClick}
+          detectedCount={detectedCount}
+          onOpenUpdateDialog={handleUpdateClick}
         />
 
         <MatchSetupTable

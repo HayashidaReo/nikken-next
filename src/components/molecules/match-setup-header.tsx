@@ -3,31 +3,22 @@
  * タイトルと更新ボタンを表示
  */
 
-import { Button } from "@/components/atoms/button";
+import { ConflictSummary } from "@/components/molecules/conflict-summary";
 
 interface MatchSetupHeaderProps {
     title: string;
-    hasDetectedChanges: boolean;
-    onUpdateClick: () => void;
+    /** 検出された差分の総数（他端末による追加/削除/フィールド変更の合計） */
+    detectedCount: number;
+    onOpenUpdateDialog: () => void;
 }
 
-export function MatchSetupHeader({
-    title,
-    hasDetectedChanges,
-    onUpdateClick,
-}: MatchSetupHeaderProps) {
+export function MatchSetupHeader({ title, detectedCount, onOpenUpdateDialog }: MatchSetupHeaderProps) {
     return (
         <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-            {hasDetectedChanges && (
-                <Button
-                    onClick={onUpdateClick}
-                    variant="outline"
-                    className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
-                >
-                    他端末で変更あり - 確認する
-                </Button>
-            )}
+            <div>
+                <ConflictSummary count={detectedCount} onOpenUpdateDialog={onOpenUpdateDialog} />
+            </div>
         </div>
     );
 }
