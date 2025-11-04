@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { MatchSetupTable } from "@/components/organisms/match-setup-table";
 import { MatchSetupHeader } from "@/components/molecules/match-setup-header";
+import { MatchSetupSaveConflictDialog } from "@/components/molecules/match-setup-save-conflict-dialog";
+import { MatchSetupUpdateDialog } from "@/components/molecules/match-setup-update-dialog";
 import { useTeams } from "@/queries/use-teams";
 import {
   useMatches,
@@ -17,7 +19,6 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
-import { ConcurrentEditDialog } from "@/components/molecules/concurrent-edit-dialog";
 import type { MatchCreate, Match } from "@/types/match.schema";
 import {
   detectMatchConflicts,
@@ -477,7 +478,7 @@ export default function MatchSetupPage() {
         />
 
         {/* 競合確認ダイアログ（保存時） */}
-        <ConcurrentEditDialog
+        <MatchSetupSaveConflictDialog
           open={conflictDialog.open}
           conflicts={conflictDialog.conflicts}
           onConfirm={handleConflictConfirm}
@@ -485,12 +486,11 @@ export default function MatchSetupPage() {
         />
 
         {/* 更新確認ダイアログ（更新ボタンクリック時） */}
-        <ConcurrentEditDialog
+        <MatchSetupUpdateDialog
           open={updateDialogOpen}
           conflicts={updateConflicts}
           onConfirm={handleFieldMerge}
           onCancel={handleFieldReject}
-          mode="field"
         />
       </div>
     </MainLayout>
