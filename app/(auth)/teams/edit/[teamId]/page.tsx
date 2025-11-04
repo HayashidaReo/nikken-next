@@ -6,6 +6,8 @@ import { useTeam, useUpdateTeam } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
 import { MainLayout } from "@/components/templates/main-layout";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
+import { InfoDisplay } from "@/components/molecules/info-display";
 
 export default function TeamEditPage() {
   const params = useParams();
@@ -56,11 +58,11 @@ export default function TeamEditPage() {
   if (needsTournamentSelection) {
     return (
       <MainLayout activeTab="teams">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-amber-600">
-            大会を選択してください。ヘッダーの大会ドロップダウンから選択できます。
-          </div>
-        </div>
+        <InfoDisplay
+          variant="warning"
+          title="大会が選択されていません"
+          message="ヘッダーの大会ドロップダウンから操作したい大会を選択してください。"
+        />
       </MainLayout>
     );
   }
@@ -69,9 +71,7 @@ export default function TeamEditPage() {
   if (isLoading) {
     return (
       <MainLayout activeTab="teams">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-gray-600">チーム情報を読み込み中...</div>
-        </div>
+        <LoadingIndicator message="チーム情報を読み込み中..." size="lg" />
       </MainLayout>
     );
   }
@@ -80,12 +80,11 @@ export default function TeamEditPage() {
   if (error) {
     return (
       <MainLayout activeTab="teams">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-red-600">
-            エラーが発生しました:{" "}
-            {error instanceof Error ? error.message : "不明なエラー"}
-          </div>
-        </div>
+        <InfoDisplay
+          variant="destructive"
+          title="データの取得に失敗しました"
+          message={error instanceof Error ? error.message : "不明なエラー"}
+        />
       </MainLayout>
     );
   }
@@ -94,9 +93,11 @@ export default function TeamEditPage() {
   if (!team) {
     return (
       <MainLayout activeTab="teams">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-red-600">チームが見つかりません</div>
-        </div>
+        <InfoDisplay
+          variant="destructive"
+          title="チームが見つかりません"
+          message="指定されたチームが見つかりませんでした。URL を確認してください。"
+        />
       </MainLayout>
     );
   }

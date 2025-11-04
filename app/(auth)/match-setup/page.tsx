@@ -8,6 +8,7 @@ import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
+import { InfoDisplay } from "@/components/molecules/info-display";
 import type { MatchCreate } from "@/types/match.schema";
 
 export default function MatchSetupPage() {
@@ -116,11 +117,11 @@ export default function MatchSetupPage() {
   if (needsTournamentSelection) {
     return (
       <MainLayout activeTab="match-setup">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-amber-600">
-            大会を選択してください。ヘッダーの大会ドロップダウンから選択できます。
-          </div>
-        </div>
+        <InfoDisplay
+          variant="warning"
+          title="大会が選択されていません"
+          message="ヘッダーの大会ドロップダウンから操作したい大会を選択してください。"
+        />
       </MainLayout>
     );
   }
@@ -136,11 +137,11 @@ export default function MatchSetupPage() {
   if (hasError) {
     return (
       <MainLayout activeTab="match-setup">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-red-600">
-            エラーが発生しました: {hasError instanceof Error ? hasError.message : "データの取得に失敗しました"}
-          </div>
-        </div>
+        <InfoDisplay
+          variant="destructive"
+          title="データの取得に失敗しました"
+          message={hasError instanceof Error ? hasError.message : "データの取得に失敗しました"}
+        />
       </MainLayout>
     );
   }
@@ -149,11 +150,11 @@ export default function MatchSetupPage() {
   if (!tournament) {
     return (
       <MainLayout activeTab="match-setup">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-amber-600">
-            大会情報が見つかりません。
-          </div>
-        </div>
+        <InfoDisplay
+          variant="warning"
+          title="大会情報が見つかりません"
+          message="大会情報が見つかりません。管理者に問い合わせるか、大会を作成してください。"
+        />
       </MainLayout>
     );
   }

@@ -5,6 +5,7 @@ import { TeamManagementCardList } from "@/components/organisms/team-management-c
 import { useTeams, useApproveTeam } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
+import { InfoDisplay } from "@/components/molecules/info-display";
 
 export default function TeamsPage() {
   const { needsTournamentSelection, isLoading: authLoading } = useAuthContext();
@@ -21,11 +22,11 @@ export default function TeamsPage() {
   if (needsTournamentSelection) {
     return (
       <MainLayout activeTab="teams">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-amber-600">
-            大会を選択してください。ヘッダーの大会ドロップダウンから選択できます。
-          </div>
-        </div>
+        <InfoDisplay
+          variant="warning"
+          title="大会が選択されていません"
+          message="ヘッダーの大会ドロップダウンから操作したい大会を選択してください。"
+        />
       </MainLayout>
     );
   }
@@ -41,12 +42,11 @@ export default function TeamsPage() {
   if (error) {
     return (
       <MainLayout activeTab="teams">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-red-600">
-            エラーが発生しました:{" "}
-            {error instanceof Error ? error.message : "不明なエラー"}
-          </div>
-        </div>
+        <InfoDisplay
+          variant="destructive"
+          title="データの取得に失敗しました"
+          message={error instanceof Error ? error.message : "不明なエラー"}
+        />
       </MainLayout>
     );
   }

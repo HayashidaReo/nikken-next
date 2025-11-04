@@ -11,6 +11,7 @@ import { useMatch } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
+import { InfoDisplay } from "@/components/molecules/info-display";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -87,10 +88,12 @@ export default function MonitorControlPage() {
               </Button>
             </Link>
           </div>
-          <div className="flex justify-center items-center py-16">
-            <div className="text-red-600">
-              エラーが発生しました: {hasError instanceof Error ? hasError.message : "データの取得に失敗しました"}
-            </div>
+          <div className="flex justify-center items-center py-16 w-full">
+            <InfoDisplay
+              variant="destructive"
+              title="データの取得に失敗しました"
+              message={hasError instanceof Error ? hasError.message : "データの取得に失敗しました"}
+            />
           </div>
         </div>
       </div>
@@ -110,10 +113,12 @@ export default function MonitorControlPage() {
               </Button>
             </Link>
           </div>
-          <div className="flex justify-center items-center py-16">
-            <div className="text-amber-600">
-              指定された試合が見つかりません。
-            </div>
+          <div className="flex justify-center items-center py-16 w-full">
+            <InfoDisplay
+              variant="warning"
+              title="指定された試合が見つかりません"
+              message="指定された試合が見つかりませんでした。URL を確認するか、一覧に戻ってください。"
+            />
           </div>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { useMatchesRealtime } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
+import { InfoDisplay } from "@/components/molecules/info-display";
 
 export default function DashboardPage() {
   const { needsTournamentSelection, activeTournamentId, orgId, isLoading: authLoading } = useAuthContext();
@@ -27,11 +28,11 @@ export default function DashboardPage() {
 
           {/* 大会が選択されていない場合 */}
           {needsTournamentSelection && (
-            <div className="flex justify-center items-center py-8">
-              <div className="text-amber-600">
-                大会を選択してください。ヘッダーの大会ドロップダウンから選択できます。
-              </div>
-            </div>
+            <InfoDisplay
+              variant="warning"
+              title="大会が選択されていません"
+              message="ヘッダーの大会ドロップダウンから操作したい大会を選択してください。"
+            />
           )}
 
           {/* ローディング状態 */}
@@ -41,20 +42,20 @@ export default function DashboardPage() {
 
           {/* エラー状態 */}
           {!needsTournamentSelection && !isLoading && hasError && (
-            <div className="flex justify-center items-center py-8">
-              <div className="text-red-600">
-                エラーが発生しました: {hasError instanceof Error ? hasError.message : "データの取得に失敗しました"}
-              </div>
-            </div>
+            <InfoDisplay
+              variant="destructive"
+              title="データの取得に失敗しました"
+              message={hasError instanceof Error ? hasError.message : "データの取得に失敗しました"}
+            />
           )}
 
           {/* 大会情報が取得できない場合 */}
           {!needsTournamentSelection && !isLoading && !hasError && !tournament && (
-            <div className="flex justify-center items-center py-8">
-              <div className="text-amber-600">
-                大会情報が見つかりません。
-              </div>
-            </div>
+            <InfoDisplay
+              variant="warning"
+              title="大会情報が見つかりません"
+              message="大会情報が見つかりません。管理者に問い合わせるか、大会を作成してください。"
+            />
           )}
 
           {/* 正常時の表示 */}

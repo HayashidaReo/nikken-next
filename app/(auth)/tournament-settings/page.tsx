@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/atoms/button";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
+import { InfoDisplay } from "@/components/molecules/info-display";
 import { AuthGuardWrapper } from "@/components/templates/auth-guard-wrapper";
 import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
 import { TournamentList } from "@/components/organisms/tournament-list";
@@ -67,19 +68,21 @@ export default function TournamentSettingsPage() {
           <div className="max-w-6xl mx-auto">
             <AuthenticatedHeader title="大会設定" />
             <div className="mt-8 text-center">
-              <p className="text-red-600 mb-4">
-                {error?.message || String(error)}
-              </p>
-              <div className="flex gap-4 justify-center">
+              <InfoDisplay
+                variant="destructive"
+                title="大会情報の取得に失敗しました"
+                message={error?.message || String(error)}
+              />
+              <div className="flex gap-4 justify-center mt-6">
                 <Button onClick={() => window.location.reload()}>
                   再読み込み
                 </Button>
-                {String(error).includes("組織が見つかりません") && (
-                  <p className="text-gray-600 mt-4">
-                    組織が見つかりません。管理者にお問い合わせください。
-                  </p>
-                )}
               </div>
+              {String(error).includes("組織が見つかりません") && (
+                <p className="text-gray-600 mt-4">
+                  組織が見つかりません。管理者にお問い合わせください。
+                </p>
+              )}
             </div>
           </div>
         </div>

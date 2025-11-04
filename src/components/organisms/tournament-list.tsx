@@ -20,6 +20,7 @@ import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
+import { InfoDisplay } from "@/components/molecules/info-display";
 
 interface TournamentListProps {
   orgId: string | null;
@@ -93,10 +94,12 @@ export function TournamentList({
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-900">大会一覧</h2>
         </div>
-        <div className="flex justify-center py-8">
-          <div className="text-red-600">
-            大会一覧の読み込みに失敗しました: {error.message}
-          </div>
+        <div className="py-8">
+          <InfoDisplay
+            variant="destructive"
+            title="大会一覧の読み込みに失敗しました"
+            message={error?.message || "大会一覧の取得中にエラーが発生しました"}
+          />
         </div>
       </div>
     );
