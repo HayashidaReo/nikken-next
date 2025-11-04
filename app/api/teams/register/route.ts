@@ -42,10 +42,10 @@ export async function POST(request: NextRequest) {
         // サーバーサイドでFirestoreに保存
 
         const adminRepository = getAdminTeamRepository();
-        const savedTeam = await adminRepository.createWithParams(
-            teamCreate,
+        const savedTeam = await adminRepository.create(
             orgId,
-            tournamentId
+            tournamentId,
+            teamCreate
         );
 
         return NextResponse.json({
