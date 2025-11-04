@@ -187,7 +187,7 @@ export function MatchSetupTable({
   };
 
   // 赤枠がある場合は保存ボタンを無効化
-  const hasConflicts = 
+  const hasConflicts =
     Object.keys(detectedChanges.fieldChanges).length > 0 ||
     detectedChanges.addedMatches.length > 0 ||
     detectedChanges.deletedMatches.length > 0;
