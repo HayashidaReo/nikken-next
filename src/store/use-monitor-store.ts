@@ -1,5 +1,10 @@
 import { create } from "zustand";
 import type { Match } from "@/types/match.schema";
+import {
+  calculateOpponentScoreChange,
+  updateOpponentScore,
+  isMatchEnded,
+} from "@/domains/match/match-logic";
 
 interface MonitorState {
   // 試合の基本情報（初期データから設定）
@@ -125,19 +130,12 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     const opponent =
       player === "A" ? currentState.playerB : currentState.playerA;
 
-    // 反則による得点変動ロジック
-    let opponentScoreChange = 0;
-
-    // 新しい赤の数 - 元の赤の数 = 追加された赤の数
-    const currentReds = Math.floor(currentPlayer.hansoku / 2);
-    const newReds = Math.floor(hansoku / 2);
-    opponentScoreChange = newReds - currentReds;
-
-    // 相手の得点を更新（最大2点まで）
-    const newOpponentScore = Math.min(
-      2,
-      Math.max(0, opponent.score + opponentScoreChange)
+    // 相手のスコア変動を計算
+    const scoreChange = calculateOpponentScoreChange(
+      currentPlayer.hansoku,
+      hansoku
     );
+    const newOpponentScore = updateOpponentScore(opponent.score, scoreChange);
 
     if (player === "A") {
       set({
@@ -151,8 +149,8 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       });
     }
 
-    // 赤2つ（hansoku 4）で試合終了
-    if (hansoku >= 4 || newOpponentScore >= 2) {
+    //試合終了判定
+    if (isMatchEnded(hansoku, newOpponentScore)) {
       set({ isTimerRunning: false });
     }
   },
