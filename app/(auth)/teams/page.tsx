@@ -3,14 +3,31 @@
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { useTeams, useApproveTeam } from "@/queries/use-teams";
+import { useAuthContext } from "@/hooks/useAuthContext";
 
 export default function TeamsPage() {
-  const { data: teams = [], isLoading, error } = useTeams();
+  const { needsTournamentSelection, isLoading: authLoading } = useAuthContext();
+  const { data: teams = [], isLoading: teamsLoading, error } = useTeams();
   const approveTeamMutation = useApproveTeam();
 
   const handleApprovalChange = (teamId: string, isApproved: boolean) => {
     approveTeamMutation.mutate(teamId, isApproved);
   };
+
+  const isLoading = authLoading || teamsLoading;
+
+  // 大会が選択されていない場合
+  if (needsTournamentSelection) {
+    return (
+      <MainLayout activeTab="teams">
+        <div className="flex justify-center items-center py-8">
+          <div className="text-amber-600">
+            大会を選択してください。ヘッダーの大会ドロップダウンから選択できます。
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (isLoading) {
     return (

@@ -1,13 +1,13 @@
-import type { AdminTeamRepository as AdminTeamRepositoryInterface } from "@/repositories/admin/team-repository";
+import type { TeamRepository } from "@/repositories/team-repository";
 import { AdminTeamRepositoryImpl } from "@/repositories/admin/team-repository";
 
-let _adminTeamRepositoryFactory: (() => AdminTeamRepositoryInterface) | null = null;
+let _adminTeamRepositoryFactory: (() => TeamRepository) | null = null;
 
-export function registerAdminTeamRepositoryFactory(factory: () => AdminTeamRepositoryInterface) {
+export function registerAdminTeamRepositoryFactory(factory: () => TeamRepository) {
     _adminTeamRepositoryFactory = factory;
 }
 
-export function getAdminTeamRepository(): AdminTeamRepositoryInterface {
+export function getAdminTeamRepository(): TeamRepository {
     if (_adminTeamRepositoryFactory) return _adminTeamRepositoryFactory();
     return new AdminTeamRepositoryImpl();
 }
