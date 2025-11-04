@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { MatchSetupTable } from "@/components/organisms/match-setup-table";
-import { Button } from "@/components/atoms/button";
+import { MatchSetupHeader } from "@/components/molecules/match-setup-header";
 import { useTeams } from "@/queries/use-teams";
 import {
   useMatches,
@@ -461,20 +461,11 @@ export default function MatchSetupPage() {
   return (
     <MainLayout activeTab="match-setup">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">
-            試合の組み合わせ設定
-          </h1>
-          {hasDetectedChanges && (
-            <Button
-              onClick={handleUpdateClick}
-              variant="outline"
-              className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
-            >
-              他端末で変更あり - 確認する
-            </Button>
-          )}
-        </div>
+        <MatchSetupHeader
+          title="試合の組み合わせ設定"
+          hasDetectedChanges={hasDetectedChanges}
+          onUpdateClick={handleUpdateClick}
+        />
 
         <MatchSetupTable
           teams={teams}
