@@ -1,28 +1,42 @@
 "use client";
 
-import * as React from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
-import { mockTeams, mockTournament } from "@/lib/mock-data";
+import { useTeams, useApproveTeam } from "@/queries/use-teams";
 
 export default function TeamsPage() {
-  const [teams, setTeams] = React.useState(mockTeams);
+  const { data: teams = [], isLoading, error } = useTeams();
+  const approveTeamMutation = useApproveTeam();
 
   const handleApprovalChange = (teamId: string, isApproved: boolean) => {
-    setTeams(prev =>
-      prev.map(team =>
-        team.teamId === teamId
-          ? { ...team, isApproved, updatedAt: new Date() }
-          : team
-      )
-    );
+    approveTeamMutation.mutate(teamId, isApproved);
   };
 
+  if (isLoading) {
+    return (
+      <MainLayout activeTab="teams">
+        <div className="flex justify-center items-center py-8">
+          <div className="text-gray-600">チーム情報を読み込み中...</div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout activeTab="teams">
+        <div className="flex justify-center items-center py-8">
+          <div className="text-red-600">
+            エラーが発生しました:{" "}
+            {error instanceof Error ? error.message : "不明なエラー"}
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
-    <MainLayout
-      activeTab="teams"
-      tournamentName={mockTournament.tournamentName}
-    >
+    <MainLayout activeTab="teams">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">チーム・選手管理</h1>

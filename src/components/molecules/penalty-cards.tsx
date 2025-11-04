@@ -1,6 +1,8 @@
-import * as React from "react";
-import { getPenaltyCards, getCardStyles } from "@/lib/utils/penalty-utils";
-import { type HansokuLevel } from "@/types/common";
+import {
+  getPenaltyCards,
+  getCardStyles,
+  type HansokuLevel,
+} from "@/lib/utils/penalty-utils";
 import { PenaltyBackground } from "@/components/atoms";
 
 interface PenaltyCardsProps {

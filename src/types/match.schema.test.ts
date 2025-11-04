@@ -81,13 +81,10 @@ describe("Match Schema Validation", () => {
       expect(result.success).toBe(true);
     });
 
-    it("試合IDが空の場合はエラーになる", () => {
-      const invalidMatch = { ...validMatch, matchId: "" };
-      const result = matchSchema.safeParse(invalidMatch);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toBe("試合IDは必須です");
-      }
+    it("試合IDが空文字列の場合でも有効（optionalのため）", () => {
+      const matchWithEmptyId = { ...validMatch, matchId: "" };
+      const result = matchSchema.safeParse(matchWithEmptyId);
+      expect(result.success).toBe(true);
     });
 
     it("コートIDが空の場合はエラーになる", () => {

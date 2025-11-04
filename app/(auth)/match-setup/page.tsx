@@ -19,15 +19,11 @@ export default function MatchSetupPage() {
       playerBId: string;
     }[]
   ) => {
-    console.log("試合の組み合わせを保存:", matches);
     showSuccess(`${matches.length}件の試合を設定しました`);
   };
 
   return (
-    <MainLayout
-      activeTab="match-setup"
-      tournamentName={mockTournament.tournamentName}
-    >
+    <MainLayout activeTab="match-setup">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">

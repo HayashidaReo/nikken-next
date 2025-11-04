@@ -65,3 +65,17 @@ export const SCORE_CONSTANTS = {
   /** 反則による得点計算の除数（赤反則判定） */
   RED_HANSOKU_DIVISOR: 2,
 } as const;
+
+// 🗃️ Firestore関連定数
+export const FIRESTORE_COLLECTIONS = {
+  /** 組織コレクション */
+  ORGANIZATIONS: "organizations",
+  /** 大会コレクション */
+  TOURNAMENTS: "tournaments",
+  /** チームコレクション */
+  TEAMS: "teams",
+  /** 試合コレクション */
+  MATCHES: "matches",
+  /** ユーザーコレクション */
+  USERS: "users",
+} as const;

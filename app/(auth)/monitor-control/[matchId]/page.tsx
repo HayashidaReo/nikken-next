@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -14,7 +14,7 @@ export default function MonitorControlPage() {
   const matchId = params.matchId as string;
   const { initializeMatch } = useMonitorStore();
 
-  React.useEffect(() => {
+  useEffect(() => {
     // モックデータから該当する試合を取得
     const match = mockMatches.find(m => m.matchId === matchId);
     if (match) {

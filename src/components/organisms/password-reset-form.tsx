@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,8 +14,8 @@ import {
 } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
 import { LoadingButton } from "@/components/molecules/loading-button";
-import { useFormSubmit } from "@/hooks";
 import { useToast } from "@/components/providers/notification-provider";
+import { AuthService } from "@/lib/auth/service";
 
 // パスワード再設定フォーム用のZodスキーマ
 const passwordResetSchema = z.object({
@@ -27,21 +27,11 @@ const passwordResetSchema = z.object({
 
 type PasswordResetFormData = z.infer<typeof passwordResetSchema>;
 
-interface PasswordResetFormProps {
-  onSubmit?: (data: PasswordResetFormData) => Promise<void>;
-  isLoading?: boolean;
-  isSubmitted?: boolean;
-  submittedEmail?: string;
-}
-
-export function PasswordResetForm({
-  onSubmit,
-  isLoading: externalLoading = false,
-  isSubmitted = false,
-  submittedEmail,
-}: PasswordResetFormProps) {
-  const { showSuccess } = useToast();
-  const { handleSubmit: submitForm, isLoading } = useFormSubmit();
+export function PasswordResetForm() {
+  const { showSuccess, showError } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
 
   const {
     register,
@@ -52,14 +42,26 @@ export function PasswordResetForm({
   });
 
   const handleFormSubmit = async (data: PasswordResetFormData) => {
-    if (onSubmit) {
-      await submitForm(async (formData: unknown) => {
-        const typedData = formData as PasswordResetFormData;
-        await onSubmit(typedData);
-      }, data);
-    } else {
-      // デモ用: 通知システムを使用
+    try {
+      setIsLoading(true);
+
+      await AuthService.sendPasswordResetEmail(data.email);
+
+      setSubmittedEmail(data.email);
+      setIsSubmitted(true);
       showSuccess(`${data.email}にパスワード再設定メールを送信しました。`);
+    } catch (error) {
+      console.error("Password reset error:", error);
+
+      // AuthServiceのエラーハンドリングを利用
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "パスワード再設定メールの送信に失敗しました";
+
+      showError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,12 +104,8 @@ export function PasswordResetForm({
             register={register}
             error={errors.email?.message}
           />{" "}
-          <LoadingButton
-            type="submit"
-            className="w-full"
-            isLoading={isLoading || externalLoading}
-          >
-            {isLoading || externalLoading ? "送信中..." : "再設定メールを送信"}
+          <LoadingButton type="submit" className="w-full" isLoading={isLoading}>
+            {isLoading ? "送信中..." : "再設定メールを送信"}
           </LoadingButton>
           <div className="text-center">
             <Link

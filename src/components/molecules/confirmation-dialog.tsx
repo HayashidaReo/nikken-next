@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/atoms/button";
 import {
   Card,
@@ -9,18 +8,13 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { CheckCircle } from "lucide-react";
-
-export interface PlayerRegistrationData {
-  representativeName: string;
-  representativePhone: string;
-  representativeEmail: string;
-  teamName: string;
-  players: { fullName: string }[];
-  remarks: string;
-}
+import { DialogOverlay } from "./dialog-overlay";
+import { InfoCard } from "./info-card";
+import type { TeamFormData } from "@/types/team-form.schema";
+import PlayerName from "./player-name";
 
 interface ConfirmationDialogProps {
-  data: PlayerRegistrationData;
+  data: TeamFormData;
   onConfirm: () => void;
   onCancel: () => void;
   isVisible: boolean;
@@ -35,20 +29,17 @@ export function ConfirmationDialog({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <DialogOverlay isOpen={isVisible} onClose={onCancel} className="p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-6">
             <CheckCircle className="w-6 h-6 text-green-600" />
-            <h2 className="text-2xl font-bold">登録内容の確認</h2>
+            <h2 className="text-2xl font-bold text-gray-800">登録内容の確認</h2>
           </div>
 
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">代表者情報</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <InfoCard title="代表者情報">
+              <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium text-gray-600">代表者名</p>
                   <p className="font-medium">{data.representativeName}</p>
@@ -63,22 +54,17 @@ export function ConfirmationDialog({
                   </p>
                   <p className="font-medium">{data.representativeEmail}</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </InfoCard>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">チーム情報</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    チーム名（所属名）
-                  </p>
-                  <p className="font-medium">{data.teamName}</p>
-                </div>
-              </CardContent>
-            </Card>
+            <InfoCard title="チーム情報">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  チーム名（所属名）
+                </p>
+                <p className="font-medium">{data.teamName}</p>
+              </div>
+            </InfoCard>
 
             <Card>
               <CardHeader>
@@ -90,7 +76,11 @@ export function ConfirmationDialog({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {data.players.map((player, index) => (
                     <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <p className="font-medium">{player.fullName}</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <PlayerName fullName={player.fullName} />
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -98,14 +88,9 @@ export function ConfirmationDialog({
             </Card>
 
             {data.remarks && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">備考</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap">{data.remarks}</p>
-                </CardContent>
-              </Card>
+              <InfoCard title="備考">
+                <p className="whitespace-pre-wrap">{data.remarks}</p>
+              </InfoCard>
             )}
           </div>
 
@@ -124,6 +109,6 @@ export function ConfirmationDialog({
           </div>
         </div>
       </div>
-    </div>
+    </DialogOverlay>
   );
 }

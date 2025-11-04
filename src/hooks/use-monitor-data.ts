@@ -1,8 +1,27 @@
-import * as React from "react";
-import { type MatchData } from "@/types/common";
+import { useState, useEffect } from "react";
+
+// ローカルの型定義（monitor用）
+interface PlayerData {
+  displayName: string;
+  teamName: string;
+  score: number;
+  hansoku: number;
+}
+
+interface MatchData {
+  matchId: string;
+  tournamentName: string;
+  courtName: string;
+  round: string;
+  playerA: PlayerData;
+  playerB: PlayerData;
+  timeRemaining: number;
+  isTimerRunning: boolean;
+  isPublic: boolean;
+}
 
 export function useMonitorData() {
-  const [data, setData] = React.useState<MatchData>({
+  const [data, setData] = useState<MatchData>({
     matchId: "",
     tournamentName: "大会名未設定",
     courtName: "コート名未設定",
@@ -24,19 +43,26 @@ export function useMonitorData() {
     isPublic: false,
   });
 
-  const [isConnected, setIsConnected] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // BroadcastChannelでのデータ共有
-  React.useEffect(() => {
+  useEffect(() => {
     const channel = new BroadcastChannel("monitor-display-channel");
 
     // メッセージ受信
     const handleMessage = (event: MessageEvent) => {
       try {
         if (event.data && typeof event.data === "object") {
-          setData(event.data);
-          setIsConnected(true);
+          // MatchDataの最低限の必須フィールドをチェック
+          const hasRequiredFields =
+            typeof event.data.tournamentName === "string" &&
+            typeof event.data.matchId === "string";
+
+          if (hasRequiredFields) {
+            setData(event.data);
+            setIsConnected(true);
+          }
         }
       } catch (err) {
         console.error("BroadcastChannel メッセージ解析エラー:", err);
@@ -52,7 +78,7 @@ export function useMonitorData() {
   }, []);
 
   // Presentation API接続の確立
-  React.useEffect(() => {
+  useEffect(() => {
     // 表示側（receiver）としての処理
     if ("presentation" in navigator) {
       // メッセージ接続の処理
@@ -138,19 +164,9 @@ export function useMonitorData() {
         }
       } catch (error) {
         console.warn("Presentation API not available or failed:", error);
-        setError("プレゼンテーションAPIが利用できません");
-      }
-    }
-
-    // フォールバック: URLパラメータからの初期データ読み込み
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialData = urlParams.get("data");
-    if (initialData) {
-      try {
-        const parsedData = JSON.parse(decodeURIComponent(initialData));
-        setData(parsedData);
-      } catch (err) {
-        console.error("URLパラメータ解析エラー:", err);
+        setTimeout(() => {
+          setError("プレゼンテーションAPIが利用できません");
+        }, 0);
       }
     }
   }, []);
