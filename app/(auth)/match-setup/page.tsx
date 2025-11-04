@@ -168,18 +168,8 @@ export default function MatchSetupPage() {
     pendingSaveData: null,
   });
 
-  // 個別フィールドの競合ダイアログ（赤枠をタップした時に表示）
-  const [fieldConflictDialog, setFieldConflictDialog] = useState<{
-    open: boolean;
-    matchId: string | null;
-    fieldName: string | null; // "courtId" | "round" | "playerA" | "playerB"
-    change: { initial: string; server: string } | null;
-  }>({
-    open: false,
-    matchId: null,
-    fieldName: null,
-    change: null,
-  });
+  // 更新確認ダイアログの開閉状態（更新ボタンクリック時に表示）
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
 
   const handleSave = async (
     matchSetupData: MatchSetupData[]
@@ -463,34 +453,7 @@ export default function MatchSetupPage() {
 
   // 更新ボタンをクリックした時の処理
   const handleUpdateClick = () => {
-    // detectedChanges を conflicts 形式に変換
-    const conflicts: typeof conflictDialog.conflicts = [];
-
-    Object.entries(detectedChanges).forEach(([matchId, changes]) => {
-      const serverOnlyChanges: typeof conflicts[0]['serverOnlyChanges'] = {};
-
-      Object.entries(changes).forEach(([fieldName, change]) => {
-        if (fieldName === "courtId" || fieldName === "round" || fieldName === "playerA" || fieldName === "playerB") {
-          serverOnlyChanges[fieldName] = change;
-        }
-      });
-
-      if (Object.keys(serverOnlyChanges).length > 0) {
-        conflicts.push({
-          matchId,
-          directConflicts: {},
-          serverOnlyChanges,
-        });
-      }
-    });
-
-    // fieldConflictDialog を開く（更新確認用）
-    setFieldConflictDialog({
-      open: true,
-      matchId: "multiple", // 複数の変更を示す
-      fieldName: "multiple",
-      change: null,
-    });
+    setUpdateDialogOpen(true);
   };
 
   // 全ての変更をマージ（受け入れる）
@@ -542,7 +505,7 @@ export default function MatchSetupPage() {
     // detectedChanges をクリア（赤枠を全て消す）
     setDetectedChanges({});
 
-    setFieldConflictDialog({ open: false, matchId: null, fieldName: null, change: null });
+    setUpdateDialogOpen(false);
   };
 
   // 全ての変更を却下
@@ -565,7 +528,7 @@ export default function MatchSetupPage() {
     // detectedChanges をクリア（赤枠を全て消す）
     setDetectedChanges({});
 
-    setFieldConflictDialog({ open: false, matchId: null, fieldName: null, change: null });
+    setUpdateDialogOpen(false);
   };
 
   // ヘルパー関数: 選手情報を検索
@@ -600,6 +563,47 @@ export default function MatchSetupPage() {
     // （保存後やマージ後に更新される）
     return initialMatches;
   }, [initialMatches, matches]);
+
+  // detectedChanges を conflicts 形式に変換（更新ダイアログ用）
+  const updateConflicts = useMemo(() => {
+    type ConflictType = Array<{
+      matchId: string;
+      directConflicts: {
+        courtId?: { draft: string; server: string };
+        round?: { draft: string; server: string };
+        playerA?: { draft: string; server: string };
+        playerB?: { draft: string; server: string };
+      };
+      serverOnlyChanges: {
+        courtId?: { initial: string; server: string };
+        round?: { initial: string; server: string };
+        playerA?: { initial: string; server: string };
+        playerB?: { initial: string; server: string };
+      };
+    }>;
+
+    const conflicts: ConflictType = [];
+
+    Object.entries(detectedChanges).forEach(([matchId, changes]) => {
+      const serverOnlyChanges: ConflictType[0]['serverOnlyChanges'] = {};
+
+      Object.entries(changes).forEach(([fieldName, change]) => {
+        if (fieldName === "courtId" || fieldName === "round" || fieldName === "playerA" || fieldName === "playerB") {
+          serverOnlyChanges[fieldName] = change;
+        }
+      });
+
+      if (Object.keys(serverOnlyChanges).length > 0) {
+        conflicts.push({
+          matchId,
+          directConflicts: {},
+          serverOnlyChanges,
+        });
+      }
+    });
+
+    return conflicts;
+  }, [detectedChanges]);
 
   // 大会が選択されていない場合
   if (needsTournamentSelection) {
@@ -683,38 +687,13 @@ export default function MatchSetupPage() {
         />
 
         {/* 更新確認ダイアログ（更新ボタンクリック時） */}
-        {fieldConflictDialog.open && (() => {
-          // detectedChanges を conflicts 形式に変換
-          const conflicts: typeof conflictDialog.conflicts = [];
-
-          Object.entries(detectedChanges).forEach(([matchId, changes]) => {
-            const serverOnlyChanges: typeof conflicts[0]['serverOnlyChanges'] = {};
-
-            Object.entries(changes).forEach(([fieldName, change]) => {
-              if (fieldName === "courtId" || fieldName === "round" || fieldName === "playerA" || fieldName === "playerB") {
-                serverOnlyChanges[fieldName] = change;
-              }
-            });
-
-            if (Object.keys(serverOnlyChanges).length > 0) {
-              conflicts.push({
-                matchId,
-                directConflicts: {},
-                serverOnlyChanges,
-              });
-            }
-          });
-
-          return (
-            <ConcurrentEditDialog
-              open={true}
-              conflicts={conflicts}
-              onConfirm={handleFieldMerge}
-              onCancel={handleFieldReject}
-              mode="field"
-            />
-          );
-        })()}
+        <ConcurrentEditDialog
+          open={updateDialogOpen}
+          conflicts={updateConflicts}
+          onConfirm={handleFieldMerge}
+          onCancel={handleFieldReject}
+          mode="field"
+        />
       </div>
     </MainLayout>
   );
