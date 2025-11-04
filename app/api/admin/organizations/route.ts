@@ -4,7 +4,7 @@ import { organizationCreateWithAccountSchema } from "@/types/organization.schema
 import type { OrganizationCreateWithAccount } from "@/types/organization.schema";
 import { Timestamp } from "firebase-admin/firestore";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
-import { createErrorResponse, handleFirebaseAuthError, createValidationErrorResponse } from "@/lib/api-helpers";
+import { createErrorResponse, handleFirebaseAuthError, createValidationErrorResponse } from "@/lib/api";
 
 /**
  * デフォルト大会を作成するヘルパー関数
