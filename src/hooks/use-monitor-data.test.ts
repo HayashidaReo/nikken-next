@@ -220,7 +220,7 @@ describe("useMonitorData", () => {
 
     describe("エラーハンドリング", () => {
         it("BroadcastChannelメッセージ処理でエラーが発生してもハンドリングされる", async () => {
-            const { result } = renderHook(() => useMonitorData());            // 初期状態確認
+            const { result } = renderHook(() => useMonitorData());  // 初期状態確認
             expect(result.current.data.tournamentName).toBe("大会名未設定");
 
             const messageHandler = mockBroadcastChannel.addEventListener.mock.calls
