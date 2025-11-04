@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { FirestoreMatchRepository } from "@/repositories/firestore/match-repository";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import type { Match, MatchCreate } from "@/types/match.schema";
@@ -170,10 +171,6 @@ export function useCreateMatch() {
         },
     });
 }
-
-/**
- * 複数試合一括作成のMutation
- */
 export function useCreateMatches() {
     const queryClient = useQueryClient();
     const { orgId, activeTournamentId } = useAuthContext();
@@ -301,31 +298,59 @@ export function useMatchesRealtime() {
     const queryClient = useQueryClient();
     const { orgId, activeTournamentId, isReady } = useAuthContext();
 
-    return useQuery({
-        queryKey: [...matchKeys.lists(), "realtime", { orgId, tournamentId: activeTournamentId }],
-        queryFn: () => {
-            if (!orgId || !activeTournamentId) {
-                throw new Error("Organization ID and Tournament ID are required");
+    const [data, setData] = useState<Match[] | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    useEffect(() => {
+        if (!isReady || !orgId || !activeTournamentId) {
+            // useEffect 内で同期的に setState を実行すると
+            // 複数回の同期レンダリングや ESLint の警告が発生する場合があるため、
+            // ここでは setTimeout によって更新を遅延させて安全に初期化しています。
+            setTimeout(() => {
+                setData(undefined);
+                setIsLoading(false);
+                setError(null);
+            }, 0);
+            return;
+        }
+
+        // 同様に、同期的な state 更新による連続レンダリングや副作用の発生を避けるため、
+        // isLoading と error の更新は setTimeout によって非同期に行っています。
+        setTimeout(() => {
+            setIsLoading(true);
+            setError(null);
+        }, 0);
+
+        const listKey = matchKeys.list({ orgId, tournamentId: activeTournamentId });
+        const realtimeKey = [...matchKeys.lists(), "realtime", { orgId, tournamentId: activeTournamentId }];
+
+        const unsubscribe = matchRepository.listenAll(orgId, activeTournamentId, (matches: Match[]) => {
+            try {
+                setData(matches);
+                setIsLoading(false);
+                // update both realtime and list caches for compatibility
+                queryClient.setQueryData(realtimeKey, matches);
+                queryClient.setQueryData(listKey, matches);
+            } catch (e) {
+                setError(e instanceof Error ? e : new Error("Unknown error"));
             }
+        });
 
-            return new Promise<Match[]>(resolve => {
-                // リアルタイム購読を開始
-                const listKey = matchKeys.list({ orgId, tournamentId: activeTournamentId });
-                const realtimeKey = [...matchKeys.lists(), "realtime", { orgId, tournamentId: activeTournamentId }];
+        return () => {
+            try {
+                unsubscribe();
+            } catch (e) {
+                console.warn("Failed to unsubscribe matches realtime listener:", e);
+            }
+        };
+    }, [isReady, orgId, activeTournamentId, queryClient]);
 
-                matchRepository.listenAll(orgId, activeTournamentId, (matches: Match[]) => {
-                    // リアルタイム購読側の query と 通常の list query 両方を更新する
-                    queryClient.setQueryData(realtimeKey, matches);
-                    queryClient.setQueryData(listKey, matches);
-                    resolve(matches);
-                });
-            });
-        },
-        enabled: Boolean(isReady && orgId && activeTournamentId),
-        staleTime: Infinity, // リアルタイム更新なので常にフレッシュ
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-    });
+    return {
+        data,
+        isLoading,
+        error,
+    };
 }
 
 /**
