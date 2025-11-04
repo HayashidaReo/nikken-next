@@ -160,7 +160,7 @@ export function useTournamentSettings() {
                         }
                     }
                 );
-            } else if (selectedTournamentId) {
+            } else {
                 // 更新
                 const patchData = {
                     ...formData,
