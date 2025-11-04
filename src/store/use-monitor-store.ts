@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Match } from "@/types/match.schema";
+import { SCORE_CONSTANTS } from "@/lib/constants";
 import {
   calculateOpponentScoreChange,
   updateOpponentScore,
@@ -118,7 +119,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     }
 
     // 2点先取で自動停止
-    if (score >= 2) {
+    if (score >= SCORE_CONSTANTS.MAX_SCORE) {
       set({ isTimerRunning: false });
     }
   },

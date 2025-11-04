@@ -3,6 +3,8 @@
  * スコア・反則計算などの試合ルールに関する純粋関数を定義
  */
 
+import { HANSOKU_CONSTANTS, SCORE_CONSTANTS } from "../../lib/constants";
+
 /**
  * 反則数の変化から相手に付与される得点を計算
  *
@@ -20,9 +22,9 @@ export function calculateOpponentScoreChange(
     newHansoku: number
 ): number {
     // 現在の赤の数を計算（2つで赤1つ）
-    const currentReds = Math.floor(currentHansoku / 2);
+    const currentReds = Math.floor(currentHansoku / HANSOKU_CONSTANTS.HANSOKU_UNIT);
     // 新しい赤の数を計算
-    const newReds = Math.floor(newHansoku / 2);
+    const newReds = Math.floor(newHansoku / HANSOKU_CONSTANTS.HANSOKU_UNIT);
 
     // 追加された赤の数が相手への得点
     return Math.max(0, newReds - currentReds);
@@ -39,7 +41,7 @@ export function updateOpponentScore(
     currentScore: number,
     scoreChange: number
 ): number {
-    return Math.min(2, Math.max(0, currentScore + scoreChange));
+    return Math.min(SCORE_CONSTANTS.MAX_SCORE, Math.max(SCORE_CONSTANTS.MIN_SCORE, currentScore + scoreChange));
 }
 
 /**
@@ -54,7 +56,7 @@ export function updateOpponentScore(
  * @returns 試合終了フラグ
  */
 export function isMatchEnded(hansoku: number, score: number): boolean {
-    return hansoku >= 4 || score >= 2;
+    return hansoku >= HANSOKU_CONSTANTS.MAX_HANSOKU || score >= SCORE_CONSTANTS.MAX_SCORE;
 }
 
 /**
