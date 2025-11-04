@@ -19,6 +19,13 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { ConcurrentEditDialog } from "@/components/molecules/concurrent-edit-dialog";
 import type { MatchCreate, Match } from "@/types/match.schema";
+import {
+  detectMatchConflicts,
+  findPlayerInfo,
+  convertDetectedChangesToConflicts,
+  type MatchSetupData,
+  type ConflictDetails,
+} from "@/lib/utils/match-conflict-detection";
 
 export default function MatchSetupPage() {
   const { showSuccess, showError } = useToast();
@@ -60,11 +67,13 @@ export default function MatchSetupPage() {
   useEffect(() => {
     if (!justSaved || realtimeMatches.length === 0) return;
 
-    // 保存後、realtimeMatches が更新されたら initialMatches を同期
+    // 保存後、realtimeMatches が更新されたら即座に initialMatches を同期
+    setInitialMatches([...realtimeMatches]);
+
+    // フラグ解除は少し遅らせる（確実に同期が完了してから）
     const timer = setTimeout(() => {
-      setInitialMatches([...realtimeMatches]);
-      setJustSaved(false); // フラグを解除
-    }, 300);
+      setJustSaved(false);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [justSaved, realtimeMatches]);
@@ -130,37 +139,13 @@ export default function MatchSetupPage() {
 
   // Firebase操作のフック
   const createMatchesMutation = useCreateMatches();
-  const updateMatchMutation = useUpdateMatch(); // Transaction版（競合回避）
+  const updateMatchMutation = useUpdateMatch();
   const deleteMatchesMutation = useDeleteMatches();
 
   // 競合ダイアログの状態
-  type MatchSetupData = {
-    id: string;
-    courtId: string;
-    round: string;
-    playerATeamId: string;
-    playerAId: string;
-    playerBTeamId: string;
-    playerBId: string;
-  };
-
   const [conflictDialog, setConflictDialog] = useState<{
     open: boolean;
-    conflicts: Array<{
-      matchId: string;
-      directConflicts: {
-        courtId?: { draft: string; server: string };
-        round?: { draft: string; server: string };
-        playerA?: { draft: string; server: string };
-        playerB?: { draft: string; server: string };
-      };
-      serverOnlyChanges: {
-        courtId?: { initial: string; server: string };
-        round?: { initial: string; server: string };
-        playerA?: { initial: string; server: string };
-        playerB?: { initial: string; server: string };
-      };
-    }>;
+    conflicts: ConflictDetails[];
     pendingSaveData: MatchSetupData[] | null;
   }>({
     open: false,
@@ -179,7 +164,13 @@ export default function MatchSetupPage() {
     setDetectedChanges({}); // 既存の差分をクリア
 
     // Step 1: 差分検出（自分の編集 vs 他端末の編集）
-    const conflicts = detectConflicts(matchSetupData, initialMatches, realtimeMatches, teams);
+    const conflicts = detectMatchConflicts(
+      matchSetupData,
+      initialMatches,
+      realtimeMatches,
+      teams,
+      rejectedChanges
+    );
 
     if (conflicts.length > 0) {
       // 競合がある場合はダイアログ表示
@@ -194,115 +185,6 @@ export default function MatchSetupPage() {
 
     // Step 2: 競合がない場合は直接保存
     await executeSave(matchSetupData);
-  };
-
-  // 競合を検出する関数
-  // - initialState: ページを開いた時点の状態
-  // - draftData: ユーザーが編集した内容
-  // - serverData: リアルタイム購読で取得した最新の状態
-  // 
-  // 検出する競合の種類:
-  // 1. directConflicts: 両方が同じフィールドを異なる値に変更
-  // 2. serverOnlyChanges: 他端末のみが変更（ユーザーは変更していない）
-  const detectConflicts = (
-    draftData: MatchSetupData[],
-    initialState: Match[],
-    serverData: Match[],
-    teamsData: typeof teams
-  ) => {
-    const conflicts: typeof conflictDialog.conflicts = [];
-
-    draftData.forEach(draft => {
-      // 新規作成（id が "match-" で始まる or 空）の場合はスキップ
-      if (!draft.id || draft.id.startsWith("match-")) return;
-
-      const initialMatch = initialState.find(m => m.matchId === draft.id);
-      const serverMatch = serverData.find(m => m.matchId === draft.id);
-
-      // 初期状態かサーバーデータがない場合はスキップ
-      if (!initialMatch || !serverMatch) return;
-
-      const directConflicts: typeof conflicts[0]['directConflicts'] = {};
-      const serverOnlyChanges: typeof conflicts[0]['serverOnlyChanges'] = {};
-      let hasAnyConflict = false;
-
-      // この試合の却下済み変更を取得
-      const rejectedForMatch = rejectedChanges[draft.id] || {};
-
-      // === courtId のチェック ===
-      const userChangedCourtId = draft.courtId !== initialMatch.courtId;
-      const serverChangedCourtId = serverMatch.courtId !== initialMatch.courtId;
-      const isCourtIdRejected = rejectedForMatch.courtId === serverMatch.courtId;
-
-      if (userChangedCourtId && serverChangedCourtId && draft.courtId !== serverMatch.courtId && !isCourtIdRejected) {
-        // 直接競合: 両方が異なる値に変更（却下済みでない場合のみ）
-        directConflicts.courtId = { draft: draft.courtId, server: serverMatch.courtId };
-        hasAnyConflict = true;
-      } else if (!userChangedCourtId && serverChangedCourtId && !isCourtIdRejected) {
-        // 間接競合: 他端末のみが変更（却下済みでない場合のみ）
-        serverOnlyChanges.courtId = { initial: initialMatch.courtId, server: serverMatch.courtId };
-        hasAnyConflict = true;
-      }
-
-      // === round のチェック ===
-      const userChangedRound = draft.round !== initialMatch.round;
-      const serverChangedRound = serverMatch.round !== initialMatch.round;
-      const isRoundRejected = rejectedForMatch.round === serverMatch.round;
-
-      if (userChangedRound && serverChangedRound && draft.round !== serverMatch.round && !isRoundRejected) {
-        directConflicts.round = { draft: draft.round, server: serverMatch.round };
-        hasAnyConflict = true;
-      } else if (!userChangedRound && serverChangedRound && !isRoundRejected) {
-        serverOnlyChanges.round = { initial: initialMatch.round, server: serverMatch.round };
-        hasAnyConflict = true;
-      }
-
-      // === 選手A のチェック ===
-      const userChangedPlayerA = draft.playerAId !== initialMatch.players.playerA.playerId;
-      const serverChangedPlayerA = serverMatch.players.playerA.playerId !== initialMatch.players.playerA.playerId;
-      const isPlayerARejected = rejectedForMatch.playerA === serverMatch.players.playerA.playerId;
-
-      if (userChangedPlayerA && serverChangedPlayerA && draft.playerAId !== serverMatch.players.playerA.playerId && !isPlayerARejected) {
-        const draftPlayerAName = findPlayerInfo(draft.playerATeamId, draft.playerAId, teamsData)?.displayName || "";
-        const serverPlayerAName = serverMatch.players.playerA.displayName;
-        directConflicts.playerA = { draft: draftPlayerAName, server: serverPlayerAName };
-        hasAnyConflict = true;
-      } else if (!userChangedPlayerA && serverChangedPlayerA && !isPlayerARejected) {
-        const initialPlayerAName = initialMatch.players.playerA.displayName;
-        const serverPlayerAName = serverMatch.players.playerA.displayName;
-        serverOnlyChanges.playerA = { initial: initialPlayerAName, server: serverPlayerAName };
-        hasAnyConflict = true;
-      }
-
-      // === 選手B のチェック ===
-      const userChangedPlayerB = draft.playerBId !== initialMatch.players.playerB.playerId;
-      const serverChangedPlayerB = serverMatch.players.playerB.playerId !== initialMatch.players.playerB.playerId;
-      const isPlayerBRejected = rejectedForMatch.playerB === serverMatch.players.playerB.playerId;
-
-      if (userChangedPlayerB && serverChangedPlayerB && draft.playerBId !== serverMatch.players.playerB.playerId && !isPlayerBRejected) {
-        const draftPlayerBName = findPlayerInfo(draft.playerBTeamId, draft.playerBId, teamsData)?.displayName || "";
-        const serverPlayerBName = serverMatch.players.playerB.displayName;
-        directConflicts.playerB = { draft: draftPlayerBName, server: serverPlayerBName };
-        hasAnyConflict = true;
-      } else if (!userChangedPlayerB && serverChangedPlayerB && !isPlayerBRejected) {
-        const initialPlayerBName = initialMatch.players.playerB.displayName;
-        const serverPlayerBName = serverMatch.players.playerB.displayName;
-        serverOnlyChanges.playerB = { initial: initialPlayerBName, server: serverPlayerBName };
-        hasAnyConflict = true;
-      }
-
-      // score/hansoku は競合として扱わない（自動マージ）
-
-      if (hasAnyConflict) {
-        conflicts.push({
-          matchId: draft.id,
-          directConflicts,
-          serverOnlyChanges,
-        });
-      }
-    });
-
-    return conflicts;
   };
 
   // 実際の保存処理
@@ -531,22 +413,6 @@ export default function MatchSetupPage() {
     setUpdateDialogOpen(false);
   };
 
-  // ヘルパー関数: 選手情報を検索
-  const findPlayerInfo = (teamId: string, playerId: string, teamsData: typeof teams) => {
-    const team = teamsData.find(t => t.teamId === teamId);
-    if (!team) return null;
-
-    const player = team.players.find(p => p.playerId === playerId);
-    if (!player) return null;
-
-    return {
-      displayName: player.displayName,
-      playerId: player.playerId,
-      teamId: team.teamId,
-      teamName: team.teamName,
-    };
-  };
-
   const isLoading = authLoading || teamsLoading || matchesLoading || tournamentLoading;
   const isSaving = createMatchesMutation.isPending || updateMatchMutation.isPending || deleteMatchesMutation.isPending;
   const hasError = teamsError || matchesError || tournamentError;
@@ -565,45 +431,10 @@ export default function MatchSetupPage() {
   }, [initialMatches, matches]);
 
   // detectedChanges を conflicts 形式に変換（更新ダイアログ用）
-  const updateConflicts = useMemo(() => {
-    type ConflictType = Array<{
-      matchId: string;
-      directConflicts: {
-        courtId?: { draft: string; server: string };
-        round?: { draft: string; server: string };
-        playerA?: { draft: string; server: string };
-        playerB?: { draft: string; server: string };
-      };
-      serverOnlyChanges: {
-        courtId?: { initial: string; server: string };
-        round?: { initial: string; server: string };
-        playerA?: { initial: string; server: string };
-        playerB?: { initial: string; server: string };
-      };
-    }>;
-
-    const conflicts: ConflictType = [];
-
-    Object.entries(detectedChanges).forEach(([matchId, changes]) => {
-      const serverOnlyChanges: ConflictType[0]['serverOnlyChanges'] = {};
-
-      Object.entries(changes).forEach(([fieldName, change]) => {
-        if (fieldName === "courtId" || fieldName === "round" || fieldName === "playerA" || fieldName === "playerB") {
-          serverOnlyChanges[fieldName] = change;
-        }
-      });
-
-      if (Object.keys(serverOnlyChanges).length > 0) {
-        conflicts.push({
-          matchId,
-          directConflicts: {},
-          serverOnlyChanges,
-        });
-      }
-    });
-
-    return conflicts;
-  }, [detectedChanges]);
+  const updateConflicts = useMemo(
+    () => convertDetectedChangesToConflicts(detectedChanges),
+    [detectedChanges]
+  );
 
   // 大会が選択されていない場合
   if (needsTournamentSelection) {
