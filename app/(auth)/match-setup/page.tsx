@@ -25,6 +25,7 @@ import {
   convertDetectedChangesToConflicts,
   type MatchSetupData,
   type ConflictDetails,
+  type DetectedChanges,
 } from "@/lib/utils/match-conflict-detection";
 
 export default function MatchSetupPage() {
@@ -52,13 +53,11 @@ export default function MatchSetupPage() {
     }
   }, [realtimeMatches, isInitialized]);
 
-  // 却下された変更を記憶（matchId -> フィールド名 -> サーバー値 のマップ）
-  // 例: { "match-123": { "courtId": "Court A", "round": "決勝" } }
+  // 却下された変更を記憶
   const [rejectedChanges, setRejectedChanges] = useState<Record<string, Record<string, string>>>({});
 
-  // リアルタイムで検出された他端末の変更（視覚化用）
-  // matchId -> フィールド名 -> { initial, server } のマップ
-  const [detectedChanges, setDetectedChanges] = useState<Record<string, Record<string, { initial: string; server: string }>>>({});
+  // リアルタイムで検出された他端末の変更
+  const [detectedChanges, setDetectedChanges] = useState<DetectedChanges>({});
 
   // 自分の保存直後かどうかのフラグ（保存直後は差分検出をスキップ）
   const [justSaved, setJustSaved] = useState(false);
@@ -78,14 +77,12 @@ export default function MatchSetupPage() {
     return () => clearTimeout(timer);
   }, [justSaved, realtimeMatches]);
 
-  // リアルタイム監視: 他端末の変更を検出して detectedChanges に格納
+  // リアルタイム監視: 他端末の変更を検出
   useEffect(() => {
     if (initialMatches.length === 0 || realtimeMatches.length === 0) return;
-
-    // 保存直後は差分検出をスキップ（自分の変更を誤検知しない）
     if (justSaved) return;
 
-    const changes: Record<string, Record<string, { initial: string; server: string }>> = {};
+    const changes: DetectedChanges = {};
 
     realtimeMatches.forEach(serverMatch => {
       const matchId = serverMatch.matchId;
@@ -137,7 +134,6 @@ export default function MatchSetupPage() {
     setDetectedChanges(changes);
   }, [initialMatches, realtimeMatches, rejectedChanges, justSaved]);
 
-  // Firebase操作のフック
   const createMatchesMutation = useCreateMatches();
   const updateMatchMutation = useUpdateMatch();
   const deleteMatchesMutation = useDeleteMatches();
@@ -153,17 +149,14 @@ export default function MatchSetupPage() {
     pendingSaveData: null,
   });
 
-  // 更新確認ダイアログの開閉状態（更新ボタンクリック時に表示）
+  // 更新確認ダイアログの開閉状態
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
 
-  const handleSave = async (
-    matchSetupData: MatchSetupData[]
-  ) => {
-    // 保存処理開始時点でフラグを立てる（一瞬の赤枠表示を防ぐ）
+  const handleSave = async (matchSetupData: MatchSetupData[]) => {
     setJustSaved(true);
-    setDetectedChanges({}); // 既存の差分をクリア
+    setDetectedChanges({});
 
-    // Step 1: 差分検出（自分の編集 vs 他端末の編集）
+    // 競合検出
     const conflicts = detectMatchConflicts(
       matchSetupData,
       initialMatches,

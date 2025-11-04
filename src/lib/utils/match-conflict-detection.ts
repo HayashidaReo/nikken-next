@@ -44,6 +44,15 @@ export type PlayerInfo = {
 };
 
 /**
+ * リアルタイム監視で検出された変更の型
+ * matchId -> フィールド名 -> { initial, server } のマップ
+ */
+export type DetectedChanges = Record<
+    string,
+    Record<string, { initial: string; server: string }>
+>;
+
+/**
  * チームデータから選手情報を検索する
  * 
  * @param teamId - チームID
