@@ -53,20 +53,23 @@ export default function MatchSetupPage() {
     }
   }, [realtimeMatches, isInitialized]);
 
-  // 却下された変更を記憶
+  // 却下された変更を記憶（matchId -> フィールド名 -> 却下時のサーバー値）
+  // 同じ値で再度通知されないようにするため
   const [rejectedChanges, setRejectedChanges] = useState<Record<string, Record<string, string>>>({});
 
-  // リアルタイムで検出された他端末の変更
+  // リアルタイムで検出された他端末の変更（赤枠表示用）
   const [detectedChanges, setDetectedChanges] = useState<DetectedChanges>({});
 
-  // 自分の保存直後かどうかのフラグ（保存直後は差分検出をスキップ）
+  // 自分の保存直後は差分検出をスキップするためのフラグ
   const [justSaved, setJustSaved] = useState(false);
 
-  // 保存後に initialMatches を更新するための useEffect
+  // 保存後の initialMatches 更新ロジック
+  // 自分の保存内容が「他端末の変更」として誤検知されないようにする
   useEffect(() => {
     if (!justSaved || realtimeMatches.length === 0) return;
 
-    // 保存後、realtimeMatches が更新されたら即座に initialMatches を同期
+    // realtimeMatches が更新されたら即座に initialMatches を同期
+    // これにより、次回の差分検出では自分の変更が検出されない
     setInitialMatches([...realtimeMatches]);
 
     // フラグ解除は少し遅らせる（確実に同期が完了してから）
@@ -77,7 +80,8 @@ export default function MatchSetupPage() {
     return () => clearTimeout(timer);
   }, [justSaved, realtimeMatches]);
 
-  // リアルタイム監視: 他端末の変更を検出
+  // リアルタイム監視: 他端末の変更を検出して赤枠表示
+  // initialMatches（基準点）と realtimeMatches（最新）を比較
   useEffect(() => {
     if (initialMatches.length === 0 || realtimeMatches.length === 0) return;
     if (justSaved) return;
@@ -91,12 +95,10 @@ export default function MatchSetupPage() {
       const initialMatch = initialMatches.find(m => m.matchId === matchId);
       if (!initialMatch) return;
 
-      // 却下済みの変更はスキップ
       const rejected = rejectedChanges[matchId] || {};
-
       const matchChanges: Record<string, { initial: string; server: string }> = {};
 
-      // courtId のチェック
+      // 各フィールドが変更されているかチェック（却下済みは除外）
       if (serverMatch.courtId !== initialMatch.courtId && rejected.courtId !== serverMatch.courtId) {
         matchChanges.courtId = { initial: initialMatch.courtId, server: serverMatch.courtId };
       }
@@ -153,10 +155,11 @@ export default function MatchSetupPage() {
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
 
   const handleSave = async (matchSetupData: MatchSetupData[]) => {
+    // 保存開始時点でフラグを立て、差分検出を一時停止
     setJustSaved(true);
     setDetectedChanges({});
 
-    // 競合検出
+    // 3点比較で競合を検出（初期状態 vs ユーザー編集 vs サーバー最新）
     const conflicts = detectMatchConflicts(
       matchSetupData,
       initialMatches,
@@ -166,8 +169,6 @@ export default function MatchSetupPage() {
     );
 
     if (conflicts.length > 0) {
-      // 競合がある場合はダイアログ表示
-      // フラグはそのまま維持（ダイアログを閉じるまで差分検出しない）
       setConflictDialog({
         open: true,
         conflicts,
@@ -176,14 +177,11 @@ export default function MatchSetupPage() {
       return;
     }
 
-    // Step 2: 競合がない場合は直接保存
     await executeSave(matchSetupData);
   };
 
-  // 実際の保存処理
   const executeSave = async (matchSetupData: MatchSetupData[]) => {
     try {
-      // 1. 既存試合のIDセットを作成（undefined を除外）
       const existingMatchIds = new Set(
         realtimeMatches.map(m => m.matchId).filter((id): id is string => Boolean(id))
       );
@@ -191,18 +189,17 @@ export default function MatchSetupPage() {
         matchSetupData.map(d => d.id).filter(id => id && !id.startsWith("match-"))
       );
 
-      // 2. 削除対象の試合を特定（既存にあるがセットアップデータにない試合）
+      // 削除対象の試合
       const matchesToDelete = Array.from(existingMatchIds).filter(id => !setupMatchIds.has(id));
       if (matchesToDelete.length > 0) {
         await deleteMatchesMutation.mutateAsync(matchesToDelete);
       }
 
-      // 3. 更新対象と新規作成対象に分ける
+      // 更新対象と新規作成対象に分類
       const matchesToUpdate: Array<{ matchId: string; data: MatchSetupData }> = [];
       const matchesToCreate: MatchSetupData[] = [];
 
       matchSetupData.forEach(setupData => {
-        // id が存在し、かつ "match-" で始まらない場合は既存試合
         if (setupData.id && !setupData.id.startsWith("match-") && existingMatchIds.has(setupData.id)) {
           matchesToUpdate.push({ matchId: setupData.id, data: setupData });
         } else {
@@ -210,13 +207,12 @@ export default function MatchSetupPage() {
         }
       });
 
-      // 4. 既存試合を更新（Transaction 使用 + score/hansoku を realtimeMatches から取得）
+      // 既存試合を更新
+      // 重要: score/hansoku は他端末で更新されている可能性があるため、
+      // リアルタイムの最新値を使用する（Transaction で自動マージ）
       for (const { matchId, data: setupData } of matchesToUpdate) {
-        // リアルタイム購読データから最新の score/hansoku を取得
         const latestMatch = realtimeMatches.find(m => m.matchId === matchId);
         if (!latestMatch) continue;
-
-        // 選手AとBの新しい情報を取得
         const playerA = findPlayerInfo(setupData.playerATeamId, setupData.playerAId, teams);
         const playerB = findPlayerInfo(setupData.playerBTeamId, setupData.playerBId, teams);
 
@@ -239,23 +235,23 @@ export default function MatchSetupPage() {
                 playerId: playerA.playerId,
                 teamId: playerA.teamId,
                 teamName: playerA.teamName,
-                score: latestMatch.players.playerA.score, // リアルタイムの最新値
-                hansoku: latestMatch.players.playerA.hansoku, // リアルタイムの最新値
+                score: latestMatch.players.playerA.score,
+                hansoku: latestMatch.players.playerA.hansoku,
               },
               playerB: {
                 displayName: playerB.displayName,
                 playerId: playerB.playerId,
                 teamId: playerB.teamId,
                 teamName: playerB.teamName,
-                score: latestMatch.players.playerB.score, // リアルタイムの最新値
-                hansoku: latestMatch.players.playerB.hansoku, // リアルタイムの最新値
+                score: latestMatch.players.playerB.score,
+                hansoku: latestMatch.players.playerB.hansoku,
               },
             },
           },
         });
       }
 
-      // 5. 新規試合を作成
+      // 新規試合を作成
       if (matchesToCreate.length > 0) {
         const newMatches: MatchCreate[] = matchesToCreate.map(setupData => {
           const playerA = findPlayerInfo(setupData.playerATeamId, setupData.playerAId, teams);
@@ -298,10 +294,6 @@ export default function MatchSetupPage() {
       const totalCount = matchesToUpdate.length + matchesToCreate.length;
       showSuccess(`${totalCount}件の試合を設定しました`);
 
-      // justSaved フラグは handleSave で既に設定済み
-      // この後、realtimeMatches が更新されたタイミングで initialMatches も自動更新される
-
-      // ダイアログを閉じる
       setConflictDialog({ open: false, conflicts: [], pendingSaveData: null });
     } catch (error) {
       console.error("試合設定の保存に失敗:", error);
@@ -313,27 +305,22 @@ export default function MatchSetupPage() {
     }
   };
 
-  // 競合ダイアログでの「保存する」アクション
   const handleConflictConfirm = async () => {
     if (!conflictDialog.pendingSaveData) return;
     await executeSave(conflictDialog.pendingSaveData);
   };
 
-  // 競合ダイアログでの「キャンセル」アクション
   const handleConflictCancel = () => {
-    // キャンセル時はフラグを解除（差分検出を再開）
     setJustSaved(false);
     setConflictDialog({ open: false, conflicts: [], pendingSaveData: null });
   };
-
-  // 更新ボタンをクリックした時の処理
   const handleUpdateClick = () => {
     setUpdateDialogOpen(true);
   };
 
-  // 全ての変更をマージ（受け入れる）
   const handleFieldMerge = () => {
-    // 全ての detectedChanges をマージ
+    // 他端末の変更を受け入れる
+    // initialMatches を更新することで、テーブルの表示も自動的に更新される
     setInitialMatches(prev => {
       return prev.map(match => {
         const matchId = match.matchId;
@@ -347,7 +334,7 @@ export default function MatchSetupPage() {
 
         let updatedMatch = { ...match };
 
-        // 各フィールドをサーバーの値で更新
+        // 変更されたフィールドをサーバーの値で上書き
         if (changes.courtId) {
           updatedMatch.courtId = serverMatch.courtId;
         }
@@ -377,15 +364,13 @@ export default function MatchSetupPage() {
       });
     });
 
-    // detectedChanges をクリア（赤枠を全て消す）
     setDetectedChanges({});
-
     setUpdateDialogOpen(false);
   };
 
-  // 全ての変更を却下
   const handleFieldReject = () => {
-    // 全ての detectedChanges を rejectedChanges に記録
+    // 他端末の変更を却下する
+    // rejectedChanges に記録することで、同じ値での再通知を防ぐ
     const newRejectedChanges: Record<string, Record<string, string>> = { ...rejectedChanges };
 
     Object.entries(detectedChanges).forEach(([matchId, changes]) => {
@@ -400,9 +385,7 @@ export default function MatchSetupPage() {
 
     setRejectedChanges(newRejectedChanges);
 
-    // detectedChanges をクリア（赤枠を全て消す）
     setDetectedChanges({});
-
     setUpdateDialogOpen(false);
   };
 
