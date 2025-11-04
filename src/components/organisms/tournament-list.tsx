@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
@@ -11,12 +10,9 @@ import {
 } from "@/components/atoms/card";
 import { Badge } from "@/components/atoms/badge";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
-import {
-  useTournamentsByOrganization,
-  useDeleteTournament,
-} from "@/queries/use-tournaments";
-import { useToast } from "@/components/providers/notification-provider";
-import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+import { useTournamentsByOrganization } from "@/queries/use-tournaments";
+import { TournamentDeleteConfirmationDialog } from "@/components/molecules/tournament-delete-confirmation-dialog";
+import { useTournamentListManagement } from "@/hooks/useTournamentListManagement";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
@@ -42,39 +38,20 @@ export function TournamentList({
     isLoading,
     error,
   } = useTournamentsByOrganization(orgId);
-  const { mutate: deleteTournament, isPending: isDeleting } =
-    useDeleteTournament();
-  const { showSuccess, showError } = useToast();
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    isOpen: boolean;
-    tournament: Tournament | null;
-  }>({ isOpen: false, tournament: null });
 
-  const handleDeleteClick = (tournament: Tournament, e: React.MouseEvent) => {
-    e.stopPropagation(); // カード選択を防ぐ
-    setDeleteConfirm({ isOpen: true, tournament });
-  };
+  // 削除管理専用フック
+  const {
+    deleteConfirm,
+    isDeleting,
+    handleDeleteClick,
+    handleDeleteConfirm,
+    handleDeleteCancel,
+  } = useTournamentListManagement();
 
-  const handleDeleteConfirm = () => {
-    if (!deleteConfirm.tournament?.tournamentId || !orgId) return;
-
-    deleteTournament(
-      {
-        orgId,
-        tournamentId: deleteConfirm.tournament.tournamentId,
-      },
-      {
-        onSuccess: () => {
-          showSuccess(
-            `「${deleteConfirm.tournament?.tournamentName}」を削除しました`
-          );
-          setDeleteConfirm({ isOpen: false, tournament: null });
-        },
-        onError: error => {
-          showError(`大会の削除に失敗しました: ${error.message}`);
-        },
-      }
-    );
+  const onDeleteConfirm = () => {
+    if (orgId) {
+      handleDeleteConfirm(orgId);
+    }
   };
 
   if (isLoading) {
@@ -156,7 +133,10 @@ export function TournamentList({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={e => handleDeleteClick(tournament, e)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick(tournament);
+                    }}
                     disabled={isDeleting}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-2"
                   >
@@ -174,15 +154,11 @@ export function TournamentList({
         )}
       </div>
 
-      <ConfirmDialog
+      <TournamentDeleteConfirmationDialog
         isOpen={deleteConfirm.isOpen}
-        onCancel={() => setDeleteConfirm({ isOpen: false, tournament: null })}
-        onConfirm={handleDeleteConfirm}
-        title="大会を削除"
-        message={`「${deleteConfirm.tournament?.tournamentName}」を削除してもよろしいですか？この操作は元に戻せません。`}
-        confirmText="削除"
-        cancelText="キャンセル"
-        variant="destructive"
+        tournament={deleteConfirm.tournament}
+        onCancel={handleDeleteCancel}
+        onConfirm={() => onDeleteConfirm()}
       />
     </div>
   );

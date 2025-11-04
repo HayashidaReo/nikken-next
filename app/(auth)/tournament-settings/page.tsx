@@ -11,6 +11,7 @@ import { AuthenticatedHeader } from "@/components/organisms/authenticated-header
 import { TournamentList } from "@/components/organisms/tournament-list";
 import { TournamentForm } from "@/components/organisms/tournament-form";
 import { TournamentFormPlaceholder } from "@/components/organisms/tournament-form-placeholder";
+import { TournamentSettingsLayout } from "@/components/templates/tournament-settings-layout";
 import { useTournamentSettings } from "@/hooks/useTournamentSettings";
 import type { TournamentWithId } from "@/types/tournament.schema";
 
@@ -108,29 +109,28 @@ export default function TournamentSettingsPage() {
             subtitle="大会の編集・新規追加・削除を行う管理画面"
           />
 
-          <div className="mt-8 flex gap-8">
-            {/* 左側: 大会一覧エリア */}
-            <TournamentList
-              orgId={orgId}
-              selectedTournamentId={selectedTournamentId}
-              onTournamentSelect={handleSelectTournament}
-              onNewTournament={handleStartNew}
-              className="w-1/3"
-            />
-
-            {/* 右側: 大会詳細フォーム */}
-            {selectedTournament || isAddingNew ? (
-              <TournamentForm
-                formData={formData}
-                isAddingNew={isAddingNew}
-                onFormChange={handleFormChange}
-                onSave={handleSave}
-                className="flex-1"
+          <TournamentSettingsLayout
+            leftPanel={
+              <TournamentList
+                orgId={orgId}
+                selectedTournamentId={selectedTournamentId}
+                onTournamentSelect={handleSelectTournament}
+                onNewTournament={handleStartNew}
               />
-            ) : (
-              <TournamentFormPlaceholder className="flex-1" />
-            )}
-          </div>
+            }
+            rightPanel={
+              selectedTournament || isAddingNew ? (
+                <TournamentForm
+                  formData={formData}
+                  isAddingNew={isAddingNew}
+                  onFormChange={handleFormChange}
+                  onSave={handleSave}
+                />
+              ) : (
+                <TournamentFormPlaceholder />
+              )
+            }
+          />
         </div>
       </div>
     </AuthGuardWrapper>
