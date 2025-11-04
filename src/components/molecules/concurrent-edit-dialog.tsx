@@ -31,6 +31,7 @@ interface ConcurrentEditDialogProps {
     conflicts: ConflictDetails[];
     onConfirm: () => void;
     onCancel: () => void;
+    mode?: "save" | "field"; // 保存時 or フィールドタップ時
 }
 
 /**
@@ -42,6 +43,7 @@ export function ConcurrentEditDialog({
     conflicts,
     onConfirm,
     onCancel,
+    mode = "save",
 }: ConcurrentEditDialogProps) {
     if (conflicts.length === 0) return null;
 
@@ -260,15 +262,31 @@ export function ConcurrentEditDialog({
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={onCancel}>
-                        キャンセル
-                    </Button>
-                    <Button
-                        onClick={onConfirm}
-                        variant="destructive"
-                    >
-                        このまま保存する
-                    </Button>
+                    {mode === "save" ? (
+                        <>
+                            <Button variant="outline" onClick={onCancel}>
+                                キャンセル（編集を破棄）
+                            </Button>
+                            <Button
+                                onClick={onConfirm}
+                                variant="destructive"
+                            >
+                                このまま保存する
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button variant="outline" onClick={onCancel}>
+                                却下（今後通知しない）
+                            </Button>
+                            <Button
+                                onClick={onConfirm}
+                                variant="default"
+                            >
+                                マージ（変更を受け入れる）
+                            </Button>
+                        </>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
