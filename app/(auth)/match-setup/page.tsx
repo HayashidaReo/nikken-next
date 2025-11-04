@@ -361,8 +361,14 @@ export default function MatchSetupPage() {
     setJustSaved(false);
     setConflictDialog({ open: false, conflicts: [], pendingSaveData: null });
   };
+
   const handleUpdateClick = () => {
     setUpdateDialogOpen(true);
+  };
+
+  const handleUpdateDialogCancel = () => {
+    // ×ボタンで閉じた場合は、ダイアログを閉じるだけ（却下はしない）
+    setUpdateDialogOpen(false);
   };
 
   const handleFieldMerge = () => {
@@ -585,7 +591,8 @@ export default function MatchSetupPage() {
           addedMatches={detectedChanges.addedMatches}
           deletedMatches={detectedChanges.deletedMatches}
           onConfirm={handleFieldMerge}
-          onCancel={handleFieldReject}
+          onReject={handleFieldReject}
+          onCancel={handleUpdateDialogCancel}
         />
       </div>
     </MainLayout>

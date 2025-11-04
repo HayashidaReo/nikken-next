@@ -39,6 +39,7 @@ interface MatchSetupUpdateDialogProps {
     addedMatches?: Match[];
     deletedMatches?: Match[];
     onConfirm: () => void;
+    onReject: () => void;
     onCancel: () => void;
 }
 
@@ -52,6 +53,7 @@ export function MatchSetupUpdateDialog({
     addedMatches = [],
     deletedMatches = [],
     onConfirm,
+    onReject,
     onCancel,
 }: MatchSetupUpdateDialogProps) {
     const hasAnyChanges = conflicts.length > 0 || addedMatches.length > 0 || deletedMatches.length > 0;
@@ -83,7 +85,7 @@ export function MatchSetupUpdateDialog({
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={onCancel}>
+                    <Button variant="outline" onClick={onReject}>
                         却下（今後通知しない）
                     </Button>
                     <Button onClick={onConfirm}>マージ（変更を受け入れる）</Button>
