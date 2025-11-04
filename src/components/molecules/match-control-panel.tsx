@@ -6,6 +6,7 @@ import { Switch } from "@/components/atoms/switch";
 import { Label } from "@/components/atoms/label";
 import { Save } from "lucide-react";
 import { useToast } from "@/components/providers/notification-provider";
+import { useMonitorStore } from "@/store/use-monitor-store";
 
 interface MatchControlPanelProps {
   isPublic: boolean;
@@ -25,6 +26,7 @@ export function MatchControlPanel({
   className,
 }: MatchControlPanelProps) {
   const { showSuccess } = useToast();
+  const isSaving = useMonitorStore((s) => s.isSaving);
 
   const handleSave = async () => {
     try {
@@ -50,9 +52,9 @@ export function MatchControlPanel({
             </Label>
           </div>
 
-          <Button onClick={handleSave} size="lg">
+          <Button onClick={handleSave} size="lg" disabled={isSaving} >
             <Save className="w-4 h-4 mr-2" />
-            試合結果を保存
+            {isSaving ? "保存中..." : "試合結果を保存"}
           </Button>
         </div>
       </CardContent>

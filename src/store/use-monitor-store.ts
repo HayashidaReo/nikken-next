@@ -28,6 +28,7 @@ interface MonitorState {
 
   // 表示制御
   isPublic: boolean; // 公開/非公開
+  isSaving: boolean; // 保存処理中フラグ
 
   // アクション
   initializeMatch: (
@@ -71,6 +72,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   timeRemaining: 180, // デフォルト3分
   isTimerRunning: false,
   isPublic: false,
+  isSaving: false,
 
   // アクション
   initializeMatch: (
@@ -185,6 +187,9 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     }
 
     try {
+      // 保存処理開始
+      set({ isSaving: true });
+
       // APIエンドポイントに部分更新データを送信
       const response = await fetch(`/api/matches/${currentState.matchId}`, {
         method: "PATCH",
@@ -220,6 +225,9 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     } catch (error) {
       console.error("Failed to save match result:", error);
       throw error;
+    } finally {
+      // 保存処理終了
+      set({ isSaving: false });
     }
   },
 }));
