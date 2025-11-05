@@ -19,6 +19,7 @@ import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { useAuthStore } from "@/store/use-auth-store";
 import { Calendar, MapPin, AlertCircle } from "lucide-react";
+import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils/utils";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
 import { Tournament } from "@/types/tournament.schema";
@@ -171,7 +172,7 @@ export function TournamentSelectionDialog({
             {tournaments.length === 0 && !isLoading && !error && (
               <Button
                 variant="outline"
-                onClick={() => (window.location.href = "/tournament-settings")}
+                onClick={() => (window.location.href = ROUTES.TOURNAMENT_SETTINGS)}
                 className="w-full sm:w-auto"
               >
                 こちらから大会を作成してください

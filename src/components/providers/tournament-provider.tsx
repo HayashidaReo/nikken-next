@@ -6,6 +6,7 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { TournamentSelectionDialog } from "@/components/organisms/TournamentSelectionDialog";
+import { ROUTES } from "@/lib/constants";
 
 interface TournamentProviderProps {
   children: React.ReactNode;
@@ -25,8 +26,7 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
     useActiveTournament();
 
   // 大会設定画面ではダイアログを表示しない
-  const shouldDisableDialog =
-    pathname.includes("tournament-settings");
+  const shouldDisableDialog = pathname.includes(ROUTES.TOURNAMENT_SETTINGS);
 
   // ダイアログ表示条件: ログイン済み＆大会未選択の場合は常に表示（大会設定画面場合は表示しない）
   const shouldShowDialog =

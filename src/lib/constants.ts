@@ -103,3 +103,10 @@ export const AUTH_CONSTANTS = {
   /** ログアウト後にリダイレクトするまでの待機時間（ミリ秒） */
   LOGOUT_REDIRECT_DELAY: 500,
 } as const;
+
+// 🛣️ ルートパス定数
+export const ROUTES = {
+  LOGIN: "/login",
+  DASHBOARD: "/dashboard",
+  TOURNAMENT_SETTINGS: "/tournament-settings",
+} as const;

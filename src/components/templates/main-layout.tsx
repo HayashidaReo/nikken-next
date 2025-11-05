@@ -19,7 +19,7 @@ import {
 } from "@/components/atoms/tabs";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { cn } from "@/lib/utils/utils";
-import { AUTH_CONSTANTS } from "@/lib/constants";
+import { AUTH_CONSTANTS, ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useToast } from "@/components/providers/notification-provider";
 import { TournamentSelector } from "@/components/molecules/TournamentSelector";
@@ -47,7 +47,7 @@ function Header() {
 
       // ログアウト後、ログイン画面にリダイレクト
       setTimeout(() => {
-        router.push("/login");
+        router.push(ROUTES.LOGIN);
       }, AUTH_CONSTANTS.LOGOUT_REDIRECT_DELAY);
     } catch {
       showError("ログアウトに失敗しました");
@@ -60,7 +60,7 @@ function Header() {
   };
 
   const handleManageTournaments = () => {
-    router.push("/tournament-settings");
+    router.push(ROUTES.TOURNAMENT_SETTINGS);
   };
 
   return (
