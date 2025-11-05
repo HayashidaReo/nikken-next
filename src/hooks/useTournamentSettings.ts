@@ -20,7 +20,7 @@ import { validateTournamentForm } from "@/lib/utils/tournament-validation";
 export function useTournamentSettings() {
     const { showSuccess, showError } = useToast();
     const { user } = useAuth();
-    const { activeTournamentId } = useActiveTournament();
+    const { activeTournamentId, setActiveTournament } = useActiveTournament();
     // ユーザーのUIDを組織IDとして使用
     const orgId = user?.uid || null;
 
@@ -146,6 +146,11 @@ export function useTournamentSettings() {
                                 ...prev,
                                 ...result.data,
                             }));
+
+                            // 大会が0件の時のみ、新規作成した大会をアクティブに設定
+                            if (tournaments.length === 0 && result.data.tournamentId) {
+                                setActiveTournament(result.data.tournamentId);
+                            }
                         },
                         onError: error => {
                             showError(
@@ -200,6 +205,8 @@ export function useTournamentSettings() {
         updateTournament,
         showSuccess,
         showError,
+        tournaments,
+        setActiveTournament,
     ]);
 
 
