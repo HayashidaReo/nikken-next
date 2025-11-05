@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const ACTIVE_TOURNAMENT_KEY = "activeTournamentId";
+const ACTIVE_TOURNAMENT_KEY = "active-tournament-storage";
 
 interface ActiveTournamentState {
     activeTournamentId: string | null;
@@ -19,11 +19,9 @@ export const useActiveTournamentStore = create<ActiveTournamentState>()(
     persist(
         (set) => ({
             activeTournamentId: null,
-
             setActiveTournament: (tournamentId: string | null) => {
                 set({ activeTournamentId: tournamentId });
             },
-
             clearActiveTournament: () => {
                 set({ activeTournamentId: null });
             },
@@ -53,3 +51,4 @@ export function useActiveTournament() {
         isLoading,
     };
 }
+
