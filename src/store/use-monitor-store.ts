@@ -150,7 +150,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       });
     }
 
-    //試合終了判定
+    // 試合終了判定
     if (isMatchEnded(hansoku, newOpponentScore)) {
       set({ isTimerRunning: false });
     }
