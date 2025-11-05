@@ -12,12 +12,12 @@ import {
   CollectionReference,
   DocumentSnapshot,
   QuerySnapshot,
-  QueryDocumentSnapshot,
   DocumentData,
 } from "firebase/firestore";
 import type { Unsubscribe } from "firebase/firestore";
 
 import { db } from "@/lib/firebase/client";
+import { tournamentDocsToTournaments } from "@/lib/utils/firestore-helpers";
 import {
   TournamentMapper,
   FirestoreTournamentDoc,
@@ -48,13 +48,7 @@ export class FirestoreTournamentRepository implements TournamentRepository {
   async listAll(): Promise<Tournament[]> {
     const q = query(this.collectionRef, orderBy("createdAt", "desc"));
     const snaps: QuerySnapshot<DocumentData> = await getDocs(q);
-    const tournaments: Tournament[] = snaps.docs.map(
-      (snap: QueryDocumentSnapshot<DocumentData>) => {
-        const data = snap.data() as FirestoreTournamentDoc;
-        return TournamentMapper.toDomain({ ...data, id: snap.id });
-      }
-    );
-    return tournaments;
+    return tournamentDocsToTournaments(snaps.docs);
   }
 
   async create(tournamentCreate: TournamentCreate): Promise<Tournament> {
@@ -105,12 +99,7 @@ export class FirestoreTournamentRepository implements TournamentRepository {
   listenAll(callback: (tournaments: Tournament[]) => void): Unsubscribe {
     const q = query(this.collectionRef, orderBy("createdAt", "desc"));
     return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-      const tournaments = snapshot.docs.map(
-        (snap: QueryDocumentSnapshot<DocumentData>) => {
-          const data = snap.data() as FirestoreTournamentDoc;
-          return TournamentMapper.toDomain({ ...data, id: snap.id });
-        }
-      );
+      const tournaments = tournamentDocsToTournaments(snapshot.docs);
       callback(tournaments);
     });
   }

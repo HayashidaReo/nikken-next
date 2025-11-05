@@ -16,6 +16,7 @@ import {
 import type { Unsubscribe } from "firebase/firestore";
 
 import { db } from "@/lib/firebase/client";
+import { teamDocsToTeams } from "@/lib/utils/firestore-helpers";
 import {
   TeamMapper,
   FirestoreTeamDoc,
@@ -50,11 +51,7 @@ export class FirestoreTeamRepository implements TeamRepository {
     const collectionRef = this.getCollectionRef(orgId, tournamentId);
     const q = query(collectionRef, orderBy("createdAt", "desc"));
     const snaps = await getDocs(q);
-    const teams: Team[] = snaps.docs.map((snap) => {
-      const data = snap.data() as FirestoreTeamDoc;
-      return TeamMapper.toDomain({ ...data, id: snap.id });
-    });
-    return teams;
+    return teamDocsToTeams(snaps.docs);
   }
 
   async create(orgId: string, tournamentId: string, team: TeamCreate): Promise<Team> {
@@ -98,10 +95,7 @@ export class FirestoreTeamRepository implements TeamRepository {
     const collectionRef = this.getCollectionRef(orgId, tournamentId);
     const q = query(collectionRef, orderBy("createdAt", "desc"));
     const unsub: Unsubscribe = onSnapshot(q, (snapshot) => {
-      const teams = snapshot.docs.map((d) => {
-        const data = d.data() as FirestoreTeamDoc;
-        return TeamMapper.toDomain({ ...data, id: d.id });
-      });
+      const teams = teamDocsToTeams(snapshot.docs);
       onChange(teams);
     });
     return () => unsub();

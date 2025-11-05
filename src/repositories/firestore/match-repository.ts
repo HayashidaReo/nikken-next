@@ -17,6 +17,8 @@ import {
 } from "firebase/firestore";
 import type { Unsubscribe } from "firebase/firestore";
 
+import { aggregateAndDedupMatches } from "@/lib/utils/firestore-helpers";
+
 import { db } from "@/lib/firebase/client";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 import {
@@ -207,7 +209,8 @@ export class FirestoreMatchRepository implements MatchRepository {
     async listByPlayerId(orgId: string, tournamentId: string, playerId: string): Promise<Match[]> {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
 
-        // PlayerAまたはPlayerBのどちらかに該当する選手を検索
+        // PlayerA または PlayerB のどちらかに該当する選手を検索
+        // 並列で2つのクエリを実行
         const [playerAQuery, playerBQuery] = await Promise.all([
             getDocs(query(
                 collectionRef,
@@ -221,33 +224,15 @@ export class FirestoreMatchRepository implements MatchRepository {
             ))
         ]);
 
-        const allMatches: Match[] = [];
-
-        playerAQuery.docs.forEach((snap) => {
-            const data = snap.data() as FirestoreMatchDoc;
-            allMatches.push(MatchMapper.toDomain({ ...data, id: snap.id }));
-        });
-
-        playerBQuery.docs.forEach((snap) => {
-            const data = snap.data() as FirestoreMatchDoc;
-            allMatches.push(MatchMapper.toDomain({ ...data, id: snap.id }));
-        });
-
-        // 重複を排除してソート
-        const uniqueMatches = allMatches.filter(
-            (match, index, self) =>
-                index === self.findIndex((m) => m.matchId === match.matchId)
-        );
-
-        return uniqueMatches.sort((a, b) =>
-            (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0)
-        );
+        // 複数クエリ結果を集約し、重複排除＋ソート
+        return aggregateAndDedupMatches([playerAQuery, playerBQuery]);
     }
 
     async listByTeamId(orgId: string, tournamentId: string, teamId: string): Promise<Match[]> {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
 
-        // TeamAまたはTeamBのどちらかに該当するチームを検索
+        // TeamA または TeamB のどちらかに該当するチームを検索
+        // 並列で2つのクエリを実行
         const [teamAQuery, teamBQuery] = await Promise.all([
             getDocs(query(
                 collectionRef,
@@ -261,27 +246,8 @@ export class FirestoreMatchRepository implements MatchRepository {
             ))
         ]);
 
-        const allMatches: Match[] = [];
-
-        teamAQuery.docs.forEach((snap) => {
-            const data = snap.data() as FirestoreMatchDoc;
-            allMatches.push(MatchMapper.toDomain({ ...data, id: snap.id }));
-        });
-
-        teamBQuery.docs.forEach((snap) => {
-            const data = snap.data() as FirestoreMatchDoc;
-            allMatches.push(MatchMapper.toDomain({ ...data, id: snap.id }));
-        });
-
-        // 重複を排除してソート
-        const uniqueMatches = allMatches.filter(
-            (match, index, self) =>
-                index === self.findIndex((m) => m.matchId === match.matchId)
-        );
-
-        return uniqueMatches.sort((a, b) =>
-            (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0)
-        );
+        // 複数クエリ結果を集約し、重複排除＋ソート
+        return aggregateAndDedupMatches([teamAQuery, teamBQuery]);
     }
 
     listenAll(orgId: string, tournamentId: string, onChange: (matches: Match[]) => void): () => void {
