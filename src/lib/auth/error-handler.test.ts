@@ -212,7 +212,7 @@ describe("AuthErrorHandler", () => {
 
         expect(consoleGroupSpy).toHaveBeenCalledWith("🔐 Auth Error in login");
         expect(consoleErrorSpy).toHaveBeenCalledWith("Error details:", error);
-        expect(consoleLogSpy).toHaveBeenCalledWith("Firebase Error Code:", "auth/user-not-found");
+        expect(consoleErrorSpy).toHaveBeenCalledWith("Firebase Error Code:", "auth/user-not-found");
         expect(consoleGroupEndSpy).toHaveBeenCalled();
       } else {
         // 本番環境ではスキップ
