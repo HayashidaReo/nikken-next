@@ -8,21 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/atoms/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/atoms/select";
 import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { useAuthStore } from "@/store/use-auth-store";
-import { Calendar, MapPin, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
-import { cn } from "@/lib/utils/utils";
-import { formatDateForDisplay } from "@/lib/utils/date-utils";
-import { Tournament } from "@/types/tournament.schema";
+import { TournamentSelectDropdown } from "@/components/atoms/tournament-select-dropdown";
 
 interface TournamentSelectionDialogProps {
   /** ダイアログの表示状態 */
@@ -116,56 +107,18 @@ export function TournamentSelectionDialog({
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-900">大会</label>
-            <Select
-              value={selectedTournamentId}
-              onValueChange={handleTournamentChange}
+            <TournamentSelectDropdown
+              tournaments={tournaments}
+              selectedId={selectedTournamentId}
+              onSelect={handleTournamentChange}
+              isLoading={isLoading}
+              isError={!!error}
+              placeholder="大会を選択してください"
+              showSelectedDetails={false}
+              triggerClassName="w-full border-gray-200"
+              contentMinWidth="min-w-[280px]"
               disabled={isLoading || !!error}
-            >
-              <SelectTrigger className={cn(
-                "w-full border-gray-200",
-                isLoading && "opacity-50"
-              )}>
-                <SelectValue
-                  placeholder={
-                    isLoading ? "読み込み中..." : "大会を選択してください"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className="border-none shadow-lg">
-                <div className="py-1">
-                  {tournaments
-                    .filter((tournament: Tournament) => tournament.tournamentId)
-                    .map((tournament: Tournament) => (
-                      <SelectItem
-                        key={tournament.tournamentId}
-                        value={tournament.tournamentId!}
-                        className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100 rounded-md"
-                      >
-                        <div className="flex flex-col py-1">
-                          <span className="font-semibold text-gray-900 text-sm leading-snug">
-                            {tournament.tournamentName}
-                          </span>
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-0.5">
-                            <span className="flex items-center gap-0.5">
-                              <Calendar className="h-3 w-3 text-gray-500" />
-                              {formatDateForDisplay(tournament.tournamentDate)}
-                            </span>
-                            <span className="flex items-center gap-0.5">
-                              <MapPin className="h-3 w-3 text-gray-500" />
-                              {tournament.location}
-                            </span>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  {tournaments.length === 0 && !isLoading && !error && (
-                    <div className="p-2 text-sm text-center text-gray-500">
-                      <p className="font-medium">利用可能な大会がありません</p>
-                    </div>
-                  )}
-                </div>
-              </SelectContent>
-            </Select>
+            />
           </div>
 
           <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-2">

@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils/utils";
 import { AUTH_CONSTANTS, ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useToast } from "@/components/providers/notification-provider";
-import { TournamentSelector } from "@/components/molecules/TournamentSelector";
+import { HeaderTournamentSelector } from "@/components/molecules/header-tournament-selector";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -82,7 +82,7 @@ function Header() {
           {/* 右側：大会選択と設定ボタン */}
           <div className="flex items-center space-x-4">
             {/* 大会選択ドロップダウン */}
-            <TournamentSelector onManageClick={handleManageTournaments} />
+            <HeaderTournamentSelector onManageClick={handleManageTournaments} />
 
             <div className="flex items-center">
               <TooltipProvider delayDuration={20}>

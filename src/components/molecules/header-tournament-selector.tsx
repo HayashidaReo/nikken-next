@@ -59,7 +59,7 @@ export function HeaderTournamentSelector({
 
   return (
     <div className={cn("flex items-center", className)}>
-      {/* Header 用 大会選択ドロップダウン（大会管理メニュー付き） */}
+  {/* Header 用 大会選択ドロップダウン（大会管理メニュー付き） */}
       <Select
         value={activeTournamentId || ""}
         onValueChange={handleTournamentChange}
