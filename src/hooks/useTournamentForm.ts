@@ -3,7 +3,7 @@
  * useTournamentSettings から分離したフォーム処理専用フック
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import type { TournamentFormData } from "@/types/tournament.schema";
 import type { Tournament } from "@/types/tournament.schema";
 import {
@@ -118,14 +118,6 @@ export function useTournamentForm(
             return newErrors;
         });
     }, []);
-
-    /**
-     * initialTournamentが変更された場合、フォームデータを更新
-     */
-    useEffect(() => {
-        // 外部ソース（initialTournament）からのデータ同期のみを目的とする
-        // このeffectでは単にフォームデータを初期化するだけ
-    }, []); // 初期化時のみ実行
 
     return {
         formData,
