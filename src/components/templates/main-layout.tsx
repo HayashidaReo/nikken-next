@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/atoms/tooltip";
+import {
   Tabs,
   TabsList,
   TabsTrigger,
@@ -67,11 +73,24 @@ function Header() {
             {/* 大会選択ドロップダウン */}
             <TournamentSelector onManageClick={handleManageTournaments} />
 
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                ログアウト
-              </Button>
+            <div className="flex items-center">
+              <TooltipProvider delayDuration={20}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleLogout}
+                      aria-label="ログアウト"
+                    >
+                      <LogOut className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="center" sideOffset={5}>
+                    <p>ログアウト</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
