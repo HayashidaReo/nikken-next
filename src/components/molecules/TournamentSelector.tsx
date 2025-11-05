@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/atoms/select";
-import { useActiveTournament } from "@/hooks/useActiveTournament";
+import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { useAuthStore } from "@/store/use-auth-store";
 import { Settings, ChevronDown } from "lucide-react";

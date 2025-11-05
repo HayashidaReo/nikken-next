@@ -4,6 +4,7 @@ import { useTournament } from "@/queries/use-tournaments";
 import { Card, CardContent } from "@/components/atoms/card";
 import { CalendarIcon, MapPinIcon, TrophyIcon, InfoIcon } from "lucide-react";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
+import { InfoDisplay } from "@/components/molecules/info-display";
 
 interface TournamentInfoBannerProps {
   orgId: string;
@@ -43,14 +44,11 @@ export function TournamentInfoBanner({
   if (error) {
     return (
       <div className="max-w-4xl mx-auto mb-8">
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-6">
-            <div className="flex items-center text-red-600">
-              <InfoIcon className="h-5 w-5 mr-2" />
-              <span>大会情報の取得に失敗しました</span>
-            </div>
-          </CardContent>
-        </Card>
+        <InfoDisplay
+          variant="destructive"
+          title="大会情報の取得に失敗しました"
+          message={error?.message || "大会情報の取得に失敗しました"}
+        />
       </div>
     );
   }

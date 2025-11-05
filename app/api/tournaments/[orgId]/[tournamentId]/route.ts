@@ -138,3 +138,65 @@ export async function PUT(
     );
   }
 }
+
+/**
+ * 大会削除API Route
+ * DELETE /api/tournaments/[orgId]/[tournamentId]
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ orgId: string; tournamentId: string }> }
+) {
+  try {
+    // TODO: 認証チェック実装
+
+    const { orgId, tournamentId } = await params;
+
+    // パラメータのバリデーション
+    if (!orgId || !tournamentId) {
+      return NextResponse.json(
+        { error: "組織IDまたは大会IDが指定されていません" },
+        { status: 400 }
+      );
+    }
+
+    // 大会ドキュメントが存在するか確認
+    const tournamentDoc = await adminDb
+      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
+      .doc(orgId)
+      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
+      .doc(tournamentId)
+      .get();
+
+    if (!tournamentDoc.exists) {
+      return NextResponse.json(
+        { error: "大会が見つかりません" },
+        { status: 404 }
+      );
+    }
+
+    // 大会ドキュメントを削除
+    await adminDb
+      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
+      .doc(orgId)
+      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
+      .doc(tournamentId)
+      .delete();
+
+    return NextResponse.json({
+      success: true,
+      message: "大会を削除しました",
+    });
+  } catch (error) {
+    console.error("Tournament delete error:", error);
+
+    return NextResponse.json(
+      {
+        error: "大会の削除に失敗しました",
+        details:
+          error instanceof Error ? error.message : "不明なエラーが発生しました",
+      },
+      { status: 500 }
+    );
+  }
+}

@@ -535,7 +535,69 @@ export function useMatch(matchId: string) {
 - 設計書にある「メール送信」「displayName生成」「matches同期」ロジックは、すべて `functions/` ディレクトリ内のCloud Functionsで実装する
 - フロントエンド（Next.js）は、これらのロジックを直接実行せず、Firestoreのトリガー（`onUpdate`, `onCreate`）経由で実行されるのを待つ
 
-### 12. セキュリティルール
+### 12. Firestoreドキュメント作成ルール
+
+**ルール**:
+
+- Firestoreで新規ドキュメントを作成する際は、`addDoc()`を使用せず、必ず`doc()`でドキュメントIDを指定して`setDoc()`を使用する
+- ドキュメントIDは必ずフィールドとしても保存する（例: `teamId`, `tournamentId`, `matchId`）
+- コレクション名はハードコーディングせず、必ず `src/lib/constants.ts` の `FIRESTORE_COLLECTIONS` 定数を使用する
+- これにより、ドキュメントIDとフィールドの一貫性を保ち、データの整合性を確保する
+
+#### 実装例:
+
+```typescript
+// ✅ 推奨される書き方
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+
+const docId = doc(collection(db, FIRESTORE_COLLECTIONS.TEAMS)).id; // 新しいIDを生成
+const teamData = {
+  teamId: docId, // ドキュメントIDをフィールドにも保存
+  teamName: "サンプルチーム",
+  // その他のフィールド...
+};
+await setDoc(doc(db, FIRESTORE_COLLECTIONS.TEAMS, docId), teamData);
+
+// ❌ 非推奨の書き方
+const docRef = await addDoc(collection(db, "teams"), { // ハードコーディング
+  teamName: "サンプルチーム",
+  // ドキュメントIDがフィールドに保存されない
+});
+```
+
+#### リポジトリ実装での適用:
+
+```typescript
+// TeamRepository の create メソッド例
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+
+async create(orgId: string, tournamentId: string, team: TeamCreate): Promise<Team> {
+  const collectionRef = this.getCollectionRef(orgId, tournamentId);
+  const docId = doc(collectionRef).id; // 新しいIDを生成
+  
+  const firestoreDoc = {
+    ...TeamMapper.toFirestoreForCreate(team),
+    teamId: docId, // ドキュメントIDをフィールドに保存
+  };
+  
+  const docRef = doc(collectionRef, docId);
+  await setDoc(docRef, firestoreDoc);
+  
+  const snap = await getDoc(docRef);
+  const data = snap.data() as FirestoreTeamDoc;
+  return TeamMapper.toDomain({ ...data, id: snap.id });
+}
+
+// getCollectionRef メソッドでも定数を使用
+private getCollectionRef(orgId: string, tournamentId: string): CollectionReference<DocumentData> {
+  return collection(
+    db, 
+    `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.TEAMS}`
+  );
+}
+```
+
+### 13. セキュリティルール
 
 **ルール**:
 

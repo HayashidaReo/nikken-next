@@ -3,9 +3,10 @@ import type { Tournament } from "@/types/tournament.schema";
 import { tournamentSchema } from "@/types/tournament.schema";
 
 /**
- * Firestore ドキュメント型（新規作成用）
+ * Firestore ドキュメント型
  */
-export interface FirestoreTournamentCreateDoc {
+export interface FirestoreTournamentDoc {
+  tournamentId: string;
   tournamentName: string;
   tournamentDate: Date;
   tournamentDetail: string;
@@ -16,12 +17,7 @@ export interface FirestoreTournamentCreateDoc {
   updatedAt: Timestamp;
 }
 
-/**
- * Firestore ドキュメント型（取得時・更新時）
- */
-export interface FirestoreTournamentDoc extends FirestoreTournamentCreateDoc {
-  tournamentId?: string; // ドキュメントIDとして別途取得
-}
+export type FirestoreTournamentCreateDoc = FirestoreTournamentDoc;
 
 export interface FirestoreCourtDoc {
   courtId: string;
@@ -78,10 +74,11 @@ export class TournamentMapper {
    * ドメインエンティティからFirestore新規作成用ドキュメントに変換
    */
   static toFirestoreCreate(
-    tournament: Omit<Tournament, "tournamentId" | "createdAt" | "updatedAt">
+    tournament: Omit<Tournament, "tournamentId" | "createdAt" | "updatedAt"> & { id: string }
   ): FirestoreTournamentCreateDoc {
     const now = Timestamp.now();
     return {
+      tournamentId: tournament.id,
       tournamentName: tournament.tournamentName,
       tournamentDate: tournament.tournamentDate,
       tournamentDetail: tournament.tournamentDetail,

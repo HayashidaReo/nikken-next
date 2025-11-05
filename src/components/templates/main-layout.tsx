@@ -12,10 +12,10 @@ import {
   TabsContent,
 } from "@/components/atoms/tabs";
 import { cn } from "@/lib/utils/utils";
+import { AUTH_CONSTANTS } from "@/lib/constants";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useToast } from "@/components/providers/notification-provider";
 import { TournamentSelector } from "@/components/molecules/TournamentSelector";
-import { useActiveTournament } from "@/hooks/useActiveTournament";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -27,14 +27,16 @@ function Header() {
   const router = useRouter();
   const { signOut } = useAuthStore();
   const { showSuccess, showError } = useToast();
-  const { clearActiveTournament } = useActiveTournament();
 
   const handleLogout = async () => {
     try {
-      // ログアウト時にLocalStorageから大会IDを削除
-      clearActiveTournament();
       await signOut();
       showSuccess("ログアウトしました");
+
+      // ログアウト後、ログイン画面にリダイレクト
+      setTimeout(() => {
+        router.push("/login");
+      }, AUTH_CONSTANTS.LOGOUT_REDIRECT_DELAY);
     } catch {
       showError("ログアウトに失敗しました");
     }

@@ -3,30 +3,23 @@ import { TeamMapper, FirestoreTeamDoc } from "@/data/mappers/team-mapper";
 import type { Team, TeamCreate } from "@/types/team.schema";
 import type { TeamRepository } from "@/repositories/team-repository";
 import { Timestamp } from "firebase-admin/firestore";
-import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+import { adminCollections } from "@/data/firebase/collections";
 
-/**
- * Admin Team Repository の拡張インターフェース
- * 組織・トーナメントコンテキストでのチーム操作をサポート
- */
-export interface AdminTeamRepository extends TeamRepository {
-    /**
-     * 組織とトーナメントのコンテキストでチームを作成
-     */
-    createWithParams(
-        team: TeamCreate,
-        orgId: string,
-        tournamentId: string
-    ): Promise<Team>;
-}
 
 /**
  * Firebase Admin SDK 実装の TeamRepository
  * サーバーサイド（API Routes等）での使用専用
  */
-export class AdminTeamRepositoryImpl implements AdminTeamRepository {
-    async getById(teamId: string): Promise<Team | null> {
-        const docRef = adminDb.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId);
+export class AdminTeamRepositoryImpl implements TeamRepository {
+    /**
+     * 特定の組織・大会のteamsコレクション参照を取得
+     */
+    private getCollectionRef(orgId: string, tournamentId: string) {
+        return adminDb.collection(`organizations/${orgId}/tournaments/${tournamentId}/teams`);
+    }
+
+    async getById(orgId: string, tournamentId: string, teamId: string): Promise<Team | null> {
+        const docRef = this.getCollectionRef(orgId, tournamentId).doc(teamId);
         const snap = await docRef.get();
 
         if (!snap.exists) return null;
@@ -36,9 +29,8 @@ export class AdminTeamRepositoryImpl implements AdminTeamRepository {
         return TeamMapper.toDomain({ ...data, id: snap.id });
     }
 
-    async listAll(): Promise<Team[]> {
-        const snapshot = await adminDb
-            .collection(FIRESTORE_COLLECTIONS.TEAMS)
+    async listAll(orgId: string, tournamentId: string): Promise<Team[]> {
+        const snapshot = await this.getCollectionRef(orgId, tournamentId)
             .orderBy("createdAt", "desc")
             .get();
 
@@ -51,8 +43,13 @@ export class AdminTeamRepositoryImpl implements AdminTeamRepository {
         return teams;
     }
 
-    async create(team: TeamCreate): Promise<Team> {
-        const firestoreDoc = TeamMapper.toFirestoreForCreate(team);
+    async create(orgId: string, tournamentId: string, team: TeamCreate): Promise<Team> {
+        // ドキュメントIDを生成
+        const teamsCollection = adminCollections.teams(orgId, tournamentId);
+        const teamDocRef = teamsCollection.doc();
+        const teamId = teamDocRef.id;
+
+        const firestoreDoc = TeamMapper.toFirestoreForCreate({ ...team, id: teamId });
 
         // Firebase Admin SDKではTimestampの作成方法が異なる
         const now = Timestamp.now();
@@ -62,47 +59,15 @@ export class AdminTeamRepositoryImpl implements AdminTeamRepository {
             updatedAt: now,
         };
 
-        const docRef = await adminDb
-            .collection(FIRESTORE_COLLECTIONS.TEAMS)
-            .add(docWithTimestamp);
-        const snap = await docRef.get();
+        await teamDocRef.set(docWithTimestamp);
+        const snap = await teamDocRef.get();
         const data = snap.data() as FirestoreTeamDoc;
 
         return TeamMapper.toDomain({ ...data, id: snap.id });
     }
 
-    async createWithParams(
-        team: TeamCreate,
-        orgId: string,
-        tournamentId: string
-    ): Promise<Team> {
-        const firestoreDoc = TeamMapper.toFirestoreForCreate(team);
-
-        // Firebase Admin SDKではTimestampの作成方法が異なる
-        const now = Timestamp.now();
-        const docWithTimestamp = {
-            ...firestoreDoc,
-            createdAt: now,
-            updatedAt: now,
-        };
-
-        // Firestoreに保存
-        const docRef = await adminDb
-            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
-            .doc(orgId)
-            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
-            .doc(tournamentId)
-            .collection(FIRESTORE_COLLECTIONS.TEAMS)
-            .add(docWithTimestamp);
-
-        const snap = await docRef.get();
-        const data = snap.data() as FirestoreTeamDoc;
-
-        return TeamMapper.toDomain({ ...data, id: snap.id });
-    }
-
-    async update(teamId: string, patch: Partial<Team>): Promise<Team> {
-        const docRef = adminDb.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId);
+    async update(orgId: string, tournamentId: string, teamId: string, patch: Partial<Team>): Promise<Team> {
+        const docRef = this.getCollectionRef(orgId, tournamentId).doc(teamId);
         const updateData = TeamMapper.toFirestoreForUpdate(patch);
 
         // updatedAtをAdmin SDK用のTimestampに変換
@@ -119,12 +84,13 @@ export class AdminTeamRepositoryImpl implements AdminTeamRepository {
         return TeamMapper.toDomain({ ...data, id: snap.id });
     }
 
-    async delete(teamId: string): Promise<void> {
-        await adminDb.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(teamId).delete();
+    async delete(orgId: string, tournamentId: string, teamId: string): Promise<void> {
+        await this.getCollectionRef(orgId, tournamentId).doc(teamId).delete();
     }
 
     // Admin SDKではリアルタイム購読は実装しない（API Routesでは不要）
-    listenAll(): () => void {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    listenAll(_orgId: string, _tournamentId: string, _onChange: (teams: Team[]) => void): () => void {
         throw new Error(
             "AdminTeamRepository does not support real-time subscriptions"
         );

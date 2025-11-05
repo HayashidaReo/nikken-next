@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
-import { useActiveTournament } from "@/hooks/useActiveTournament";
+import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { TournamentSelectionDialog } from "@/components/organisms/TournamentSelectionDialog";
 
 interface TournamentProviderProps {
@@ -21,32 +21,25 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
   const { user, isInitialized } = useAuthStore();
   const { hasTournamentSelected, isLoading: tournamentLoading } =
     useActiveTournament();
-  const [forceClose, setForceClose] = useState(false);
 
-  // ダイアログ表示条件を計算で決定（副作用なし）
+  // ダイアログ表示条件: ログイン済み＆大会未選択の場合は常に表示
   const shouldShowDialog =
     isInitialized &&
     !tournamentLoading &&
     Boolean(user) &&
-    !hasTournamentSelected &&
-    !forceClose;
+    !hasTournamentSelected;
 
-  const handleDialogClose = () => {
-    setForceClose(true);
-  };
-
-  // 大会選択状態が変わった場合、forceCloseをリセット
-  useEffect(() => {
-    if (hasTournamentSelected) {
-      const timeoutId = setTimeout(() => {
-        setForceClose(false);
-      }, 0);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [hasTournamentSelected]);
-
+  // ローディング中の場合のみローディングインジケーター表示
   if (!isInitialized || tournamentLoading) {
+    if (shouldShowDialog) {
+      // 大会選択が必要な場合は、ダイアログのみ表示
+      return (
+        <TournamentSelectionDialog
+          open={true}
+          dismissible={false}
+        />
+      );
+    }
     return <LoadingIndicator message="準備中..." size="lg" fullScreen={true} />;
   }
 
@@ -57,8 +50,7 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
       {/* 大会選択強制ダイアログ */}
       <TournamentSelectionDialog
         open={shouldShowDialog}
-        dismissible={false} // 必須選択のため閉じることはできない
-        onClose={handleDialogClose}
+        dismissible={false}
       />
     </>
   );

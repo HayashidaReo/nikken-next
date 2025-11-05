@@ -6,11 +6,14 @@ import { Switch } from "@/components/atoms/switch";
 import { Label } from "@/components/atoms/label";
 import { Save } from "lucide-react";
 import { useToast } from "@/components/providers/notification-provider";
+import { useMonitorStore } from "@/store/use-monitor-store";
 
 interface MatchControlPanelProps {
   isPublic: boolean;
   onTogglePublic: () => void;
-  onSaveResult: () => void;
+  onSaveResult: (organizationId: string, tournamentId: string) => void;
+  organizationId: string;
+  tournamentId: string;
   className?: string;
 }
 
@@ -18,13 +21,20 @@ export function MatchControlPanel({
   isPublic,
   onTogglePublic,
   onSaveResult,
+  organizationId,
+  tournamentId,
   className,
 }: MatchControlPanelProps) {
   const { showSuccess } = useToast();
+  const isSaving = useMonitorStore((s) => s.isSaving);
 
-  const handleSave = () => {
-    onSaveResult();
-    showSuccess("試合結果を保存しました");
+  const handleSave = async () => {
+    try {
+      await onSaveResult(organizationId, tournamentId);
+      showSuccess("試合結果を保存しました");
+    } catch (error) {
+      console.error("保存エラー:", error);
+    }
   };
 
   return (
@@ -42,9 +52,9 @@ export function MatchControlPanel({
             </Label>
           </div>
 
-          <Button onClick={handleSave} size="lg">
+          <Button onClick={handleSave} size="lg" disabled={isSaving} >
             <Save className="w-4 h-4 mr-2" />
-            試合結果を保存
+            {isSaving ? "保存中..." : "試合結果を保存"}
           </Button>
         </div>
       </CardContent>

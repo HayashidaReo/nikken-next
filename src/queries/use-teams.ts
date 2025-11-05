@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FirestoreTeamRepository } from "@/repositories/firestore/team-repository";
+import { useAuthContext } from "@/hooks/useAuthContext";
 import type { Team, TeamCreate } from "@/types/team.schema";
 import type { TeamFormData } from "@/types/team-form.schema";
 
@@ -26,11 +27,20 @@ export const teamKeys = {
 
 /**
  * 全てのチームを取得するQuery
+ * 認証コンテキストから組織・大会IDを自動取得
  */
 export function useTeams() {
+  const { orgId, activeTournamentId, isReady } = useAuthContext();
+
   return useQuery({
-    queryKey: teamKeys.lists(),
-    queryFn: () => teamRepository.listAll(),
+    queryKey: teamKeys.list({ orgId, tournamentId: activeTournamentId }),
+    queryFn: () => {
+      if (!orgId || !activeTournamentId) {
+        throw new Error("Organization ID and Tournament ID are required");
+      }
+      return teamRepository.listAll(orgId, activeTournamentId);
+    },
+    enabled: Boolean(isReady && orgId && activeTournamentId), // 認証・組織・大会が揃った場合のみ実行
     staleTime: 5 * 60 * 1000, // 5分間はキャッシュを有効とする
   });
 }
@@ -39,13 +49,17 @@ export function useTeams() {
  * 特定のチームを取得するQuery
  */
 export function useTeam(teamId: string | null | undefined) {
+  const { orgId, activeTournamentId, isReady } = useAuthContext();
+
   return useQuery({
     queryKey: teamKeys.detail(teamId || ""),
     queryFn: () => {
-      if (!teamId) throw new Error("Team ID is required");
-      return teamRepository.getById(teamId);
+      if (!teamId || !orgId || !activeTournamentId) {
+        throw new Error("Team ID, Organization ID and Tournament ID are required");
+      }
+      return teamRepository.getById(orgId, activeTournamentId, teamId);
     },
-    enabled: !!teamId, // teamIdがある場合のみクエリを実行
+    enabled: Boolean(isReady && teamId && orgId && activeTournamentId), // 全て揃った場合のみクエリを実行
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -55,9 +69,15 @@ export function useTeam(teamId: string | null | undefined) {
  */
 export function useCreateTeam() {
   const queryClient = useQueryClient();
+  const { orgId, activeTournamentId } = useAuthContext();
 
   return useMutation({
-    mutationFn: (newTeam: TeamCreate) => teamRepository.create(newTeam),
+    mutationFn: (newTeam: TeamCreate) => {
+      if (!orgId || !activeTournamentId) {
+        throw new Error("Organization ID and Tournament ID are required");
+      }
+      return teamRepository.create(orgId, activeTournamentId, newTeam);
+    },
     onSuccess: createdTeam => {
       // 一覧キャッシュを無効化
       queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
@@ -75,10 +95,15 @@ export function useCreateTeam() {
  */
 export function useUpdateTeam() {
   const queryClient = useQueryClient();
+  const { orgId, activeTournamentId } = useAuthContext();
 
   return useMutation({
-    mutationFn: ({ teamId, patch }: { teamId: string; patch: Partial<Team> }) =>
-      teamRepository.update(teamId, patch),
+    mutationFn: ({ teamId, patch }: { teamId: string; patch: Partial<Team> }) => {
+      if (!orgId || !activeTournamentId) {
+        throw new Error("Organization ID and Tournament ID are required");
+      }
+      return teamRepository.update(orgId, activeTournamentId, teamId, patch);
+    },
     onSuccess: updatedTeam => {
       // 一覧キャッシュを無効化
       queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
@@ -96,9 +121,15 @@ export function useUpdateTeam() {
  */
 export function useDeleteTeam() {
   const queryClient = useQueryClient();
+  const { orgId, activeTournamentId } = useAuthContext();
 
   return useMutation({
-    mutationFn: (teamId: string) => teamRepository.delete(teamId),
+    mutationFn: (teamId: string) => {
+      if (!orgId || !activeTournamentId) {
+        throw new Error("Organization ID and Tournament ID are required");
+      }
+      return teamRepository.delete(orgId, activeTournamentId, teamId);
+    },
     onSuccess: (_, deletedTeamId) => {
       // 一覧キャッシュを無効化
       queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
@@ -169,15 +200,20 @@ export function useRegisterTeamWithParams(orgId: string, tournamentId: string) {
  */
 export function useTeamsRealtime() {
   const queryClient = useQueryClient();
+  const { orgId, activeTournamentId, isReady } = useAuthContext();
 
   return useQuery({
-    queryKey: [...teamKeys.lists(), "realtime"],
+    queryKey: [...teamKeys.lists(), "realtime", { orgId, tournamentId: activeTournamentId }],
     queryFn: () => {
+      if (!orgId || !activeTournamentId) {
+        throw new Error("Organization ID and Tournament ID are required");
+      }
+
       return new Promise<Team[]>(resolve => {
         // リアルタイム購読を開始
-        const unsubscribe = teamRepository.listenAll(teams => {
+        const unsubscribe = teamRepository.listenAll(orgId, activeTournamentId, (teams: Team[]) => {
           // キャッシュを更新
-          queryClient.setQueryData(teamKeys.lists(), teams);
+          queryClient.setQueryData(teamKeys.list({ orgId, tournamentId: activeTournamentId }), teams);
           resolve(teams);
         });
 
@@ -185,6 +221,7 @@ export function useTeamsRealtime() {
         return () => unsubscribe();
       });
     },
+    enabled: Boolean(isReady && orgId && activeTournamentId),
     staleTime: Infinity, // リアルタイム更新なので常にフレッシュ
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

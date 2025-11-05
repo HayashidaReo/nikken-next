@@ -1,6 +1,7 @@
 "use client";
 
 import { useMonitorStore } from "@/store/use-monitor-store";
+import { SCORE_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils/utils";
 import { formatTime } from "@/lib/utils/time-utils";
 
@@ -120,7 +121,7 @@ export function MonitorDisplay({ className }: MonitorDisplayProps) {
 
         {/* 試合状況メッセージ */}
         <div className="text-center mt-12">
-          {(playerA.score >= 2 || playerB.score >= 2) && (
+          {(playerA.score >= SCORE_CONSTANTS.MAX_SCORE || playerB.score >= SCORE_CONSTANTS.MAX_SCORE) && (
             <div className="text-3xl font-bold text-yellow-300">試合終了</div>
           )}
           {timeRemaining <= 0 && playerA.score === playerB.score && (

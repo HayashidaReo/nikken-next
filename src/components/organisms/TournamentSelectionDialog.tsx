@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/atoms/select";
-import { useActiveTournament } from "@/hooks/useActiveTournament";
+import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { useAuthStore } from "@/store/use-auth-store";
 import { Tournament } from "@/types/tournament.schema";
@@ -76,7 +76,7 @@ export function TournamentSelectionDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={dismissible ? undefined : () => {}}>
+    <Dialog open={open} onOpenChange={dismissible ? undefined : () => { }}>
       <DialogContent
         className="sm:max-w-md bg-white"
         onInteractOutside={dismissible ? undefined : e => e.preventDefault()}
@@ -137,8 +137,8 @@ export function TournamentSelectionDialog({
                         <span className="text-xs text-muted-foreground">
                           {tournament.tournamentDate instanceof Date
                             ? tournament.tournamentDate.toLocaleDateString(
-                                "ja-JP"
-                              )
+                              "ja-JP"
+                            )
                             : tournament.tournamentDate}{" "}
                           - {tournament.location}
                         </span>
