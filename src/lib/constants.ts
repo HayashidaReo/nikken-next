@@ -97,3 +97,9 @@ export const API_ENDPOINTS = {
   /** 試合結果更新エンドポイント（matchId を動的に指定）*/
   MATCH_UPDATE: (matchId: string) => `/api/matches/${matchId}`,
 } as const;
+
+// 🔐 認証 / ログアウト関連定数
+export const AUTH_CONSTANTS = {
+  /** ログアウト後にリダイレクトするまでの待機時間（ミリ秒） */
+  LOGOUT_REDIRECT_DELAY: 500,
+} as const;

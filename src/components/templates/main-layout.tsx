@@ -12,6 +12,7 @@ import {
   TabsContent,
 } from "@/components/atoms/tabs";
 import { cn } from "@/lib/utils/utils";
+import { AUTH_CONSTANTS } from "@/lib/constants";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useToast } from "@/components/providers/notification-provider";
 import { TournamentSelector } from "@/components/molecules/TournamentSelector";
@@ -35,7 +36,7 @@ function Header() {
       // ログアウト後、ログイン画面にリダイレクト
       setTimeout(() => {
         router.push("/login");
-      }, 500);
+      }, AUTH_CONSTANTS.LOGOUT_REDIRECT_DELAY);
     } catch {
       showError("ログアウトに失敗しました");
     }
