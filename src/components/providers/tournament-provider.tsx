@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useActiveTournament } from "@/store/use-active-tournament-store";
@@ -18,12 +19,18 @@ interface TournamentProviderProps {
  * - 大会選択完了まで他の操作をブロック
  */
 export function TournamentProvider({ children }: TournamentProviderProps) {
+  const pathname = usePathname();
   const { user, isInitialized } = useAuthStore();
   const { hasTournamentSelected, isLoading: tournamentLoading } =
     useActiveTournament();
 
-  // ダイアログ表示条件: ログイン済み＆大会未選択の場合は常に表示
+  // 大会設定画面ではダイアログを表示しない
+  const shouldDisableDialog =
+    pathname.includes("tournament-settings");
+
+  // ダイアログ表示条件: ログイン済み＆大会未選択の場合は常に表示（大会設定画面場合は表示しない）
   const shouldShowDialog =
+    !shouldDisableDialog &&
     isInitialized &&
     !tournamentLoading &&
     Boolean(user) &&
