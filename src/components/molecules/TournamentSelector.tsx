@@ -80,15 +80,15 @@ export function TournamentSelector({
                 {selectedTournament.tournamentName}
               </span>
               <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3 text-gray-500" />
-                    {formatDateForDisplay(selectedTournament.tournamentDate)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-gray-500" />
-                    {selectedTournament.location}
-                  </span>
-                </div>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3 text-gray-500" />
+                  {formatDateForDisplay(selectedTournament.tournamentDate)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-gray-500" />
+                  {selectedTournament.location}
+                </span>
+              </div>
             </div>
           ) : (
             <span className="text-sm text-gray-500">
