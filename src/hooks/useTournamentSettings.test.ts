@@ -19,7 +19,7 @@ jest.mock("./useAuth", () => ({
   }),
 }));
 
-jest.mock("./useActiveTournament", () => ({
+jest.mock("@/store/use-active-tournament-store", () => ({
   useActiveTournament: () => ({
     activeTournamentId: null,
     setActiveTournament: jest.fn(),

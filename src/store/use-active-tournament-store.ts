@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const ACTIVE_TOURNAMENT_KEY = "active-tournament-storage";
+export const ACTIVE_TOURNAMENT_KEY = "active-tournament-storage";
 
 interface ActiveTournamentState {
     activeTournamentId: string | null;

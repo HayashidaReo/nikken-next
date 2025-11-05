@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import {
   useActiveTournament,
   useActiveTournamentStore,
+  ACTIVE_TOURNAMENT_KEY,
 } from "@/store/use-active-tournament-store";
 
 const TEST_TOURNAMENT_ID = "test-tournament-id";
@@ -26,7 +27,7 @@ describe("useActiveTournament", () => {
 
       expect(result.current.activeTournamentId).toBe(TEST_TOURNAMENT_ID);
       const storedData = JSON.parse(
-        localStorage.getItem("active-tournament-storage") || "{}"
+        localStorage.getItem(ACTIVE_TOURNAMENT_KEY) || "{}"
       );
       expect(storedData.state.activeTournamentId).toBe(TEST_TOURNAMENT_ID);
     });
@@ -49,7 +50,7 @@ describe("useActiveTournament", () => {
 
       expect(result.current.activeTournamentId).toBeNull();
       const storedData = JSON.parse(
-        localStorage.getItem("active-tournament-storage") || "{}"
+        localStorage.getItem(ACTIVE_TOURNAMENT_KEY) || "{}"
       );
       expect(storedData.state.activeTournamentId).toBeNull();
     });
@@ -77,7 +78,7 @@ describe("useActiveTournament", () => {
   it("初期状態でlocalStorageから値を読み込む", async () => {
     // localStorageに初期値を設定
     localStorage.setItem(
-      "active-tournament-storage",
+      ACTIVE_TOURNAMENT_KEY,
       JSON.stringify({ state: { activeTournamentId: TEST_TOURNAMENT_ID } })
     );
 
