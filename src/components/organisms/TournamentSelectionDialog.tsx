@@ -171,11 +171,11 @@ export function TournamentSelectionDialog({
           <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-2">
             {tournaments.length === 0 && !isLoading && !error && (
               <Button
-                variant="outline"
+                variant="link"
                 onClick={() => (window.location.href = ROUTES.TOURNAMENT_SETTINGS)}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto px-10"
               >
-                こちらから大会を作成してください
+                こちらから大会を新規作成
               </Button>
             )}
             <Button
