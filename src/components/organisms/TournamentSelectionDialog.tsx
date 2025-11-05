@@ -125,8 +125,7 @@ export function TournamentSelectionDialog({
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-900">大会</label>
+          <div>
             <TournamentSelectDropdown
               tournaments={tournaments}
               selectedId={selectedTournamentId}
