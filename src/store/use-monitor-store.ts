@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Match } from "@/types/match.schema";
-import { SCORE_CONSTANTS } from "@/lib/constants";
+import { SCORE_CONSTANTS, API_ENDPOINTS } from "@/lib/constants";
 import {
   calculateOpponentScoreChange,
   updateOpponentScore,
@@ -190,7 +190,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       set({ isSaving: true });
 
       // APIエンドポイントに部分更新データを送信
-      const response = await fetch(`/api/matches/${currentState.matchId}`, {
+      const response = await fetch(API_ENDPOINTS.MATCH_UPDATE(currentState.matchId), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
