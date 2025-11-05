@@ -40,6 +40,7 @@ export function TournamentSelectionDialog({
   const { user } = useAuthStore();
   const { setActiveTournament } = useActiveTournament();
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>("");
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // ユーザーのUIDを組織IDとして使用（大会設定画面と同じ実装）
   const orgId = user?.uid || null;
@@ -50,11 +51,23 @@ export function TournamentSelectionDialog({
     error,
   } = useTournamentsByOrganization(orgId);
 
-  const handleConfirm = () => {
-    if (selectedTournamentId) {
+  const handleConfirm = async () => {
+    if (selectedTournamentId && !isConfirming) {
+      setIsConfirming(true);
+
+      // アクティブな大会を設定
       setActiveTournament(selectedTournamentId);
-      // 明示的にダイアログを閉じる
-      onClose?.();
+
+      // LocalStorageへの書き込みが完了するまで少し待機
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // 大会選択後は明示的に閉じる
+      // onCloseが定義されている場合は呼び出す
+      if (onClose) {
+        onClose();
+      }
+
+      setIsConfirming(false);
     }
   };
 
@@ -62,12 +75,19 @@ export function TournamentSelectionDialog({
     setSelectedTournamentId(value);
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    // dismissibleがtrueの場合のみ、外部からのクローズ要求を受け入れる
+    if (dismissible && !newOpen) {
+      onClose?.();
+    }
+  };
+
   if (!user) {
     return null; // 未ログイン時は表示しない
   }
 
   return (
-    <Dialog open={open} onOpenChange={dismissible ? undefined : () => { }}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="sm:max-w-md bg-white"
         onInteractOutside={dismissible ? undefined : e => e.preventDefault()}
@@ -133,10 +153,10 @@ export function TournamentSelectionDialog({
             )}
             <Button
               onClick={handleConfirm}
-              disabled={!selectedTournamentId || isLoading}
+              disabled={!selectedTournamentId || isLoading || isConfirming}
               className="w-full sm:w-auto"
             >
-              この大会で続行
+              {isConfirming ? "設定中..." : "この大会で続行"}
             </Button>
           </div>
         </div>

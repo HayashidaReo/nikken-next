@@ -34,6 +34,8 @@ export interface TournamentSelectDropdownProps {
     contentMinWidth?: string;
     /** disabled 状態 */
     disabled?: boolean;
+    /** 追加のメニュー項目（React要素）をドロップダウンの下部に表示 */
+    footerContent?: React.ReactNode;
 }
 
 /**
@@ -53,6 +55,7 @@ export function TournamentSelectDropdown({
     triggerClassName,
     contentMinWidth = "min-w-[280px]",
     disabled = false,
+    footerContent,
 }: TournamentSelectDropdownProps) {
     // 選択中の大会を取得
     const selectedTournament = tournaments.find(
@@ -128,6 +131,8 @@ export function TournamentSelectDropdown({
                         </div>
                     )}
                 </div>
+                {/* フッターコンテンツ（大会管理メニューなど） */}
+                {footerContent}
             </SelectContent>
         </Select>
     );
