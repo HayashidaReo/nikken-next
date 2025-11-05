@@ -1,10 +1,11 @@
 "use client";
 
-import * as React from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -13,8 +14,8 @@ import {
 } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
 import { LoadingButton } from "@/components/molecules/loading-button";
-import { useFormSubmit } from "@/hooks";
 import { useToast } from "@/components/providers/notification-provider";
+import { useAuthStore } from "@/store/use-auth-store";
 
 // ログインフォーム用のZodスキーマ
 const loginSchema = z.object({
@@ -30,17 +31,10 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-interface LoginFormProps {
-  onSubmit?: (data: LoginFormData) => Promise<void>;
-  isLoading?: boolean;
-}
-
-export function LoginForm({
-  onSubmit,
-  isLoading: externalLoading = false,
-}: LoginFormProps) {
-  const { showInfo } = useToast();
-  const { handleSubmit: submitForm, isLoading } = useFormSubmit();
+export function LoginForm() {
+  const { showSuccess, showError } = useToast();
+  const router = useRouter();
+  const { signIn, isLoading, error, clearError } = useAuthStore();
 
   const {
     register,
@@ -50,15 +44,24 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   });
 
+  // エラーをクリアする（入力時）
+  useEffect(() => {
+    if (error) {
+      clearError();
+    }
+  }, [error, clearError]);
+
   const handleFormSubmit = async (data: LoginFormData) => {
-    if (onSubmit) {
-      await submitForm(async (formData: unknown) => {
-        const typedData = formData as LoginFormData;
-        await onSubmit(typedData);
-      }, data);
-    } else {
-      // デモ用: 通知システムを使用
-      showInfo(`ログイン機能は未実装です（ログイン試行: ${data.email}）`);
+    try {
+      await signIn(data.email, data.password);
+      showSuccess("ログインしました");
+      router.push("/dashboard");
+    } catch (err) {
+      // エラーはAuthStoreで管理されているのでここでは何もしない
+      // ToastはAuthStoreのエラーメッセージを表示
+      if (err instanceof Error) {
+        showError(err.message);
+      }
     }
   };
 
@@ -89,12 +92,15 @@ export function LoginForm({
             error={errors.password?.message}
           />
 
-          <LoadingButton
-            type="submit"
-            className="w-full"
-            isLoading={isLoading || externalLoading}
-          >
-            {isLoading || externalLoading ? "ログイン中..." : "ログイン"}
+          {/* 認証エラーの表示 */}
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+              {error}
+            </div>
+          )}
+
+          <LoadingButton type="submit" className="w-full" isLoading={isLoading}>
+            {isLoading ? "ログイン中..." : "ログイン"}
           </LoadingButton>
 
           <div className="text-center">

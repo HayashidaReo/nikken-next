@@ -7,3 +7,5 @@ export { useAsync } from "./useAsync";
 export { useLocalStorage } from "./useLocalStorage";
 export { useFormValidation } from "./useFormValidation";
 export { usePresentation } from "./usePresentation";
+export { useAuthGuard, useGuestGuard, useAuth } from "./useAuth";
+export { useLongPress } from "./useLongPress";

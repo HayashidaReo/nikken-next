@@ -176,9 +176,74 @@ src/
 
 **特例**: 「モニター操作画面」（`ScoreboardOperator` Organism）は、設計書に基づき `useReducer` を活用してローカル状態を管理し、`postMessage` で別ウィンドウに送信する
 
+### 4. Next.js 16対応ルール
+
+#### ① Dynamic Route Parameters (params) の扱い
+
+**重要**: Next.js 16では、動的ルートの`params`がPromiseオブジェクトになりました。
+
+**必須対応**:
+- ページコンポーネント（`page.tsx`）では、`params`を`await`で展開する
+- API Routes（`route.ts`）では、`params`を`await`で展開する
+- レイアウトコンポーネント（`layout.tsx`）でも同様に対応する
+
+#### 実装例:
+
+```typescript
+// ✅ ページコンポーネントの正しい書き方
+interface PageProps {
+  params: Promise<{ id: string; category: string }>;
+}
+
+export default async function MyPage({ params }: PageProps) {
+  const { id, category } = await params;
+  // ...
+}
+
+// ✅ API Routeの正しい書き方
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  // ...
+}
+
+// ❌ 古い書き方（Next.js 15以前）
+interface PageProps {
+  params: { id: string; category: string }; // ❌ Promiseではない
+}
+
+export default function MyPage({ params }: PageProps) {
+  const { id, category } = params; // ❌ awaitなし
+  // ...
+}
+```
+
+#### ② 既存コンポーネント・関数の重複チェック
+
+**ルール**: 新しい関数やコンポーネントを作成する前に、必ず既存のコードベースを確認する
+
+**確認手順**:
+1. `file_search`ツールで類似の名前やファイルが存在しないか検索
+2. `grep_search`ツールで同じ機能の実装がないか確認
+3. 既存のutilsフォルダ（`src/lib/utils/`）に同等の機能がないか確認
+4. 同じ責務を持つコンポーネントがAtomic Design階層に存在しないか確認
+
+```bash
+# 例: 日付フォーマット関数を作る前の確認
+file_search "**/utils/**date*"
+grep_search "formatDate|toLocaleDateString" true
+```
+
+**重複発見時の対応**:
+- 既存の実装を使用し、必要に応じてパラメータや戻り値の型を拡張する
+- 既存実装が不十分な場合は、新規作成ではなく既存を改善する
+- やむを得ず新規作成する場合は、明確な命名差別化と用途の違いをコメントで説明する
+
 ## 🔒 型安全性ルール (Zod-First)
 
-### 4. Zodスキーマによる型定義
+### 5. Zodスキーマによる型定義
 
 **ルール**:
 - すべての主要なデータ構造（Team, Match, Player）は、まず `src/types/` 配下に Zodスキーマ (`.schema.ts`) として定義する
@@ -212,7 +277,7 @@ export type Player = z.infer<typeof playerSchema>;
 export type Team = z.infer<typeof teamSchema>;
 ````
 
-### 5. フォームとバリデーション
+### 6. フォームとバリデーション
 
 **ルール**:
 
@@ -243,7 +308,61 @@ export function TeamEditForm() {
 
 ## 🎨 UI & コーディングスタイル
 
-### 6. Shadcn/ui と Tailwind CSS
+### 7. React インポートルール
+
+**ルール**: 現代のReactでは、必要なフックやコンポーネントのみを個別にインポートすることを必須とする
+
+#### ✅ 推奨される書き方:
+```typescript
+// ✅ 使用するフックのみを個別にインポート
+import { useState, useEffect, useCallback } from "react";
+
+const MyComponent = () => {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    // ...
+  }, []);
+  
+  return <div>{count}</div>;
+};
+```
+
+#### ❌ 非推奨の書き方:
+```typescript
+// ❌ すべてをReactオブジェクトとしてインポート（非推奨）
+import * as React from "react";
+
+const MyComponent = () => {
+  const [count, setCount] = React.useState(0);
+  
+  React.useEffect(() => {
+    // ...
+  }, []);
+  
+  return <div>{count}</div>;
+};
+```
+
+#### 例外: React オブジェクトが必要な場合
+以下の機能を使用する場合は、`import React from "react";` を使用する:
+- `React.memo`
+- `React.forwardRef`
+- `React.Children`
+- `React.createElement` (手動使用時)
+
+```typescript
+// ✅ React オブジェクトが必要な場合の正しいインポート
+import React from "react";
+import { useState } from "react";
+
+const MyComponent = React.memo(() => {
+  const [count, setCount] = useState(0);
+  return <div>{count}</div>;
+});
+```
+
+### 8. Shadcn/ui と Tailwind CSS
 
 **ルール**:
 
@@ -252,7 +371,7 @@ export function TeamEditForm() {
 - クラス名の結合には `src/lib/utils.ts` の `cn()` 関数（clsx + tailwind-merge）を必須で利用する
 - アイコンは `lucide-react` を標準とする
 
-### 7. ファイル・変数命名規則
+### 8. ファイル・変数命名規則
 
 - **コンポーネント**: `PascalCase.tsx`
 - **フック**: `useCamelCase.ts` (例: `useMatches.ts`)
@@ -260,7 +379,7 @@ export function TeamEditForm() {
 - **Zodスキーマ**: `camelCase.schema.ts` (例: `team.schema.ts`)
 - **ユーティリティ**: `camelCase.ts` (例: `utils.ts`)
 
-### 8. インポート順とエイリアス
+### 9. インポート順とエイリアス
 
 **ルール**:
 
@@ -269,7 +388,7 @@ export function TeamEditForm() {
 
 ## 🔥 Firebase & Backendルール
 
-### 9. Firebase SDKの使い分け
+### 10. Firebase SDKの使い分け
 
 #### firebase (クライアントSDK):
 
@@ -283,14 +402,202 @@ export function TeamEditForm() {
 - Server Components, Route Handlers, Cloud Functions でのみ使用可能
 - クライアント側にバンドルされることを厳禁とする
 
-### 10. Cloud Functions (Backend Logic)
+### 11. データ層アーキテクチャ (ドメイン駆動設計)
+
+Firebaseとの接続において、以下の3層アーキテクチャによる関心の分離を徹底する：
+
+#### ドメイン層 (`src/domains/`)
+
+**役割**: ビジネスロジックと型定義を管理する最重要層
+
+**責務**:
+- `src/types/` のZodスキーマから導出された型定義をドメインエンティティとして扱う
+- ビジネスルール（例: 反則状態の変更による得点の自動計算）をドメインサービスとして定義する
+- Firebase特有の実装に依存しない、純粋なビジネスロジックのみを含む
+
+**ディレクトリ構造**:
+```
+src/domains/
+├── team/
+│   ├── entities/ # Team, Playerエンティティ
+│   └── services/ # displayName生成ロジック等
+├── match/
+│   ├── entities/ # Matchエンティティ
+│   └── services/ # 得点計算、反則処理ロジック等
+└── tournament/
+    ├── entities/ # Tournamentエンティティ
+    └── services/ # 大会関連ビジネスロジック
+```
+
+#### データ層 (`src/data/`)
+
+**役割**: Firebase特有のデータ変換とCRUD操作を担当
+
+**責務**:
+- Firestoreドキュメント ↔ ドメインエンティティ間の変換（マッピング）
+- Firebase Timestamp, DocumentReference等の特殊型の処理
+- Firestore特有のクエリ操作（コレクション参照、where句、orderBy等）
+- エラーハンドリングとFirebaseエラーの標準化
+
+**ディレクトリ構造**:
+```
+src/data/
+├── mappers/ # ドメインエンティティ ↔ Firestoreドキュメント変換
+│   ├── team-mapper.ts
+│   ├── match-mapper.ts
+│   └── tournament-mapper.ts
+└── firebase/ # Firebase直接操作層
+    ├── collections.ts # コレクション参照定数
+    ├── team-data.ts   # チーム関連のCRUD
+    ├── match-data.ts  # 試合関連のCRUD
+    └── tournament-data.ts # 大会関連のCRUD
+```
+
+#### リポジトリ層 (`src/repositories/`)
+
+**役割**: データアクセスの抽象化とTanStack Queryとの橋渡し
+
+**責務**:
+- ドメイン層が要求するインターフェースを実装
+- データ層を呼び出し、ドメインエンティティを返す
+- TanStack Queryのキー管理とキャッシュ戦略の定義
+- 複数のデータソースを組み合わせた複合的なデータ取得
+
+**ディレクトリ構造**:
+```
+src/repositories/
+├── interfaces/ # ドメイン層が期待するインターフェース定義
+│   ├── team-repository.interface.ts
+│   ├── match-repository.interface.ts
+│   └── tournament-repository.interface.ts
+└── implementations/ # 具体的な実装
+    ├── firebase-team-repository.ts
+    ├── firebase-match-repository.ts
+    └── firebase-tournament-repository.ts
+```
+
+#### 層間の依存関係ルール
+
+1. **ドメイン層**: 他の層に依存しない（完全に独立）
+2. **リポジトリ層**: ドメイン層のインターフェースに依存、データ層を利用
+3. **データ層**: ドメイン層のエンティティに依存、Firebase SDKを利用
+4. **コンポーネント層**: リポジトリ層のインターフェースに依存
+
+#### TanStack Queryとの統合ルール
+
+- `queries/` 配下のカスタムフックは、リポジトリ層のメソッドを呼び出す
+- リポジトリ層は、TanStack Queryのキー生成とキャッシュ無効化の責任を持つ
+- 各リポジトリは、対応するQueryキーファクトリーを提供する
+
+#### 実装例:
+
+```typescript
+// src/domains/match/entities/match.ts
+export type Match = z.infer<typeof matchSchema>;
+
+// src/domains/match/services/score-calculator.ts
+export class ScoreCalculator {
+  static calculateScoreFromHansoku(hansokuState: HansokuState): number {
+    // Firebase非依存の純粋なビジネスロジック
+  }
+}
+
+// src/repositories/interfaces/match-repository.interface.ts
+export interface MatchRepository {
+  findById(matchId: string): Promise<Match>;
+  updateScore(matchId: string, score: MatchScore): Promise<void>;
+}
+
+// src/repositories/implementations/firebase-match-repository.ts
+export class FirebaseMatchRepository implements MatchRepository {
+  constructor(private matchData: MatchData) {}
+  
+  async findById(matchId: string): Promise<Match> {
+    const doc = await this.matchData.getMatch(matchId);
+    return MatchMapper.toDomain(doc);
+  }
+}
+
+// src/queries/use-matches.ts
+export function useMatch(matchId: string) {
+  return useQuery({
+    queryKey: ['match', matchId],
+    queryFn: () => matchRepository.findById(matchId)
+  });
+}
+```
+
+
+### 11. Cloud Functions (Backend Logic)
 
 **ルール**:
 
 - 設計書にある「メール送信」「displayName生成」「matches同期」ロジックは、すべて `functions/` ディレクトリ内のCloud Functionsで実装する
 - フロントエンド（Next.js）は、これらのロジックを直接実行せず、Firestoreのトリガー（`onUpdate`, `onCreate`）経由で実行されるのを待つ
 
-### 11. セキュリティルール
+### 12. Firestoreドキュメント作成ルール
+
+**ルール**:
+
+- Firestoreで新規ドキュメントを作成する際は、`addDoc()`を使用せず、必ず`doc()`でドキュメントIDを指定して`setDoc()`を使用する
+- ドキュメントIDは必ずフィールドとしても保存する（例: `teamId`, `tournamentId`, `matchId`）
+- コレクション名はハードコーディングせず、必ず `src/lib/constants.ts` の `FIRESTORE_COLLECTIONS` 定数を使用する
+- これにより、ドキュメントIDとフィールドの一貫性を保ち、データの整合性を確保する
+
+#### 実装例:
+
+```typescript
+// ✅ 推奨される書き方
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+
+const docId = doc(collection(db, FIRESTORE_COLLECTIONS.TEAMS)).id; // 新しいIDを生成
+const teamData = {
+  teamId: docId, // ドキュメントIDをフィールドにも保存
+  teamName: "サンプルチーム",
+  // その他のフィールド...
+};
+await setDoc(doc(db, FIRESTORE_COLLECTIONS.TEAMS, docId), teamData);
+
+// ❌ 非推奨の書き方
+const docRef = await addDoc(collection(db, "teams"), { // ハードコーディング
+  teamName: "サンプルチーム",
+  // ドキュメントIDがフィールドに保存されない
+});
+```
+
+#### リポジトリ実装での適用:
+
+```typescript
+// TeamRepository の create メソッド例
+import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+
+async create(orgId: string, tournamentId: string, team: TeamCreate): Promise<Team> {
+  const collectionRef = this.getCollectionRef(orgId, tournamentId);
+  const docId = doc(collectionRef).id; // 新しいIDを生成
+  
+  const firestoreDoc = {
+    ...TeamMapper.toFirestoreForCreate(team),
+    teamId: docId, // ドキュメントIDをフィールドに保存
+  };
+  
+  const docRef = doc(collectionRef, docId);
+  await setDoc(docRef, firestoreDoc);
+  
+  const snap = await getDoc(docRef);
+  const data = snap.data() as FirestoreTeamDoc;
+  return TeamMapper.toDomain({ ...data, id: snap.id });
+}
+
+// getCollectionRef メソッドでも定数を使用
+private getCollectionRef(orgId: string, tournamentId: string): CollectionReference<DocumentData> {
+  return collection(
+    db, 
+    `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.TEAMS}`
+  );
+}
+```
+
+### 13. セキュリティルール
 
 **ルール**:
 
@@ -304,21 +611,21 @@ export function TeamEditForm() {
 
 ## 🚀 パフォーマンス最適化
 
-### 12. Server Componentsの徹底活用
+### 13. Server Componentsの徹底活用
 
 **ルール**:
 
 - パフォーマンス最適化の第一手段は、可能な限りServer Component（デフォルト）にすることである
 - `React.memo` や `useCallback` の使用は、Client Component内での不要な再レンダリングが明確に計測された場合のみに限定する
 
-### 13. TanStack QueryとZustandの最適化
+### 14. TanStack QueryとZustandの最適化
 
 **ルール**:
 
 - TanStack Query のキャッシュ（`staleTime`）を適切に設定し、不要なFirestoreへのリクエストを削減する
 - Zustand のストアを購読する際は、必ずセレクタ（`useMyStore(state => state.value)`）を使用し、ストア全体の変更による不要な再レンダリングを防ぐ
 
-### 14. Next.js標準機能の活用
+### 15. Next.js標準機能の活用
 
 **ルール**:
 

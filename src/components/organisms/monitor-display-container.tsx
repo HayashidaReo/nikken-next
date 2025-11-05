@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useMonitorData } from "@/hooks/use-monitor-data";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
@@ -27,8 +26,22 @@ export function MonitorDisplayContainer({
 
       {/* メイン画面レイアウト */}
       <MonitorLayout
-        playerA={data.playerA}
-        playerB={data.playerB}
+        playerA={{
+          displayName: data.playerA.displayName,
+          playerId: "", // PlayerDataには含まれていない
+          teamId: "", // PlayerDataには含まれていない
+          teamName: data.playerA.teamName,
+          score: data.playerA.score,
+          hansoku: data.playerA.hansoku,
+        }}
+        playerB={{
+          displayName: data.playerB.displayName,
+          playerId: "", // PlayerDataには含まれていない
+          teamId: "", // PlayerDataには含まれていない
+          teamName: data.playerB.teamName,
+          score: data.playerB.score,
+          hansoku: data.playerB.hansoku,
+        }}
         tournamentName={data.tournamentName}
         courtName={data.courtName}
         round={data.round}

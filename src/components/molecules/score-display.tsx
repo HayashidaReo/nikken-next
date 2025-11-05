@@ -1,4 +1,3 @@
-import * as React from "react";
 import { UI_CONSTANTS } from "@/lib/constants";
 
 interface ScoreDisplayProps {

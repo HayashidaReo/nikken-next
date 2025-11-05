@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useEffect } from "react";
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { Notification, NotificationType } from "@/hooks/useNotifications";
@@ -39,7 +39,7 @@ const toastVariants: Record<
 export function Toast({ notification, onRemove }: ToastProps) {
   const { className, icon: Icon } = toastVariants[notification.type];
 
-  React.useEffect(() => {
+  useEffect(() => {
     const duration =
       notification.duration ?? NOTIFICATION_CONSTANTS.DEFAULT_DURATION;
     if (duration > 0) {

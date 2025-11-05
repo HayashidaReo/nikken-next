@@ -1,7 +1,8 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
+import { memo } from "react";
+import { useRouter } from "next/navigation";
+import { useMonitorStore } from "@/store/use-monitor-store";
 import { Button } from "@/components/atoms/button";
 import {
   Card,
@@ -23,14 +24,18 @@ import type { Match } from "@/types/match.schema";
 interface MatchListTableProps {
   matches: Match[];
   tournamentName: string;
+  courts?: Array<{ courtId: string; courtName: string }>;
   className?: string;
 }
 
 export function MatchListTable({
   matches,
   tournamentName,
+  courts,
   className,
 }: MatchListTableProps) {
+  const router = useRouter();
+  const initializeMatch = useMonitorStore((s) => s.initializeMatch);
   // 得点に応じた文字色を決定する関数（固定色使用）
   const getPlayerTextColor = (playerScore: number, opponentScore: number) => {
     if (playerScore > opponentScore) {
@@ -118,11 +123,21 @@ export function MatchListTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/monitor-control/${match.matchId}`}>
-                      <Button variant="outline" size="sm">
-                        操作画面
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        // 選択された試合情報をストアに保存してから遷移（Firestore通信回避のため）
+                        const court = courts?.find(
+                          (c) => c.courtId === match.courtId
+                        );
+                        const courtName = court ? court.courtName : match.courtId;
+                        initializeMatch(match, tournamentName, courtName);
+                        router.push(`/monitor-control/${match.matchId}`);
+                      }}
+                    >
+                      操作画面
+                    </Button>
                   </TableCell>
                 </TableRow>
               );
@@ -139,3 +154,6 @@ export function MatchListTable({
     </Card>
   );
 }
+
+// React.memo でラップして、props が変わらない限り再レンダリングされないようにする
+export const MatchListTableMemo = memo(MatchListTable);

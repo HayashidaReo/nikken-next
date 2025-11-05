@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { Textarea } from "@/components/atoms/textarea";

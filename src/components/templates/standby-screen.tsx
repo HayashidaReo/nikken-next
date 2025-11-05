@@ -1,5 +1,3 @@
-import * as React from "react";
-
 interface StandbyScreenProps {
   className?: string;
 }

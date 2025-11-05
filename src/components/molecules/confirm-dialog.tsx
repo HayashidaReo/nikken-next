@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/atoms/button";
 import {
   Card,
@@ -9,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { AlertCircle } from "lucide-react";
+import { DialogOverlay } from "./dialog-overlay";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -31,10 +31,8 @@ export function ConfirmDialog({
   cancelText = "キャンセル",
   variant = "default",
 }: ConfirmDialogProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <DialogOverlay isOpen={isOpen} onClose={onCancel}>
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -71,6 +69,6 @@ export function ConfirmDialog({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </DialogOverlay>
   );
 }

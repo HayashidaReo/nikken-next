@@ -1,4 +1,21 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 日本競技ニュースポーツ協会 トーナメント管理システム
+
+Next.js / Firebase を使用した、競技ニュースポーツ大会管理・モニター表示システムです。
+
+## 📋 ドキュメント
+
+開発時に参考にすべきドキュメント：
+
+| ドキュメント                                                                       | 説明                                   |
+| ---------------------------------------------------------------------------------- | -------------------------------------- |
+| [`docs/REQUIREMENTS_FUNCTIONAL_DESIGN.md`](docs/REQUIREMENTS_FUNCTIONAL_DESIGN.md) | 要件定義書・機能計画書                 |
+| [`docs/DATABASE_DESIGN.md`](docs/DATABASE_DESIGN.md)                               | データベース設計（Firestore スキーマ） |
+| [`docs/CODING_RULES.md`](docs/CODING_RULES.md)                                     | コーディングルール（命名、型、構造）   |
+| [`docs/CONCURRENT_EDITING_PATTERN.md`](docs/CONCURRENT_EDITING_PATTERN.md)         | 複数端末同時編集対応パターン           |
+| [`docs/REFACTORING.md`](docs/REFACTORING.md)                                       | リファクタリング記録（改善内容）       |
+| [`.github/REVIEW_PERSPECTIVES.md`](.github/REVIEW_PERSPECTIVES.md)                 | コードレビュー観点（チェックリスト）   |
+
+---
 
 ## Getting Started
 
@@ -19,6 +36,30 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## 📦 プロジェクト構造
+
+```
+src/
+  ├── components/          # React コンポーネント（Atomic Design）
+  │   ├── atoms/          # 最小粒度のコンポーネント
+  │   ├── molecules/      # 複数原子の組み合わせ
+  │   ├── organisms/      # 複数分子の組み合わせ
+  │   ├── providers/      # Context Provider
+  │   └── templates/      # ページレイアウト
+  ├── data/               # データアクセス層
+  │   ├── firebase/       # Firestore 直接操作
+  │   └── mappers/        # ドメインエンティティへの変換
+  ├── domains/            # ドメインロジック（ビジネスルール）
+  ├── hooks/              # React カスタムフック
+  ├── lib/                # ユーティリティ関数・設定
+  ├── repositories/       # リポジトリパターン（CRUD 抽象化）
+  ├── queries/            # TanStack Query（サーバー状態管理）
+  ├── store/              # Zustand（クライアント状態管理）
+  └── types/              # TypeScript 型定義 + Zod スキーマ
+```
+
+---
 
 ## Learn More
 

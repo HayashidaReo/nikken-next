@@ -1,4 +1,18 @@
-import { HANSOKU_LEVELS, type HansokuLevel } from "@/types/common";
+import { hansokuStateToNumber } from "@/types/match.schema";
+
+// 旧来のHANSOKU_LEVELSをmatch.schemaの定義に合わせる（後方互換性のため）
+export const HANSOKU_LEVELS = {
+  NONE: hansokuStateToNumber.none,
+  YELLOW: hansokuStateToNumber.yellow,
+  RED: hansokuStateToNumber.red,
+  RED_YELLOW: hansokuStateToNumber.red_yellow,
+  RED_RED: hansokuStateToNumber.red_red,
+} as const;
+
+/**
+ * 反則レベルの型（後方互換性のため）
+ */
+export type HansokuLevel = 0 | 1 | 2 | 3 | 4;
 
 /**
  * 反則カードの種類

@@ -65,3 +65,41 @@ export const SCORE_CONSTANTS = {
   /** 反則による得点計算の除数（赤反則判定） */
   RED_HANSOKU_DIVISOR: 2,
 } as const;
+
+// 🔴 反則ルール関連定数
+export const HANSOKU_CONSTANTS = {
+  /** 最小反則数 */
+  MIN_HANSOKU: 0,
+  /** 最大反則数（赤2つ）*/
+  MAX_HANSOKU: 4,
+  /** 赤1つの反則数 */
+  RED_ONE: 2,
+  /** 反則の計算単位（2つで赤1つ） */
+  HANSOKU_UNIT: 2,
+} as const;
+
+// 🗃️ Firestore関連定数
+export const FIRESTORE_COLLECTIONS = {
+  /** 組織コレクション */
+  ORGANIZATIONS: "organizations",
+  /** 大会コレクション */
+  TOURNAMENTS: "tournaments",
+  /** チームコレクション */
+  TEAMS: "teams",
+  /** 試合コレクション */
+  MATCHES: "matches",
+  /** ユーザーコレクション */
+  USERS: "users",
+} as const;
+
+// 🌐 APIエンドポイント定数
+export const API_ENDPOINTS = {
+  /** 試合結果更新エンドポイント（matchId を動的に指定）*/
+  MATCH_UPDATE: (matchId: string) => `/api/matches/${matchId}`,
+} as const;
+
+// 🔐 認証 / ログアウト関連定数
+export const AUTH_CONSTANTS = {
+  /** ログアウト後にリダイレクトするまでの待機時間（ミリ秒） */
+  LOGOUT_REDIRECT_DELAY: 500,
+} as const;

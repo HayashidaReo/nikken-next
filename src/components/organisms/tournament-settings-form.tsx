@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,11 +21,12 @@ import { LoadingButton } from "@/components/molecules/loading-button";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useArrayField } from "@/hooks/useArrayField";
 import { useToast } from "@/components/providers/notification-provider";
+import { createDefaultTournamentSettingsValues } from "@/lib/form-defaults";
 
 // 大会設定フォーム用のスキーマ
 const tournamentSettingsSchema = z.object({
   tournamentName: z.string().min(1, "大会名は必須です"),
-  tournamentDate: z.string().min(1, "開催日は必須です"),
+  tournamentDate: z.string().min(1, "開催日は必須です"), // フォームでは文字列として扱う
   location: z.string().min(1, "開催場所は必須です"),
   defaultMatchTimeMinutes: z
     .number()
@@ -48,26 +48,42 @@ const tournamentSettingsSchema = z.object({
 type TournamentSettingsData = z.infer<typeof tournamentSettingsSchema>;
 
 interface TournamentSettingsFormProps {
-  tournament: Tournament;
-  onSave: (data: Omit<Tournament, "createdAt" | "updatedAt">) => Promise<void>;
+  tournament: Tournament | null;
+  onSave: (data: {
+    tournamentName: string;
+    tournamentDate: string;
+    location: string;
+    defaultMatchTime: number;
+    courts: { courtId: string; courtName: string }[];
+  }) => Promise<void>;
+  isNewTournament?: boolean;
   className?: string;
 }
 
 export function TournamentSettingsForm({
   tournament,
   onSave,
+  isNewTournament = false,
   className,
 }: TournamentSettingsFormProps) {
-  const { isLoading, handleSubmit: handleFormSubmission } =
-    useFormSubmit<Omit<Tournament, "createdAt" | "updatedAt">>();
+  const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<{
+    tournamentName: string;
+    tournamentDate: string;
+    location: string;
+    defaultMatchTime: number;
+    courts: { courtId: string; courtName: string }[];
+  }>();
   const { showWarning } = useToast();
 
-  // 秒を分と秒に分割
-  const defaultMinutes = Math.floor(
-    tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE
-  );
-  const defaultSeconds =
-    tournament.defaultMatchTime % TIME_CONSTANTS.SECONDS_PER_MINUTE;
+  // 秒を分と秒に分割（新規作成時はデフォルト値）
+  const defaultMinutes = tournament
+    ? Math.floor(
+        tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE
+      )
+    : 3; // デフォルト3分
+  const defaultSeconds = tournament
+    ? tournament.defaultMatchTime % TIME_CONSTANTS.SECONDS_PER_MINUTE
+    : 0;
 
   const {
     register,
@@ -77,17 +93,11 @@ export function TournamentSettingsForm({
     formState: { errors },
   } = useForm<TournamentSettingsData>({
     resolver: zodResolver(tournamentSettingsSchema),
-    defaultValues: {
-      tournamentName: tournament.tournamentName,
-      tournamentDate: tournament.tournamentDate,
-      location: tournament.location,
-      defaultMatchTimeMinutes: defaultMinutes,
-      defaultMatchTimeSeconds: defaultSeconds,
-      courts: tournament.courts.map(court => ({
-        courtId: court.courtId,
-        courtName: court.courtName,
-      })),
-    },
+    defaultValues: createDefaultTournamentSettingsValues(
+      tournament,
+      defaultMinutes,
+      defaultSeconds
+    ),
   });
 
   const { fields, addItem, removeItem } = useArrayField(control, "courts", {
@@ -129,12 +139,14 @@ export function TournamentSettingsForm({
   return (
     <div className={cn("w-full max-w-4xl mx-auto space-y-6", className)}>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">大会設定</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {isNewTournament ? "新しい大会を作成" : "大会設定"}
+        </h1>
         <LoadingButton
           onClick={handleSubmit(handleFormSubmit)}
           isLoading={isLoading}
         >
-          保存
+          {isNewTournament ? "作成" : "保存"}
         </LoadingButton>
       </div>
 

@@ -1,40 +1,23 @@
 "use client";
 
-import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TeamEditForm } from "@/components/organisms/team-edit-form";
-import { mockTeams } from "@/lib/mock-data";
+import { useTeam, useUpdateTeam } from "@/queries/use-teams";
+import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
+import { MainLayout } from "@/components/templates/main-layout";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
+import { InfoDisplay } from "@/components/molecules/info-display";
 
 export default function TeamEditPage() {
   const params = useParams();
   const router = useRouter();
   const teamId = params.teamId as string;
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
+  const { needsTournamentSelection } = useAuthContext();
 
-  // 該当するチームを取得
-  const team = mockTeams.find(t => t.teamId === teamId);
-
-  if (!team) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
-        <div className="max-w-md mx-auto text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            チームが見つかりません
-          </h1>
-          <p className="text-gray-600 mb-6">
-            指定されたチームは存在しないか、削除されている可能性があります。
-          </p>
-          <button
-            onClick={() => router.push("/teams")}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            チーム一覧に戻る
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const { data: team, isLoading, error } = useTeam(teamId);
+  const updateTeamMutation = useUpdateTeam();
 
   const handleSave = async (data: {
     teamName: string;
@@ -50,23 +33,80 @@ export default function TeamEditPage() {
       displayName: string;
     }[];
   }) => {
-    // TODO: 実際のAPIコールでFirestoreに保存
-    console.log("チーム情報を保存:", data);
+    try {
+      await updateTeamMutation.mutateAsync({
+        teamId,
+        patch: data,
+      });
 
-    // 保存完了のメッセージ
-    showSuccess(`「${data.teamName}」の情報を更新しました`);
-
-    // チーム一覧に戻る
-    router.push("/teams");
+      showSuccess(`「${data.teamName}」の情報を更新しました`);
+      router.push("/teams");
+    } catch (error) {
+      showError(
+        error instanceof Error
+          ? error.message
+          : "チーム情報の更新に失敗しました"
+      );
+    }
   };
 
   const handleCancel = () => {
     router.push("/teams");
   };
 
+  // 大会が選択されていない場合
+  if (needsTournamentSelection) {
+    return (
+      <MainLayout activeTab="teams">
+        <InfoDisplay
+          variant="warning"
+          title="大会が選択されていません"
+          message="ヘッダーの大会ドロップダウンから操作したい大会を選択してください。"
+        />
+      </MainLayout>
+    );
+  }
+
+  // ローディング状態
+  if (isLoading) {
+    return (
+      <MainLayout activeTab="teams">
+        <LoadingIndicator message="チーム情報を読み込み中..." size="lg" />
+      </MainLayout>
+    );
+  }
+
+  // エラー状態
+  if (error) {
+    return (
+      <MainLayout activeTab="teams">
+        <InfoDisplay
+          variant="destructive"
+          title="データの取得に失敗しました"
+          message={error instanceof Error ? error.message : "不明なエラー"}
+        />
+      </MainLayout>
+    );
+  }
+
+  // チームが見つからない場合
+  if (!team) {
+    return (
+      <MainLayout activeTab="teams">
+        <InfoDisplay
+          variant="destructive"
+          title="チームが見つかりません"
+          message="指定されたチームが見つかりませんでした。URL を確認してください。"
+        />
+      </MainLayout>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <TeamEditForm team={team} onSave={handleSave} onCancel={handleCancel} />
-    </div>
+    <MainLayout activeTab="teams">
+      <div className="py-8 px-4">
+        <TeamEditForm team={team} onSave={handleSave} onCancel={handleCancel} />
+      </div>
+    </MainLayout>
   );
 }
