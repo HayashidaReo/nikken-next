@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { AuthService } from "@/lib/auth/service";
 import { AuthUser, AuthState } from "@/lib/auth/types";
+import { useActiveTournamentStore } from "@/store/use-active-tournament-store";
 
 interface AuthActions {
   signIn: (email: string, password: string) => Promise<void>;
@@ -61,6 +62,9 @@ export const useAuthStore = create<AuthStore>()(
           set({ isLoading: true, error: null });
 
           await AuthService.signOut();
+
+          // ログアウト時に大会情報もクリア
+          useActiveTournamentStore.getState().clearActiveTournament();
 
           set({
             user: null,

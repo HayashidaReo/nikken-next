@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useActiveTournament } from "@/hooks/useActiveTournament";
+import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useMemo } from "react";
 
 /**

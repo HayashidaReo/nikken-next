@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuth } from "@/hooks/useAuth";
-import { useActiveTournament } from "@/hooks/useActiveTournament";
+import { useActiveTournament } from "@/store/use-active-tournament-store";
 import {
     useTournamentsByOrganization,
     useCreateTournament,
