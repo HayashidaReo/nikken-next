@@ -29,28 +29,15 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
     Boolean(user) &&
     !hasTournamentSelected;
 
-  // ダイアログが必要な場合は、ローディング表示をスキップして直接ダイアログを表示
-  const needsDialog = isInitialized && !tournamentLoading && Boolean(user) && !hasTournamentSelected;
-
-  // ダイアログ内で大会選択完了時に自動的に閉じられるため、
-  // 外部からのクローズは必要ない（dismissible=false）
-  const handleDialogClose = () => {
-    // 無操作ハンドラ（ダイアログは dismissible=false なので呼ばれない）
-  };
-
   // ローディング中の場合のみローディングインジケーター表示
-  // （ただし大会選択が必要な場合はダイアログを同時に表示）
   if (!isInitialized || tournamentLoading) {
-    if (needsDialog) {
+    if (shouldShowDialog) {
       // 大会選択が必要な場合は、ダイアログのみ表示
       return (
-        <>
-          <TournamentSelectionDialog
-            open={shouldShowDialog}
-            dismissible={false}
-            onClose={handleDialogClose}
-          />
-        </>
+        <TournamentSelectionDialog
+          open={true}
+          dismissible={false}
+        />
       );
     }
     return <LoadingIndicator message="準備中..." size="lg" fullScreen={true} />;
@@ -63,8 +50,7 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
       {/* 大会選択強制ダイアログ */}
       <TournamentSelectionDialog
         open={shouldShowDialog}
-        dismissible={false} // 必須選択のため閉じることはできない
-        onClose={handleDialogClose}
+        dismissible={false}
       />
     </>
   );

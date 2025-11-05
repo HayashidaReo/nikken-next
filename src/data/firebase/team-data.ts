@@ -11,6 +11,7 @@ import {
   Unsubscribe,
   QueryConstraint,
   doc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { clientCollections, clientDocs } from "./collections";
 import { TeamMapper, type FirestoreTeamDoc } from "../mappers/team-mapper";
@@ -153,7 +154,7 @@ export class TeamData {
 
     await updateDoc(teamDoc, {
       isApproved,
-      updatedAt: new Date(),
+      updatedAt: serverTimestamp(),
     });
   }
 

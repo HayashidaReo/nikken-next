@@ -88,8 +88,8 @@ export class AuthErrorHandler {
       console.error("Error details:", error);
 
       if (error instanceof FirebaseError) {
-        console.log("Firebase Error Code:", error.code);
-        console.log("Firebase Error Message:", error.message);
+        console.error("Firebase Error Code:", error.code);
+        console.error("Firebase Error Message:", error.message);
       }
 
       console.groupEnd();

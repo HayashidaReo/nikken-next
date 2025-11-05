@@ -216,9 +216,6 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
         throw new Error(errorData.error || "Failed to save match result");
       }
 
-      const updatedMatch = await response.json();
-      console.log("Match result saved successfully:", updatedMatch);
-
       // 成功時のコールバック実行
       onSuccess?.();
     } catch (error) {
