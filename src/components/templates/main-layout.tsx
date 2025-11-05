@@ -17,6 +17,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@/components/atoms/tabs";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { cn } from "@/lib/utils/utils";
 import { AUTH_CONSTANTS } from "@/lib/constants";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -33,8 +34,13 @@ function Header() {
   const router = useRouter();
   const { signOut } = useAuthStore();
   const { showSuccess, showError } = useToast();
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = async () => {
     try {
       await signOut();
       showSuccess("ログアウトしました");
@@ -45,7 +51,12 @@ function Header() {
       }, AUTH_CONSTANTS.LOGOUT_REDIRECT_DELAY);
     } catch {
       showError("ログアウトに失敗しました");
+      setShowLogoutConfirm(false);
     }
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutConfirm(false);
   };
 
   const handleManageTournaments = () => {
@@ -80,7 +91,7 @@ function Header() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={handleLogout}
+                      onClick={handleLogoutClick}
                       aria-label="ログアウト"
                     >
                       <LogOut className="w-5 h-5" />
@@ -95,6 +106,18 @@ function Header() {
           </div>
         </div>
       </div>
+
+      {/* ログアウト確認ダイアログ */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="ログアウト"
+        message="現在ログインしているアカウントからログアウトしますか？"
+        confirmText="はい"
+        cancelText="キャンセル"
+        onConfirm={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+        variant="destructive"
+      />
     </header>
   );
 }
