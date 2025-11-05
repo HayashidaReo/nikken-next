@@ -2,13 +2,14 @@
 
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
+import { ShareMenu } from "@/components/molecules/share-menu";
 import { useTeams, useApproveTeam } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 
 export default function TeamsPage() {
-  const { needsTournamentSelection, isLoading: authLoading } = useAuthContext();
+  const { needsTournamentSelection, isLoading: authLoading, orgId, activeTournamentId } = useAuthContext();
   const { data: teams = [], isLoading: teamsLoading, error } = useTeams();
   const approveTeamMutation = useApproveTeam();
 
@@ -56,10 +57,18 @@ export default function TeamsPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">チーム・選手管理</h1>
-          <div className="text-sm text-gray-600">
-            総申請数: {teams.length}件 | 承認済み:{" "}
-            {teams.filter(t => t.isApproved).length}件 | 未承認:{" "}
-            {teams.filter(t => !t.isApproved).length}件
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-600">
+              総申請数: {teams.length}件 | 承認済み:{" "}
+              {teams.filter(t => t.isApproved).length}件 | 未承認:{" "}
+              {teams.filter(t => !t.isApproved).length}件
+            </div>
+            {orgId && activeTournamentId && (
+              <ShareMenu
+                itemName="チーム・選手管理ページ"
+                sharePath={`/teams-form/${orgId}/${activeTournamentId}`}
+              />
+            )}
           </div>
         </div>
 

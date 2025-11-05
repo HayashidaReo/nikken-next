@@ -19,3 +19,4 @@ export { FallbackMonitorDialog } from "./fallback-monitor-dialog";
 export { ConfirmDialog } from "./confirm-dialog";
 export { DialogOverlay } from "./dialog-overlay";
 export { LogoutButton } from "./logout-button";
+export { ShareMenu } from "./share-menu";
