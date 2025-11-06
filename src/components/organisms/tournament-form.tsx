@@ -10,6 +10,7 @@ import {
   parseInputValueToDate,
 } from "@/lib/utils/date-utils";
 import type { TournamentFormData } from "@/types/tournament.schema";
+import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 
 interface TournamentFormProps {
   formData: TournamentFormData;
@@ -57,6 +58,7 @@ export function TournamentForm({
             value={formData.tournamentName}
             onChange={e => onFormChange("tournamentName", e.target.value)}
             placeholder="大会名を入力してください"
+            maxLength={TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}
           />
         </FormField>
 
@@ -84,6 +86,7 @@ export function TournamentForm({
             onChange={e => onFormChange("tournamentDetail", e.target.value)}
             placeholder="大会の詳細情報や説明を入力してください"
             rows={4}
+            maxLength={TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX}
           />
         </FormField>
 
@@ -94,6 +97,7 @@ export function TournamentForm({
             value={formData.location}
             onChange={e => onFormChange("location", e.target.value)}
             placeholder="開催場所を入力してください"
+            maxLength={TEXT_LENGTH_LIMITS.LOCATION_MAX}
           />
         </FormField>
 

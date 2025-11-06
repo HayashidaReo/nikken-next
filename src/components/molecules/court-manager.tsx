@@ -5,6 +5,7 @@ import { Plus, Minus, GripVertical } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
+import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 
 interface Court {
   courtId: string;
@@ -103,9 +104,8 @@ export function CourtManager({
             onDragOver={e => handleDragOver(e, index)}
             onDragEnd={handleDragEnd}
             onDragLeave={handleDragLeave}
-            className={`flex gap-3 items-center p-3 bg-gray-50 rounded-lg border transition-all ${
-              draggedIndex === index ? "opacity-50" : ""
-            } ${dragOverIndex === index ? "border-blue-500 bg-blue-50" : ""}`}
+            className={`flex gap-3 items-center p-3 bg-gray-50 rounded-lg border transition-all ${draggedIndex === index ? "opacity-50" : ""
+              } ${dragOverIndex === index ? "border-blue-500 bg-blue-50" : ""}`}
           >
             {/* ドラッグハンドル */}
             <div className="flex-shrink-0 text-gray-400 hover:text-gray-600 cursor-grab">
@@ -119,6 +119,7 @@ export function CourtManager({
                 onChange={e => handleCourtNameChange(index, e.target.value)}
                 placeholder="例: Aコート, メインコート"
                 className="w-full"
+                maxLength={TEXT_LENGTH_LIMITS.COURT_NAME_MAX}
               />
             </div>
 

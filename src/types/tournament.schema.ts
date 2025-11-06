@@ -1,11 +1,14 @@
 import { z } from "zod";
+import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 
 /**
  * コート情報のZodスキーマ
  */
 export const courtSchema = z.object({
   courtId: z.string().min(1, "コートIDは必須です"),
-  courtName: z.string().min(1, "コート名は必須です"),
+  courtName: z.string()
+    .min(1, "コート名は必須です")
+    .max(TEXT_LENGTH_LIMITS.COURT_NAME_MAX, `コート名は${TEXT_LENGTH_LIMITS.COURT_NAME_MAX}文字以内で入力してください`),
 });
 
 /**
@@ -14,10 +17,13 @@ export const courtSchema = z.object({
  */
 export const tournamentSchema = z.object({
   tournamentId: z.string().optional(), // Firestoreで自動生成
-  tournamentName: z.string(), // 空文字許可（デフォルト大会用）
+  tournamentName: z.string()
+    .max(TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX, `大会名は${TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}文字以内で入力してください`), // 空文字許可（デフォルト大会用）
   tournamentDate: z.date(), // Timestamp型（日付のみ）
-  tournamentDetail: z.string(), // 大会概要（自由記述）
-  location: z.string(), // 空文字許可（デフォルト大会用）
+  tournamentDetail: z.string()
+    .max(TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX, `大会概要は${TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX}文字以内で入力してください`), // 大会概要（自由記述）
+  location: z.string()
+    .max(TEXT_LENGTH_LIMITS.LOCATION_MAX, `開催場所は${TEXT_LENGTH_LIMITS.LOCATION_MAX}文字以内で入力してください`), // 空文字許可（デフォルト大会用）
   defaultMatchTime: z
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
@@ -31,10 +37,15 @@ export const tournamentSchema = z.object({
  */
 export const tournamentFormSchema = z.object({
   tournamentId: z.string().optional(),
-  tournamentName: z.string().min(1, "大会名は必須です"),
+  tournamentName: z.string()
+    .min(1, "大会名は必須です")
+    .max(TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX, `大会名は${TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}文字以内で入力してください`),
   tournamentDate: z.date(),
-  tournamentDetail: z.string(),
-  location: z.string().min(1, "開催場所は必須です"),
+  tournamentDetail: z.string()
+    .max(TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX, `大会概要は${TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX}文字以内で入力してください`),
+  location: z.string()
+    .min(1, "開催場所は必須です")
+    .max(TEXT_LENGTH_LIMITS.LOCATION_MAX, `開催場所は${TEXT_LENGTH_LIMITS.LOCATION_MAX}文字以内で入力してください`),
   defaultMatchTime: z
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),

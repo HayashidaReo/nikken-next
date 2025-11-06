@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { adminDb } from "@/lib/firebase-admin/server";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+import { tournamentCreateSchema } from "@/types/tournament.schema";
+import { z } from "zod";
 
 /**
  * 組織内の大会一覧取得API Route
@@ -107,6 +109,17 @@ export async function POST(
     // リクエストボディを取得
     const body = await request.json();
 
+    // Zodスキーマでバリデーション
+    try {
+      tournamentCreateSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessage = error.issues[0]?.message || "入力データが不正です";
+        return NextResponse.json({ error: errorMessage }, { status: 400 });
+      }
+      return NextResponse.json({ error: "入力データが不正です" }, { status: 400 });
+    }
+
     const {
       tournamentName,
       tournamentDate,
@@ -115,15 +128,6 @@ export async function POST(
       defaultMatchTime,
       courts,
     } = body;
-
-    // バリデーション
-    if (
-      !tournamentName ||
-      typeof tournamentName !== "string" ||
-      tournamentName.trim() === ""
-    ) {
-      return NextResponse.json({ error: "大会名は必須です" }, { status: 400 });
-    }
 
     // Firebase Admin DB の初期化チェック
     if (!adminDb) {

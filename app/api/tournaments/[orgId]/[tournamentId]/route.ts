@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+import { tournamentSchema } from "@/types/tournament.schema";
+import { z } from "zod";
 
 /**
  * 大会情報取得API Route
@@ -88,6 +90,17 @@ export async function PUT(
         { error: "組織IDまたは大会IDが指定されていません" },
         { status: 400 }
       );
+    }
+
+    // Zodスキーマで部分的にバリデーション（更新なので全フィールド必須ではない）
+    try {
+      tournamentSchema.partial().parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessage = error.issues[0]?.message || "入力データが不正です";
+        return NextResponse.json({ error: errorMessage }, { status: 400 });
+      }
+      return NextResponse.json({ error: "入力データが不正です" }, { status: 400 });
     }
 
     // 更新データの準備
