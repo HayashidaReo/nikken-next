@@ -99,8 +99,13 @@ export function LoginForm() {
             </div>
           )}
 
-          <LoadingButton type="submit" className="w-full" isLoading={isLoading}>
-            {isLoading ? "ログイン中..." : "ログイン"}
+          <LoadingButton
+            type="submit"
+            className="w-full"
+            isLoading={isLoading}
+            loadingText="ログイン中..."
+          >
+            ログイン
           </LoadingButton>
 
           <div className="text-center">
