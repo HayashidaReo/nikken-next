@@ -58,14 +58,7 @@ export function TournamentSelectionDialog({
       // アクティブな大会を設定
       setActiveTournament(selectedTournamentId);
 
-      // LocalStorageへの書き込みが完了するまで少し待機
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // 大会選択後は明示的に閉じる
-      // onCloseが定義されている場合は呼び出す
-      if (onClose) {
-        onClose();
-      }
+      onClose?.();
 
       setIsConfirming(false);
     }
