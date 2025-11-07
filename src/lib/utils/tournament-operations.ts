@@ -30,10 +30,20 @@ export function createEmptyTournamentFormData(): TournamentFormData {
 export function mapTournamentToFormData(
     tournament: Tournament & { tournamentId?: string }
 ): TournamentFormData {
+    // tournamentDateが文字列（ISO形式）の場合はDateに変換
+    let tournamentDate: Date | null = null;
+    if (tournament.tournamentDate) {
+        if (typeof tournament.tournamentDate === "string") {
+            tournamentDate = new Date(tournament.tournamentDate);
+        } else if (tournament.tournamentDate instanceof Date) {
+            tournamentDate = tournament.tournamentDate;
+        }
+    }
+
     return {
         tournamentId: tournament.tournamentId || "",
         tournamentName: tournament.tournamentName,
-        tournamentDate: tournament.tournamentDate,
+        tournamentDate,
         location: tournament.location,
         tournamentDetail: tournament.tournamentDetail || "",
         defaultMatchTime: tournament.defaultMatchTime,

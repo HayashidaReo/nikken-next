@@ -58,7 +58,7 @@ export async function GET(
       return {
         id: doc.id,
         ...data,
-        tournamentDate: data.tournamentDate?.toDate?.() || null,
+        tournamentDate: data.tournamentDate?.toDate?.()?.toISOString() || null,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
       };
@@ -110,8 +110,9 @@ export async function POST(
     const body = await request.json();
 
     // Zodスキーマでバリデーション
+    let validatedData;
     try {
-      tournamentCreateSchema.parse(body);
+      validatedData = tournamentCreateSchema.parse(body);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessage = error.issues[0]?.message || "入力データが不正です";
@@ -127,7 +128,7 @@ export async function POST(
       location,
       defaultMatchTime,
       courts,
-    } = body;
+    } = validatedData;
 
     // Firebase Admin DB の初期化チェック
     if (!adminDb) {
@@ -150,17 +151,11 @@ export async function POST(
       );
     }
 
-    // 大会データを作成
+    // サーバー側で createdAt/updatedAt を生成
     const now = new Date();
-    // tournamentDateがDate型の場合の処理
-    let parsedTournamentDate = now;
-    if (tournamentDate) {
-      if (typeof tournamentDate === "string") {
-        parsedTournamentDate = new Date(tournamentDate);
-      } else if (tournamentDate instanceof Date) {
-        parsedTournamentDate = tournamentDate;
-      }
-    }
+
+    // tournamentDateはz.coerce.date()により既にDateオブジェクト
+    const parsedTournamentDate = tournamentDate instanceof Date ? tournamentDate : new Date(tournamentDate);
 
     // UUIDを生成
     const tournamentId = uuidv4();
@@ -174,8 +169,8 @@ export async function POST(
       defaultMatchTime:
         typeof defaultMatchTime === "number" ? defaultMatchTime : 180,
       courts: Array.isArray(courts) ? courts : [],
-      createdAt: now,
-      updatedAt: now,
+      createdAt: now, // サーバー側で生成
+      updatedAt: now, // サーバー側で生成
     };
 
     // 大会を作成
@@ -192,7 +187,7 @@ export async function POST(
         data: {
           tournamentId,
           tournamentName: tournamentData.tournamentName,
-          tournamentDate: tournamentData.tournamentDate,
+          tournamentDate: tournamentData.tournamentDate.toISOString(),
           tournamentDetail: tournamentData.tournamentDetail,
           location: tournamentData.location,
           defaultMatchTime: tournamentData.defaultMatchTime,

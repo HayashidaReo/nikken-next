@@ -29,7 +29,16 @@ export function useTournamentsByOrganization(orgId: string | null) {
             }
 
             const data = await response.json();
-            return data.data || [];
+            const tournaments = data.data || [];
+
+            // APIから返ってくるISO文字列をDateに変換
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return tournaments.map((tournament: any) => ({
+                ...tournament,
+                tournamentDate: tournament.tournamentDate ? new Date(tournament.tournamentDate) : null,
+                createdAt: tournament.createdAt ? new Date(tournament.createdAt) : undefined,
+                updatedAt: tournament.updatedAt ? new Date(tournament.updatedAt) : undefined,
+            }));
         },
         enabled: !!orgId,
         staleTime: 5 * 60 * 1000,
@@ -56,7 +65,19 @@ export function useTournament(
             }
 
             const data = await response.json();
-            return data.tournament;
+            const tournament = data.tournament;
+
+            // APIから返ってくるISO文字列をDateに変換
+            if (tournament) {
+                return {
+                    ...tournament,
+                    tournamentDate: tournament.tournamentDate ? new Date(tournament.tournamentDate) : null,
+                    createdAt: tournament.createdAt ? new Date(tournament.createdAt) : undefined,
+                    updatedAt: tournament.updatedAt ? new Date(tournament.updatedAt) : undefined,
+                };
+            }
+
+            return tournament;
         },
         enabled: !!(orgId && tournamentId),
         staleTime: 5 * 60 * 1000,
@@ -97,7 +118,19 @@ export function useCreateTournament() {
                 throw new Error(errorData.error || "大会の作成に失敗しました");
             }
 
-            return response.json();
+            const result = await response.json();
+
+            // APIから返ってくるISO文字列をDateに変換
+            if (result.data) {
+                result.data = {
+                    ...result.data,
+                    tournamentDate: result.data.tournamentDate ? new Date(result.data.tournamentDate) : null,
+                    createdAt: result.data.createdAt ? new Date(result.data.createdAt) : undefined,
+                    updatedAt: result.data.updatedAt ? new Date(result.data.updatedAt) : undefined,
+                };
+            }
+
+            return result;
         },
         onSuccess: (_, { orgId }) => {
             // 大会一覧キャッシュを無効化してリフレッシュ

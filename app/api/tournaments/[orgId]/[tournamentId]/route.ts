@@ -93,8 +93,9 @@ export async function PUT(
     }
 
     // Zodスキーマで部分的にバリデーション（更新なので全フィールド必須ではない）
+    let validatedData;
     try {
-      tournamentSchema.partial().parse(body);
+      validatedData = tournamentSchema.partial().parse(body);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessage = error.issues[0]?.message || "入力データが不正です";
@@ -103,28 +104,21 @@ export async function PUT(
       return NextResponse.json({ error: "入力データが不正です" }, { status: 400 });
     }
 
-    // 更新データの準備
-    const updateData = {
-      ...body,
-      updatedAt: Timestamp.now(),
+    // createdAt/updatedAt/tournamentIdをvalidatedDataから除外
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt, updatedAt, tournamentId: _tid, ...bodyData } = validatedData;
+
+    // 更新データの準備（updatedAtはサーバー側で生成）
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = {
+      ...bodyData,
+      updatedAt: Timestamp.now(), // サーバー側で生成
     };
 
-    // tournamentDateがDate型の場合の処理
+    // tournamentDateはz.coerce.date()により既にDateオブジェクト
     if (updateData.tournamentDate) {
-      if (typeof updateData.tournamentDate === "string") {
-        updateData.tournamentDate = Timestamp.fromDate(
-          new Date(updateData.tournamentDate)
-        );
-      } else if (updateData.tournamentDate instanceof Date) {
-        updateData.tournamentDate = Timestamp.fromDate(
-          updateData.tournamentDate
-        );
-      }
+      updateData.tournamentDate = Timestamp.fromDate(updateData.tournamentDate);
     }
-
-    // tournamentIdは更新しない
-    delete updateData.tournamentId;
-    delete updateData.createdAt;
 
     // Firestoreの大会ドキュメントを更新
     await adminDb

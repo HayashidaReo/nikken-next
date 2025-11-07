@@ -51,7 +51,7 @@ interface TournamentSettingsFormProps {
   tournament: Tournament | null;
   onSave: (data: {
     tournamentName: string;
-    tournamentDate: string;
+    tournamentDate: Date; // string から Date に変更
     location: string;
     defaultMatchTime: number;
     courts: { courtId: string; courtName: string }[];
@@ -68,7 +68,7 @@ export function TournamentSettingsForm({
 }: TournamentSettingsFormProps) {
   const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<{
     tournamentName: string;
-    tournamentDate: string;
+    tournamentDate: Date; // string から Date に変更
     location: string;
     defaultMatchTime: number;
     courts: { courtId: string; courtName: string }[];
@@ -78,8 +78,8 @@ export function TournamentSettingsForm({
   // 秒を分と秒に分割（新規作成時はデフォルト値）
   const defaultMinutes = tournament
     ? Math.floor(
-        tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE
-      )
+      tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE
+    )
     : 3; // デフォルト3分
   const defaultSeconds = tournament
     ? tournament.defaultMatchTime % TIME_CONSTANTS.SECONDS_PER_MINUTE
@@ -123,16 +123,19 @@ export function TournamentSettingsForm({
     const totalSeconds =
       data.defaultMatchTimeMinutes * 60 + data.defaultMatchTimeSeconds;
 
+    // tournamentDateを文字列からDateに変換
+    const tournamentDate = new Date(data.tournamentDate);
+
     const tournamentData = {
       tournamentName: data.tournamentName,
-      tournamentDate: data.tournamentDate,
+      tournamentDate, // Date型に変換済み
       location: data.location,
       defaultMatchTime: totalSeconds,
       courts: data.courts,
     };
 
     await handleFormSubmission(onSave, tournamentData, {
-      onSuccess: () => {},
+      onSuccess: () => { },
     });
   };
 
