@@ -133,7 +133,7 @@ export function TournamentSelectionDialog({
               isLoading={isLoading}
               isError={!!error}
               placeholder="大会を選択してください"
-              showSelectedDetails={false}
+              showSelectedDetails={true}
               triggerClassName="w-full border-gray-200"
               contentMinWidth="min-w-[280px]"
               disabled={isLoading || !!error}

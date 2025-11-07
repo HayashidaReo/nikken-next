@@ -6,7 +6,6 @@ import {
     SelectContent,
     SelectItem,
     SelectTrigger,
-    SelectValue,
 } from "@/components/atoms/select";
 import { Calendar, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
@@ -51,7 +50,7 @@ export function TournamentSelectDropdown({
     isLoading = false,
     isError = false,
     placeholder = "大会を選択してください",
-    showSelectedDetails = false,
+    showSelectedDetails = true,
     triggerClassName,
     contentMinWidth = "min-w-[280px]",
     disabled = false,
@@ -69,33 +68,30 @@ export function TournamentSelectDropdown({
             disabled={disabled || isLoading || isError}
         >
             <SelectTrigger
-                className={cn(
-                    triggerClassName ||
-                    "w-full border-gray-200"
-                )}
+                className={cn("w-full border-gray-200 py-6 px-4", triggerClassName)}
             >
-                {showSelectedDetails && selectedTournament ? (
+                {selectedTournament ? (
                     <div className="flex flex-col items-start gap-0.5 w-full">
                         <span className="font-semibold text-gray-900 text-sm leading-tight">
                             {selectedTournament.tournamentName}
                         </span>
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
-                            <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3 text-gray-500" />
-                                {formatDateForDisplay(selectedTournament.tournamentDate)}
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3 text-gray-500" />
-                                {selectedTournament.location}
-                            </span>
-                        </div>
+                        {showSelectedDetails && (
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                                <span className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3 text-gray-500" />
+                                    {formatDateForDisplay(selectedTournament.tournamentDate)}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <MapPin className="h-3 w-3 text-gray-500" />
+                                    {selectedTournament.location}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 ) : (
-                    <SelectValue
-                        placeholder={
-                            isLoading ? "読み込み中..." : placeholder
-                        }
-                    />
+                    <div className="text-left w-full text-gray-500">
+                        {isLoading ? "読み込み中..." : placeholder}
+                    </div>
                 )}
             </SelectTrigger>
             <SelectContent className={cn("border-none shadow-lg", contentMinWidth)}>
