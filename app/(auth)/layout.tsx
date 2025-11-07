@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ROUTES } from "@/lib/constants";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
 
@@ -18,7 +19,7 @@ export default function AuthLayout({
         if (isInitialized && !isLoading) {
             if (!user) {
                 // 未認証の場合はログイン画面にリダイレクト
-                router.replace("/login");
+                router.replace(ROUTES.LOGIN);
             }
         }
     }, [user, isInitialized, isLoading, router]);
