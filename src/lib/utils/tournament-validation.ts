@@ -63,9 +63,14 @@ export function validateField(
         return null;
     }
 
-    // 空文字は未入力扱いに正規化（optional フィールドを許容するため）
-    const normalizedValue =
-        typeof value === "string" && value.trim() === "" ? undefined : value;
+    // 空文字は未入力扱いに正規化するかどうかを判定
+    // - フィールドのスキーマが undefined を許容する（optional）場合のみ、空文字を undefined に正規化する
+    // - required フィールド（min(1) など）については空文字のまま検証して、必須チェックが発動するようにする
+    let normalizedValue: unknown = value;
+    if (typeof value === "string" && value.trim() === "") {
+        const allowsUndefined = fieldSchema.safeParse(undefined).success;
+        normalizedValue = allowsUndefined ? undefined : value;
+    }
 
     const result = fieldSchema.safeParse(normalizedValue);
     if (result.success) return null;
