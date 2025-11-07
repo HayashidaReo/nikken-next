@@ -57,19 +57,19 @@ export function validateField(
     field: keyof TournamentFormData,
     value: unknown
 ): string | null {
-    try {
-        // フィールドごとにZodスキーマの部分検証
-        const fieldSchema = tournamentFormSchema.shape[field];
-        if (!fieldSchema) {
-            return null;
-        }
-
-        fieldSchema.parse(value);
-        return null;
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return error.issues[0]?.message || "入力エラー";
-        }
+    // フィールドごとにZodスキーマの部分検証
+    const fieldSchema = tournamentFormSchema.shape[field];
+    if (!fieldSchema) {
         return null;
     }
+
+    // 空文字は未入力扱いに正規化（optional フィールドを許容するため）
+    const normalizedValue =
+        typeof value === "string" && value.trim() === "" ? undefined : value;
+
+    const result = fieldSchema.safeParse(normalizedValue);
+    if (result.success) return null;
+
+    // safeParse の結果から最初のエラーメッセージを返す
+    return result.error.issues[0]?.message || "入力エラー";
 }
