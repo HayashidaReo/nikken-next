@@ -205,7 +205,7 @@ export function useTournamentSettings() {
         updateTournament,
         showSuccess,
         showError,
-        tournaments,
+        tournaments.length,
         setActiveTournament,
     ]);
 
