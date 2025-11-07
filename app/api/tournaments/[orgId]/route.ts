@@ -154,8 +154,6 @@ export async function POST(
     // サーバー側で createdAt/updatedAt を生成
     const now = new Date();
 
-    // tournamentDateはz.coerce.date()により既にDateオブジェクト
-    const parsedTournamentDate = tournamentDate instanceof Date ? tournamentDate : new Date(tournamentDate);
 
     // UUIDを生成
     const tournamentId = uuidv4();
@@ -163,7 +161,7 @@ export async function POST(
     const tournamentData = {
       tournamentId,
       tournamentName: tournamentName.trim(),
-      tournamentDate: parsedTournamentDate,
+      tournamentDate: tournamentDate,
       tournamentDetail: tournamentDetail || "",
       location: location || "",
       defaultMatchTime:
