@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { usePathname } from "next/navigation";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -24,7 +24,6 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
   const { user, isInitialized } = useAuthStore();
   const { hasTournamentSelected, isLoading: tournamentLoading } =
     useActiveTournament();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // 大会設定画面ではダイアログを表示しない
   const shouldDisableDialog = pathname.includes(ROUTES.TOURNAMENT_SETTINGS);
@@ -37,14 +36,11 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
     Boolean(user) &&
     !hasTournamentSelected;
 
-  // shouldShowDialogの変化に応じてダイアログの状態を更新
-  useEffect(() => {
-    setIsDialogOpen(shouldShowDialog);
-  }, [shouldShowDialog]);
-
   // ダイアログを閉じるハンドラー
+  // onClose はダイアログ内部で大会選択が確定した際に
+  // ストア側の状態（hasTournamentSelected）が更新されることを期待する。
+  // その結果 shouldShowDialog が false になり自動的に閉じる
   const handleCloseDialog = () => {
-    setIsDialogOpen(false);
   };
 
   // ローディング中の場合のみローディングインジケーター表示
@@ -68,7 +64,7 @@ export function TournamentProvider({ children }: TournamentProviderProps) {
 
       {/* 大会選択強制ダイアログ */}
       <TournamentSelectionDialog
-        open={isDialogOpen}
+        open={shouldShowDialog}
         dismissible={false}
         onClose={handleCloseDialog}
       />
