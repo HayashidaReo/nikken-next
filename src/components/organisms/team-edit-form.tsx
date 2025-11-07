@@ -21,7 +21,6 @@ import type { Team } from "@/types/team.schema";
 
 import { FormInput, FormTextarea } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
-import { LoadingButton } from "@/components/molecules/loading-button";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
@@ -192,12 +191,9 @@ export function TeamEditForm({
           </Button>
           <h1 className="text-2xl font-bold text-gray-900">チーム情報編集</h1>
         </div>
-        <LoadingButton
-          onClick={handleSubmit(handleFormSubmit)}
-          isLoading={isLoading}
-        >
+        <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading} loadingText="保存中...">
           保存
-        </LoadingButton>
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">

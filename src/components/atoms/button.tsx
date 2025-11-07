@@ -1,6 +1,7 @@
 import React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Spinner } from "@/components/atoms/spinner-for-button";
 
 import { cn } from "@/lib/utils/utils";
 
@@ -33,19 +34,41 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /** ローディング状態（オプション） */
+  isLoading?: boolean;
+  /** ローディング時に表示するテキスト（省略時は children を上書きしない） */
+  loadingText?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  (
+    { className, variant, size, asChild = false, isLoading, loadingText, children, disabled, ...props },
+    ref
+  ) => {
     const Comp = asChild ? Slot : "button";
+
+    // disabled は isLoading が true のとき強制的に true にする
+    const finalDisabled = disabled || !!isLoading;
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        disabled={finalDisabled}
         {...props}
-      />
+      >
+        {isLoading && (
+          <span className="mr-2 inline-flex items-center">
+            <Spinner size="sm" color="white" />
+          </span>
+        )}
+        {isLoading && loadingText ? loadingText : children}
+        {isLoading && !loadingText && (
+          <span className="sr-only">読み込み中</span>
+        )}
+      </Comp>
     );
   }
 );

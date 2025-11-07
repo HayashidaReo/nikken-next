@@ -17,7 +17,7 @@ import { FORM_CONSTANTS, TIME_CONSTANTS } from "@/lib/constants";
 
 import { FormInput } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
-import { LoadingButton } from "@/components/molecules/loading-button";
+import { Button } from "@/components/atoms/button";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useArrayField } from "@/hooks/useArrayField";
 import { useToast } from "@/components/providers/notification-provider";
@@ -145,12 +145,9 @@ export function TournamentSettingsForm({
         <h1 className="text-2xl font-bold text-gray-900">
           {isNewTournament ? "新しい大会を作成" : "大会設定"}
         </h1>
-        <LoadingButton
-          onClick={handleSubmit(handleFormSubmit)}
-          isLoading={isLoading}
-        >
+        <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading}>
           {isNewTournament ? "作成" : "保存"}
-        </LoadingButton>
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">

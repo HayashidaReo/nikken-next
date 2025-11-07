@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
-import { LoadingButton } from "@/components/molecules/loading-button";
+import { Button } from "@/components/atoms/button";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuthStore } from "@/store/use-auth-store";
 
@@ -99,14 +99,14 @@ export function LoginForm() {
             </div>
           )}
 
-          <LoadingButton
+          <Button
             type="submit"
             className="w-full"
             isLoading={isLoading}
             loadingText="ログイン中..."
           >
             ログイン
-          </LoadingButton>
+          </Button>
 
           <div className="text-center">
             <Link

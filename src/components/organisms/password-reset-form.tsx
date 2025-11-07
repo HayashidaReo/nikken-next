@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
-import { LoadingButton } from "@/components/molecules/loading-button";
 import { useToast } from "@/components/providers/notification-provider";
 import { AuthService } from "@/lib/auth/service";
 
@@ -103,10 +102,10 @@ export function PasswordResetForm() {
             required
             register={register}
             error={errors.email?.message}
-          />{" "}
-          <LoadingButton type="submit" className="w-full" isLoading={isLoading}>
-            {isLoading ? "送信中..." : "再設定メールを送信"}
-          </LoadingButton>
+          />
+          <Button type="submit" className="w-full" isLoading={isLoading} loadingText="送信中...">
+            再設定メールを送信
+          </Button>
           <div className="text-center">
             <Link
               href="/login"

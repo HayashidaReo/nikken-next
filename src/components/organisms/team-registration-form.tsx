@@ -17,7 +17,6 @@ import {
   PlayerListForm,
   FormInput,
   FormTextarea,
-  LoadingButton,
 } from "@/components/molecules";
 import type { TeamFormData } from "@/types/team-form.schema";
 import { teamFormSchema } from "@/types/team-form.schema";
@@ -187,9 +186,9 @@ export function TeamRegistrationForm({
               >
                 戻る
               </Button>
-              <LoadingButton type="submit" isLoading={isLoading}>
+              <Button type="submit" isLoading={isLoading} loadingText="準備中...">
                 確認画面へ
-              </LoadingButton>
+              </Button>
             </div>
           </form>
         </CardContent>
