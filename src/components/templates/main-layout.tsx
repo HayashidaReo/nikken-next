@@ -6,16 +6,23 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/atoms/tooltip";
+import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from "@/components/atoms/tabs";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { cn } from "@/lib/utils/utils";
-import { AUTH_CONSTANTS } from "@/lib/constants";
+import { AUTH_CONSTANTS, ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useToast } from "@/components/providers/notification-provider";
-import { TournamentSelector } from "@/components/molecules/TournamentSelector";
+import { HeaderTournamentSelector } from "@/components/molecules/header-tournament-selector";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -27,23 +34,33 @@ function Header() {
   const router = useRouter();
   const { signOut } = useAuthStore();
   const { showSuccess, showError } = useToast();
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = async () => {
     try {
       await signOut();
       showSuccess("ログアウトしました");
 
       // ログアウト後、ログイン画面にリダイレクト
       setTimeout(() => {
-        router.push("/login");
+        router.push(ROUTES.LOGIN);
       }, AUTH_CONSTANTS.LOGOUT_REDIRECT_DELAY);
     } catch {
       showError("ログアウトに失敗しました");
+      setShowLogoutConfirm(false);
     }
   };
 
+  const handleLogoutCancel = () => {
+    setShowLogoutConfirm(false);
+  };
+
   const handleManageTournaments = () => {
-    router.push("/tournament-settings");
+    router.push(ROUTES.TOURNAMENT_SETTINGS);
   };
 
   return (
@@ -65,17 +82,42 @@ function Header() {
           {/* 右側：大会選択と設定ボタン */}
           <div className="flex items-center space-x-4">
             {/* 大会選択ドロップダウン */}
-            <TournamentSelector onManageClick={handleManageTournaments} />
+            <HeaderTournamentSelector onManageClick={handleManageTournaments} />
 
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                ログアウト
-              </Button>
+            <div className="flex items-center">
+              <TooltipProvider delayDuration={20}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleLogoutClick}
+                      aria-label="ログアウト"
+                    >
+                      <LogOut className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="center" sideOffset={5}>
+                    <p>ログアウト</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ログアウト確認ダイアログ */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="ログアウト"
+        message="現在ログインしているアカウントからログアウトしますか？"
+        confirmText="はい"
+        cancelText="キャンセル"
+        onConfirm={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+        variant="destructive"
+      />
     </header>
   );
 }

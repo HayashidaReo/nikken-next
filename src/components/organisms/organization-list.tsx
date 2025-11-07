@@ -11,6 +11,7 @@ import { Button } from "@/components/atoms/button";
 import { useRouter } from "next/navigation";
 import { useOrganizations } from "@/queries/use-organizations";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
+import { ROUTES } from "@/lib/constants";
 
 /**
  * 組織一覧表示
@@ -30,7 +31,7 @@ export function OrganizationList() {
   const handleManageOrganization = (orgId: string, orgName: string) => {
     showSuccess(`組織「${orgName}」を選択しました`);
     // 大会設定ページに移動
-    router.push("/tournament-settings");
+    router.push(ROUTES.TOURNAMENT_SETTINGS);
   };
 
   if (isLoading) {

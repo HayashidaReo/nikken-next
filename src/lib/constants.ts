@@ -42,6 +42,20 @@ export const FORM_CONSTANTS = {
   MIN_COURTS: 1,
 } as const;
 
+// 📏 文字数制限関連定数
+export const TEXT_LENGTH_LIMITS = {
+  /** 大会名の最大文字数 */
+  TOURNAMENT_NAME_MAX: 15,
+  /** コート名の最大文字数 */
+  COURT_NAME_MAX: 8,
+  /** 開催場所の最大文字数 */
+  LOCATION_MAX: 10,
+  /** 回戦名の最大文字数 */
+  ROUND_NAME_MAX: 11,
+  /** 大会概要の最大文字数 */
+  TOURNAMENT_DETAIL_MAX: 1000,
+} as const;
+
 // 🥋 ペナルティ関連定数
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
@@ -102,4 +116,11 @@ export const API_ENDPOINTS = {
 export const AUTH_CONSTANTS = {
   /** ログアウト後にリダイレクトするまでの待機時間（ミリ秒） */
   LOGOUT_REDIRECT_DELAY: 500,
+} as const;
+
+// 🛣️ ルートパス定数
+export const ROUTES = {
+  LOGIN: "/login",
+  DASHBOARD: "/dashboard",
+  TOURNAMENT_SETTINGS: "/tournament-settings",
 } as const;
