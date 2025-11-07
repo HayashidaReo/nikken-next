@@ -160,7 +160,7 @@ export async function POST(
 
     const tournamentData = {
       tournamentId,
-      tournamentName: tournamentName.trim(),
+      tournamentName: tournamentName,
       tournamentDate: tournamentDate,
       tournamentDetail: tournamentDetail || "",
       location: location || "",

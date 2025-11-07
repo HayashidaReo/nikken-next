@@ -17,12 +17,12 @@ export const courtSchema = z.object({
  */
 export const tournamentSchema = z.object({
   tournamentId: z.string().optional(), // Firestoreで自動生成
-  tournamentName: z.string()
+  tournamentName: z.string().trim()
     .max(TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX, `大会名は${TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}文字以内で入力してください`), // 空文字許可（デフォルト大会用）
   tournamentDate: z.coerce.date(), // 文字列からDateへ自動変換（JSON経由のAPI対応）
-  tournamentDetail: z.string()
+  tournamentDetail: z.string().trim()
     .max(TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX, `大会概要は${TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX}文字以内で入力してください`), // 大会概要（自由記述）
-  location: z.string()
+  location: z.string().trim()
     .max(TEXT_LENGTH_LIMITS.LOCATION_MAX, `開催場所は${TEXT_LENGTH_LIMITS.LOCATION_MAX}文字以内で入力してください`), // 空文字許可（デフォルト大会用）
   defaultMatchTime: z
     .number()
@@ -37,13 +37,13 @@ export const tournamentSchema = z.object({
  */
 export const tournamentFormSchema = z.object({
   tournamentId: z.string().optional(),
-  tournamentName: z.string()
+  tournamentName: z.string().trim()
     .min(1, "大会名は必須です")
     .max(TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX, `大会名は${TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}文字以内で入力してください`),
   tournamentDate: z.coerce.date(), // 文字列からDateへ自動変換
-  tournamentDetail: z.string()
+  tournamentDetail: z.string().trim()
     .max(TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX, `大会概要は${TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX}文字以内で入力してください`),
-  location: z.string()
+  location: z.string().trim()
     .min(1, "開催場所は必須です")
     .max(TEXT_LENGTH_LIMITS.LOCATION_MAX, `開催場所は${TEXT_LENGTH_LIMITS.LOCATION_MAX}文字以内で入力してください`),
   defaultMatchTime: z
