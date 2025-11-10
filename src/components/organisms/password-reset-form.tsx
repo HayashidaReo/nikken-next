@@ -67,27 +67,38 @@ export function PasswordResetForm() {
   if (isSubmitted) {
     return (
       <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">メール送信完了</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center space-y-4">
-          <div className="bg-green-50 border border-green-200 rounded-md p-4">
-            <p className="text-sm text-gray-700 mb-2">
-              <span className="font-semibold">{submittedEmail}</span> に再設定メールを送信しました。
-            </p>
-            <p className="text-sm text-gray-600">
-              メールに記載されたリンクをクリックして、パスワードを再設定してください。
-            </p>
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center text-center space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold">送信完了</h2>
+              <p className="text-muted-foreground mt-2">
+                パスワード再設定用のメールを送信しました。
+              </p>
+            </div>
+
+            <div className="w-full bg-gray-50 border border-gray-200 rounded-md p-4 text-sm">
+              <p className="text-gray-600">
+                <span className="font-semibold text-gray-800 break-all">
+                  {submittedEmail}
+                </span>
+                <br />
+                宛に送信されたメールをご確認ください。
+              </p>
+            </div>
+
+            <div className="text-xs text-gray-500 space-y-1 text-left self-start w-full">
+              <p>
+                ※
+                メールが届かない場合は、迷惑メールフォルダをご確認いただくか、入力したアドレスに誤りがないかご確認ください。
+              </p>
+            </div>
+
+            <Link href="/login" className="w-full">
+              <Button variant="outline" className="w-full">
+                ログイン画面に戻る
+              </Button>
+            </Link>
           </div>
-          <div className="text-xs text-gray-500 space-y-1">
-            <p>※ メールが届かない場合は、迷惑メールフォルダをご確認ください。</p>
-            <p>※ 数分経ってもメールが届かない場合は、入力したメールアドレスをご確認の上、再度お試しください。</p>
-          </div>
-          <Link href="/login">
-            <Button variant="outline" className="w-full">
-              ログイン画面に戻る
-            </Button>
-          </Link>
         </CardContent>
       </Card>
     );
