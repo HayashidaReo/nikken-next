@@ -27,7 +27,6 @@ const loginSchema = z.object({
   password: z
     .string()
     .min(1, "パスワードは必須です")
-    .min(6, "パスワードは6文字以上で入力してください"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
