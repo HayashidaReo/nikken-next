@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
-import { LoadingButton } from "@/components/molecules/loading-button";
+import { Button } from "@/components/atoms/button";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuthStore } from "@/store/use-auth-store";
 
@@ -22,11 +23,12 @@ const loginSchema = z.object({
   email: z
     .string()
     .min(1, "メールアドレスは必須です")
-    .email("正しいメールアドレスを入力してください"),
+    .refine((val) => z.email().safeParse(val).success, {
+      message: "正しいメールアドレスを入力してください",
+    }),
   password: z
     .string()
     .min(1, "パスワードは必須です")
-    .min(6, "パスワードは6文字以上で入力してください"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -35,6 +37,7 @@ export function LoginForm() {
   const { showSuccess, showError } = useToast();
   const router = useRouter();
   const { signIn, isLoading, error, clearError } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -82,15 +85,26 @@ export function LoginForm() {
             error={errors.email?.message}
           />
 
-          <FormInput
-            label="パスワード"
-            name="password"
-            type="password"
-            placeholder="パスワードを入力"
-            required
-            register={register}
-            error={errors.password?.message}
-          />
+          <div>
+            <FormInput
+              label="パスワード"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="パスワードを入力"
+              required
+              register={register}
+              error={errors.password?.message}
+              trailingIcon={
+                showPassword ? (
+                  <Eye className="w-5 h-5" />
+                ) : (
+                  <EyeOff className="w-5 h-5" />
+                )
+              }
+              onTrailingIconClick={() => setShowPassword(!showPassword)}
+              trailingIconLabel={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+            />
+          </div>
 
           {/* 認証エラーの表示 */}
           {error && (
@@ -99,9 +113,14 @@ export function LoginForm() {
             </div>
           )}
 
-          <LoadingButton type="submit" className="w-full" isLoading={isLoading}>
-            {isLoading ? "ログイン中..." : "ログイン"}
-          </LoadingButton>
+          <Button
+            type="submit"
+            className="w-full"
+            isLoading={isLoading}
+            loadingText="ログイン中..."
+          >
+            ログイン
+          </Button>
 
           <div className="text-center">
             <Link

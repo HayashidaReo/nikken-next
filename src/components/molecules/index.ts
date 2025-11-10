@@ -13,7 +13,6 @@ export { ConfirmationDialog } from "./confirmation-dialog";
 export { PlayerListForm } from "./player-list-form";
 export { FormInput, FormTextarea } from "./form-input";
 export { AddButton, RemoveButton } from "./action-buttons";
-export { LoadingButton } from "./loading-button";
 export { Toast, ToastContainer } from "./toast";
 export { FallbackMonitorDialog } from "./fallback-monitor-dialog";
 export { ConfirmDialog } from "./confirm-dialog";

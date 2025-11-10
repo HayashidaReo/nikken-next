@@ -21,7 +21,6 @@ import type { Team } from "@/types/team.schema";
 
 import { FormInput, FormTextarea } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
-import { LoadingButton } from "@/components/molecules/loading-button";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
@@ -33,9 +32,7 @@ const teamEditSchema = z.object({
   teamName: z.string().min(1, "チーム名は必須です"),
   representativeName: z.string().min(1, "代表者名は必須です"),
   representativePhone: z.string().min(1, "電話番号は必須です"),
-  representativeEmail: z
-    .string()
-    .email("正しいメールアドレスを入力してください"),
+  representativeEmail: z.email("正しいメールアドレスを入力してください"),
   isApproved: z.boolean(),
   remarks: z.string(),
   players: z.array(
@@ -192,12 +189,9 @@ export function TeamEditForm({
           </Button>
           <h1 className="text-2xl font-bold text-gray-900">チーム情報編集</h1>
         </div>
-        <LoadingButton
-          onClick={handleSubmit(handleFormSubmit)}
-          isLoading={isLoading}
-        >
+        <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading} loadingText="保存中...">
           保存
-        </LoadingButton>
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">

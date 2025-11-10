@@ -10,7 +10,9 @@ export const teamFormSchema = z.object({
   representativeEmail: z
     .string()
     .min(1, "代表者メールアドレスは必須です")
-    .email("正しいメールアドレスを入力してください"),
+    .refine((val) => z.email().safeParse(val).success, {
+      message: "正しいメールアドレスを入力してください",
+    }),
   teamName: z.string().min(1, "チーム名（所属名）は必須です"),
   players: z
     .array(

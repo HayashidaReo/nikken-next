@@ -30,7 +30,6 @@ export class AuthService {
       );
       return mapFirebaseUser(userCredential.user);
     } catch (error) {
-      AuthErrorHandler.logError("signInWithEmail", error);
       throw new Error(AuthErrorHandler.getErrorMessage(error));
     }
   }
@@ -42,19 +41,30 @@ export class AuthService {
     try {
       await signOut(auth);
     } catch (error) {
-      AuthErrorHandler.logError("signOut", error);
       throw new Error(AuthErrorHandler.getErrorMessage(error));
     }
   }
 
   /**
    * パスワードリセットメール送信
+   * @param email - パスワードをリセットするメールアドレス
+   * @param redirectUrl - パスワード再設定後のリダイレクト先URL（オプション）
    */
-  static async sendPasswordResetEmail(email: string): Promise<void> {
+  static async sendPasswordResetEmail(
+    email: string,
+    redirectUrl?: string
+  ): Promise<void> {
     try {
-      await sendPasswordResetEmail(auth, email);
+      // リダイレクトURLが指定されている場合は、actionCodeSettingsを設定
+      const actionCodeSettings = redirectUrl
+        ? {
+          url: redirectUrl,
+          handleCodeInApp: false,
+        }
+        : undefined;
+
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
     } catch (error) {
-      AuthErrorHandler.logError("sendPasswordResetEmail", error);
       throw new Error(AuthErrorHandler.getErrorMessage(error));
     }
   }
@@ -87,8 +97,7 @@ export class AuthService {
       if (auth.currentUser) {
         await auth.currentUser.reload();
       }
-    } catch (error) {
-      AuthErrorHandler.logError("refreshAuth", error);
+    } catch {
       // リフレッシュエラーは致命的でないため、エラーを投げない
       console.warn("Failed to refresh authentication state");
     }

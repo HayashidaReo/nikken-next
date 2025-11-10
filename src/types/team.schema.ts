@@ -20,7 +20,9 @@ const baseTeamSchema = z.object({
   representativeEmail: z
     .string()
     .min(1, "代表者メールアドレスは必須です")
-    .email("正しいメールアドレスを入力してください"),
+    .refine((val) => z.email().safeParse(val).success, {
+      message: "正しいメールアドレスを入力してください",
+    }),
   players: z.array(playerSchema).min(1, "最低1人の選手を登録してください"),
   remarks: z.string().default(""),
   isApproved: z.boolean().default(false),
