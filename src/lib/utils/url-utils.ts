@@ -9,5 +9,3 @@ export function getLoginRedirectUrl(): string | undefined {
         return undefined;
     }
 }
-
-export default getLoginRedirectUrl;
