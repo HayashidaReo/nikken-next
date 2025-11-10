@@ -75,7 +75,7 @@ export function MatchHeader({
             <p className="font-medium">{courtName}</p>
           </div>
           <div>
-            <Label className="text-sm text-gray-600">回戦</Label>
+            <Label className="text-sm text-gray-600">ラウンド</Label>
             <p className="font-medium">{round}</p>
           </div>
         </div>

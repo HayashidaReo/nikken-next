@@ -87,7 +87,7 @@ export function useMatchesByCourtId(courtId: string | null | undefined) {
 }
 
 /**
- * 特定の回戦の試合を取得するQuery
+ * 特定のラウンドの試合を取得するQuery
  */
 export function useMatchesByRound(round: string | null | undefined) {
     const { orgId, activeTournamentId, isReady } = useAuthContext();

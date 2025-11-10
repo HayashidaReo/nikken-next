@@ -101,6 +101,7 @@
 | `players.playerA.teamName`    | String    | チーム名                                                                      |
 | `players.playerA.score`       | Number    | 選手Aの得点（0, 1, 2）                                                        |
 | `players.playerA.hansoku`     | Number    | 選手Aの反則状態（0:"none", 1:"yellow", 2:"red", 3:"red_yellow", 4:"red_red"） |
-| `players.playerB`             | Map       | 選手Bの情報（playerAと同様の構造）                                            |
+| `players.playerB`             | Map       | 選手Bの情報（playerAと同様の構造）                                             |
+| `isCompleted`                 | Boolean   | 試合完了フラグ                                                               |
 | `createdAt`                   | Timestamp | 組み合わせ作成日時                                                            |
 | `updatedAt`                   | Timestamp | 最終編集日時                                                                  |

@@ -196,7 +196,7 @@ export function MatchSetupTable({
           <TableHeader>
             <TableRow>
               <TableHead>コート</TableHead>
-              <TableHead>回戦</TableHead>
+              <TableHead>ラウンド</TableHead>
               <TableHead>選手A所属</TableHead>
               <TableHead>選手A</TableHead>
               <TableHead>選手B所属</TableHead>

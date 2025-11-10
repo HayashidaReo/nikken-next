@@ -13,6 +13,7 @@ export interface FirestoreMatchDoc {
         playerA: FirestoreMatchPlayerDoc;
         playerB: FirestoreMatchPlayerDoc;
     };
+    isCompleted: boolean; // 試合完了フラグ
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -65,6 +66,7 @@ export class MatchMapper {
                 playerA: this.playerToDomain(doc.players.playerA),
                 playerB: this.playerToDomain(doc.players.playerB),
             },
+            isCompleted: doc.isCompleted,
             createdAt,
             updatedAt,
         };
@@ -133,6 +135,7 @@ export class MatchMapper {
                 playerA: this.playerToFirestore(match.players.playerA),
                 playerB: this.playerToFirestore(match.players.playerB),
             },
+            isCompleted: false, // 組み合わせ作成時は必ずfalse
         };
     }
 
@@ -155,6 +158,9 @@ export class MatchMapper {
                 playerA: this.playerToFirestore(match.players.playerA),
                 playerB: this.playerToFirestore(match.players.playerB),
             };
+        }
+        if (match.isCompleted !== undefined) {
+            firestoreData.isCompleted = match.isCompleted;
         }
 
         // updatedAtは自動で設定されるため、ここでは設定しない

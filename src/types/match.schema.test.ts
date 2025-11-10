@@ -27,6 +27,7 @@ describe("Match Schema Validation", () => {
         displayName: "鈴木",
       },
     },
+    isCompleted: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -96,12 +97,12 @@ describe("Match Schema Validation", () => {
       }
     });
 
-    it("回戦が空の場合はエラーになる", () => {
+    it("ラウンドが空の場合はエラーになる", () => {
       const invalidMatch = { ...validMatch, round: "" };
       const result = matchSchema.safeParse(invalidMatch);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("回戦は必須です");
+        expect(result.error.issues[0].message).toBe("ラウンドは必須です");
       }
     });
   });

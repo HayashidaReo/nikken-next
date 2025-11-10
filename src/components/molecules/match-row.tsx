@@ -66,7 +66,7 @@ export function MatchRow({
                 <div className={cn("rounded-md", detectedRowChanges.round && "ring-2 ring-red-500")}>
                     <Select value={row.round} onValueChange={value => onUpdate(index, "round", value)}>
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="回戦選択" />
+                            <SelectValue placeholder="ラウンド選択" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="予選1回戦">予選1回戦</SelectItem>

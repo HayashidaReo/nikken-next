@@ -139,6 +139,8 @@ export const mockMatches: Match[] = [
         hansoku: 0, // なし
       },
     },
+    // モックデータは完了済みとして扱う
+    isCompleted: true,
     createdAt: new Date("2024-02-25"),
     updatedAt: new Date("2024-03-01"),
   },
@@ -164,6 +166,7 @@ export const mockMatches: Match[] = [
         hansoku: 2, // 赤
       },
     },
+    isCompleted: true,
     createdAt: new Date("2024-02-25"),
     updatedAt: new Date("2024-03-01"),
   },
@@ -189,6 +192,7 @@ export const mockMatches: Match[] = [
         hansoku: 1, // 黄
       },
     },
+    isCompleted: true,
     createdAt: new Date("2024-02-25"),
     updatedAt: new Date("2024-03-01"),
   },

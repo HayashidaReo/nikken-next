@@ -189,7 +189,6 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       // 保存処理開始
       set({ isSaving: true });
 
-      // APIエンドポイントに部分更新データを送信
       const response = await fetch(API_ENDPOINTS.MATCH_UPDATE(currentState.matchId), {
         method: "PATCH",
         headers: {

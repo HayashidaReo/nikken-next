@@ -108,7 +108,7 @@ export function ConcurrentEditDialog({
 
                                                     {conflict.directConflicts.round && (
                                                         <div className="text-sm">
-                                                            <span className="font-medium">回戦:</span>
+                                                            <span className="font-medium">ラウンド:</span>
                                                             <div className="ml-4 grid grid-cols-2 gap-2 mt-1">
                                                                 <div>
                                                                     <span className="text-muted-foreground">
@@ -206,7 +206,7 @@ export function ConcurrentEditDialog({
 
                                                     {conflict.serverOnlyChanges.round && (
                                                         <div className="text-sm">
-                                                            <span className="font-medium">回戦:</span>
+                                                            <span className="font-medium">ラウンド:</span>
                                                             <div className="ml-4 mt-1">
                                                                 <span className="text-muted-foreground">
                                                                     {conflict.serverOnlyChanges.round.initial}
