@@ -21,7 +21,7 @@ import {
 import { cn } from "@/lib/utils/utils";
 import { findCourtName } from "@/lib/utils/court-utils";
 import { PenaltyDisplay } from "@/components/molecules/penalty-display";
-import { SCORE_COLORS } from "@/lib/ui-constants";
+import { SCORE_COLORS, MATCH_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import type { Match } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 
@@ -61,17 +61,17 @@ export function MatchListTable({
         <CardTitle className="text-xl">{tournamentName}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>コート名</TableHead>
-              <TableHead>ラウンド</TableHead>
-              <TableHead>選手A所属</TableHead>
-              <TableHead>選手A名</TableHead>
-              <TableHead className="text-center">得点</TableHead>
-              <TableHead>選手B所属</TableHead>
-              <TableHead>選手B名</TableHead>
-              <TableHead>操作</TableHead>
+              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.courtName}%` }}>コート名</TableHead>
+              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.round}%` }}>ラウンド</TableHead>
+              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerATeam}%` }}>選手A所属</TableHead>
+              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerAName}%` }}>選手A名</TableHead>
+              <TableHead className="text-center" style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.score}%` }}>得点</TableHead>
+              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerBTeam}%` }}>選手B所属</TableHead>
+              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerBName}%` }}>選手B名</TableHead>
+              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.action}%` }}>操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,12 +95,12 @@ export function MatchListTable({
 
               return (
                 <TableRow key={match.matchId}>
-                  <TableCell>{courtName}</TableCell>
-                  <TableCell>{match.round}</TableCell>
-                  <TableCell className={playerAColor}>
+                  <TableCell className="truncate" title={courtName}>{courtName}</TableCell>
+                  <TableCell className="truncate" title={match.round}>{match.round}</TableCell>
+                  <TableCell className={cn(playerAColor, "truncate")} title={playerA.teamName}>
                     {playerA.teamName}
                   </TableCell>
-                  <TableCell className={playerAColor}>
+                  <TableCell className={cn(playerAColor, "truncate")} title={playerA.displayName}>
                     {playerA.displayName}
                   </TableCell>
                   <TableCell>
@@ -140,10 +140,10 @@ export function MatchListTable({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className={playerBColor}>
+                  <TableCell className={cn(playerBColor, "truncate")} title={playerB.teamName}>
                     {playerB.teamName}
                   </TableCell>
-                  <TableCell className={playerBColor}>
+                  <TableCell className={cn(playerBColor, "truncate")} title={playerB.displayName}>
                     {playerB.displayName}
                   </TableCell>
                   <TableCell>
