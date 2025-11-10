@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
+import { findCourtName } from "@/lib/utils/court-utils";
 import { PenaltyDisplay } from "@/components/molecules/penalty-display";
 import type { Match } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
@@ -72,8 +73,7 @@ export function MatchListTable({
             {matches.map(match => {
               const { playerA, playerB } = match.players;
               // コート名を courts 配列から解決する（存在しなければ courtId をフォールバック表示）
-              const court = courts?.find((c) => c.courtId === match.courtId);
-              const courtName = court ? court.courtName : match.courtId;
+              const courtName = findCourtName(match.courtId, courts);
               const playerAColor = getPlayerTextColor(
                 playerA.score,
                 playerB.score
@@ -132,10 +132,7 @@ export function MatchListTable({
                       size="sm"
                       onClick={() => {
                         // 選択された試合情報をストアに保存してから遷移（Firestore通信回避のため）
-                        const court = courts?.find(
-                          (c) => c.courtId === match.courtId
-                        );
-                        const courtName = court ? court.courtName : match.courtId;
+                        const courtName = findCourtName(match.courtId, courts);
                         initializeMatch(match, tournamentName, courtName);
                         router.push(`/monitor-control/${match.matchId}`);
                       }}
