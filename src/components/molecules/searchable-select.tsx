@@ -49,6 +49,8 @@ export function SearchableSelect({
     const listRef = useRef<HTMLDivElement>(null); // オプションのリスト (スクロール用)
     const searchInputRef = useRef<HTMLInputElement>(null); // 検索入力
     const pointerDownRef = useRef(false); // マウス押下中フラグ
+    const isInitialOpenRef = useRef(true); // 初回開いた時かどうかのフラグ
+    const moveFromSearchOnceRef = useRef(false); // 検索→リストへの初回移動フラグ
 
     // --- Callbacks (Moved up) ---
     const resetNavigationState = useCallback(() => {
@@ -68,8 +70,6 @@ export function SearchableSelect({
 
     const handleSearchChange = (newQuery: string) => {
         setSearchQuery(newQuery);
-        setFocusedIndex(0); // 検索クエリ変更時はリストの先頭にフォーカス (ハイライトのみ)
-        // キーボードナビゲーション状態は変更しない（検索窓にフォーカスを維持）
     };
 
     const handleMouseEnter = (index: number) => {
@@ -106,19 +106,30 @@ export function SearchableSelect({
                 });
             }
 
-            // 選択中のアイテムにフォーカスを合わせる（初期表示時のみ）
-            const selectedIndex = value
-                ? options.findIndex((opt) => opt.value === value)
-                : -1;
+            // オープン時に検索→リスト移動済みフラグをリセット
+            moveFromSearchOnceRef.current = false;
 
-            const initialIndex = selectedIndex > -1 ? selectedIndex : 0;
-            setFocusedIndex(initialIndex);
+            if (isInitialOpenRef.current) {
+                const selectedIndex = value
+                    ? options.findIndex((opt) => opt.value === value)
+                    : -1;
 
-            // キーボードナビゲーション状態を有効にして、選択項目にフォーカスを当てる
-            setIsKeyboardNavigating(true);
+                // 選択状態は保持するが、選択がなければfocusedIndexは-1にして検索優先にする
+                setFocusedIndex(selectedIndex > -1 ? selectedIndex : -1);
+                // 初期は検索モード（入力優先）
+                setIsKeyboardNavigating(false);
+
+                // 検索入力にフォーカス
+                requestAnimationFrame(() => {
+                    searchInputRef.current?.focus();
+                });
+
+                isInitialOpenRef.current = false;
+            }
         } else {
-            // 閉じたときはキーボードナビゲーション状態をリセット
+            // 閉じたときはキーボードナビゲーション状態をリセットし、次回開いた時は初回扱いにする
             setIsKeyboardNavigating(false);
+            isInitialOpenRef.current = true;
         }
     }, [isOpen, value, options]);
 
@@ -181,8 +192,11 @@ export function SearchableSelect({
             const targetEl = event.target as HTMLElement | null;
             const isSearchInput = targetEl === searchInputRef.current;
 
+            // キーボードナビゲーション中（リスト選択中）は検索窓判定を無視
+            const isInSearchMode = isSearchInput && !isKeyboardNavigating;
+
             // 検索窓での通常の文字入力（テキスト入力、削除など）は処理しない
-            if (isSearchInput) {
+            if (isInSearchMode) {
                 const isNavigationKey = ['ArrowDown', 'ArrowUp', 'Enter', 'Escape', 'Tab'].includes(event.key);
                 if (!isNavigationKey) {
                     // 通常の文字入力なので、このハンドラーでは何もしない
@@ -193,29 +207,48 @@ export function SearchableSelect({
             const moveFocusFromSearch = (nextIndex?: number) => {
                 event.preventDefault();
                 event.stopPropagation();
-                // searchInputRef.current?.blur(); // 明示的なblur()は削除
+                // キーボードナビゲーション状態を有効にする
+                setIsKeyboardNavigating(true);
 
-                requestAnimationFrame(() => {
-                    // wrapperRefにフォーカスを戻す
-                    wrapperRef.current?.focus();
-                    setIsKeyboardNavigating(true);
-                    // nextIndex が number の場合のみ、focusedIndex を更新
-                    if (typeof nextIndex === 'number') {
-                        setFocusedIndex(nextIndex);
+                if (typeof nextIndex === 'number') {
+                    // 明示的なインデックス指定がある場合はそれを使う
+                    setFocusedIndex(nextIndex);
+                    return;
+                }
+
+                // nextIndexが指定されていない場合は初回移動かどうかで挙動を変える
+                if (!moveFromSearchOnceRef.current) {
+                    // 初回は現在の選択（value）位置の次の要素に移動する
+                    const selectedIndexInFiltered = value
+                        ? filteredOptions.findIndex((opt) => opt.value === value)
+                        : -1;
+
+                    let targetIndex = 0;
+                    if (selectedIndexInFiltered >= 0) {
+                        targetIndex = Math.min(selectedIndexInFiltered + 1, filteredOptions.length - 1);
+                    } else {
+                        targetIndex = 0;
                     }
-                });
+
+                    setFocusedIndex(targetIndex);
+                    moveFromSearchOnceRef.current = true;
+                    return;
+                }
+
+                // 2回目以降はリストの先頭に移動
+                setFocusedIndex(0);
             };
 
-            if (isSearchInput && event.key === 'Enter') {
+            if (isInSearchMode && event.key === 'Enter') {
                 // 検索窓でEnterを押した場合は、検索文字の決定として扱う
                 event.preventDefault();
                 event.stopPropagation();
                 return;
             }
-            if (isSearchInput && event.key === 'ArrowDown') {
-                // 検索窓から(isSearchInput)の下キー(ArrowDown)の場合は、
+            if (isInSearchMode && event.key === 'ArrowDown') {
+                // 検索窓から(isInSearchMode)の下キー(ArrowDown)の場合は、
                 // 強制的にリストの先頭(0)にフォーカスする
-                moveFocusFromSearch(0);
+                moveFocusFromSearch();
                 return;
             }
 
@@ -265,9 +298,10 @@ export function SearchableSelect({
         isOpen,
         filteredOptions,
         focusedIndex,
-        handleSelect, // 依存配列に追加
-        resetNavigationState, // 依存配列に追加
-        value, // 依存配列に追加 (削除 - valueはfilteredOptionsの計算に使われるため不要)
+        isKeyboardNavigating,
+        handleSelect,
+        resetNavigationState,
+        value,
     ]);
 
     // 5. フォーカス位置へのスクロール
@@ -294,8 +328,8 @@ export function SearchableSelect({
             // 既に開いている場合はリセットしない
             if (!isOpen) {
                 resetNavigationState(); // 開くときにリセット
+                setIsOpen(true);
             }
-            setIsOpen(true);
         }
     };
 
