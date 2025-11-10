@@ -103,10 +103,10 @@ export function MatchListTable({
                   <TableCell className={cn(playerAColor, "truncate")} title={playerA.displayName}>
                     {playerA.displayName}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col items-center justify-center gap-3 py-2">
+                  <TableCell className="py-1 px-3">
+                    <div className="flex flex-col items-center justify-center gap-1 py-1">
                       {/* 得点表示（左右対称・ハイフン付き） */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         {/* スクリーンリーダー用の補助テキスト（視覚要素は aria-hidden にする） */}
                         <span className="sr-only">{srText}</span>
                         <span aria-hidden="true" className={cn("text-2xl font-bold tabular-nums", playerAColor)}>
@@ -118,9 +118,9 @@ export function MatchListTable({
                         </span>
                       </div>
                       {/* 反則カード表示（色付き）- 常に固定領域を確保 */}
-                      <div className="flex items-center gap-2 w-full px-2">
+                      <div className="flex items-center gap-2 w-full px-1">
                         {/* 選手A反則（右寄せ・固定幅） */}
-                        <div className="flex-1 flex justify-end h-6">
+                        <div className="flex-1 flex justify-end h-5">
                           <PenaltyDisplay
                             hansokuCount={(playerA.hansoku) as HansokuLevel}
                             variant="compact"
@@ -128,9 +128,9 @@ export function MatchListTable({
                           />
                         </div>
                         {/* 中央区切り */}
-                        <span className="flex items-center justify-center h-6 text-xs text-gray-300 mx-1">|</span>
+                        <span className="flex items-center justify-center h-5 text-xs text-gray-300 mx-1">|</span>
                         {/* 選手B反則（左寄せ・固定幅） */}
-                        <div className="flex-1 flex justify-start h-6">
+                        <div className="flex-1 flex justify-start h-5">
                           <PenaltyDisplay
                             hansokuCount={(playerB.hansoku) as HansokuLevel}
                             variant="compact"
