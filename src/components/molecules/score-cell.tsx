@@ -37,9 +37,9 @@ export function ScoreCell({
     return (
         <TableCell className={cn("py-1 px-3 text-center", className)}>
             <div className="flex items-center justify-center gap-1 py-1">
-                <div className={cn("text-xl", playerAColor)}>{playerAScore}</div>
+                <div className={cn("text-3xl", playerAColor)}>{playerAScore}</div>
                 <div className="text-xl">-</div>
-                <div className={cn("text-xl", playerBColor)}>{playerBScore}</div>
+                <div className={cn("text-3xl", playerBColor)}>{playerBScore}</div>
             </div>
 
             <div className="flex items-center justify-center gap-1 mt-1 h-5">
