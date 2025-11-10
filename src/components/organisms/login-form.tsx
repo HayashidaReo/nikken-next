@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -35,6 +36,7 @@ export function LoginForm() {
   const { showSuccess, showError } = useToast();
   const router = useRouter();
   const { signIn, isLoading, error, clearError } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -82,15 +84,25 @@ export function LoginForm() {
             error={errors.email?.message}
           />
 
-          <FormInput
-            label="パスワード"
-            name="password"
-            type="password"
-            placeholder="パスワードを入力"
-            required
-            register={register}
-            error={errors.password?.message}
-          />
+          <div>
+            <FormInput
+              label="パスワード"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="パスワードを入力"
+              required
+              register={register}
+              error={errors.password?.message}
+              trailingIcon={
+                showPassword ? (
+                  <Eye className="w-5 h-5" />
+                ) : (
+                  <EyeOff className="w-5 h-5" />
+                )
+              }
+              onTrailingIconClick={() => setShowPassword(!showPassword)}
+            />
+          </div>
 
           {/* 認証エラーの表示 */}
           {error && (

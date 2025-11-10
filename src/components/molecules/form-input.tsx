@@ -12,6 +12,8 @@ interface FormInputProps {
   placeholder?: string;
   type?: "text" | "email" | "tel" | "password" | "number";
   className?: string;
+  trailingIcon?: React.ReactNode;
+  onTrailingIconClick?: () => void;
 }
 
 interface FormInputWithRegisterProps extends FormInputProps {
@@ -42,6 +44,8 @@ export function FormInput({
   placeholder,
   type = "text",
   className,
+  trailingIcon,
+  onTrailingIconClick,
   register,
   ...props
 }: FormInputWithRegisterProps) {
@@ -56,6 +60,8 @@ export function FormInput({
         type={type}
         placeholder={placeholder}
         className={error ? "border-red-500" : ""}
+        trailingIcon={trailingIcon}
+        onTrailingIconClick={onTrailingIconClick}
         {...props}
       />
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
