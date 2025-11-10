@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SearchableSelect, type SearchableSelectOption } from "./searchable-select";
+import { calculateListMaxHeight } from "./searchable-select.constants";
 
 const mockOptions: SearchableSelectOption[] = [
     { value: "1", label: "Option 1" },
@@ -35,6 +36,58 @@ describe("SearchableSelect", () => {
         expect(screen.getByText("Option 1")).toBeInTheDocument();
     });
 
+    it("list max-height is fixed when 6 or more options", async () => {
+        const many = Array.from({ length: 6 }).map((_, i) => ({ value: String(i + 1), label: `Opt ${i + 1}` }));
+        render(<SearchableSelect onValueChange={jest.fn()} options={many} />);
+
+        const button = screen.getByRole("combobox");
+        await userEvent.click(button);
+
+        const list = await screen.findByRole("listbox");
+        const expected = `${calculateListMaxHeight(many.length)}px`;
+        expect(list.style.maxHeight).toBe(expected);
+    });
+
+    it("list max-height fits all items when less than 6", async () => {
+        const few = Array.from({ length: 3 }).map((_, i) => ({ value: String(i + 1), label: `Opt ${i + 1}` }));
+        render(<SearchableSelect onValueChange={jest.fn()} options={few} />);
+
+        const button = screen.getByRole("combobox");
+        await userEvent.click(button);
+
+        const list = await screen.findByRole("listbox");
+        const expected = `${calculateListMaxHeight(few.length)}px`;
+        expect(list.style.maxHeight).toBe(expected);
+    });
+
+    it("mouse hover does not trigger scrollIntoView but keyboard does", async () => {
+        const opts = Array.from({ length: 5 }).map((_, i) => ({ value: String(i + 1), label: `Opt ${i + 1}` }));
+        render(<SearchableSelect onValueChange={jest.fn()} options={opts} />);
+
+        const button = screen.getByRole("combobox");
+        await userEvent.click(button);
+
+        const input = await screen.findByPlaceholderText("検索...");
+
+        // jsdom は scrollIntoView を実装していない場合があるため安全にモックする
+        const originalScroll = (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView;
+        const mockScroll = jest.fn();
+        (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView = mockScroll;
+
+        const second = await screen.findByText('Opt 2');
+        fireEvent.mouseEnter(second);
+        await new Promise(r => setTimeout(r, 30));
+        expect(mockScroll).not.toHaveBeenCalled();
+
+        // 検索入力からのキーボードナビゲーション
+        input.focus();
+        fireEvent.keyDown(input, { key: 'ArrowDown' });
+        await waitFor(() => expect(mockScroll).toHaveBeenCalled());
+
+        // 元に戻す
+        (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView = originalScroll;
+    });
+
     it("opens dropdown when clicked", async () => {
         const user = userEvent.setup();
         render(
@@ -45,7 +98,7 @@ describe("SearchableSelect", () => {
             />
         );
 
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
         await waitFor(() => {
@@ -64,11 +117,11 @@ describe("SearchableSelect", () => {
             />
         );
 
-        // Open dropdown
-        const button = screen.getByRole("button");
+        // ドロップダウンを開く
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
-        // Wait for dropdown and type in search input (now in portal)
+        // ドロップダウンが開き、（ポータル内の）検索入力に入力するのを待つ
         await waitFor(() => {
             const searchInput = document.querySelector('input[placeholder="Search..."]');
             expect(searchInput).toBeInTheDocument();
@@ -92,16 +145,16 @@ describe("SearchableSelect", () => {
             />
         );
 
-        // Open dropdown
-        const button = screen.getByRole("button");
+        // ドロップダウンを開く
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
-        // Wait for options to appear in portal
+        // ポータル内にオプションが表示されるのを待つ
         await waitFor(() => {
             expect(document.body).toHaveTextContent("Option 2");
         });
 
-        // Click an option (now in document.body)
+        // オプションをクリック（現在 document.body 内）
         const options = document.querySelectorAll('[role="option"]');
         const option2 = Array.from(options).find(opt => opt.textContent?.includes("Option 2"));
         await user.click(option2 as HTMLElement);
@@ -119,23 +172,18 @@ describe("SearchableSelect", () => {
             />
         );
 
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
-        // Wait for dropdown to open
-        await waitFor(() => {
-            const searchInput = document.querySelector('input[placeholder="検索..."]');
-            expect(searchInput).toBeInTheDocument();
-        }, { timeout: 2000 });
+        // ドロップダウンが開いて検索入力が利用可能になるのを待つ
+        const searchInput = await screen.findByPlaceholderText("検索...");
+        expect(searchInput).toBeInTheDocument();
 
-        const container = button.parentElement!;
+        // 検索入力にフォーカスして矢印キーで移動する
+        searchInput.focus();
+        await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
 
-        // Navigate down twice and select with Enter
-        fireEvent.keyDown(container, { key: "ArrowDown" });
-        fireEvent.keyDown(container, { key: "ArrowDown" });
-        fireEvent.keyDown(container, { key: "Enter" });
-
-        // Should select the second option (index 1)
+        // 2 番目のオプション（インデックス 1）が選択されるはず
         await waitFor(() => {
             expect(handleChange).toHaveBeenCalled();
         }, { timeout: 2000 });
@@ -149,20 +197,16 @@ describe("SearchableSelect", () => {
             />
         );
 
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
-        // Wait for dropdown to open
-        await waitFor(() => {
-            const searchInput = document.querySelector('input[placeholder="検索..."]');
-            expect(searchInput).toBeInTheDocument();
-        });
+        // ドロップダウンが開くのを待つ
+        const searchInput = await screen.findByPlaceholderText("検索...");
+        expect(searchInput).toBeInTheDocument();
 
-        const container = button.parentElement!;
-
-        // First option (index 0) is already highlighted by default
-        // Press Enter to select the first option
-        fireEvent.keyDown(container, { key: "Enter" });
+        // 検索入力にフォーカスし、下キーで最初のオプションにフォーカスしてから Enter
+        searchInput.focus();
+        await user.keyboard("{ArrowDown}{Enter}");
 
         await waitFor(() => {
             expect(handleChange).toHaveBeenCalledWith("1");
@@ -178,20 +222,19 @@ describe("SearchableSelect", () => {
             />
         );
 
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
-        await waitFor(() => {
-            const searchInput = document.querySelector('input[placeholder="検索..."]');
-            expect(searchInput).toBeInTheDocument();
-        });
+        // ドロップダウンが開くのを待つ
+        const searchInput = await screen.findByPlaceholderText("検索...");
+        expect(searchInput).toBeInTheDocument();
 
-        // Press Escape
-        fireEvent.keyDown(button.parentElement!, { key: "Escape" });
+        // Escape を押してドロップダウンを閉じる
+        await user.keyboard("{Escape}");
 
         await waitFor(() => {
-            const searchInput = document.querySelector('input[placeholder="検索..."]');
-            expect(searchInput).not.toBeInTheDocument();
+            const closedInput = document.querySelector('input[placeholder="検索..."]');
+            expect(closedInput).not.toBeInTheDocument();
         });
     });
 
@@ -204,7 +247,7 @@ describe("SearchableSelect", () => {
             />
         );
 
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
         await waitFor(() => {
@@ -228,8 +271,9 @@ describe("SearchableSelect", () => {
             />
         );
 
-        const button = screen.getByRole("button");
-        expect(button).toBeDisabled();
+        const button = screen.getByRole("combobox");
+        // コンポーネントは disabled の場合に aria-disabled を使用する
+        expect(button).toHaveAttribute("aria-disabled", "true");
     });
 
     it("shows check icon for selected option", async () => {
@@ -242,7 +286,7 @@ describe("SearchableSelect", () => {
             />
         );
 
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
         await waitFor(() => {
@@ -263,18 +307,22 @@ describe("SearchableSelect", () => {
             </div>
         );
 
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
-        const searchInput = screen.getByPlaceholderText("検索...");
-        expect(searchInput).toBeInTheDocument();
+        // ドロップダウンが開くのを待つ
+        await waitFor(() => {
+            const searchInput = document.querySelector('input[placeholder="検索..."]');
+            expect(searchInput).toBeInTheDocument();
+        });
 
-        // Click outside
+        // 外側をクリック
         const outside = screen.getByTestId("outside");
         await user.click(outside);
 
         await waitFor(() => {
-            expect(screen.queryByPlaceholderText("検索...")).not.toBeInTheDocument();
+            const closedInput = document.querySelector('input[placeholder="検索..."]');
+            expect(closedInput).not.toBeInTheDocument();
         });
     });
 
@@ -287,23 +335,23 @@ describe("SearchableSelect", () => {
             />
         );
 
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("combobox");
         await user.click(button);
 
-        await waitFor(() => {
-            const searchInput = document.querySelector('input[placeholder="検索..."]');
-            expect(searchInput).toBeInTheDocument();
-        }, { timeout: 2000 });
+        // ドロップダウンが開くのを待つ
+        const searchInput = await screen.findByPlaceholderText("検索...");
+        expect(searchInput).toBeInTheDocument();
 
-        const searchInput = document.querySelector('input[placeholder="検索..."]') as HTMLInputElement;
+        // 検索ワードを入力する
         await user.type(searchInput, "apple");
 
-        // Close dropdown
-        fireEvent.keyDown(button.parentElement!, { key: "Escape" });
+        // Escape でドロップダウンを閉じる
+        await user.keyboard("{Escape}");
 
-        // Reopen dropdown
+        // ドロップダウンを再度開く
         await user.click(button);
 
+        // 検索入力がリセットされていることを確認する
         await waitFor(() => {
             const newSearchInput = document.querySelector('input[placeholder="検索..."]') as HTMLInputElement;
             expect(newSearchInput).toHaveValue("");

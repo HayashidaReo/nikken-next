@@ -1,5 +1,10 @@
 import "@testing-library/jest-dom";
 
+// Mock scrollIntoView for JSDOM (only in browser-like environment)
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = jest.fn();
+}
+
 // Web APIs polyfills for Firebase Node.js compatibility
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const fetch = require("node-fetch");
@@ -89,4 +94,4 @@ global.Request = class Request {
     this.headers = new Map(Object.entries(options?.headers || {}));
   }
 };
-global.Headers = class Headers extends Map {};
+global.Headers = class Headers extends Map { };
