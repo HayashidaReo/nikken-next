@@ -9,6 +9,7 @@ describe("PenaltyDisplay", () => {
         });
 
         it("applies text-gray-400 class to the hyphen", () => {
+            render(<PenaltyDisplay hansokuCount={0} />);
             const hyphen = screen.getByText("-");
             expect(hyphen).toHaveClass("text-gray-400");
         });

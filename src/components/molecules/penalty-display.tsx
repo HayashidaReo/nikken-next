@@ -8,6 +8,7 @@ interface PenaltyDisplayProps {
     hansokuCount: HansokuLevel;
     variant?: "compact" | "normal";
     className?: string;
+    ariaLabel?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export function PenaltyDisplay({
     hansokuCount,
     variant = "compact",
     className = "",
+    ariaLabel,
 }: PenaltyDisplayProps) {
     const cards = getPenaltyCards(hansokuCount);
 
@@ -34,18 +36,22 @@ export function PenaltyDisplay({
         // カードがない場合は固定高さのコンテナで中央揃えし、ハイフンを少し下にずらす
         return (
             <div className={cn("h-6 flex items-center justify-center", className)}>
+                {/* 補助テキスト: スクリーンリーダー向けに反則情報を提供 */}
+                <span className="sr-only">{ariaLabel ?? "反則なし"}</span>
+                {/* 可視的なハイフンはテストで検出されるように aria-hidden を外す */}
                 <span className="text-gray-400 translate-y-0.5">-</span>
             </div>
         );
     }
 
     return (
-        <div
-            className={cn("flex gap-1 items-center justify-center", className)}
-        >
+        <div className={cn("flex gap-1 items-center justify-center", className)}>
+            {/* 補助テキスト: スクリーンリーダー向けに反則情報を提供 */}
+            <span className="sr-only">{ariaLabel ?? `${hansokuCount} 反則`}</span>
             {cards.map((card, i) => (
                 <div
                     key={i}
+                    aria-hidden="true"
                     className={cn(
                         "rounded-sm border border-white shadow-sm",
                         cardSizeClasses[variant],

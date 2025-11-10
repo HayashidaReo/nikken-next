@@ -1,4 +1,8 @@
 import React from "react";
+// next/navigation の useRouter をモックしてテスト環境でのエラーを防ぐ
+jest.mock("next/navigation", () => ({
+    useRouter: () => ({ push: jest.fn() }),
+}));
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MatchListTable } from "./match-list-table";
@@ -64,7 +68,10 @@ describe("MatchListTable display", () => {
         const utils = within(row);
         // numbers and hyphen should appear within the same row
         expect(utils.getByText("2")).toBeInTheDocument();
-        expect(utils.getByText("-")).toBeInTheDocument();
+        // pick the score hyphen (larger text) specifically
+        expect(
+            utils.getByText((text, el) => text.trim() === "-" && !!el && el.classList.contains("text-xl"))
+        ).toBeInTheDocument();
         expect(utils.getByText("1")).toBeInTheDocument();
     });
 
@@ -83,7 +90,9 @@ describe("MatchListTable display", () => {
         );
 
         // For the no-penalty row: hyphen displays within penalty area
-        const noPenRow = screen.getByText("Player A").closest("tr");
+        // pick the first Player A row (noPenalty)
+        const playerAElements = screen.getAllByText("Player A");
+        const noPenRow = playerAElements[0].closest("tr");
         expect(noPenRow).toBeTruthy();
         if (noPenRow) {
             const utils = within(noPenRow);

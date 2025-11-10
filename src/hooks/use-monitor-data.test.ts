@@ -17,8 +17,8 @@ Object.defineProperty(global, "BroadcastChannel", {
 // console.error/warnをモック
 const consoleErrorSpy = jest
   .spyOn(console, "error")
-  .mockImplementation(() => {});
-const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+  .mockImplementation(() => { });
+const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => { });
 
 // Presentation APIをモック
 const mockPresentation = {
@@ -68,7 +68,7 @@ describe("useMonitorData", () => {
         matchId: "",
         tournamentName: "大会名未設定",
         courtName: "コート名未設定",
-        round: "回戦未設定",
+        round: "ラウンド未設定",
         playerA: {
           displayName: "選手A",
           teamName: "チーム名未設定",

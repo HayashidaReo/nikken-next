@@ -97,11 +97,15 @@ export function MatchListTable({
                     <div className="flex flex-col items-center justify-center gap-3 py-2">
                       {/* 得点表示（左右対称・ハイフン付き） */}
                       <div className="flex items-center gap-2">
-                        <span className={cn("text-2xl font-bold tabular-nums", playerAColor)}>
+                        {/* スクリーンリーダー用の補助テキスト（視覚要素は aria-hidden にする） */}
+                        <span className="sr-only">
+                          得点: {playerA.displayName} {playerA.score} 対 {playerB.score} {playerB.displayName}
+                        </span>
+                        <span aria-hidden="true" className={cn("text-2xl font-bold tabular-nums", playerAColor)}>
                           {playerA.score}
                         </span>
-                        <span className="text-xl text-gray-400 font-medium">-</span>
-                        <span className={cn("text-2xl font-bold tabular-nums", playerBColor)}>
+                        <span aria-hidden="true" className="text-xl text-gray-400 font-medium">-</span>
+                        <span aria-hidden="true" className={cn("text-2xl font-bold tabular-nums", playerBColor)}>
                           {playerB.score}
                         </span>
                       </div>
@@ -109,13 +113,21 @@ export function MatchListTable({
                       <div className="flex items-center gap-2 w-full px-2">
                         {/* 選手A反則（右寄せ・固定幅） */}
                         <div className="flex-1 flex justify-end h-6">
-                          <PenaltyDisplay hansokuCount={(playerA.hansoku) as HansokuLevel} variant="compact" />
+                          <PenaltyDisplay
+                            hansokuCount={(playerA.hansoku) as HansokuLevel}
+                            variant="compact"
+                            ariaLabel={playerA.hansoku > 0 ? `${playerA.displayName} の反則: ${playerA.hansoku}` : `${playerA.displayName} の反則なし`}
+                          />
                         </div>
                         {/* 中央区切り */}
                         <span className="flex items-center justify-center h-6 text-xs text-gray-300 mx-1">|</span>
                         {/* 選手B反則（左寄せ・固定幅） */}
                         <div className="flex-1 flex justify-start h-6">
-                          <PenaltyDisplay hansokuCount={(playerB.hansoku) as HansokuLevel} variant="compact" />
+                          <PenaltyDisplay
+                            hansokuCount={(playerB.hansoku) as HansokuLevel}
+                            variant="compact"
+                            ariaLabel={playerB.hansoku > 0 ? `${playerB.displayName} の反則: ${playerB.hansoku}` : `${playerB.displayName} の反則なし`}
+                          />
                         </div>
                       </div>
                     </div>
