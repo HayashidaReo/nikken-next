@@ -102,6 +102,7 @@ export function LoginForm() {
                 )
               }
               onTrailingIconClick={() => setShowPassword(!showPassword)}
+              trailingIconLabel={showPassword ? "パスワードを隠す" : "パスワードを表示"}
             />
           </div>
 

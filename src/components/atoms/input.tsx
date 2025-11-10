@@ -5,10 +5,15 @@ import { cn } from "@/lib/utils/utils";
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   trailingIcon?: React.ReactNode;
   onTrailingIconClick?: () => void;
+  /**
+   * アクセシビリティ用: trailing icon のボタンに渡すラベル。
+   * 例: パスワード表示トグルであれば "パスワードを表示" / "パスワードを隠す" を渡す
+   */
+  trailingIconLabel?: string;
 };
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, trailingIcon, onTrailingIconClick, ...props }, ref) => {
+  ({ className, type, trailingIcon, onTrailingIconClick, trailingIconLabel, ...props }, ref) => {
     return (
       <div className="relative">
         <input
@@ -27,6 +32,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             onClick={onTrailingIconClick}
             className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none pointer-events-auto"
             tabIndex={-1}
+            // accessibility: provide an explicit aria-label when available;
+            // if not provided, hide from assistive tech to avoid noisy unlabeled controls
+            {...(trailingIconLabel ? { "aria-label": trailingIconLabel } : { "aria-hidden": true })}
           >
             {trailingIcon}
           </button>
