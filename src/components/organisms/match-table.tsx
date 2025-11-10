@@ -2,15 +2,9 @@
 
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils/utils";
+import type { ColumnDef } from "@/components/atoms/table-types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/card";
 import { Table, TableHeader, TableRow, TableBody, TableHead } from "@/components/atoms/table";
-
-interface ColumnDef {
-    key: string;
-    label: string;
-    width?: number; // percentage
-    className?: string;
-}
 
 interface MatchTableProps {
     title?: string;
