@@ -18,6 +18,8 @@ import {
   passwordResetSchema,
   type PasswordResetFormData,
 } from "@/types/password-reset.schema";
+import SuccessPanel from "@/components/atoms/success-panel";
+import { getLoginRedirectUrl } from "@/lib/utils";
 
 export function PasswordResetForm() {
   const { showSuccess, showError } = useToast();
@@ -37,13 +39,8 @@ export function PasswordResetForm() {
     try {
       setIsLoading(true);
 
-      // パスワード再設定後のリダイレクト先URL（本番環境とローカル環境で自動切り替え）
-      const redirectUrl = typeof window !== "undefined"
-        ? `${window.location.origin}/login`
-        : undefined;
-
       // パスワードリセットメール送信
-      await AuthService.sendPasswordResetEmail(data.email, redirectUrl);
+      await AuthService.sendPasswordResetEmail(data.email, getLoginRedirectUrl());
 
       // 成功時の状態更新
       setSubmittedEmail(data.email);
@@ -68,37 +65,20 @@ export function PasswordResetForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold">送信完了</h2>
-              <p className="text-muted-foreground mt-2">
-                パスワード再設定用のメールを送信しました。
-              </p>
-            </div>
-
-            <div className="w-full bg-gray-50 border border-gray-200 rounded-md p-4 text-sm">
-              <p className="text-gray-600">
-                <span className="font-semibold text-gray-800 break-all">
-                  {submittedEmail}
-                </span>
-                <br />
-                宛に送信されたメールをご確認ください。
-              </p>
-            </div>
-
-            <div className="text-xs text-gray-500 space-y-1 text-left self-start w-full">
-              <p>
-                ※
-                メールが届かない場合は、迷惑メールフォルダをご確認いただくか、入力したアドレスに誤りがないかご確認ください。
-              </p>
-            </div>
-
-            <Link href="/login" className="w-full">
-              <Button variant="outline" className="w-full">
-                ログイン画面に戻る
-              </Button>
-            </Link>
-          </div>
+          <SuccessPanel
+            title="送信完了"
+            subtitle="パスワード再設定用のメールを送信しました。"
+            highlight={submittedEmail}
+            note={
+              <>
+                <p>
+                  ※ メールが届かない場合は迷惑メールフォルダをご確認いただくか、入力したアドレスに誤りがないかご確認ください。
+                </p>
+              </>
+            }
+            ctaLabel="ログイン画面に戻る"
+            ctaHref="/login"
+          />
         </CardContent>
       </Card>
     );
