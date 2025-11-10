@@ -87,6 +87,9 @@ export function MatchListTable({
           <TableBody>
             {matches.map(match => {
               const { playerA, playerB } = match.players;
+              // コート名を courts 配列から解決する（存在しなければ courtId をフォールバック表示）
+              const court = courts?.find((c) => c.courtId === match.courtId);
+              const courtName = court ? court.courtName : match.courtId;
               const playerAColor = getPlayerTextColor(
                 playerA.score,
                 playerB.score
@@ -98,7 +101,7 @@ export function MatchListTable({
 
               return (
                 <TableRow key={match.matchId}>
-                  <TableCell>{match.courtId}</TableCell>
+                  <TableCell>{courtName}</TableCell>
                   <TableCell>{match.round}</TableCell>
                   <TableCell className={playerAColor}>
                     {playerA.teamName}
