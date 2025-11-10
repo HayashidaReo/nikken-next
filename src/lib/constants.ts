@@ -50,7 +50,7 @@ export const TEXT_LENGTH_LIMITS = {
   COURT_NAME_MAX: 8,
   /** 開催場所の最大文字数 */
   LOCATION_MAX: 10,
-  /** 回戦名の最大文字数 */
+  /** ラウンド名の最大文字数 */
   ROUND_NAME_MAX: 11,
   /** 大会概要の最大文字数 */
   TOURNAMENT_DETAIL_MAX: 1000,

@@ -53,8 +53,8 @@ export const matchSchema = z.object({
   matchId: z.string().optional(), // Firestoreで自動生成
   courtId: z.string().min(1, "コートIDは必須です"),
   round: z.string()
-    .min(1, "回戦は必須です")
-    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `回戦は${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+    .min(1, "ラウンドは必須です")
+    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
   players: z.object({
     playerA: matchPlayerSchema,
     playerB: matchPlayerSchema,
