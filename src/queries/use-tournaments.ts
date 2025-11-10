@@ -175,10 +175,14 @@ export function useUpdateTournamentByOrganization() {
 
             return response.json();
         },
-        onSuccess: (_, { orgId }) => {
+        onSuccess: (_, { orgId, tournamentId }) => {
             // 組織ベースの大会一覧キャッシュを無効化
             queryClient.invalidateQueries({
                 queryKey: [...tournamentKeys.lists(), "organization", orgId],
+            });
+            // 更新された大会の詳細キャッシュも無効化（試合一覧画面などで使用）
+            queryClient.invalidateQueries({
+                queryKey: tournamentKeys.detail(`${orgId}/${tournamentId}`),
             });
         },
     });
