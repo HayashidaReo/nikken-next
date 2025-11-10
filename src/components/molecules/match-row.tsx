@@ -8,6 +8,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/atoms/select";
+import {
+    TableRow,
+    TableCell,
+} from "@/components/atoms/table";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
@@ -39,16 +43,16 @@ export function MatchRow({
     onRemove,
 }: MatchRowProps) {
     return (
-        <tr
+        <TableRow
             className={cn(
                 isAdded && "bg-green-50 border-l-4 border-l-green-500",
                 isDeleted && "bg-red-50 border-l-4 border-l-red-500 line-through opacity-60"
             )}
         >
-            <td>
+            <TableCell className="py-2 px-3 truncate" title={row.courtId}>
                 <div className={cn("rounded-md", detectedRowChanges.courtId && "ring-2 ring-red-500")}>
                     <Select value={row.courtId} onValueChange={value => onUpdate(index, "courtId", value)}>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full h-8 text-sm">
                             <SelectValue placeholder="コート選択" />
                         </SelectTrigger>
                         <SelectContent>
@@ -60,12 +64,12 @@ export function MatchRow({
                         </SelectContent>
                     </Select>
                 </div>
-            </td>
+            </TableCell>
 
-            <td>
+            <TableCell className="py-2 px-3 truncate" title={row.round}>
                 <div className={cn("rounded-md", detectedRowChanges.round && "ring-2 ring-red-500")}>
                     <Select value={row.round} onValueChange={value => onUpdate(index, "round", value)}>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full h-8 text-sm">
                             <SelectValue placeholder="ラウンド選択" />
                         </SelectTrigger>
                         <SelectContent>
@@ -78,11 +82,11 @@ export function MatchRow({
                         </SelectContent>
                     </Select>
                 </div>
-            </td>
+            </TableCell>
 
-            <td>
+            <TableCell className="py-2 px-3 truncate" title={row.playerATeamId}>
                 <Select value={row.playerATeamId} onValueChange={value => onUpdate(index, "playerATeamId", value)}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full h-8 text-sm">
                         <SelectValue placeholder="チーム選択" />
                     </SelectTrigger>
                     <SelectContent>
@@ -93,16 +97,16 @@ export function MatchRow({
                         ))}
                     </SelectContent>
                 </Select>
-            </td>
+            </TableCell>
 
-            <td>
+            <TableCell className="py-2 px-3 truncate" title={row.playerAId}>
                 <div className={cn("rounded-md", detectedRowChanges.playerA && "ring-2 ring-red-500")}>
                     <Select
                         value={row.playerAId}
                         onValueChange={value => onUpdate(index, "playerAId", value)}
                         disabled={!row.playerATeamId}
                     >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full h-8 text-sm">
                             <SelectValue placeholder="選手選択" />
                         </SelectTrigger>
                         <SelectContent>
@@ -114,11 +118,11 @@ export function MatchRow({
                         </SelectContent>
                     </Select>
                 </div>
-            </td>
+            </TableCell>
 
-            <td>
+            <TableCell className="py-2 px-3 truncate" title={row.playerBTeamId}>
                 <Select value={row.playerBTeamId} onValueChange={value => onUpdate(index, "playerBTeamId", value)}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full h-8 text-sm">
                         <SelectValue placeholder="チーム選択" />
                     </SelectTrigger>
                     <SelectContent>
@@ -129,16 +133,16 @@ export function MatchRow({
                         ))}
                     </SelectContent>
                 </Select>
-            </td>
+            </TableCell>
 
-            <td>
+            <TableCell className="py-2 px-3 truncate" title={row.playerBId}>
                 <div className={cn("rounded-md", detectedRowChanges.playerB && "ring-2 ring-red-500")}>
                     <Select
                         value={row.playerBId}
                         onValueChange={value => onUpdate(index, "playerBId", value)}
                         disabled={!row.playerBTeamId}
                     >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full h-8 text-sm">
                             <SelectValue placeholder="選手選択" />
                         </SelectTrigger>
                         <SelectContent>
@@ -150,13 +154,13 @@ export function MatchRow({
                         </SelectContent>
                     </Select>
                 </div>
-            </td>
+            </TableCell>
 
-            <td>
-                <Button variant="ghost" size="sm" onClick={() => onRemove(index)} className="text-red-500 hover:text-red-700">
+            <TableCell className="py-2 px-3 text-center">
+                <Button variant="ghost" size="sm" onClick={() => onRemove(index)} className="text-red-500 hover:text-red-700 h-8">
                     <Trash2 className="h-4 w-4" />
                 </Button>
-            </td>
-        </tr>
+            </TableCell>
+        </TableRow>
     );
 }

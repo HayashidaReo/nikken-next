@@ -8,9 +8,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/atoms/table";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/atoms/card";
 import { cn } from "@/lib/utils/utils";
 import { MatchRow } from "@/components/molecules/match-row";
 import { SaveControls } from "@/components/molecules/match-setup-controls";
+import { MATCH_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import type { Team, Player } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
 import type { DetectedChanges } from "@/lib/utils/match-conflict-detection";
@@ -185,23 +192,23 @@ export function MatchSetupTable({
     detectedChanges.deletedMatches.length > 0;
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">試合設定</h2>
+    <Card className={cn("w-full", className)}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-lg">試合設定</CardTitle>
         <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} />
-      </div>
+      </CardHeader>
 
-      <div className="rounded-md border">
-        <Table>
+      <CardContent>
+        <Table className="table-fixed">
           <TableHeader>
-            <TableRow>
-              <TableHead>コート</TableHead>
-              <TableHead>ラウンド</TableHead>
-              <TableHead>選手A所属</TableHead>
-              <TableHead>選手A</TableHead>
-              <TableHead>選手B所属</TableHead>
-              <TableHead>選手B</TableHead>
-              <TableHead>操作</TableHead>
+            <TableRow className="h-10">
+              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.courtName}%` }} className="px-3">コート</TableHead>
+              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.round}%` }} className="px-3">ラウンド</TableHead>
+              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerATeam}%` }} className="px-3">選手A所属</TableHead>
+              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerAName}%` }} className="px-3">選手A</TableHead>
+              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBTeam}%` }} className="px-3">選手B所属</TableHead>
+              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBName}%` }} className="px-3">選手B</TableHead>
+              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.action}%` }} className="text-center px-3">削除</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -233,7 +240,7 @@ export function MatchSetupTable({
             })}
           </TableBody>
         </Table>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

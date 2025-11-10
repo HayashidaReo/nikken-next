@@ -14,8 +14,8 @@ export const SCORE_COLORS = {
 
 /**
  * MatchListTable の列幅の割合（%）
+ * - 試合一覧画面用
  * - 合計は 100% になるように設計
- * - 得点列は広めに確保（スコア + 反則カード表示のため）
  */
 export const MATCH_TABLE_COLUMN_WIDTHS = {
     courtName: 16,      // コート名（短いテキスト想定）
@@ -26,6 +26,21 @@ export const MATCH_TABLE_COLUMN_WIDTHS = {
     playerBTeam: 13,   // 選手B所属（チーム名）
     playerBName: 10,   // 選手B名
     action: 8,        // 操作ボタン
+} as const;
+
+/**
+ * MatchSetupTable の列幅の割合（%）
+ * - 組み合わせ設定画面用
+ * - 合計は 100% になるように設計
+ */
+export const MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
+    courtName: 16,      // コート名
+    round: 20,         // ラウンド
+    playerATeam: 17,   // 選手A所属
+    playerAName: 12,   // 選手A名
+    playerBTeam: 17,   // 選手B所属
+    playerBName: 12,   // 選手B名
+    action: 6,        // 操作ボタン（変更・削除など）
 } as const;
 
 const UI_CONSTANTS = {
