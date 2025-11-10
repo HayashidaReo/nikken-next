@@ -42,6 +42,7 @@ export async function PATCH(
                     hansoku: validatedData.players.playerB.hansoku,
                 },
             },
+            isCompleted: true,
         };
 
         // マッチを更新

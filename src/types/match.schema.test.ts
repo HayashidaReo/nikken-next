@@ -27,6 +27,7 @@ describe("Match Schema Validation", () => {
         displayName: "鈴木",
       },
     },
+    isCompleted: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

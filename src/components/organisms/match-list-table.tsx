@@ -41,10 +41,10 @@ export function MatchListTable({
   const router = useRouter();
   const initializeMatch = useMonitorStore((s) => s.initializeMatch);
   // 得点に応じた文字色を決定する関数（定数化された Tailwind クラスを使用）
-  const getPlayerTextColor = (playerScore: number, opponentScore: number) => {
-    // 両者とも 0 の場合は未試合扱いで灰色
+  const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean) => {
+    // 両者とも 0 の場合: 未完了なら灰色、完了なら青色（引き分け扱い）
     if (playerScore === 0 && opponentScore === 0) {
-      return SCORE_COLORS.unplayed;
+      return isCompleted ? SCORE_COLORS.draw : SCORE_COLORS.unplayed;
     }
     if (playerScore > opponentScore) {
       return SCORE_COLORS.win;
@@ -81,11 +81,13 @@ export function MatchListTable({
               const courtName = findCourtName(match.courtId, courts);
               const playerAColor = getPlayerTextColor(
                 playerA.score,
-                playerB.score
+                playerB.score,
+                match.isCompleted
               );
               const playerBColor = getPlayerTextColor(
                 playerB.score,
-                playerA.score
+                playerA.score,
+                match.isCompleted
               );
 
               return (

@@ -59,6 +59,7 @@ export const matchSchema = z.object({
     playerA: matchPlayerSchema,
     playerB: matchPlayerSchema,
   }),
+  isCompleted: z.boolean(), // 試合完了フラグ（組み合わせ作成時はfalse、モニター保存時はtrue）
   createdAt: z.date().optional(), // Firestoreで自動設定
   updatedAt: z.date().optional(), // Firestoreで自動設定
 });
