@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils/utils";
 import { findCourtName } from "@/lib/utils/court-utils";
 import { PenaltyDisplay } from "@/components/molecules/penalty-display";
+import { SCORE_COLORS } from "@/lib/ui-constants";
 import type { Match } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 
@@ -39,15 +40,19 @@ export function MatchListTable({
 }: MatchListTableProps) {
   const router = useRouter();
   const initializeMatch = useMonitorStore((s) => s.initializeMatch);
-  // 得点に応じた文字色を決定する関数（固定色使用）
+  // 得点に応じた文字色を決定する関数（定数化された Tailwind クラスを使用）
   const getPlayerTextColor = (playerScore: number, opponentScore: number) => {
-    if (playerScore > opponentScore) {
-      return "font-medium" + " " + "text-blue-600"; // 勝利（青色）
-    } else if (playerScore === opponentScore) {
-      return "text-cyan-600"; // 引き分け（水色）
-    } else {
-      return "text-gray-900"; // 敗北または通常（黒色）
+    // 両者とも 0 の場合は未試合扱いで灰色
+    if (playerScore === 0 && opponentScore === 0) {
+      return SCORE_COLORS.unplayed;
     }
+    if (playerScore > opponentScore) {
+      return SCORE_COLORS.win;
+    }
+    if (playerScore === opponentScore) {
+      return SCORE_COLORS.draw;
+    }
+    return SCORE_COLORS.loss;
   };
 
   return (
