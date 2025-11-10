@@ -332,6 +332,8 @@ export default function MatchSetupPage() {
                 hansoku: 0,
               },
             },
+            // 新規作成時は試合未完了
+            isCompleted: false,
           };
         });
 
