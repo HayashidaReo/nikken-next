@@ -5,6 +5,11 @@ import { createPortal } from "react-dom";
 import { Check, ChevronDown, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils/utils";
+import {
+    calculateDropdownHeight,
+    calculateListMaxHeight,
+    shouldOpenAbove,
+} from "./searchable-select.constants";
 
 export interface SearchableSelectOption {
     value: string;
@@ -77,11 +82,6 @@ export function SearchableSelect({
         return options.filter((opt) => opt.label.toLowerCase().includes(query));
     }, [options, searchQuery]);
 
-    // レイアウト定数
-    const ITEM_HEIGHT = 40; // 各リスト項目の高さ (Tailwindの2.25rem相当)
-    const SEARCH_AREA_HEIGHT = 50; // 検索入力領域の高さのおおよその値
-    const DROPDOWN_MAX_FIXED = 280; // リストが6個以上の時の固定ドロップダウン高さ
-
     // 選択中の値の表示ラベル
     const selectedLabel = useMemo(() => {
         const selected = options.find((opt) => opt.value === value);
@@ -95,21 +95,16 @@ export function SearchableSelect({
         const rect = wrapperRef.current.getBoundingClientRect();
         const spaceBelow = window.innerHeight - rect.bottom;
         const spaceAbove = rect.top;
-        // ドロップダウン高さを動的に決定
-        const dropdownHeight = filteredOptions.length >= 6
-            ? DROPDOWN_MAX_FIXED
-            : SEARCH_AREA_HEIGHT + filteredOptions.length * ITEM_HEIGHT + 8;
-
-        // 画面下に十分なスペースがある場合は下に表示、なければ上に表示
-        const shouldOpenAbove = spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight;
+        const dropdownHeight = calculateDropdownHeight(filteredOptions.length);
+        const isAbove = shouldOpenAbove(spaceBelow, spaceAbove, dropdownHeight);
 
         return {
-            top: shouldOpenAbove ? rect.top - dropdownHeight : rect.bottom,
+            top: isAbove ? rect.top - dropdownHeight : rect.bottom,
             left: rect.left,
             width: rect.width,
-            isAbove: shouldOpenAbove,
+            isAbove,
         };
-    }, [filteredOptions.length, ITEM_HEIGHT, SEARCH_AREA_HEIGHT, DROPDOWN_MAX_FIXED]);
+    }, [filteredOptions.length]);
 
     const handleSelect = useCallback(
         (option: SearchableSelectOption) => {
@@ -184,20 +179,14 @@ export function SearchableSelect({
                 const rect = wrapperRef.current.getBoundingClientRect();
                 const spaceBelow = window.innerHeight - rect.bottom;
                 const spaceAbove = rect.top;
-                // ドロップダウン高さを動的に決定: 項目数が6以上なら固定値(DROPDOWN_MAX_FIXED)、
-                // それ未満なら検索エリア分を含めて全て表示できる高さにする
-                const dropdownHeight = filteredOptions.length >= 6
-                    ? DROPDOWN_MAX_FIXED
-                    : SEARCH_AREA_HEIGHT + filteredOptions.length * ITEM_HEIGHT + 8; // 余白分
-
-                // 画面下に十分なスペースがある場合は下に表示、なければ上に表示
-                const shouldOpenAbove = spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight;
+                const dropdownHeight = calculateDropdownHeight(filteredOptions.length);
+                const isAbove = shouldOpenAbove(spaceBelow, spaceAbove, dropdownHeight);
 
                 setDropdownState({
-                    top: shouldOpenAbove ? rect.top - dropdownHeight : rect.bottom,
+                    top: isAbove ? rect.top - dropdownHeight : rect.bottom,
                     left: rect.left,
                     width: rect.width,
-                    isAbove: shouldOpenAbove,
+                    isAbove,
                 });
             }
         };
@@ -468,9 +457,7 @@ export function SearchableSelect({
     // --- Render ---
 
     // リストの最大高さを動的に決定
-    const listMaxHeight = filteredOptions.length >= 6
-        ? DROPDOWN_MAX_FIXED - SEARCH_AREA_HEIGHT - 8
-        : Math.max(filteredOptions.length * ITEM_HEIGHT, 0);
+    const listMaxHeight = calculateListMaxHeight(filteredOptions.length);
 
     // ドロップダウンのコンテンツ (Portalで描画)
     const dropdownContent = isOpen && (
