@@ -36,10 +36,11 @@ export function SearchableSelect({
     const [searchQuery, setSearchQuery] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(-1);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
-    const [dropdownPosition, setDropdownPosition] = useState({
+    const [dropdownState, setDropdownState] = useState({
         top: 0,
         left: 0,
         width: 0,
+        isAbove: false,
     });
 
     // --- Refs ---
@@ -99,10 +100,17 @@ export function SearchableSelect({
             // ドロップダウンの位置を計算
             if (wrapperRef.current) {
                 const rect = wrapperRef.current.getBoundingClientRect();
-                setDropdownPosition({
-                    top: rect.bottom,
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+                const dropdownHeight = 280; // 検索窓 + 6項目分のおおよその高さ
+
+                const shouldOpenAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+
+                setDropdownState({
+                    top: shouldOpenAbove ? rect.top - dropdownHeight : rect.bottom,
                     left: rect.left,
                     width: rect.width,
+                    isAbove: shouldOpenAbove,
                 });
             }
 
@@ -159,10 +167,17 @@ export function SearchableSelect({
         const updatePosition = () => {
             if (wrapperRef.current) {
                 const rect = wrapperRef.current.getBoundingClientRect();
-                setDropdownPosition({
-                    top: rect.bottom,
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+                const dropdownHeight = 280; // 検索窓 + 6項目分のおおよその高さ
+
+                const shouldOpenAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+
+                setDropdownState({
+                    top: shouldOpenAbove ? rect.top - dropdownHeight : rect.bottom,
                     left: rect.left,
                     width: rect.width,
+                    isAbove: shouldOpenAbove,
                 });
             }
         };
@@ -406,12 +421,14 @@ export function SearchableSelect({
             ref={portalRef}
             className={cn(
                 'fixed z-[9999] rounded-md border border-gray-200 bg-white shadow-lg',
-                'animate-in fade-in-0 zoom-in-95',
+                'animate-in fade-in-0 zoom-in-95'
             )}
             style={{
-                top: `${dropdownPosition.top}px`,
-                left: `${dropdownPosition.left}px`,
-                width: `${Math.max(dropdownPosition.width, 240)}px`,
+                // 明示的に背景色を指定して、上表示時に透明になる問題を防ぐ
+                backgroundColor: '#ffffff',
+                top: `${dropdownState.top}px`,
+                left: `${dropdownState.left}px`,
+                width: `${Math.max(dropdownState.width, 240)}px`,
                 minWidth: '240px',
             }}
         >
@@ -440,7 +457,8 @@ export function SearchableSelect({
             <div
                 ref={listRef}
                 id="searchable-select-listbox"
-                className="max-h-60 overflow-y-auto py-1"
+                className="overflow-y-auto py-1"
+                style={{ maxHeight: 'calc(2.25rem * 6 + 0.5rem)' }} // item-height * 6 + padding
                 role="listbox"
                 onMouseDown={(e) => e.preventDefault()}
             >

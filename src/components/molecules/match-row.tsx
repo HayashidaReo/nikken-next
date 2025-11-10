@@ -45,6 +45,8 @@ export function MatchRow({
     const roundOptions: SearchableSelectOption[] = [
         { value: "予選1回戦", label: "予選1回戦" },
         { value: "予選2回戦", label: "予選2回戦" },
+        { value: "予選3回戦", label: "予選3回戦" },
+        { value: "予選4回戦", label: "予選4回戦" },
         { value: "決勝トーナメント1回戦", label: "決勝トーナメント1回戦" },
         { value: "決勝トーナメント2回戦", label: "決勝トーナメント2回戦" },
         { value: "準決勝", label: "準決勝" },
