@@ -30,7 +30,6 @@ export class AuthService {
       );
       return mapFirebaseUser(userCredential.user);
     } catch (error) {
-      AuthErrorHandler.logError("signInWithEmail", error);
       throw new Error(AuthErrorHandler.getErrorMessage(error));
     }
   }
@@ -42,7 +41,6 @@ export class AuthService {
     try {
       await signOut(auth);
     } catch (error) {
-      AuthErrorHandler.logError("signOut", error);
       throw new Error(AuthErrorHandler.getErrorMessage(error));
     }
   }
@@ -54,7 +52,6 @@ export class AuthService {
     try {
       await sendPasswordResetEmail(auth, email);
     } catch (error) {
-      AuthErrorHandler.logError("sendPasswordResetEmail", error);
       throw new Error(AuthErrorHandler.getErrorMessage(error));
     }
   }
@@ -87,8 +84,7 @@ export class AuthService {
       if (auth.currentUser) {
         await auth.currentUser.reload();
       }
-    } catch (error) {
-      AuthErrorHandler.logError("refreshAuth", error);
+    } catch {
       // リフレッシュエラーは致命的でないため、エラーを投げない
       console.warn("Failed to refresh authentication state");
     }

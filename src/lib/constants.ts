@@ -124,3 +124,19 @@ export const ROUTES = {
   DASHBOARD: "/dashboard",
   TOURNAMENT_SETTINGS: "/tournament-settings",
 } as const;
+
+// 💬 テキストメッセージ定数（ユーザーに表示するメッセージ）
+export const TEXT_MESSAGES = {
+  /** メールアドレスの形式が正しくない */
+  INVALID_EMAIL: "メールアドレスを正しい形式で入力してください",
+  /** ユーザーが無効化されている */
+  USER_DISABLED: "このアカウントは無効化されています",
+  /** メールアドレスまたはパスワードが間違っている（セキュリティ上、ユーザーなしとパスワード誤りを同じメッセージ） */
+  INVALID_CREDENTIALS: "メールアドレスまたはパスワードが間違っています",
+  /** ログイン試行回数が多すぎる */
+  TOO_MANY_REQUESTS: "ログイン試行回数が上限に達しました。しばらく待ってからお試しください",
+  /** 予期しないエラー */
+  UNEXPECTED_ERROR: "予期しないエラーが発生しました",
+  /** ネットワークエラー */
+  NETWORK_ERROR: "ネットワークエラーが発生しました。接続を確認してください",
+} as const;

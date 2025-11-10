@@ -50,9 +50,8 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: errorMessage,
           });
-
-          // Errorオブジェクトの場合はそのまま投げ、そうでなければ新しいErrorオブジェクトを作成
-          throw error instanceof Error ? error : new Error(errorMessage);
+          // 日本語メッセージを投げる
+          throw new Error(errorMessage);
         }
       },
 
