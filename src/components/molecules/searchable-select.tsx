@@ -60,15 +60,6 @@ export function SearchableSelect({
         setSearchQuery('');
     }, []);
 
-    const handleSelect = useCallback(
-        (option: SearchableSelectOption) => {
-            onValueChange(option.value);
-            setIsOpen(false);
-            resetNavigationState();
-        },
-        [onValueChange, resetNavigationState],
-    );
-
     const handleSearchChange = (newQuery: string) => {
         setSearchQuery(newQuery);
     };
@@ -86,34 +77,54 @@ export function SearchableSelect({
         return options.filter((opt) => opt.label.toLowerCase().includes(query));
     }, [options, searchQuery]);
 
+    // レイアウト定数
+    const ITEM_HEIGHT = 40; // 各リスト項目の高さ (Tailwindの2.25rem相当)
+    const SEARCH_AREA_HEIGHT = 50; // 検索入力領域の高さのおおよその値
+    const DROPDOWN_MAX_FIXED = 280; // リストが6個以上の時の固定ドロップダウン高さ
+
     // 選択中の値の表示ラベル
     const selectedLabel = useMemo(() => {
         const selected = options.find((opt) => opt.value === value);
         return selected?.label || placeholder;
     }, [value, options, placeholder]);
 
+    // ドロップダウンの位置を計算する関数
+    const calculateDropdownPosition = useCallback(() => {
+        if (!wrapperRef.current) return null;
+
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        // ドロップダウン高さを動的に決定
+        const dropdownHeight = filteredOptions.length >= 6
+            ? DROPDOWN_MAX_FIXED
+            : SEARCH_AREA_HEIGHT + filteredOptions.length * ITEM_HEIGHT + 8;
+
+        // 画面下に十分なスペースがある場合は下に表示、なければ上に表示
+        const shouldOpenAbove = spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight;
+
+        return {
+            top: shouldOpenAbove ? rect.top - dropdownHeight : rect.bottom,
+            left: rect.left,
+            width: rect.width,
+            isAbove: shouldOpenAbove,
+        };
+    }, [filteredOptions.length, ITEM_HEIGHT, SEARCH_AREA_HEIGHT, DROPDOWN_MAX_FIXED]);
+
+    const handleSelect = useCallback(
+        (option: SearchableSelectOption) => {
+            onValueChange(option.value);
+            setIsOpen(false);
+            resetNavigationState();
+        },
+        [onValueChange, resetNavigationState],
+    );
+
     // --- Effects ---
 
-    // 1. ドロップダウンが開いたときの処理 (位置計算 / 初期フォーカス)
+    // 1. ドロップダウンが開いたときの処理 (初期フォーカス処理のみ)
     useEffect(() => {
         if (isOpen) {
-            // ドロップダウンの位置を計算
-            if (wrapperRef.current) {
-                const rect = wrapperRef.current.getBoundingClientRect();
-                const spaceBelow = window.innerHeight - rect.bottom;
-                const spaceAbove = rect.top;
-                const dropdownHeight = 280; // 検索窓 + 6項目分のおおよその高さ
-
-                const shouldOpenAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
-
-                setDropdownState({
-                    top: shouldOpenAbove ? rect.top - dropdownHeight : rect.bottom,
-                    left: rect.left,
-                    width: rect.width,
-                    isAbove: shouldOpenAbove,
-                });
-            }
-
             // オープン時に検索→リスト移動済みフラグをリセット
             moveFromSearchOnceRef.current = false;
 
@@ -123,9 +134,11 @@ export function SearchableSelect({
                     : -1;
 
                 // 選択状態は保持するが、選択がなければfocusedIndexは-1にして検索優先にする
-                setFocusedIndex(selectedIndex > -1 ? selectedIndex : -1);
-                // 初期は検索モード（入力優先）
-                setIsKeyboardNavigating(false);
+                // microTaskで状態更新を遅延させる
+                Promise.resolve().then(() => {
+                    setFocusedIndex(selectedIndex > -1 ? selectedIndex : -1);
+                    setIsKeyboardNavigating(false);
+                });
 
                 // 検索入力にフォーカス
                 requestAnimationFrame(() => {
@@ -136,10 +149,12 @@ export function SearchableSelect({
             }
         } else {
             // 閉じたときはキーボードナビゲーション状態をリセットし、次回開いた時は初回扱いにする
-            setIsKeyboardNavigating(false);
+            Promise.resolve().then(() => {
+                setIsKeyboardNavigating(false);
+            });
             isInitialOpenRef.current = true;
         }
-    }, [isOpen, value, options]);
+    }, [isOpen, value, options, filteredOptions.length]);
 
     // 2. 外部クリック検知 (Portal対応)
     useEffect(() => {
@@ -169,9 +184,14 @@ export function SearchableSelect({
                 const rect = wrapperRef.current.getBoundingClientRect();
                 const spaceBelow = window.innerHeight - rect.bottom;
                 const spaceAbove = rect.top;
-                const dropdownHeight = 280; // 検索窓 + 6項目分のおおよその高さ
+                // ドロップダウン高さを動的に決定: 項目数が6以上なら固定値(DROPDOWN_MAX_FIXED)、
+                // それ未満なら検索エリア分を含めて全て表示できる高さにする
+                const dropdownHeight = filteredOptions.length >= 6
+                    ? DROPDOWN_MAX_FIXED
+                    : SEARCH_AREA_HEIGHT + filteredOptions.length * ITEM_HEIGHT + 8; // 余白分
 
-                const shouldOpenAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+                // 画面下に十分なスペースがある場合は下に表示、なければ上に表示
+                const shouldOpenAbove = spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight;
 
                 setDropdownState({
                     top: shouldOpenAbove ? rect.top - dropdownHeight : rect.bottom,
@@ -188,7 +208,7 @@ export function SearchableSelect({
             window.removeEventListener('scroll', updatePosition, true);
             window.removeEventListener('resize', updatePosition);
         };
-    }, [isOpen]);
+    }, [isOpen, filteredOptions.length]);
 
     // 4. グローバルなキーボード操作 (ドロップダウン開時)
     useEffect(() => {
@@ -347,7 +367,15 @@ export function SearchableSelect({
             // 既に開いている場合はリセットしない
             if (!isOpen) {
                 resetNavigationState(); // 開くときにリセット
-                setIsOpen(true);
+
+                // requestAnimationFrameで次のフレームで位置を計算し、その後isOpenをtrueにする
+                requestAnimationFrame(() => {
+                    const newPosition = calculateDropdownPosition();
+                    if (newPosition) {
+                        setDropdownState(newPosition);
+                    }
+                    setIsOpen(true);
+                });
             }
         }
     };
@@ -367,9 +395,21 @@ export function SearchableSelect({
     const handleWrapperClick = (event: React.MouseEvent<HTMLDivElement>) => {
         if (disabled || !isInTriggerArea(event.target)) return;
         const willOpen = !isOpen; // これから開くかどうか
-        setIsOpen(willOpen);
+
         if (willOpen) {
+            // 開く際に、先に位置を計算して、その後isOpenを更新する
             resetNavigationState(); // 開くときにリセット
+
+            // requestAnimationFrameで次のフレームで位置を計算し、その後isOpenをtrueにする
+            requestAnimationFrame(() => {
+                const newPosition = calculateDropdownPosition();
+                if (newPosition) {
+                    setDropdownState(newPosition);
+                }
+                setIsOpen(true);
+            });
+        } else {
+            setIsOpen(willOpen);
         }
     };
 
@@ -396,7 +436,15 @@ export function SearchableSelect({
             event.preventDefault();
             event.stopPropagation();
             resetNavigationState(); // 開くときにリセット
-            setIsOpen(true);
+
+            // requestAnimationFrameで次のフレームで位置を計算し、その後isOpenをtrueにする
+            requestAnimationFrame(() => {
+                const newPosition = calculateDropdownPosition();
+                if (newPosition) {
+                    setDropdownState(newPosition);
+                }
+                setIsOpen(true);
+            });
             return;
         }
 
@@ -418,6 +466,11 @@ export function SearchableSelect({
     };
 
     // --- Render ---
+
+    // リストの最大高さを動的に決定
+    const listMaxHeight = filteredOptions.length >= 6
+        ? DROPDOWN_MAX_FIXED - SEARCH_AREA_HEIGHT - 8
+        : Math.max(filteredOptions.length * ITEM_HEIGHT, 0);
 
     // ドロップダウンのコンテンツ (Portalで描画)
     const dropdownContent = isOpen && (
@@ -462,7 +515,7 @@ export function SearchableSelect({
                 ref={listRef}
                 id="searchable-select-listbox"
                 className="overflow-y-auto py-1"
-                style={{ maxHeight: 'calc(2.25rem * 6 + 0.5rem)' }} // item-height * 6 + padding
+                style={{ maxHeight: filteredOptions.length > 0 ? `${listMaxHeight}px` : undefined }}
                 role="listbox"
                 onMouseDown={(e) => e.preventDefault()}
             >
