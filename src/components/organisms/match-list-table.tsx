@@ -78,9 +78,9 @@ export function MatchListTable({
               <TableHead>ラウンド</TableHead>
               <TableHead>選手A所属</TableHead>
               <TableHead>選手A名</TableHead>
+              <TableHead>得点</TableHead>
               <TableHead>選手B所属</TableHead>
               <TableHead>選手B名</TableHead>
-              <TableHead>得点</TableHead>
               <TableHead>操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -109,21 +109,20 @@ export function MatchListTable({
                   <TableCell className={playerAColor}>
                     {playerA.displayName}
                   </TableCell>
-                  <TableCell className={playerBColor}>
-                    {playerB.teamName}
-                  </TableCell>
-                  <TableCell className={playerBColor}>
-                    {playerB.displayName}
-                  </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <span className={playerAColor}>{playerA.score}</span>
                       <span className={playerBColor}>{playerB.score}</span>
                     </div>
                     <div className="text-xs mt-1 text-gray-500">
-                      反則: {getHansokuDisplay(playerA.hansoku)} /{" "}
-                      {getHansokuDisplay(playerB.hansoku)}
+                      反則: {getHansokuDisplay(playerA.hansoku)} / {getHansokuDisplay(playerB.hansoku)}
                     </div>
+                  </TableCell>
+                  <TableCell className={playerBColor}>
+                    {playerB.teamName}
+                  </TableCell>
+                  <TableCell className={playerBColor}>
+                    {playerB.displayName}
                   </TableCell>
                   <TableCell>
                     <Button
