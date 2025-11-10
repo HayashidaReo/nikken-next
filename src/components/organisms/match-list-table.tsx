@@ -89,6 +89,9 @@ export function MatchListTable({
                 playerA.score,
                 match.isCompleted
               );
+              const srText = match.isCompleted
+                ? `${playerA.displayName} ${playerA.score}点 対 ${playerB.displayName} ${playerB.score}点`
+                : `${playerA.displayName} と ${playerB.displayName} の試合は未試合です。`;
 
               return (
                 <TableRow key={match.matchId}>
@@ -105,9 +108,7 @@ export function MatchListTable({
                       {/* 得点表示（左右対称・ハイフン付き） */}
                       <div className="flex items-center gap-2">
                         {/* スクリーンリーダー用の補助テキスト（視覚要素は aria-hidden にする） */}
-                        <span className="sr-only">
-                          得点: {playerA.displayName} {playerA.score} 対 {playerB.score} {playerB.displayName}
-                        </span>
+                        <span className="sr-only">{srText}</span>
                         <span aria-hidden="true" className={cn("text-2xl font-bold tabular-nums", playerAColor)}>
                           {playerA.score}
                         </span>
