@@ -43,8 +43,13 @@ export function ScoreCell({
             </div>
 
             <div className="flex items-center justify-center gap-1 mt-1 h-5">
-                <PenaltyDisplay hansokuCount={playerAHansoku as HansokuLevel} ariaLabel={`${playerADisplayName ?? "A"}の反則`} />
-                <PenaltyDisplay hansokuCount={playerBHansoku as HansokuLevel} ariaLabel={`${playerBDisplayName ?? "B"}の反則`} />
+                <div className="flex items-center justify-center min-w-[40px]">
+                    <PenaltyDisplay hansokuCount={playerAHansoku as HansokuLevel} ariaLabel={`${playerADisplayName ?? "A"}の反則`} />
+                </div>
+                <div className="text-gray-400">|</div>
+                <div className="flex items-center justify-center min-w-[40px]">
+                    <PenaltyDisplay hansokuCount={playerBHansoku as HansokuLevel} ariaLabel={`${playerBDisplayName ?? "B"}の反則`} />
+                </div>
             </div>
 
             <span className="sr-only">{srText}</span>
