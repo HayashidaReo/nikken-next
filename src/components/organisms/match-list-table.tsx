@@ -4,25 +4,13 @@ import { memo } from "react";
 import { useRouter } from "next/navigation";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { Button } from "@/components/atoms/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/atoms/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/atoms/table";
+import { TableCell, TableRow } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
 import { findCourtName } from "@/lib/utils/court-utils";
 import { PenaltyDisplay } from "@/components/molecules/penalty-display";
 import { SCORE_COLORS, MATCH_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import { Monitor } from "lucide-react";
+import MatchTable from "@/components/organisms/match-table";
 import type { Match } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 
@@ -33,154 +21,98 @@ interface MatchListTableProps {
   className?: string;
 }
 
-export function MatchListTable({
-  matches,
-  tournamentName,
-  courts,
-  className,
-}: MatchListTableProps) {
+export function MatchListTable({ matches, tournamentName, courts, className, }: MatchListTableProps) {
   const router = useRouter();
   const initializeMatch = useMonitorStore((s) => s.initializeMatch);
-  // 得点に応じた文字色を決定する関数（定数化された Tailwind クラスを使用）
+
   const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean) => {
-    // 両者とも 0 の場合: 未完了なら灰色、完了なら青色（引き分け扱い）
     if (playerScore === 0 && opponentScore === 0) {
       return isCompleted ? SCORE_COLORS.draw : SCORE_COLORS.unplayed;
     }
-    if (playerScore > opponentScore) {
-      return SCORE_COLORS.win;
-    }
-    if (playerScore === opponentScore) {
-      return SCORE_COLORS.draw;
-    }
+    if (playerScore > opponentScore) return SCORE_COLORS.win;
+    if (playerScore === opponentScore) return SCORE_COLORS.draw;
     return SCORE_COLORS.loss;
   };
 
   return (
-    <Card className={cn("w-full", className)}>
-      <CardHeader>
-        <CardTitle className="text-xl">{tournamentName}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.courtName}%` }}>コート名</TableHead>
-              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.round}%` }}>ラウンド</TableHead>
-              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerATeam}%` }}>選手A所属</TableHead>
-              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerAName}%` }}>選手A名</TableHead>
-              <TableHead className="text-center" style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.score}%` }}>得点</TableHead>
-              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerBTeam}%` }}>選手B所属</TableHead>
-              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerBName}%` }}>選手B名</TableHead>
-              <TableHead className="text-center" style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.action}%` }}>モニター</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {matches.map(match => {
-              const { playerA, playerB } = match.players;
-              // コート名を courts 配列から解決する（存在しなければ courtId をフォールバック表示）
-              const courtName = findCourtName(match.courtId, courts);
-              const playerAColor = getPlayerTextColor(
-                playerA.score,
-                playerB.score,
-                match.isCompleted
-              );
-              const playerBColor = getPlayerTextColor(
-                playerB.score,
-                playerA.score,
-                match.isCompleted
-              );
-              const srText = match.isCompleted
-                ? `${playerA.displayName} ${playerA.score}点 対 ${playerB.displayName} ${playerB.score}点`
-                : `${playerA.displayName} と ${playerB.displayName} の試合は未試合です。`;
+    <MatchTable
+      title={tournamentName}
+      columns={[
+        { key: "court", label: "コート名", width: MATCH_TABLE_COLUMN_WIDTHS.courtName },
+        { key: "round", label: "ラウンド", width: MATCH_TABLE_COLUMN_WIDTHS.round },
+        { key: "playerATeam", label: "選手A所属", width: MATCH_TABLE_COLUMN_WIDTHS.playerATeam },
+        { key: "playerAName", label: "選手A名", width: MATCH_TABLE_COLUMN_WIDTHS.playerAName },
+        { key: "score", label: "得点", width: MATCH_TABLE_COLUMN_WIDTHS.score, className: "text-center" },
+        { key: "playerBTeam", label: "選手B所属", width: MATCH_TABLE_COLUMN_WIDTHS.playerBTeam },
+        { key: "playerBName", label: "選手B名", width: MATCH_TABLE_COLUMN_WIDTHS.playerBName },
+        { key: "action", label: "モニター", width: MATCH_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
+      ]}
+      className={className}
+    >
+      {matches.map((match) => {
+        const { playerA, playerB } = match.players;
+        const courtName = findCourtName(match.courtId, courts);
+        const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted);
+        const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted);
+        const srText = match.isCompleted
+          ? `${playerA.displayName} ${playerA.score}点 対 ${playerB.displayName} ${playerB.score}点`
+          : `${playerA.displayName} と ${playerB.displayName} の試合は未試合です。`;
 
-              return (
-                <TableRow key={match.matchId}>
-                  <TableCell className="truncate" title={courtName}>{courtName}</TableCell>
-                  <TableCell className="truncate" title={match.round}>{match.round}</TableCell>
-                  <TableCell className={cn(playerAColor, "truncate")} title={playerA.teamName}>
-                    {playerA.teamName}
-                  </TableCell>
-                  <TableCell className={cn(playerAColor, "truncate")} title={playerA.displayName}>
-                    {playerA.displayName}
-                  </TableCell>
-                  <TableCell className="py-1 px-3">
-                    <div className="flex flex-col items-center justify-center gap-1 py-1">
-                      {/* 得点表示（左右対称・ハイフン付き） */}
-                      <div className="flex items-center gap-1">
-                        {/* スクリーンリーダー用の補助テキスト（視覚要素は aria-hidden にする） */}
-                        <span className="sr-only">{srText}</span>
-                        <span aria-hidden="true" className={cn("text-2xl font-bold tabular-nums", playerAColor)}>
-                          {playerA.score}
-                        </span>
-                        <span aria-hidden="true" className="text-xl text-gray-400 font-medium">-</span>
-                        <span aria-hidden="true" className={cn("text-2xl font-bold tabular-nums", playerBColor)}>
-                          {playerB.score}
-                        </span>
-                      </div>
-                      {/* 反則カード表示（色付き）- 常に固定領域を確保 */}
-                      <div className="flex items-center gap-2 w-full px-1">
-                        {/* 選手A反則（右寄せ・固定幅） */}
-                        <div className="flex-1 flex justify-end h-5">
-                          <PenaltyDisplay
-                            hansokuCount={(playerA.hansoku) as HansokuLevel}
-                            variant="compact"
-                            ariaLabel={playerA.hansoku > 0 ? `${playerA.displayName} の反則: ${playerA.hansoku}` : `${playerA.displayName} の反則なし`}
-                          />
-                        </div>
-                        {/* 中央区切り */}
-                        <span className="flex items-center justify-center h-5 text-xs text-gray-300 mx-1">|</span>
-                        {/* 選手B反則（左寄せ・固定幅） */}
-                        <div className="flex-1 flex justify-start h-5">
-                          <PenaltyDisplay
-                            hansokuCount={(playerB.hansoku) as HansokuLevel}
-                            variant="compact"
-                            ariaLabel={playerB.hansoku > 0 ? `${playerB.displayName} の反則: ${playerB.hansoku}` : `${playerB.displayName} の反則なし`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className={cn(playerBColor, "truncate")} title={playerB.teamName}>
-                    {playerB.teamName}
-                  </TableCell>
-                  <TableCell className={cn(playerBColor, "truncate")} title={playerB.displayName}>
-                    {playerB.displayName}
-                  </TableCell>
-                  <TableCell className="py-2 px-3">
-                    <div className="flex items-center justify-center">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        aria-label="モニター"
-                        title="モニターを操作する"
-                        className="hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm transition-transform active:scale-95"
-                        onClick={() => {
-                          // 選択された試合情報をストアに保存してから遷移（Firestore通信回避のため）
-                          const courtName = findCourtName(match.courtId, courts);
-                          initializeMatch(match, tournamentName, courtName);
-                          router.push(`/monitor-control/${match.matchId}`);
-                        }}
-                      >
-                        <Monitor className="h-5 w-5" aria-hidden="true" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-
-        {matches.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            試合データがありません
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        return (
+          <TableRow key={match.matchId}>
+            <TableCell className="truncate" title={courtName}>
+              {courtName}
+            </TableCell>
+            <TableCell className="truncate" title={match.round}>
+              {match.round}
+            </TableCell>
+            <TableCell className="truncate" title={playerA.teamName}>
+              <div className={playerAColor}>{playerA.teamName}</div>
+            </TableCell>
+            <TableCell className="truncate" title={playerA.displayName}>
+              <div className={playerAColor}>{playerA.displayName}</div>
+            </TableCell>
+            <TableCell className="py-1 px-3 text-center">
+              <div className="flex items-center justify-center gap-1 py-1">
+                <div className={cn("text-xl", playerAColor)}>{playerA.score}</div>
+                <div className="text-xl">-</div>
+                <div className={cn("text-xl", playerBColor)}>{playerB.score}</div>
+              </div>
+              <div className="flex items-center justify-center gap-1 mt-1 h-5">
+                <PenaltyDisplay hansokuCount={playerA.hansoku as HansokuLevel} ariaLabel={`${playerA.displayName}の反則`} />
+                <PenaltyDisplay hansokuCount={playerB.hansoku as HansokuLevel} ariaLabel={`${playerB.displayName}の反則`} />
+              </div>
+              <span className="sr-only">{srText}</span>
+            </TableCell>
+            <TableCell className="truncate" title={playerB.teamName}>
+              {playerB.teamName}
+            </TableCell>
+            <TableCell className="truncate" title={playerB.displayName}>
+              <div className={playerBColor}>{playerB.displayName}</div>
+            </TableCell>
+            <TableCell className="text-center">
+              <div className="flex items-center justify-center">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const courtNameForInit = findCourtName(match.courtId, courts);
+                    initializeMatch(match, tournamentName, courtNameForInit);
+                    router.push(`/monitor-control/${match.matchId}`);
+                  }}
+                  title="モニターを開く"
+                  aria-label="モニター"
+                  className="hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm transition-transform active:scale-95"
+                >
+                  <Monitor className="h-5 w-5" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        );
+      })}
+    </MatchTable>
   );
 }
 
-// React.memo でラップして、props が変わらない限り再レンダリングされないようにする
 export const MatchListTableMemo = memo(MatchListTable);

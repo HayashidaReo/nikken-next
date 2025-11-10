@@ -1,20 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/atoms/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/atoms/card";
-import { cn } from "@/lib/utils/utils";
+import MatchTable from "@/components/organisms/match-table";
 import { MatchRow } from "@/components/molecules/match-row";
 import { SaveControls } from "@/components/molecules/match-setup-controls";
 import { MATCH_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
@@ -192,55 +179,48 @@ export function MatchSetupTable({
     detectedChanges.deletedMatches.length > 0;
 
   return (
-    <Card className={cn("w-full", className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-lg">試合設定</CardTitle>
+    <MatchTable
+      title="試合設定"
+      headerRight={
         <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} />
-      </CardHeader>
+      }
+      columns={[
+        { key: "court", label: "コート", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.courtName },
+        { key: "round", label: "ラウンド", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.round },
+        { key: "playerATeam", label: "選手A所属", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerATeam },
+        { key: "playerAName", label: "選手A", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerAName },
+        { key: "playerBTeam", label: "選手B所属", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBTeam },
+        { key: "playerBName", label: "選手B", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBName },
+        { key: "action", label: "削除", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
+      ]}
+      className={className}
+    >
+      {data.map((row, index) => {
+        const isAddedMatch = detectedChanges.addedMatches.some(m => m.matchId === row.id);
+        const isDeletedMatch = detectedChanges.deletedMatches.some(m => m.matchId === row.id);
+        const rowChanges = detectedChanges.fieldChanges[row.id] || {};
 
-      <CardContent>
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow className="h-10">
-              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.courtName}%` }} className="px-3">コート</TableHead>
-              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.round}%` }} className="px-3">ラウンド</TableHead>
-              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerATeam}%` }} className="px-3">選手A所属</TableHead>
-              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerAName}%` }} className="px-3">選手A</TableHead>
-              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBTeam}%` }} className="px-3">選手B所属</TableHead>
-              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBName}%` }} className="px-3">選手B</TableHead>
-              <TableHead style={{ width: `${MATCH_SETUP_TABLE_COLUMN_WIDTHS.action}%` }} className="text-center px-3">削除</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((row, index) => {
-              const isAddedMatch = detectedChanges.addedMatches.some(m => m.matchId === row.id);
-              const isDeletedMatch = detectedChanges.deletedMatches.some(m => m.matchId === row.id);
-              const rowChanges = detectedChanges.fieldChanges[row.id] || {};
-
-              return (
-                <MatchRow
-                  key={row.id}
-                  row={row}
-                  index={index}
-                  approvedTeams={approvedTeams}
-                  courts={courts}
-                  detectedRowChanges={{
-                    courtId: Boolean(rowChanges.courtId),
-                    round: Boolean(rowChanges.round),
-                    playerA: Boolean(rowChanges.playerA),
-                    playerB: Boolean(rowChanges.playerB),
-                  }}
-                  isAdded={isAddedMatch}
-                  isDeleted={isDeletedMatch}
-                  getPlayersFromTeam={getPlayersFromTeam}
-                  onUpdate={updateData}
-                  onRemove={removeRow}
-                />
-              );
-            })}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+        return (
+          <MatchRow
+            key={row.id}
+            row={row}
+            index={index}
+            approvedTeams={approvedTeams}
+            courts={courts}
+            detectedRowChanges={{
+              courtId: Boolean(rowChanges.courtId),
+              round: Boolean(rowChanges.round),
+              playerA: Boolean(rowChanges.playerA),
+              playerB: Boolean(rowChanges.playerB),
+            }}
+            isAdded={isAddedMatch}
+            isDeleted={isDeletedMatch}
+            getPlayersFromTeam={getPlayersFromTeam}
+            onUpdate={updateData}
+            onRemove={removeRow}
+          />
+        );
+      })}
+    </MatchTable>
   );
 }
