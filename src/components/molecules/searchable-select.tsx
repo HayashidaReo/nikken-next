@@ -68,8 +68,8 @@ export function SearchableSelect({
 
     const handleSearchChange = (newQuery: string) => {
         setSearchQuery(newQuery);
-        setFocusedIndex(0); // 検索クエリ変更時はリストの先頭にフォーカス
-        setIsKeyboardNavigating(true);
+        setFocusedIndex(0); // 検索クエリ変更時はリストの先頭にフォーカス (ハイライトのみ)
+        // キーボードナビゲーション状態は変更しない（検索窓にフォーカスを維持）
     };
 
     const handleMouseEnter = (index: number) => {
@@ -96,9 +96,6 @@ export function SearchableSelect({
     // 1. ドロップダウンが開いたときの処理 (位置計算 / 初期フォーカス)
     useEffect(() => {
         if (isOpen) {
-            // 検索欄ではなく、ラッパー(コンポーネント本体)にフォーカスを当てる
-            wrapperRef.current?.focus();
-
             // ドロップダウンの位置を計算
             if (wrapperRef.current) {
                 const rect = wrapperRef.current.getBoundingClientRect();
@@ -109,19 +106,21 @@ export function SearchableSelect({
                 });
             }
 
-            // 選択中のアイテムにフォーカスを合わせる
+            // 選択中のアイテムにフォーカスを合わせる（初期表示時のみ）
             const selectedIndex = value
-                ? filteredOptions.findIndex((opt) => opt.value === value)
+                ? options.findIndex((opt) => opt.value === value)
                 : -1;
 
             const initialIndex = selectedIndex > -1 ? selectedIndex : 0;
             setFocusedIndex(initialIndex);
 
-            // 最初からキーボードナビゲーション状態にする
-            // (これによりラッパーの青いフォーカス枠が消える)
+            // キーボードナビゲーション状態を有効にして、選択項目にフォーカスを当てる
             setIsKeyboardNavigating(true);
+        } else {
+            // 閉じたときはキーボードナビゲーション状態をリセット
+            setIsKeyboardNavigating(false);
         }
-    }, [isOpen, value, filteredOptions]);
+    }, [isOpen, value, options]);
 
     // 2. 外部クリック検知 (Portal対応)
     useEffect(() => {
@@ -182,6 +181,15 @@ export function SearchableSelect({
             const targetEl = event.target as HTMLElement | null;
             const isSearchInput = targetEl === searchInputRef.current;
 
+            // 検索窓での通常の文字入力（テキスト入力、削除など）は処理しない
+            if (isSearchInput) {
+                const isNavigationKey = ['ArrowDown', 'ArrowUp', 'Enter', 'Escape', 'Tab'].includes(event.key);
+                if (!isNavigationKey) {
+                    // 通常の文字入力なので、このハンドラーでは何もしない
+                    return;
+                }
+            }
+
             const moveFocusFromSearch = (nextIndex?: number) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -199,7 +207,9 @@ export function SearchableSelect({
             };
 
             if (isSearchInput && event.key === 'Enter') {
-                moveFocusFromSearch(); // フォーカスだけ移動
+                // 検索窓でEnterを押した場合は、検索文字の決定として扱う
+                event.preventDefault();
+                event.stopPropagation();
                 return;
             }
             if (isSearchInput && event.key === 'ArrowDown') {
