@@ -32,9 +32,7 @@ const teamEditSchema = z.object({
   teamName: z.string().min(1, "チーム名は必須です"),
   representativeName: z.string().min(1, "代表者名は必須です"),
   representativePhone: z.string().min(1, "電話番号は必須です"),
-  representativeEmail: z
-    .string()
-    .email("正しいメールアドレスを入力してください"),
+  representativeEmail: z.email("正しいメールアドレスを入力してください"),
   isApproved: z.boolean(),
   remarks: z.string(),
   players: z.array(

@@ -23,7 +23,9 @@ const loginSchema = z.object({
   email: z
     .string()
     .min(1, "メールアドレスは必須です")
-    .email("正しいメールアドレスを入力してください"),
+    .refine((val) => z.email().safeParse(val).success, {
+      message: "正しいメールアドレスを入力してください",
+    }),
   password: z
     .string()
     .min(1, "パスワードは必須です")

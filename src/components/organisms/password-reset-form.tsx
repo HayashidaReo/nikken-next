@@ -21,7 +21,9 @@ const passwordResetSchema = z.object({
   email: z
     .string()
     .min(1, "メールアドレスは必須です")
-    .email("正しいメールアドレスを入力してください"),
+    .refine((val) => z.email().safeParse(val).success, {
+      message: "正しいメールアドレスを入力してください",
+    }),
 });
 
 type PasswordResetFormData = z.infer<typeof passwordResetSchema>;
