@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils/utils";
 import { findCourtName } from "@/lib/utils/court-utils";
 import { PenaltyDisplay } from "@/components/molecules/penalty-display";
 import { SCORE_COLORS, MATCH_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
+import { Monitor } from "lucide-react";
 import type { Match } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 
@@ -71,7 +72,7 @@ export function MatchListTable({
               <TableHead className="text-center" style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.score}%` }}>得点</TableHead>
               <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerBTeam}%` }}>選手B所属</TableHead>
               <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.playerBName}%` }}>選手B名</TableHead>
-              <TableHead style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.action}%` }}>操作</TableHead>
+              <TableHead className="text-center" style={{ width: `${MATCH_TABLE_COLUMN_WIDTHS.action}%` }}>モニター</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -146,19 +147,24 @@ export function MatchListTable({
                   <TableCell className={cn(playerBColor, "truncate")} title={playerB.displayName}>
                     {playerB.displayName}
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        // 選択された試合情報をストアに保存してから遷移（Firestore通信回避のため）
-                        const courtName = findCourtName(match.courtId, courts);
-                        initializeMatch(match, tournamentName, courtName);
-                        router.push(`/monitor-control/${match.matchId}`);
-                      }}
-                    >
-                      操作画面
-                    </Button>
+                  <TableCell className="py-2 px-3">
+                    <div className="flex items-center justify-center">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label="モニター"
+                        title="モニターを操作する"
+                        className="hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm transition-transform active:scale-95"
+                        onClick={() => {
+                          // 選択された試合情報をストアに保存してから遷移（Firestore通信回避のため）
+                          const courtName = findCourtName(match.courtId, courts);
+                          initializeMatch(match, tournamentName, courtName);
+                          router.push(`/monitor-control/${match.matchId}`);
+                        }}
+                      >
+                        <Monitor className="h-5 w-5" aria-hidden="true" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );

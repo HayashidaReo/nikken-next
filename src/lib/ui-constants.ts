@@ -20,12 +20,12 @@ export const SCORE_COLORS = {
 export const MATCH_TABLE_COLUMN_WIDTHS = {
     courtName: 16,      // コート名（短いテキスト想定）
     round: 20,         // ラウンド（例: 1回戦、準決勝など）
-    playerATeam: 12,   // 選手A所属（チーム名）
+    playerATeam: 13,   // 選手A所属（チーム名）
     playerAName: 10,   // 選手A名
     score: 10,         // 得点（スコア表示 + 反則カード）
-    playerBTeam: 12,   // 選手B所属（チーム名）
+    playerBTeam: 13,   // 選手B所属（チーム名）
     playerBName: 10,   // 選手B名
-    action: 10,        // 操作ボタン
+    action: 8,        // 操作ボタン
 } as const;
 
 const UI_CONSTANTS = {

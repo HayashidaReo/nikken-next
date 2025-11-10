@@ -113,7 +113,7 @@ describe("MatchListTable display", () => {
         const user = userEvent.setup();
         const m = makeMatch();
         render(<MatchListTable matches={[m]} tournamentName="Tourn" courts={sampleCourts} />);
-        const btn = screen.getByRole("button", { name: /操作画面/ });
+        const btn = screen.getByRole("button", { name: /モニター/ });
         await user.click(btn);
         // we don't assert navigation here, just ensure click handler runs without throwing
         expect(btn).toBeEnabled();
