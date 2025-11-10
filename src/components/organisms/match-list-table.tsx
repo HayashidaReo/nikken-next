@@ -19,7 +19,9 @@ import {
   TableRow,
 } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
+import { getPenaltyCards } from "@/lib/utils/penalty-utils";
 import type { Match } from "@/types/match.schema";
+import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 
 interface MatchListTableProps {
   matches: Match[];
@@ -47,22 +49,30 @@ export function MatchListTable({
     }
   };
 
-  // 反則状態を文字で表示する関数
-  const getHansokuDisplay = (hansoku: number) => {
-    switch (hansoku) {
-      case 0:
-        return "-";
-      case 1:
-        return "黄";
-      case 2:
-        return "赤";
-      case 3:
-        return "赤・黄";
-      case 4:
-        return "赤・赤";
-      default:
-        return "-";
+  // 反則カードをコンパクトに表示する関数
+  const renderHansokuCards = (hansoku: number) => {
+    const cards = getPenaltyCards(hansoku as HansokuLevel);
+    if (cards.length === 0) {
+      // カードがない場合はハイフンを表示
+      return (
+        <div className="h-6 flex items-center justify-center">
+          <span className="text-gray-400">-</span>
+        </div>
+      );
     }
+    return (
+      <div className="flex gap-1 items-center justify-center">
+        {cards.map((card, i) => (
+          <div
+            key={i}
+            className={cn(
+              "w-3 h-4 rounded-sm border border-white shadow-sm",
+              card.type === "yellow" ? "bg-yellow-400" : "bg-red-600"
+            )}
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -78,7 +88,7 @@ export function MatchListTable({
               <TableHead>ラウンド</TableHead>
               <TableHead>選手A所属</TableHead>
               <TableHead>選手A名</TableHead>
-              <TableHead>得点</TableHead>
+              <TableHead className="text-center">得点</TableHead>
               <TableHead>選手B所属</TableHead>
               <TableHead>選手B名</TableHead>
               <TableHead>操作</TableHead>
@@ -110,12 +120,30 @@ export function MatchListTable({
                     {playerA.displayName}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <span className={playerAColor}>{playerA.score}</span>
-                      <span className={playerBColor}>{playerB.score}</span>
-                    </div>
-                    <div className="text-xs mt-1 text-gray-500">
-                      反則: {getHansokuDisplay(playerA.hansoku)} / {getHansokuDisplay(playerB.hansoku)}
+                    <div className="flex flex-col items-center justify-center gap-3 py-2">
+                      {/* 得点表示（左右対称・ハイフン付き） */}
+                      <div className="flex items-center gap-2">
+                        <span className={cn("text-2xl font-bold tabular-nums", playerAColor)}>
+                          {playerA.score}
+                        </span>
+                        <span className="text-xl text-gray-400 font-medium">-</span>
+                        <span className={cn("text-2xl font-bold tabular-nums", playerBColor)}>
+                          {playerB.score}
+                        </span>
+                      </div>
+                      {/* 反則カード表示（色付き）- 常に固定領域を確保 */}
+                      <div className="flex items-center gap-2 w-full px-2">
+                        {/* 選手A反則（右寄せ・固定幅） */}
+                        <div className="flex-1 flex justify-end h-6">
+                          {renderHansokuCards(playerA.hansoku)}
+                        </div>
+                        {/* 中央区切り */}
+                        <span className="flex items-center justify-center h-6 text-xs text-gray-300 mx-1">|</span>
+                        {/* 選手B反則（左寄せ・固定幅） */}
+                        <div className="flex-1 flex justify-start h-6">
+                          {renderHansokuCards(playerB.hansoku)}
+                        </div>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className={playerBColor}>
