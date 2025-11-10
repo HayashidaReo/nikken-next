@@ -320,14 +320,18 @@ export function SearchableSelect({
     ]);
 
     // 5. フォーカス位置へのスクロール
+    // マウス移動でフォーカスが変わった時に勝手にスクロールされないよう、
+    // キーボードでナビゲーション中（isKeyboardNavigating === true）の場合のみ自動スクロールする。
     useEffect(() => {
         if (!isOpen || focusedIndex < 0 || !listRef.current) return;
+        if (!isKeyboardNavigating) return; // マウスホバーなどによるfocusedIndex変更ではスクロールしない
+
         const list = listRef.current;
         const item = list.children[focusedIndex] as HTMLElement | undefined;
         if (item) {
             item.scrollIntoView({ block: 'nearest' });
         }
-    }, [focusedIndex, isOpen]);
+    }, [focusedIndex, isOpen, isKeyboardNavigating]);
 
     // --- Handlers ---
 
