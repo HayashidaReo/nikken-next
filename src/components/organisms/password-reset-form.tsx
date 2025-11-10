@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Link from "next/link";
 import { Button } from "@/components/atoms/button";
 import {
@@ -15,18 +14,10 @@ import {
 import { FormInput } from "@/components/molecules/form-input";
 import { useToast } from "@/components/providers/notification-provider";
 import { AuthService } from "@/lib/auth/service";
-
-// パスワード再設定フォーム用のZodスキーマ
-const passwordResetSchema = z.object({
-  email: z
-    .string()
-    .min(1, "メールアドレスは必須です")
-    .refine((val) => z.email().safeParse(val).success, {
-      message: "正しいメールアドレスを入力してください",
-    }),
-});
-
-type PasswordResetFormData = z.infer<typeof passwordResetSchema>;
+import {
+  passwordResetSchema,
+  type PasswordResetFormData,
+} from "@/types/password-reset.schema";
 
 export function PasswordResetForm() {
   const { showSuccess, showError } = useToast();
@@ -46,11 +37,18 @@ export function PasswordResetForm() {
     try {
       setIsLoading(true);
 
-      await AuthService.sendPasswordResetEmail(data.email);
+      // パスワード再設定後のリダイレクト先URL（本番環境とローカル環境で自動切り替え）
+      const redirectUrl = typeof window !== "undefined"
+        ? `${window.location.origin}/login`
+        : undefined;
 
+      // パスワードリセットメール送信
+      await AuthService.sendPasswordResetEmail(data.email, redirectUrl);
+
+      // 成功時の状態更新
       setSubmittedEmail(data.email);
       setIsSubmitted(true);
-      showSuccess(`${data.email}にパスワード再設定メールを送信しました。`);
+      showSuccess(`${data.email} にパスワード再設定メールを送信しました。`);
     } catch (error) {
       console.error("Password reset error:", error);
 
@@ -73,12 +71,18 @@ export function PasswordResetForm() {
           <CardTitle className="text-2xl text-center">メール送信完了</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-4">
-          <p className="text-sm text-gray-600">
-            {submittedEmail} にパスワード再設定用のメールを送信しました。
-          </p>
-          <p className="text-sm text-gray-600">
-            メールに記載されたリンクをクリックしてパスワードを再設定してください。
-          </p>
+          <div className="bg-green-50 border border-green-200 rounded-md p-4">
+            <p className="text-sm text-gray-700 mb-2">
+              <span className="font-semibold">{submittedEmail}</span> に再設定メールを送信しました。
+            </p>
+            <p className="text-sm text-gray-600">
+              メールに記載されたリンクをクリックして、パスワードを再設定してください。
+            </p>
+          </div>
+          <div className="text-xs text-gray-500 space-y-1">
+            <p>※ メールが届かない場合は、迷惑メールフォルダをご確認ください。</p>
+            <p>※ 数分経ってもメールが届かない場合は、入力したメールアドレスをご確認の上、再度お試しください。</p>
+          </div>
           <Link href="/login">
             <Button variant="outline" className="w-full">
               ログイン画面に戻る

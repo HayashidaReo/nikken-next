@@ -52,6 +52,12 @@ export class AuthErrorHandler {
       case "auth/internal-error":
         return TEXT_MESSAGES.UNEXPECTED_ERROR;
 
+      // パスワードリセット関連エラー
+      case "auth/missing-email":
+      case "auth/invalid-continue-uri":
+      case "auth/unauthorized-continue-uri":
+        return TEXT_MESSAGES.PASSWORD_RESET_EMAIL_ERROR;
+
       // 予期しないエラーコード
       default:
         return TEXT_MESSAGES.UNEXPECTED_ERROR;

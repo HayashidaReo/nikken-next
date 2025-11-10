@@ -139,4 +139,6 @@ export const TEXT_MESSAGES = {
   UNEXPECTED_ERROR: "予期しないエラーが発生しました",
   /** ネットワークエラー */
   NETWORK_ERROR: "ネットワークエラーが発生しました。接続を確認してください",
+  /** パスワードリセットメール送信エラー */
+  PASSWORD_RESET_EMAIL_ERROR: "パスワード再設定メールの送信に失敗しました",
 } as const;

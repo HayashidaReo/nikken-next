@@ -47,10 +47,23 @@ export class AuthService {
 
   /**
    * パスワードリセットメール送信
+   * @param email - パスワードをリセットするメールアドレス
+   * @param redirectUrl - パスワード再設定後のリダイレクト先URL（オプション）
    */
-  static async sendPasswordResetEmail(email: string): Promise<void> {
+  static async sendPasswordResetEmail(
+    email: string,
+    redirectUrl?: string
+  ): Promise<void> {
     try {
-      await sendPasswordResetEmail(auth, email);
+      // リダイレクトURLが指定されている場合は、actionCodeSettingsを設定
+      const actionCodeSettings = redirectUrl
+        ? {
+          url: redirectUrl,
+          handleCodeInApp: false,
+        }
+        : undefined;
+
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
     } catch (error) {
       throw new Error(AuthErrorHandler.getErrorMessage(error));
     }
