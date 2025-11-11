@@ -12,8 +12,8 @@ interface PlayerCellProps {
 
 export function PlayerCell({ text, title, colorClass, className }: PlayerCellProps) {
     return (
-        <TableCell className={cn("truncate", className)} title={title}>
-            <div className={colorClass}>{text}</div>
+        <TableCell className={cn("py-2 px-3 overflow-hidden", className)} title={title}>
+            <div className={cn("truncate", colorClass)}>{text}</div>
         </TableCell>
     );
 }
