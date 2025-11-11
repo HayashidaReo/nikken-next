@@ -6,7 +6,7 @@ import { MatchRow } from "@/components/molecules/match-row";
 import { SaveControls } from "@/components/molecules/match-setup-controls";
 import { ConflictSummary } from "@/components/molecules/conflict-summary";
 import { Button } from "@/components/atoms/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { MATCH_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";

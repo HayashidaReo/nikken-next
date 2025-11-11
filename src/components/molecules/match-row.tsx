@@ -4,15 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/atoms/button";
 import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
 import {
-    TableRow,
     TableCell,
 } from "@/components/atoms/table";
+import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
 import type { Team, Player } from "@/types/team.schema";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
-import { motion } from "framer-motion";
 
 interface MatchRowProps {
     row: MatchSetupData;
@@ -74,12 +73,7 @@ export function MatchRow({
 
     return (
         <>
-            <motion.tr
-                layout
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
+            <AnimatedTableRow
                 className={cn(
                     "bg-white",
                     isAdded && "bg-green-50 border-l-4 border-l-green-500",
@@ -166,7 +160,7 @@ export function MatchRow({
                         <Trash2 className="h-5 w-5 text-gray-500 hover:text-red-500" />
                     </Button>
                 </TableCell>
-            </motion.tr>
+            </AnimatedTableRow>
             {showConfirm && (
                 <ConfirmDialog
                     isOpen={showConfirm}
