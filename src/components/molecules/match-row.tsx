@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/atoms/button";
 import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
 import {
@@ -10,6 +11,7 @@ import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
 import type { Team, Player } from "@/types/team.schema";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 
 interface MatchRowProps {
     row: MatchSetupData;
@@ -36,6 +38,7 @@ export function MatchRow({
     onUpdate,
     onRemove,
 }: MatchRowProps) {
+    const [showConfirm, setShowConfirm] = useState(false);
     // Prepare options for searchable selects
     const courtOptions: SearchableSelectOption[] = courts.map(c => ({
         value: c.courtId,
@@ -69,87 +72,110 @@ export function MatchRow({
     }));
 
     return (
-        <TableRow
-            className={cn(
-                isAdded && "bg-green-50 border-l-4 border-l-green-500",
-                isDeleted && "bg-red-50 border-l-4 border-l-red-500 line-through opacity-60"
-            )}
-        >
-            <TableCell className="py-2 px-3 truncate" title={row.courtId}>
-                <div className={cn("rounded-md", detectedRowChanges.courtId && "ring-2 ring-red-500")}>
+        <>
+            <TableRow
+                className={cn(
+                    isAdded && "bg-green-50 border-l-4 border-l-green-500",
+                    isDeleted && "bg-red-50 border-l-4 border-l-red-500 line-through opacity-60"
+                )}
+            >
+                <TableCell className="py-2 px-3 truncate" title={row.courtId}>
+                    <div className={cn("rounded-md", detectedRowChanges.courtId && "ring-2 ring-red-500")}>
+                        <SearchableSelect
+                            value={row.courtId}
+                            onValueChange={value => onUpdate(index, "courtId", value)}
+                            options={courtOptions}
+                            placeholder="コート選択"
+                            searchPlaceholder="コート名で検索..."
+                        />
+                    </div>
+                </TableCell>
+
+                <TableCell className="py-2 px-3 truncate" title={row.round}>
+                    <div className={cn("rounded-md", detectedRowChanges.round && "ring-2 ring-red-500")}>
+                        <SearchableSelect
+                            value={row.round}
+                            onValueChange={value => onUpdate(index, "round", value)}
+                            options={roundOptions}
+                            placeholder="ラウンド選択"
+                            searchPlaceholder="ラウンド名で検索..."
+                        />
+                    </div>
+                </TableCell>
+
+                <TableCell className="py-2 px-3 truncate" title={row.playerATeamId}>
                     <SearchableSelect
-                        value={row.courtId}
-                        onValueChange={value => onUpdate(index, "courtId", value)}
-                        options={courtOptions}
-                        placeholder="コート選択"
-                        searchPlaceholder="コート名で検索..."
+                        value={row.playerATeamId}
+                        onValueChange={value => onUpdate(index, "playerATeamId", value)}
+                        options={teamOptions}
+                        placeholder="チーム選択"
+                        searchPlaceholder="チーム名で検索..."
                     />
-                </div>
-            </TableCell>
+                </TableCell>
 
-            <TableCell className="py-2 px-3 truncate" title={row.round}>
-                <div className={cn("rounded-md", detectedRowChanges.round && "ring-2 ring-red-500")}>
+                <TableCell className="py-2 px-3 truncate" title={row.playerAId}>
+                    <div className={cn("rounded-md", detectedRowChanges.playerA && "ring-2 ring-red-500")}>
+                        <SearchableSelect
+                            value={row.playerAId}
+                            onValueChange={value => onUpdate(index, "playerAId", value)}
+                            options={playerAOptions}
+                            placeholder="選手選択"
+                            searchPlaceholder="選手名で検索..."
+                            disabled={!row.playerATeamId}
+                        />
+                    </div>
+                </TableCell>
+
+                <TableCell className="py-2 px-3 truncate" title={row.playerBTeamId}>
                     <SearchableSelect
-                        value={row.round}
-                        onValueChange={value => onUpdate(index, "round", value)}
-                        options={roundOptions}
-                        placeholder="ラウンド選択"
-                        searchPlaceholder="ラウンド名で検索..."
+                        value={row.playerBTeamId}
+                        onValueChange={value => onUpdate(index, "playerBTeamId", value)}
+                        options={teamOptions}
+                        placeholder="チーム選択"
+                        searchPlaceholder="チーム名で検索..."
                     />
-                </div>
-            </TableCell>
+                </TableCell>
 
-            <TableCell className="py-2 px-3 truncate" title={row.playerATeamId}>
-                <SearchableSelect
-                    value={row.playerATeamId}
-                    onValueChange={value => onUpdate(index, "playerATeamId", value)}
-                    options={teamOptions}
-                    placeholder="チーム選択"
-                    searchPlaceholder="チーム名で検索..."
-                />
-            </TableCell>
+                <TableCell className="py-2 px-3 truncate" title={row.playerBId}>
+                    <div className={cn("rounded-md", detectedRowChanges.playerB && "ring-2 ring-red-500")}>
+                        <SearchableSelect
+                            value={row.playerBId}
+                            onValueChange={value => onUpdate(index, "playerBId", value)}
+                            options={playerBOptions}
+                            placeholder="選手選択"
+                            searchPlaceholder="選手名で検索..."
+                            disabled={!row.playerBTeamId}
+                        />
+                    </div>
+                </TableCell>
 
-            <TableCell className="py-2 px-3 truncate" title={row.playerAId}>
-                <div className={cn("rounded-md", detectedRowChanges.playerA && "ring-2 ring-red-500")}>
-                    <SearchableSelect
-                        value={row.playerAId}
-                        onValueChange={value => onUpdate(index, "playerAId", value)}
-                        options={playerAOptions}
-                        placeholder="選手選択"
-                        searchPlaceholder="選手名で検索..."
-                        disabled={!row.playerATeamId}
-                    />
-                </div>
-            </TableCell>
+                <TableCell className="py-2 px-3 text-center">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowConfirm(true)}
+                        className="text-red-500 hover:text-red-700 h-8"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </TableCell>
 
-            <TableCell className="py-2 px-3 truncate" title={row.playerBTeamId}>
-                <SearchableSelect
-                    value={row.playerBTeamId}
-                    onValueChange={value => onUpdate(index, "playerBTeamId", value)}
-                    options={teamOptions}
-                    placeholder="チーム選択"
-                    searchPlaceholder="チーム名で検索..."
-                />
-            </TableCell>
+            </TableRow>
 
-            <TableCell className="py-2 px-3 truncate" title={row.playerBId}>
-                <div className={cn("rounded-md", detectedRowChanges.playerB && "ring-2 ring-red-500")}>
-                    <SearchableSelect
-                        value={row.playerBId}
-                        onValueChange={value => onUpdate(index, "playerBId", value)}
-                        options={playerBOptions}
-                        placeholder="選手選択"
-                        searchPlaceholder="選手名で検索..."
-                        disabled={!row.playerBTeamId}
-                    />
-                </div>
-            </TableCell>
-
-            <TableCell className="py-2 px-3 text-center">
-                <Button variant="ghost" size="sm" onClick={() => onRemove(index)} className="text-red-500 hover:text-red-700 h-8">
-                    <Trash2 className="h-4 w-4" />
-                </Button>
-            </TableCell>
-        </TableRow>
+            {/* 確認ダイアログ: 削除（TableRow の外に配置して DOM 構造を壊さない） */}
+            <ConfirmDialog
+                isOpen={showConfirm}
+                title="試合を削除しますか？"
+                message="この操作は取り消せません。本当にこの試合を削除してよいですか？"
+                onConfirm={() => {
+                    onRemove(index);
+                    setShowConfirm(false);
+                }}
+                onCancel={() => setShowConfirm(false)}
+                confirmText="削除"
+                cancelText="キャンセル"
+                variant="destructive"
+            />
+        </>
     );
 }

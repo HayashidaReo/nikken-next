@@ -65,10 +65,15 @@ describe("MatchRow", () => {
             </table>
         );
 
-        // Delete button is the last button in the row; ensure it exists and triggers onRemove
+        // Delete button is the last button in the row; open confirmation and confirm
         const buttons = screen.getAllByRole("button");
         const deleteBtn = buttons[buttons.length - 1];
         await user.click(deleteBtn);
+
+        // Confirm dialog should appear. Click the destructive confirm button (ラベル: 削除)
+        const confirmBtn = await screen.findByRole("button", { name: /削除/ });
+        await user.click(confirmBtn);
+
         expect(handleRemove).toHaveBeenCalledTimes(1);
     });
 });
