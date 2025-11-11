@@ -60,7 +60,7 @@ export function MatchSetupSaveConflictDialog({
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="w-[80vw] max-w-[80vw] sm:max-w-[80vw] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-destructive">
                         ⚠️ 他の端末で試合情報が変更されています

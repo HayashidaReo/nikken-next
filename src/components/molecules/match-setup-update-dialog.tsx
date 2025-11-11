@@ -62,17 +62,21 @@ export function MatchSetupUpdateDialog({
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="w-[80vw] max-w-[80vw] sm:max-w-[80vw] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-destructive">
-                        ⚠️ 他の端末で試合情報が変更されています
+                        ⚠️ 最新の試合組み合わせ情報があります
                     </DialogTitle>
                     <DialogDescription asChild>
                         <div className="space-y-4">
                             <p className="text-sm">
-                                あなたが編集している試合が、他の端末で変更されました。
+                                他の端末での変更を検知しました。
                                 <br />
-                                以下の変更を確認して、マージするか却下するか選択してください。
+                                以下の変更を確認して、現在編集中の情報に最新情報を反映するか、却下して編集を続行するか選択してください。
+                                <br />
+                                却下した場合、最新の他端末での変更内容は反映されません。
+                                <br />
+                                基本は「反映」を選択することをお勧めします。
                             </p>
 
                             <ConflictDetailsDisplay
@@ -88,7 +92,7 @@ export function MatchSetupUpdateDialog({
                     <Button variant="outline" onClick={onReject}>
                         却下（今後通知しない）
                     </Button>
-                    <Button onClick={onConfirm}>マージ（変更を受け入れる）</Button>
+                    <Button onClick={onConfirm}>反映（変更を取り込む）</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
