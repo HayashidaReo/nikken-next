@@ -6,6 +6,7 @@ import { MatchRow } from "@/components/molecules/match-row";
 import { SaveControls } from "@/components/molecules/match-setup-controls";
 import { ConflictSummary } from "@/components/molecules/conflict-summary";
 import { Button } from "@/components/atoms/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { MATCH_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
@@ -206,32 +207,34 @@ export function MatchSetupTable({
       ]}
       className={className}
     >
-      {data.map((row, index) => {
-        const isAddedMatch = detectedChanges.addedMatches.some(m => m.matchId === row.id);
-        const isDeletedMatch = detectedChanges.deletedMatches.some(m => m.matchId === row.id);
-        const rowChanges = detectedChanges.fieldChanges[row.id] || {};
+      <AnimatePresence>
+        {data.map((row, index) => {
+          const isAddedMatch = detectedChanges.addedMatches.some(m => m.matchId === row.id);
+          const isDeletedMatch = detectedChanges.deletedMatches.some(m => m.matchId === row.id);
+          const rowChanges = detectedChanges.fieldChanges[row.id] || {};
 
-        return (
-          <MatchRow
-            key={row.id}
-            row={row}
-            index={index}
-            approvedTeams={approvedTeams}
-            courts={courts}
-            detectedRowChanges={{
-              courtId: Boolean(rowChanges.courtId),
-              round: Boolean(rowChanges.round),
-              playerA: Boolean(rowChanges.playerA),
-              playerB: Boolean(rowChanges.playerB),
-            }}
-            isAdded={isAddedMatch}
-            isDeleted={isDeletedMatch}
-            getPlayersFromTeam={getPlayersFromTeam}
-            onUpdate={updateData}
-            onRemove={removeRow}
-          />
-        );
-      })}
+          return (
+            <MatchRow
+              key={row.id}
+              row={row}
+              index={index}
+              approvedTeams={approvedTeams}
+              courts={courts}
+              detectedRowChanges={{
+                courtId: Boolean(rowChanges.courtId),
+                round: Boolean(rowChanges.round),
+                playerA: Boolean(rowChanges.playerA),
+                playerB: Boolean(rowChanges.playerB),
+              }}
+              isAdded={isAddedMatch}
+              isDeleted={isDeletedMatch}
+              getPlayersFromTeam={getPlayersFromTeam}
+              onUpdate={updateData}
+              onRemove={removeRow}
+            />
+          );
+        })}
+      </AnimatePresence>
 
       {/* テーブルの最後尾に「試合追加」ボタンを置くための行 */}
       <TableRow>

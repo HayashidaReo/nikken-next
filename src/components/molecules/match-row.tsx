@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils/utils";
 import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
 import type { Team, Player } from "@/types/team.schema";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+import { motion } from "framer-motion";
 
 interface MatchRowProps {
     row: MatchSetupData;
@@ -73,8 +74,14 @@ export function MatchRow({
 
     return (
         <>
-            <TableRow
+            <motion.tr
+                layout
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className={cn(
+                    "bg-white",
                     isAdded && "bg-green-50 border-l-4 border-l-green-500",
                     isDeleted && "bg-red-50 border-l-4 border-l-red-500 line-through opacity-60"
                 )}
@@ -156,26 +163,25 @@ export function MatchRow({
                         onClick={() => setShowConfirm(true)}
                         className="text-red-500 hover:text-red-700 h-8"
                     >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5 text-gray-500 hover:text-red-500" />
                     </Button>
                 </TableCell>
-
-            </TableRow>
-
-            {/* 確認ダイアログ: 削除（TableRow の外に配置して DOM 構造を壊さない） */}
-            <ConfirmDialog
-                isOpen={showConfirm}
-                title="試合を削除しますか？"
-                message="この操作は取り消せません。本当にこの試合を削除してよいですか？"
-                onConfirm={() => {
-                    onRemove(index);
-                    setShowConfirm(false);
-                }}
-                onCancel={() => setShowConfirm(false)}
-                confirmText="削除"
-                cancelText="キャンセル"
-                variant="destructive"
-            />
+            </motion.tr>
+            {showConfirm && (
+                <ConfirmDialog
+                    isOpen={showConfirm}
+                    title="試合を削除しますか？"
+                    message="この操作は取り消せません。本当にこの試合を削除してよいですか？"
+                    onConfirm={() => {
+                        onRemove(index);
+                        setShowConfirm(false);
+                    }}
+                    onCancel={() => setShowConfirm(false)}
+                    confirmText="削除"
+                    cancelText="キャンセル"
+                    variant="destructive"
+                />
+            )}
         </>
     );
 }
