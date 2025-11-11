@@ -4,6 +4,9 @@ import { useState, useMemo } from "react";
 import MatchTable from "@/components/organisms/match-table";
 import { MatchRow } from "@/components/molecules/match-row";
 import { SaveControls } from "@/components/molecules/match-setup-controls";
+import { Button } from "@/components/atoms/button";
+import { Plus } from "lucide-react";
+import { TableRow, TableCell } from "@/components/atoms/table";
 import { MATCH_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import type { Team, Player } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
@@ -182,7 +185,7 @@ export function MatchSetupTable({
     <MatchTable
       title="試合設定"
       headerRight={
-        <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} />
+        <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} showAdd={false} />
       }
       columns={[
         { key: "court", label: "コート", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.courtName },
@@ -221,6 +224,18 @@ export function MatchSetupTable({
           />
         );
       })}
+
+      {/* テーブルの最後尾に「試合追加」ボタンを置くための行 */}
+      <TableRow>
+        <TableCell className="py-2 px-3" colSpan={7}>
+          <div className="flex justify-center">
+            <Button onClick={addRow} variant="outline" size="sm" className="w-100 justify-center">
+              <Plus className="h-4 w-4 mr-2" />
+              試合追加
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
     </MatchTable>
   );
 }
