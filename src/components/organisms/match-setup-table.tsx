@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import MatchTable from "@/components/organisms/match-table";
 import { MatchRow } from "@/components/molecules/match-row";
 import { SaveControls } from "@/components/molecules/match-setup-controls";
+import { ConflictSummary } from "@/components/molecules/conflict-summary";
 import { Button } from "@/components/atoms/button";
 import { Plus } from "lucide-react";
 import { TableRow, TableCell } from "@/components/atoms/table";
@@ -30,6 +31,8 @@ interface MatchSetupTableProps {
   isSaving?: boolean;
   className?: string;
   detectedChanges?: DetectedChanges;
+  detectedCount?: number;
+  onOpenUpdateDialog?: () => void;
 }
 
 export function MatchSetupTable({
@@ -40,6 +43,8 @@ export function MatchSetupTable({
   isSaving = false,
   className,
   detectedChanges = { fieldChanges: {}, addedMatches: [], deletedMatches: [] },
+  detectedCount = 0,
+  onOpenUpdateDialog,
 }: MatchSetupTableProps) {
   // 承認済みのチームのみフィルター
   const approvedTeams = teams.filter(team => team.isApproved); // 初期データを作成
@@ -183,9 +188,12 @@ export function MatchSetupTable({
 
   return (
     <MatchTable
-      title="試合設定"
+      title="試合組み合わせ設定"
       headerRight={
-        <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} showAdd={false} />
+        <div className="flex items-center gap-4">
+          <ConflictSummary count={detectedCount} onOpenUpdateDialog={onOpenUpdateDialog ?? (() => { })} />
+          <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} showAdd={false} />
+        </div>
       }
       columns={[
         { key: "court", label: "コート", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.courtName },

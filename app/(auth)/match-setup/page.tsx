@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { MatchSetupTable } from "@/components/organisms/match-setup-table";
-import { MatchSetupHeader } from "@/components/molecules/match-setup-header";
 import { MatchSetupSaveConflictDialog } from "@/components/molecules/match-setup-save-conflict-dialog";
 import { MatchSetupUpdateDialog } from "@/components/molecules/match-setup-update-dialog";
 import { useTeams } from "@/queries/use-teams";
@@ -561,12 +560,6 @@ export default function MatchSetupPage() {
   return (
     <MainLayout activeTab="match-setup">
       <div className="space-y-6">
-        <MatchSetupHeader
-          title="試合の組み合わせ設定"
-          detectedCount={detectedCount}
-          onOpenUpdateDialog={handleUpdateClick}
-        />
-
         <MatchSetupTable
           teams={teams}
           courts={tournament.courts}
@@ -574,6 +567,8 @@ export default function MatchSetupPage() {
           onSave={handleSave}
           isSaving={isSaving}
           detectedChanges={detectedChanges}
+          detectedCount={detectedCount}
+          onOpenUpdateDialog={handleUpdateClick}
         />
 
         {/* 競合確認ダイアログ（保存時） */}
