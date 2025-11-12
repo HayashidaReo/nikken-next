@@ -275,6 +275,7 @@ export default function MatchSetupPage() {
           patch: {
             courtId: setupData.courtId,
             round: setupData.round,
+            sortOrder: setupData.sortOrder,
             players: {
               playerA: {
                 displayName: playerA.displayName,
@@ -313,6 +314,7 @@ export default function MatchSetupPage() {
           return {
             courtId: setupData.courtId,
             round: setupData.round,
+            sortOrder: setupData.sortOrder,
             players: {
               playerA: {
                 displayName: playerA.displayName,

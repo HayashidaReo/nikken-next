@@ -34,6 +34,7 @@ export const MATCH_TABLE_COLUMN_WIDTHS = {
  * - 合計は 100% になるように設計
  */
 export const MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
+    drag: 3,           // ドラッグハンドル
     courtName: 16,      // コート名
     round: 20,         // ラウンド
     playerATeam: 17,   // 選手A所属

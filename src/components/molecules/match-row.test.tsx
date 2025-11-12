@@ -12,6 +12,7 @@ const sampleRow = {
     playerAId: "p1",
     playerBTeamId: "t2",
     playerBId: "p2",
+    sortOrder: 0,
 };
 
 const teams = [

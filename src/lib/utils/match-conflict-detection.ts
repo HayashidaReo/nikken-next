@@ -12,6 +12,7 @@ export type MatchSetupData = {
     playerAId: string;
     playerBTeamId: string;
     playerBId: string;
+    sortOrder: number;
 };
 
 /**

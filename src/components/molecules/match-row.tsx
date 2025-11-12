@@ -7,11 +7,13 @@ import {
     TableCell,
 } from "@/components/atoms/table";
 import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
-import { Trash2 } from "lucide-react";
+import { Trash2, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
 import type { Team, Player } from "@/types/team.schema";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface MatchRowProps {
     row: MatchSetupData;
@@ -39,6 +41,22 @@ export function MatchRow({
     onRemove,
 }: MatchRowProps) {
     const [showConfirm, setShowConfirm] = useState(false);
+
+    // ドラッグ＆ドロップ機能のセットアップ
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: row.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
     // Prepare options for searchable selects
     const courtOptions: SearchableSelectOption[] = courts.map(c => ({
         value: c.courtId,
@@ -74,12 +92,20 @@ export function MatchRow({
     return (
         <>
             <AnimatedTableRow
+                ref={setNodeRef}
+                style={style}
                 className={cn(
                     "bg-white",
                     isAdded && "bg-green-50 border-l-4 border-l-green-500",
-                    isDeleted && "bg-red-50 border-l-4 border-l-red-500 line-through opacity-60"
+                    isDeleted && "bg-red-50 border-l-4 border-l-red-500 line-through opacity-60",
+                    isDragging && "opacity-50"
                 )}
             >
+                <TableCell className="py-2 px-3 text-center cursor-grab active:cursor-grabbing">
+                    <div {...attributes} {...listeners}>
+                        <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    </div>
+                </TableCell>
                 <TableCell className="py-2 px-3 truncate" title={row.courtId}>
                     <div className={cn("rounded-md", detectedRowChanges.courtId && "ring-2 ring-red-500")}>
                         <SearchableSelect

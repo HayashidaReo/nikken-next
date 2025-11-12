@@ -19,6 +19,7 @@ describe("Match Schema Validation", () => {
     matchId: "match-001",
     courtId: "court-001",
     round: "1回戦",
+    sortOrder: 0,
     players: {
       playerA: validMatchPlayer,
       playerB: {

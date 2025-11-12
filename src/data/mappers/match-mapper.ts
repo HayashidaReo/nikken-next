@@ -9,6 +9,7 @@ export interface FirestoreMatchDoc {
     matchId: string; // ドキュメントIDをフィールドとして保存
     courtId: string;
     round: string;
+    sortOrder: number; // 表示順序（昇順で並び替え）
     players: {
         playerA: FirestoreMatchPlayerDoc;
         playerB: FirestoreMatchPlayerDoc;
@@ -62,6 +63,7 @@ export class MatchMapper {
             matchId,
             courtId: doc.courtId,
             round: doc.round,
+            sortOrder: doc.sortOrder,
             players: {
                 playerA: this.playerToDomain(doc.players.playerA),
                 playerB: this.playerToDomain(doc.players.playerB),
@@ -114,7 +116,7 @@ export class MatchMapper {
     static toFirestoreForCreate(
         match: Partial<Match> & { id?: string }
     ): FirestoreMatchCreateDoc {
-        if (!match.courtId || !match.round || !match.players) {
+        if (!match.courtId || !match.round || !match.players || match.sortOrder === undefined) {
             throw new Error("Required fields missing for match creation");
         }
 
@@ -131,6 +133,7 @@ export class MatchMapper {
             matchId,
             courtId: match.courtId,
             round: match.round,
+            sortOrder: match.sortOrder,
             players: {
                 playerA: this.playerToFirestore(match.players.playerA),
                 playerB: this.playerToFirestore(match.players.playerB),
