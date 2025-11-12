@@ -20,7 +20,9 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragOverlay,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -98,6 +100,7 @@ export function MatchSetupTable({
   const [data, setData] = useState<MatchSetupData[]>(initialData);
   const [lastMatchIdsKey, setLastMatchIdsKey] = useState<string>(matchIdsKey);
   const [lastInitialData, setLastInitialData] = useState<MatchSetupData[]>(initialData);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   // detectedChanges の情報をキャプチャして保持（クリアされる前に）
   const [capturedChanges, setCapturedChanges] = useState<typeof detectedChanges.fieldChanges>({});
@@ -206,6 +209,10 @@ export function MatchSetupTable({
     setData(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -223,6 +230,8 @@ export function MatchSetupTable({
         }));
       });
     }
+
+    setActiveId(null);
   };
 
   const handleSave = () => {
@@ -239,6 +248,7 @@ export function MatchSetupTable({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       <MatchTable
@@ -307,6 +317,41 @@ export function MatchSetupTable({
           </TableCell>
         </TableRow>
       </MatchTable>
+
+      <DragOverlay>
+        {activeId ? (
+          <table className="w-full">
+            <tbody>
+              {(() => {
+                const activeRow = data.find(row => row.id === activeId);
+                if (!activeRow) return null;
+                const activeIndex = data.findIndex(row => row.id === activeId);
+                const rowChanges = detectedChanges.fieldChanges[activeRow.id] || {};
+
+                return (
+                  <MatchRow
+                    row={activeRow}
+                    index={activeIndex}
+                    approvedTeams={approvedTeams}
+                    courts={courts}
+                    detectedRowChanges={{
+                      courtId: Boolean(rowChanges.courtId),
+                      round: Boolean(rowChanges.round),
+                      playerA: Boolean(rowChanges.playerA),
+                      playerB: Boolean(rowChanges.playerB),
+                    }}
+                    isAdded={false}
+                    isDeleted={false}
+                    getPlayersFromTeam={getPlayersFromTeam}
+                    onUpdate={() => { }}
+                    onRemove={() => { }}
+                  />
+                );
+              })()}
+            </tbody>
+          </table>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
