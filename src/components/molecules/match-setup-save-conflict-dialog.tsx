@@ -24,12 +24,14 @@ interface ConflictDetails {
         round?: { draft: string; server: string };
         playerA?: { draft: string; server: string };
         playerB?: { draft: string; server: string };
+        sortOrder?: { draft: number; server: number };
     };
     serverOnlyChanges: {
         courtId?: { initial: string; server: string };
         round?: { initial: string; server: string };
         playerA?: { initial: string; server: string };
         playerB?: { initial: string; server: string };
+        sortOrder?: { initial: number; server: number };
     };
 }
 

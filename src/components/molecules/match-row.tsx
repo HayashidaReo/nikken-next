@@ -20,7 +20,7 @@ interface MatchRowProps {
     index: number;
     approvedTeams: Team[];
     courts: Array<{ courtId: string; courtName: string }>;
-    detectedRowChanges?: { courtId?: boolean; round?: boolean; playerA?: boolean; playerB?: boolean };
+    detectedRowChanges?: { courtId?: boolean; round?: boolean; playerA?: boolean; playerB?: boolean; sortOrder?: boolean };
     isAdded?: boolean;
     isDeleted?: boolean;
     getPlayersFromTeam: (teamId: string) => Player[];
@@ -98,6 +98,7 @@ export function MatchRow({
                     "bg-white",
                     isAdded && "bg-green-50 border-l-4 border-l-green-500",
                     isDeleted && "bg-red-50 border-l-4 border-l-red-500 line-through opacity-60",
+                    detectedRowChanges.sortOrder && !isAdded && !isDeleted && "bg-red-50",
                     isDragging && "opacity-50"
                 )}
             >

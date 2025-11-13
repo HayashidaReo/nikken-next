@@ -26,6 +26,7 @@ interface ConflictDetails {
         round?: { draft: string; server: string };
         playerA?: { draft: string; server: string };
         playerB?: { draft: string; server: string };
+        sortOrder?: { draft: number; server: number };
     };
     serverOnlyChanges: {
         // ... (interface definitions are unchanged) ...
@@ -33,6 +34,7 @@ interface ConflictDetails {
         round?: { initial: string; server: string };
         playerA?: { initial: string; server: string };
         playerB?: { initial: string; server: string };
+        sortOrder?: { initial: number; server: number };
     };
 }
 
@@ -188,6 +190,13 @@ export function ConflictDetailsDisplay({
                                                 server={conflict.directConflicts.playerB.server}
                                             />
                                         )}
+                                        {conflict.directConflicts.sortOrder && (
+                                            <ConflictFieldDisplay
+                                                fieldLabel="表示順序"
+                                                draft={String(conflict.directConflicts.sortOrder.draft)}
+                                                server={String(conflict.directConflicts.sortOrder.server)}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -237,6 +246,13 @@ export function ConflictDetailsDisplay({
                                                 fieldLabel="選手B"
                                                 initial={conflict.serverOnlyChanges.playerB.initial}
                                                 server={conflict.serverOnlyChanges.playerB.server}
+                                            />
+                                        )}
+                                        {conflict.serverOnlyChanges.sortOrder && (
+                                            <ServerOnlyChangeDisplay
+                                                fieldLabel="表示順序"
+                                                initial={String(conflict.serverOnlyChanges.sortOrder.initial)}
+                                                server={String(conflict.serverOnlyChanges.sortOrder.server)}
                                             />
                                         )}
                                     </div>
@@ -313,7 +329,7 @@ function ServerOnlyChangeDisplay({
             <ArrowRight className="w-4 h-4 text-gray-400" />
             <ValueBadge
                 text={server}
-                className="bg-gray-100 text-gray-800 font-semibold" 
+                className="bg-gray-100 text-gray-800 font-semibold"
             />
         </div>
     );

@@ -25,12 +25,14 @@ export type ConflictDetails = {
         round?: { draft: string; server: string };
         playerA?: { draft: string; server: string };
         playerB?: { draft: string; server: string };
+        sortOrder?: { draft: number; server: number };
     };
     serverOnlyChanges: {
         courtId?: { initial: string; server: string };
         round?: { initial: string; server: string };
         playerA?: { initial: string; server: string };
         playerB?: { initial: string; server: string };
+        sortOrder?: { initial: number; server: number };
     };
 };
 
@@ -207,6 +209,21 @@ export function detectMatchConflicts(
             hasAnyConflict = true;
         }
 
+        // === sortOrder のチェック ===
+        const userChangedSortOrder = draft.sortOrder !== initialMatch.sortOrder;
+        const serverChangedSortOrder = serverMatch.sortOrder !== initialMatch.sortOrder;
+        const isSortOrderRejected = rejectedForMatch.sortOrder === String(serverMatch.sortOrder);
+
+        if (userChangedSortOrder && serverChangedSortOrder && draft.sortOrder !== serverMatch.sortOrder && !isSortOrderRejected) {
+            // 直接競合: 両方が異なる値に変更（却下済みでない場合のみ）
+            directConflicts.sortOrder = { draft: draft.sortOrder, server: serverMatch.sortOrder };
+            hasAnyConflict = true;
+        } else if (!userChangedSortOrder && serverChangedSortOrder && !isSortOrderRejected) {
+            // 間接競合: 他端末のみが変更（却下済みでない場合のみ）
+            serverOnlyChanges.sortOrder = { initial: initialMatch.sortOrder, server: serverMatch.sortOrder };
+            hasAnyConflict = true;
+        }
+
         // score/hansoku は競合として扱わない（自動マージ）
 
         if (hasAnyConflict) {
@@ -239,6 +256,12 @@ export function convertDetectedChangesToConflicts(
         Object.entries(changes).forEach(([fieldName, change]) => {
             if (fieldName === "courtId" || fieldName === "round" || fieldName === "playerA" || fieldName === "playerB") {
                 serverOnlyChanges[fieldName] = change;
+            } else if (fieldName === "sortOrder") {
+                // sortOrderは数値型なので型変換
+                serverOnlyChanges.sortOrder = {
+                    initial: Number(change.initial),
+                    server: Number(change.server)
+                };
             }
         });
 

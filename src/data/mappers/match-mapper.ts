@@ -162,6 +162,10 @@ export class MatchMapper {
                 playerB: this.playerToFirestore(match.players.playerB),
             };
         }
+        // sortOrder が指定されている場合は更新データに含める
+        if (match.sortOrder !== undefined) {
+            firestoreData.sortOrder = match.sortOrder;
+        }
         if (match.isCompleted !== undefined) {
             firestoreData.isCompleted = match.isCompleted;
         }

@@ -146,6 +146,14 @@ export default function MatchSetupPage() {
         };
       }
 
+      // sortOrder のチェック
+      if (serverMatch.sortOrder !== initialMatch.sortOrder && rejected.sortOrder !== String(serverMatch.sortOrder)) {
+        matchChanges.sortOrder = {
+          initial: String(initialMatch.sortOrder),
+          server: String(serverMatch.sortOrder),
+        };
+      }
+
       if (Object.keys(matchChanges).length > 0) {
         fieldChanges[matchId] = matchChanges;
       }
@@ -270,32 +278,31 @@ export default function MatchSetupPage() {
         }
 
         // Transaction ベースの更新で、最新の score/hansoku を保持
-        await updateMatchMutation.mutateAsync({
-          matchId,
-          patch: {
-            courtId: setupData.courtId,
-            round: setupData.round,
-            sortOrder: setupData.sortOrder,
-            players: {
-              playerA: {
-                displayName: playerA.displayName,
-                playerId: playerA.playerId,
-                teamId: playerA.teamId,
-                teamName: playerA.teamName,
-                score: latestMatch.players.playerA.score,
-                hansoku: latestMatch.players.playerA.hansoku,
-              },
-              playerB: {
-                displayName: playerB.displayName,
-                playerId: playerB.playerId,
-                teamId: playerB.teamId,
-                teamName: playerB.teamName,
-                score: latestMatch.players.playerB.score,
-                hansoku: latestMatch.players.playerB.hansoku,
-              },
+        const patch = {
+          courtId: setupData.courtId,
+          round: setupData.round,
+          sortOrder: setupData.sortOrder,
+          players: {
+            playerA: {
+              displayName: playerA.displayName,
+              playerId: playerA.playerId,
+              teamId: playerA.teamId,
+              teamName: playerA.teamName,
+              score: latestMatch.players.playerA.score,
+              hansoku: latestMatch.players.playerA.hansoku,
+            },
+            playerB: {
+              displayName: playerB.displayName,
+              playerId: playerB.playerId,
+              teamId: playerB.teamId,
+              teamName: playerB.teamName,
+              score: latestMatch.players.playerB.score,
+              hansoku: latestMatch.players.playerB.hansoku,
             },
           },
-        });
+        };
+
+        await updateMatchMutation.mutateAsync({ matchId, patch });
       }
 
       // 新規試合を作成
@@ -338,7 +345,10 @@ export default function MatchSetupPage() {
           };
         });
 
-        await createMatchesMutation.mutateAsync(newMatches);
+        const created = await createMatchesMutation.mutateAsync(newMatches);
+        try {
+          console.debug('[MatchSetupPage] executeSave - created matches sortOrders', created.map(c => ({ matchId: c.matchId, sortOrder: c.sortOrder })));
+        } catch { }
       }
 
       const totalCount = matchesToUpdate.length + matchesToCreate.length;
