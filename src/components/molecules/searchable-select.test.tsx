@@ -187,7 +187,9 @@ describe("SearchableSelect", () => {
         await waitFor(() => {
             expect(handleChange).toHaveBeenCalled();
         }, { timeout: 2000 });
-    }); it("selects option with Enter key", async () => {
+    });
+
+    it("selects option with Enter key", async () => {
         const user = userEvent.setup();
         const handleChange = jest.fn();
         render(
@@ -262,7 +264,9 @@ describe("SearchableSelect", () => {
             const noResults = document.querySelector(':not(script):not(style)');
             expect(noResults?.textContent).toContain("該当する項目がありません");
         }, { timeout: 2000 });
-    }); it("disables the select when disabled prop is true", () => {
+    });
+
+    it("disables the select when disabled prop is true", () => {
         render(
             <SearchableSelect
                 onValueChange={jest.fn()}
