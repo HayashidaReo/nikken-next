@@ -340,6 +340,7 @@ export function MatchSetupTable({
                       round: Boolean(rowChanges.round),
                       playerA: Boolean(rowChanges.playerA),
                       playerB: Boolean(rowChanges.playerB),
+                      sortOrder: Boolean(rowChanges.sortOrder),
                     }}
                     isAdded={false}
                     isDeleted={false}
