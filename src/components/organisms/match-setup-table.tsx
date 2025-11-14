@@ -54,6 +54,9 @@ interface MatchSetupTableProps {
   onOpenUpdateDialog?: () => void;
 }
 
+// レンダリングごとに新しい関数を生成しないための定義
+const noop = () => { };
+
 export function MatchSetupTable({
   teams,
   courts,
@@ -255,7 +258,7 @@ export function MatchSetupTable({
         title="試合組み合わせ設定"
         headerRight={
           <div className="flex items-center gap-4">
-            <ConflictSummary count={detectedCount} onOpenUpdateDialog={onOpenUpdateDialog ?? (() => { })} />
+            <ConflictSummary count={detectedCount} onOpenUpdateDialog={onOpenUpdateDialog ?? noop} />
             <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} showAdd={false} />
           </div>
         }
