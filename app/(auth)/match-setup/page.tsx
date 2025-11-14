@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { MatchSetupTable } from "@/components/organisms/match-setup-table";
-import { MatchSetupHeader } from "@/components/molecules/match-setup-header";
 import { MatchSetupSaveConflictDialog } from "@/components/molecules/match-setup-save-conflict-dialog";
 import { MatchSetupUpdateDialog } from "@/components/molecules/match-setup-update-dialog";
 import { useTeams } from "@/queries/use-teams";
@@ -147,6 +146,14 @@ export default function MatchSetupPage() {
         };
       }
 
+      // sortOrder のチェック
+      if (serverMatch.sortOrder !== initialMatch.sortOrder && rejected.sortOrder !== String(serverMatch.sortOrder)) {
+        matchChanges.sortOrder = {
+          initial: String(initialMatch.sortOrder),
+          server: String(serverMatch.sortOrder),
+        };
+      }
+
       if (Object.keys(matchChanges).length > 0) {
         fieldChanges[matchId] = matchChanges;
       }
@@ -271,31 +278,31 @@ export default function MatchSetupPage() {
         }
 
         // Transaction ベースの更新で、最新の score/hansoku を保持
-        await updateMatchMutation.mutateAsync({
-          matchId,
-          patch: {
-            courtId: setupData.courtId,
-            round: setupData.round,
-            players: {
-              playerA: {
-                displayName: playerA.displayName,
-                playerId: playerA.playerId,
-                teamId: playerA.teamId,
-                teamName: playerA.teamName,
-                score: latestMatch.players.playerA.score,
-                hansoku: latestMatch.players.playerA.hansoku,
-              },
-              playerB: {
-                displayName: playerB.displayName,
-                playerId: playerB.playerId,
-                teamId: playerB.teamId,
-                teamName: playerB.teamName,
-                score: latestMatch.players.playerB.score,
-                hansoku: latestMatch.players.playerB.hansoku,
-              },
+        const patch = {
+          courtId: setupData.courtId,
+          round: setupData.round,
+          sortOrder: setupData.sortOrder,
+          players: {
+            playerA: {
+              displayName: playerA.displayName,
+              playerId: playerA.playerId,
+              teamId: playerA.teamId,
+              teamName: playerA.teamName,
+              score: latestMatch.players.playerA.score,
+              hansoku: latestMatch.players.playerA.hansoku,
+            },
+            playerB: {
+              displayName: playerB.displayName,
+              playerId: playerB.playerId,
+              teamId: playerB.teamId,
+              teamName: playerB.teamName,
+              score: latestMatch.players.playerB.score,
+              hansoku: latestMatch.players.playerB.hansoku,
             },
           },
-        });
+        };
+
+        await updateMatchMutation.mutateAsync({ matchId, patch });
       }
 
       // 新規試合を作成
@@ -314,6 +321,7 @@ export default function MatchSetupPage() {
           return {
             courtId: setupData.courtId,
             round: setupData.round,
+            sortOrder: setupData.sortOrder,
             players: {
               playerA: {
                 displayName: playerA.displayName,
@@ -413,6 +421,9 @@ export default function MatchSetupPage() {
             },
           };
         }
+        if (changes.sortOrder) {
+          updatedMatch.sortOrder = serverMatch.sortOrder;
+        }
 
         return updatedMatch;
       });
@@ -427,6 +438,9 @@ export default function MatchSetupPage() {
       // 削除された試合を除外
       const deletedMatchIds = new Set(detectedChanges.deletedMatches.map(m => m.matchId));
       updated = updated.filter(m => !m.matchId || !deletedMatchIds.has(m.matchId));
+
+      // サーバーの sortOrder を反映して並び替え
+      updated.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
       return updated;
     });
@@ -561,12 +575,6 @@ export default function MatchSetupPage() {
   return (
     <MainLayout activeTab="match-setup">
       <div className="space-y-6">
-        <MatchSetupHeader
-          title="試合の組み合わせ設定"
-          detectedCount={detectedCount}
-          onOpenUpdateDialog={handleUpdateClick}
-        />
-
         <MatchSetupTable
           teams={teams}
           courts={tournament.courts}
@@ -574,6 +582,8 @@ export default function MatchSetupPage() {
           onSave={handleSave}
           isSaving={isSaving}
           detectedChanges={detectedChanges}
+          detectedCount={detectedCount}
+          onOpenUpdateDialog={handleUpdateClick}
         />
 
         {/* 競合確認ダイアログ（保存時） */}

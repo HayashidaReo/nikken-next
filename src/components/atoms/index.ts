@@ -29,6 +29,7 @@ export {
   TableHeader,
   TableRow,
 } from "./table";
+export { AnimatedTableRow } from "./animated-table-row";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export { Textarea, type TextareaProps } from "./textarea";
 export { SkewedBackground } from "./skewed-background";
