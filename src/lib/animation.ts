@@ -11,10 +11,10 @@ export const rowVariants = {
     exit: { opacity: 0, y: -8 },
 };
 
-// framer-motion の Transition 型に合わせて明示的にキャスト
-export const rowTransition: Transition = (isTest
+// テスト環境ではアニメーションを無効化し、それ以外は通常のトランジションを使用
+export const rowTransition: Transition = isTest
     ? { duration: 0 }
-    : ({ duration: 0.28, ease: [0.4, 0, 0.2, 1] } as unknown)) as Transition;
+    : { duration: 0.28, ease: [0.4, 0, 0.2, 1] };
 
 const animations = {
     rowVariants,
