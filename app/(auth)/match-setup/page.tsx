@@ -345,10 +345,7 @@ export default function MatchSetupPage() {
           };
         });
 
-        const created = await createMatchesMutation.mutateAsync(newMatches);
-        try {
-          console.debug('[MatchSetupPage] executeSave - created matches sortOrders', created.map(c => ({ matchId: c.matchId, sortOrder: c.sortOrder })));
-        } catch { }
+        await createMatchesMutation.mutateAsync(newMatches);
       }
 
       const totalCount = matchesToUpdate.length + matchesToCreate.length;
