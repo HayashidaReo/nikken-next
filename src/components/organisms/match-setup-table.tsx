@@ -247,6 +247,18 @@ export function MatchSetupTable({
     detectedChanges.addedMatches.length > 0 ||
     detectedChanges.deletedMatches.length > 0;
 
+  // カラム定義を一度だけ作成して再利用
+  const columns = [
+    { key: "drag", label: "", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.drag },
+    { key: "court", label: "コート", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.courtName },
+    { key: "round", label: "ラウンド", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.round },
+    { key: "playerATeam", label: "選手A所属", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerATeam },
+    { key: "playerAName", label: "選手A", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerAName },
+    { key: "playerBTeam", label: "選手B所属", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBTeam },
+    { key: "playerBName", label: "選手B", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBName },
+    { key: "action", label: "削除", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
+  ];
+
   return (
     <DndContext
       sensors={sensors}
@@ -262,16 +274,7 @@ export function MatchSetupTable({
             <SaveControls onAdd={addRow} onSave={handleSave} isSaving={isSaving} hasConflicts={hasConflicts} showAdd={false} />
           </div>
         }
-        columns={[
-          { key: "drag", label: "", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.drag },
-          { key: "court", label: "コート", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.courtName },
-          { key: "round", label: "ラウンド", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.round },
-          { key: "playerATeam", label: "選手A所属", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerATeam },
-          { key: "playerAName", label: "選手A", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerAName },
-          { key: "playerBTeam", label: "選手B所属", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBTeam },
-          { key: "playerBName", label: "選手B", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerBName },
-          { key: "action", label: "削除", width: MATCH_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
-        ]}
+        columns={columns}
         className={className}
       >
         <SortableContext
@@ -311,7 +314,7 @@ export function MatchSetupTable({
 
         {/* テーブルの最後尾に「試合追加」ボタンを置くための行 */}
         <TableRow>
-          <TableCell className="py-2 px-3" colSpan={8}>
+          <TableCell className="py-2 px-3" colSpan={Object.keys(MATCH_SETUP_TABLE_COLUMN_WIDTHS).length}>
             <div className="flex justify-center">
               <Button onClick={addRow} variant="outline" size="sm" className="w-100 justify-center">
                 <Plus className="h-4 w-4 mr-2" />
