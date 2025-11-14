@@ -72,7 +72,7 @@ export function MatchListTable({ matches, tournamentName, courts, className, }: 
               playerBHansoku={playerB.hansoku as HansokuLevel}
               isCompleted={match.isCompleted}
             />
-            <PlayerCell text={playerB.teamName} title={playerB.teamName} />
+            <PlayerCell text={playerB.teamName} title={playerB.teamName} colorClass={playerBColor} />
             <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} />
             <ActionCell
               onMonitor={() => {
