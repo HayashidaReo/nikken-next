@@ -272,7 +272,7 @@ export function SearchableSelect({
             if (isInSearchMode && event.key === 'ArrowDown') {
                 // 検索窓から(isInSearchMode)の下キー(ArrowDown)の場合は、
                 // 強制的にリストの先頭(0)にフォーカスする
-                moveFocusFromSearch();
+                moveFocusFromSearch(0);
                 return;
             }
 
