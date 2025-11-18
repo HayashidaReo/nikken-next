@@ -14,6 +14,14 @@ type Props = Omit<ComponentPropsWithoutRef<"div">, "onDrag"> & {
  * AnimatedListItem
  * - `motion.div` をラップした共通コンポーネント。
  * - list の enter/exit の共通 variants/transition を中央管理する。
+ *
+ * @param disabledMotion - アニメーションを手動で無効化するブールフラグ。
+ *   `true` の場合は `motion.div` ではなく通常の `div` を返します。
+ *   テスト環境や、システムの `prefers-reduced-motion` を尊重したい場面、
+ *   レンダリング負荷を下げたい場合に利用します。
+ *
+ * @example
+ * <AnimatedListItem disabledMotion={process.env.NODE_ENV === 'test'}>...</AnimatedListItem>
  */
 const AnimatedListItem = React.forwardRef<HTMLDivElement, Props>(
     ({ children, className, disabledMotion = false, ...rest }, ref) => {
