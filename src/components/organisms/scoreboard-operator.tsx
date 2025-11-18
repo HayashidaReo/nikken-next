@@ -44,12 +44,9 @@ export function ScoreboardOperator({
     saveMatchResult,
   } = useMonitorStore();
 
-  const { showSuccess, showError, showInfo } = useToast();
+  const { showInfo } = useToast();
   const {
-    isSupported: isPresentationSupported,
-    isAvailable: isPresentationAvailable,
     isConnected: isPresentationConnected,
-    startPresentation,
     stopPresentation,
     sendMessage,
   } = usePresentation(`${window.location.origin}/monitor-display`);
@@ -160,29 +157,6 @@ export function ScoreboardOperator({
     sendDataToMonitor,
   ]);
 
-  // 表示用モニターを開く/停止する関数
-  const handleMonitorAction = async () => {
-    if (isPresentationConnected) {
-      // 接続中の場合は確認ダイアログを表示
-      setShowDisconnectDialog(true);
-    } else {
-      // 未接続の場合は開始
-      try {
-        if (isPresentationSupported && isPresentationAvailable) {
-          // Presentation APIを使用
-          await startPresentation();
-          showSuccess("モニター表示を開始しました");
-        } else {
-          // 確認ダイアログを表示
-          setShowFallbackDialog(true);
-        }
-      } catch (error) {
-        console.error("Monitor display failed:", error);
-        showError("モニター表示の開始に失敗しました。もう一度お試しください。");
-      }
-    }
-  };
-
   // フォールバック確認後の処理
   const handleFallbackConfirm = () => {
     setShowFallbackDialog(false);
@@ -215,7 +189,6 @@ export function ScoreboardOperator({
         tournamentName={tournamentName}
         courtName={courtName}
         round={round}
-        onOpenMonitor={handleMonitorAction}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
