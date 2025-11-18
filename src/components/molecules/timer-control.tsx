@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/atoms/card";
+import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { TimeAdjuster } from "./time-adjuster";
 import { Play, Pause, RotateCcw } from "lucide-react";
 
@@ -30,7 +31,10 @@ export function TimerControl({
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>タイマー制御</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>タイマー制御</CardTitle>
+          <ShortcutBadge shortcut="Double Space" className="text-xs" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-center space-x-6">

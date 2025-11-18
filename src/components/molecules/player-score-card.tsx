@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { Label } from "@/components/atoms/label";
+import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { cn } from "@/lib/utils/utils";
 
 export interface Player {
@@ -55,7 +56,10 @@ export function PlayerScoreCard({
       )}
     >
       <CardHeader className="p-4 pb-0">
-        <CardTitle className={cn(titleColor)}>{title}</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle className={cn(titleColor)}>{title}</CardTitle>
+          <ShortcutBadge shortcut={playerKey} className="text-xs" />
+        </div>
       </CardHeader>
       <CardContent className="space-y-2 p-4 pt-0">
         <div className="text-center">
@@ -65,7 +69,10 @@ export function PlayerScoreCard({
 
         {/* 得点 */}
         <div>
-          <Label className="text-sm font-medium mb-2 block">得点</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label className="text-sm font-medium">得点</Label>
+            <ShortcutBadge shortcut="Double S" className="text-xs" />
+          </div>
           <div className="flex gap-2">
             {[0, 1, 2].map(score => (
               <Button
@@ -83,7 +90,10 @@ export function PlayerScoreCard({
 
         {/* 反則 */}
         <div>
-          <Label className="text-sm font-medium mb-2 block">反則</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label className="text-sm font-medium">反則</Label>
+            <ShortcutBadge shortcut="Double Z" className="text-xs" />
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {/* 1行目: なし を2列分使う */}
             {hansokuOptions.length > 0 && (
