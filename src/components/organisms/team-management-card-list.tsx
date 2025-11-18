@@ -95,22 +95,22 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
         <div className="mt-2 text-sm text-gray-600">
           <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-1 items-center">
             <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
-              <User className="w-4 h-4 text-gray-400" aria-hidden />
-              <div className="text-left">代表者</div>
+              <User className="w-4 h-4 text-gray-400" aria-hidden="true" />
+              <span id={`rep-label-${team.teamId}`} className="text-left">代表者</span>
             </div>
-            <div className="truncate text-sm">{team.representativeName || "—"}</div>
+            <div className="truncate text-sm" aria-labelledby={`rep-label-${team.teamId}`}>{team.representativeName || "—"}</div>
 
             <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
-              <Phone className="w-4 h-4 text-gray-400" aria-hidden />
-              <div className="text-left">電話</div>
+              <Phone className="w-4 h-4 text-gray-400" aria-hidden="true" />
+              <span id={`phone-label-${team.teamId}`} className="text-left">電話</span>
             </div>
-            <div className="truncate text-sm">{team.representativePhone || "—"}</div>
+            <div className="truncate text-sm" aria-labelledby={`phone-label-${team.teamId}`}>{team.representativePhone || "—"}</div>
 
             <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
-              <Mail className="w-4 h-4 text-gray-400" aria-hidden />
-              <div className="text-left">メール</div>
+              <Mail className="w-4 h-4 text-gray-400" aria-hidden="true" />
+              <span id={`email-label-${team.teamId}`} className="text-left">メール</span>
             </div>
-            <div className="truncate text-sm">{team.representativeEmail || "—"}</div>
+            <div className="truncate text-sm" aria-labelledby={`email-label-${team.teamId}`}>{team.representativeEmail || "—"}</div>
           </div>
         </div>
       </CardHeader>
