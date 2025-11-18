@@ -294,7 +294,7 @@ export function TeamEditForm({
                   {fields.map((field, index) => (
                     <AnimatedListItem
                       key={field.id}
-                      className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
+                      className="grid grid-cols-1 md:grid-cols-[repeat(3,1fr)_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
                     >
                       <div>
                         <Label className="text-sm">姓 *</Label>
