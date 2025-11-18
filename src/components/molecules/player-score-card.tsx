@@ -24,6 +24,7 @@ interface PlayerScoreCardProps {
   titleColor: string;
   onScoreChange: (playerKey: "A" | "B", score: number) => void;
   onHansokuChange: (playerKey: "A" | "B", hansoku: number) => void;
+  isSelected: boolean;
   className?: string;
 }
 
@@ -42,10 +43,17 @@ export function PlayerScoreCard({
   titleColor,
   onScoreChange,
   onHansokuChange,
+  isSelected,
   className,
 }: PlayerScoreCardProps) {
   return (
-    <Card className={className}>
+    <Card
+      className={cn(
+        className,
+        "transition-all duration-200",
+        isSelected && "ring-2 ring-blue-500 ring-offset-2"
+      )}
+    >
       <CardHeader className="p-4 pb-0">
         <CardTitle className={cn(titleColor)}>{title}</CardTitle>
       </CardHeader>

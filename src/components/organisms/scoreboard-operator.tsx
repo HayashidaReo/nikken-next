@@ -13,6 +13,7 @@ import {
   FallbackMonitorDialog,
   ConfirmDialog,
 } from "@/components/molecules";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 interface ScoreboardOperatorProps {
   organizationId: string;
@@ -42,6 +43,7 @@ export function ScoreboardOperator({
     stopTimer,
     togglePublic,
     saveMatchResult,
+    selectedPlayer,
   } = useMonitorStore();
 
   const { showInfo } = useToast();
@@ -93,6 +95,9 @@ export function ScoreboardOperator({
     },
     [sendMessage]
   );
+
+  // キーボードショートカットの有効化
+  useKeyboardShortcuts();
 
   // タイマー処理
   useEffect(() => {
@@ -200,6 +205,7 @@ export function ScoreboardOperator({
           titleColor="text-blue-600"
           onScoreChange={setPlayerScore}
           onHansokuChange={setPlayerHansoku}
+          isSelected={selectedPlayer === "playerA"}
         />
 
         {/* 選手B */}
@@ -210,6 +216,7 @@ export function ScoreboardOperator({
           titleColor="text-red-600"
           onScoreChange={setPlayerScore}
           onHansokuChange={setPlayerHansoku}
+          isSelected={selectedPlayer === "playerB"}
         />
       </div>
 

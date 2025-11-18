@@ -36,6 +36,7 @@ interface MonitorState {
   isPublic: boolean; // 公開/非公開
   isSaving: boolean; // 保存処理中フラグ
   presentationConnected: boolean;
+  selectedPlayer: "playerA" | "playerB" | null;
 
   // アクション
   initializeMatch: (
@@ -48,8 +49,12 @@ interface MonitorState {
   setTimeRemaining: (seconds: number) => void;
   startTimer: () => void;
   stopTimer: () => void;
+  toggleTimer: () => void;
   togglePublic: () => void;
   setPresentationConnected: (connected: boolean) => void;
+  toggleSelectedPlayer: (player: "playerA" | "playerB") => void;
+  incrementScoreForSelectedPlayer: () => void;
+  incrementFoulForSelectedPlayer: () => void;
   saveMatchResult: (
     organizationId: string,
     tournamentId: string,
@@ -82,6 +87,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   isPublic: false,
   isSaving: false,
   presentationConnected: false,
+  selectedPlayer: null,
 
   // アクション
   initializeMatch: (
@@ -171,6 +177,11 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     set({ isTimerRunning: false });
   },
 
+  toggleTimer: () => {
+    const { isTimerRunning } = get();
+    set({ isTimerRunning: !isTimerRunning });
+  },
+
   togglePublic: () => {
     const currentState = get();
     set({ isPublic: !currentState.isPublic });
@@ -178,6 +189,40 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
   setPresentationConnected: (connected: boolean) => {
     set({ presentationConnected: connected });
+  },
+
+  toggleSelectedPlayer: (player: "playerA" | "playerB") => {
+    const { selectedPlayer } = get();
+    if (selectedPlayer === player) {
+      set({ selectedPlayer: null });
+    } else {
+      set({ selectedPlayer: player });
+    }
+  },
+
+  incrementScoreForSelectedPlayer: () => {
+    const { selectedPlayer, playerA, playerB, setPlayerScore } = get();
+    if (!selectedPlayer) return;
+
+    const targetPlayer = selectedPlayer === "playerA" ? playerA : playerB;
+    const newScore = targetPlayer.score + 1;
+
+    if (newScore <= SCORE_CONSTANTS.MAX_SCORE) {
+      setPlayerScore(selectedPlayer === "playerA" ? "A" : "B", newScore);
+    }
+  },
+
+  incrementFoulForSelectedPlayer: () => {
+    const { selectedPlayer, playerA, playerB, setPlayerHansoku } = get();
+    if (!selectedPlayer) return;
+
+    const targetPlayer = selectedPlayer === "playerA" ? playerA : playerB;
+    const newHansoku = targetPlayer.hansoku + 1;
+
+    // NOTE: FOUL_CONSTANTS.MAX_FOUL のような定数が存在しないため、マジックナンバーを使用
+    if (newHansoku <= 4) {
+      setPlayerHansoku(selectedPlayer === "playerA" ? "A" : "B", newHansoku);
+    }
   },
 
   saveMatchResult: async (
