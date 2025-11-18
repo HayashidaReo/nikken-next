@@ -8,14 +8,14 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { Label } from "@/components/atoms/label";
-import { Monitor, Wifi, WifiOff, Unplug } from "lucide-react";
+import { Monitor, Unplug } from "lucide-react";
+import { useMonitorStore } from "@/store/use-monitor-store";
 
 interface MatchHeaderProps {
   tournamentName: string;
   courtName: string;
   round: string;
   onOpenMonitor: () => void;
-  isPresentationConnected?: boolean;
   className?: string;
 }
 
@@ -24,28 +24,14 @@ export function MatchHeader({
   courtName,
   round,
   onOpenMonitor,
-  isPresentationConnected = false,
   className,
 }: MatchHeaderProps) {
+  const isPresentationConnected = useMonitorStore((s) => s.presentationConnected);
   return (
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span>モニター操作画面</span>
-            {isPresentationConnected && (
-              <div className="flex items-center gap-1 text-green-600 text-sm">
-                <Wifi className="w-4 h-4" />
-                <span>プレゼンテーション接続中</span>
-              </div>
-            )}
-            {!isPresentationConnected && (
-              <div className="flex items-center gap-1 text-gray-500 text-sm">
-                <WifiOff className="w-4 h-4" />
-                <span>未接続</span>
-              </div>
-            )}
-          </div>
+          <div />
           <Button
             onClick={onOpenMonitor}
             variant={isPresentationConnected ? "destructive" : "outline"}

@@ -54,6 +54,11 @@ export function ScoreboardOperator({
     sendMessage,
   } = usePresentation(`${window.location.origin}/monitor-display`);
 
+  // プレゼンテーション接続状態をグローバルストアに同期
+  useEffect(() => {
+    useMonitorStore.getState().setPresentationConnected(isPresentationConnected);
+  }, [isPresentationConnected]);
+
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // フォールバックダイアログの状態
@@ -211,7 +216,6 @@ export function ScoreboardOperator({
         courtName={courtName}
         round={round}
         onOpenMonitor={handleMonitorAction}
-        isPresentationConnected={isPresentationConnected}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

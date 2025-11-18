@@ -35,6 +35,7 @@ interface MonitorState {
   // 表示制御
   isPublic: boolean; // 公開/非公開
   isSaving: boolean; // 保存処理中フラグ
+  presentationConnected: boolean;
 
   // アクション
   initializeMatch: (
@@ -48,6 +49,7 @@ interface MonitorState {
   startTimer: () => void;
   stopTimer: () => void;
   togglePublic: () => void;
+  setPresentationConnected: (connected: boolean) => void;
   saveMatchResult: (
     organizationId: string,
     tournamentId: string,
@@ -79,6 +81,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   isTimerRunning: false,
   isPublic: false,
   isSaving: false,
+  presentationConnected: false,
 
   // アクション
   initializeMatch: (
@@ -171,6 +174,10 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   togglePublic: () => {
     const currentState = get();
     set({ isPublic: !currentState.isPublic });
+  },
+
+  setPresentationConnected: (connected: boolean) => {
+    set({ presentationConnected: connected });
   },
 
   saveMatchResult: async (

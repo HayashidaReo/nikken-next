@@ -3,10 +3,11 @@
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { ConnectionStatus } from "@/components/organisms/connection-status";
+import { useMonitorStore } from "@/store/use-monitor-store";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
-import { useMonitorStore } from "@/store/use-monitor-store";
 import { useMatch } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -20,6 +21,7 @@ export default function MonitorControlPage() {
   // ストアに保存されているデータ（遷移元で initializeMatch が呼ばれた場合）
   const storeMatchId = useMonitorStore((s) => s.matchId);
   const storeTournamentName = useMonitorStore((s) => s.tournamentName);
+  const presentationConnected = useMonitorStore((s) => s.presentationConnected);
 
   const { orgId, activeTournamentId, isLoading: authLoading } = useAuthContext();
 
@@ -57,13 +59,17 @@ export default function MonitorControlPage() {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-6 flex items-center gap-4">
             <Link href="/dashboard">
               <Button variant="outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 試合一覧に戻る
               </Button>
             </Link>
+
+            <div className="ml-2">
+              <ConnectionStatus isConnected={presentationConnected} error={null} />
+            </div>
           </div>
           <div className="flex justify-center items-center py-16">
             <div className="w-full">
@@ -80,13 +86,17 @@ export default function MonitorControlPage() {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-6 flex items-center gap-4">
             <Link href="/dashboard">
               <Button variant="outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 試合一覧に戻る
               </Button>
             </Link>
+
+            <div className="ml-2">
+              <ConnectionStatus isConnected={presentationConnected} error={null} />
+            </div>
           </div>
           <div className="flex justify-center items-center py-16 w-full">
             <InfoDisplay
@@ -105,13 +115,17 @@ export default function MonitorControlPage() {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-6 flex items-center gap-4">
             <Link href="/dashboard">
               <Button variant="outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 試合一覧に戻る
               </Button>
             </Link>
+
+            <div className="ml-2">
+              <ConnectionStatus isConnected={presentationConnected} error={null} />
+            </div>
           </div>
           <div className="flex justify-center items-center py-16 w-full">
             <InfoDisplay
@@ -128,13 +142,17 @@ export default function MonitorControlPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-4">
           <Link href="/dashboard">
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               試合一覧に戻る
             </Button>
           </Link>
+
+          <div className="ml-2">
+            <ConnectionStatus isConnected={presentationConnected} error={null} />
+          </div>
         </div>
 
         <ScoreboardOperator
