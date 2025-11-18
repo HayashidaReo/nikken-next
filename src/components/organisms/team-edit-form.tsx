@@ -329,10 +329,9 @@ export function TeamEditForm({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div
-                                tabIndex={0}
-                                role="button"
                                 className="min-h-[38px] flex items-center px-3 py-2 rounded-md bg-gray-100 text-sm text-gray-700 w-full"
                                 aria-label="表示名は自動的に生成されます"
+                                aria-readonly="true"
                               >
                                 {(() => {
                                   const players = getValues().players || [];
