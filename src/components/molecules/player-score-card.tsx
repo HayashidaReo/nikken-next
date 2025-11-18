@@ -70,7 +70,7 @@ export function PlayerScoreCard({
       tabIndex={-1}
       className={cn(
         className,
-        "transition-all duration-200",
+        "transition-all duration-200 shadow-md",
         isSelected && "ring-2 ring-blue-500 ring-offset-2"
       )}
     >

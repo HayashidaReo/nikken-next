@@ -188,74 +188,94 @@ export function ScoreboardOperator({
   };
 
   return (
-    <div className={cn("w-full max-w-6xl mx-auto space-y-6", className)}>
+    <div className={cn("w-full mx-auto space-y-4", className)}>
       {/* ヘッダー情報 */}
-      <MatchHeader
-        tournamentName={tournamentName}
-        courtName={courtName}
-        round={round}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 選手A */}
-        <PlayerScoreCard
-          player={playerA}
-          playerKey="A"
-          title="選手A"
-          titleColor="text-blue-600"
-          onScoreChange={setPlayerScore}
-          onHansokuChange={setPlayerHansoku}
-          isSelected={selectedPlayer === "playerA"}
-        />
-
-        {/* 選手B */}
-        <PlayerScoreCard
-          player={playerB}
-          playerKey="B"
-          title="選手B"
-          titleColor="text-red-600"
-          onScoreChange={setPlayerScore}
-          onHansokuChange={setPlayerHansoku}
-          isSelected={selectedPlayer === "playerB"}
+      <div className="px-6 lg:px-12">
+        <MatchHeader
+          tournamentName={tournamentName}
+          courtName={courtName}
+          round={round}
         />
       </div>
 
-      {/* タイマーコントロール */}
-      <TimerControl
-        timeRemaining={timeRemaining}
-        isTimerRunning={isTimerRunning}
-        onTimeChange={setTimeRemaining}
-        onStartTimer={startTimer}
-        onStopTimer={stopTimer}
-      />
+      {/* 選手カード領域（左右いっぱいに寄せる） */}
+      <div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-y-6">
+          {/* 左: 選手A */}
+          <div className="flex justify-start">
+            <PlayerScoreCard
+              player={playerA}
+              playerKey="A"
+              title="選手A"
+              titleColor="text-blue-600"
+              onScoreChange={setPlayerScore}
+              onHansokuChange={setPlayerHansoku}
+              isSelected={selectedPlayer === "playerA"}
+              className="w-full"
+            />
+          </div>
 
-      {/* 表示制御と保存 */}
-      <MatchControlPanel
-        isPublic={isPublic}
-        onTogglePublic={togglePublic}
-        onSaveResult={saveMatchResult}
-        organizationId={organizationId}
-        tournamentId={tournamentId}
-      />
+          {/* 中央: VS */}
+          <div className="flex items-center justify-center">
+            <div className="px-4 items-center justify-center overflow-hidden">
+              <span className="inline-block text-base lg:text-3xl font-bold text-gray-400">VS</span>
+            </div>
+          </div>
 
-      {/* フォールバック確認ダイアログ */}
-      <FallbackMonitorDialog
-        isOpen={showFallbackDialog}
-        onConfirm={handleFallbackConfirm}
-        onCancel={handleFallbackCancel}
-      />
+          {/* 右: 選手B */}
+          <div className="flex justify-end">
+            <PlayerScoreCard
+              player={playerB}
+              playerKey="B"
+              title="選手B"
+              titleColor="text-red-600"
+              onScoreChange={setPlayerScore}
+              onHansokuChange={setPlayerHansoku}
+              isSelected={selectedPlayer === "playerB"}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </div>
 
-      {/* 接続解除確認ダイアログ */}
-      <ConfirmDialog
-        isOpen={showDisconnectDialog}
-        title="プレゼンテーション接続解除"
-        message="プレゼンテーション接続を解除しますか？モニター画面での表示が停止されます。"
-        confirmText="解除"
-        cancelText="キャンセル"
-        variant="destructive"
-        onConfirm={handleDisconnectConfirm}
-        onCancel={handleDisconnectCancel}
-      />
+      <div className="px-6 lg:px-12">
+        {/* タイマーコントロール */}
+        <TimerControl
+          timeRemaining={timeRemaining}
+          isTimerRunning={isTimerRunning}
+          onTimeChange={setTimeRemaining}
+          onStartTimer={startTimer}
+          onStopTimer={stopTimer}
+        />
+
+        {/* 表示制御と保存 */}
+        <MatchControlPanel
+          isPublic={isPublic}
+          onTogglePublic={togglePublic}
+          onSaveResult={saveMatchResult}
+          organizationId={organizationId}
+          tournamentId={tournamentId}
+        />
+
+        {/* フォールバック確認ダイアログ */}
+        <FallbackMonitorDialog
+          isOpen={showFallbackDialog}
+          onConfirm={handleFallbackConfirm}
+          onCancel={handleFallbackCancel}
+        />
+
+        {/* 接続解除確認ダイアログ */}
+        <ConfirmDialog
+          isOpen={showDisconnectDialog}
+          title="プレゼンテーション接続解除"
+          message="プレゼンテーション接続を解除しますか？モニター画面での表示が停止されます。"
+          confirmText="解除"
+          cancelText="キャンセル"
+          variant="destructive"
+          onConfirm={handleDisconnectConfirm}
+          onCancel={handleDisconnectCancel}
+        />
+      </div>
     </div>
   );
 }
