@@ -289,7 +289,6 @@ export function TeamEditForm({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>参加選手一覧</CardTitle>
-              <AddButton onClick={addPlayer}>選手を追加</AddButton>
             </div>
           </CardHeader>
           <CardContent>
@@ -342,6 +341,13 @@ export function TeamEditForm({
                   </div>
                 </div>
               ))}
+
+              {/* リストの最後尾に選手追加ボタンを配置（大会組み合わせ画面と同様のフル幅表示） */}
+              <div className="mt-2">
+                <AddButton onClick={addPlayer} className="w-full">
+                  選手を追加
+                </AddButton>
+              </div>
 
               {fields.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
