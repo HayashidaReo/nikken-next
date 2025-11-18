@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -107,7 +107,7 @@ export function TeamEditForm({
 
 
   // displayNameを自動生成する関数
-  const updateDisplayNames = () => {
+  const updateDisplayNames = useCallback(() => {
     const currentValues = getValues();
     const players = currentValues.players || [];
 
@@ -154,7 +154,7 @@ export function TeamEditForm({
         });
       }
     });
-  };
+  }, [getValues, setValue]);
 
   // 選手を追加（共通hookを使用）
   const addPlayer = () => addItem();
@@ -164,7 +164,7 @@ export function TeamEditForm({
 
   useEffect(() => {
     updateDisplayNames();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- updateDisplayNames intentionally omitted; see note above
   }, [watchedPlayers]);
 
   // 選手を削除（共通hookを使用）
