@@ -31,9 +31,20 @@ export const useKeyboardShortcuts = () => {
             const now = Date.now();
             const lastTap = lastTapTimeRef.current[key] || 0;
 
-            // ダブルタップ判定
+            // toggleA/toggleB は常にシングルタップで処理する（選択のトグルが即時に行われる）
+            if (action === "toggleA") {
+                toggleSelectedPlayer("playerA");
+                lastTapTimeRef.current[key] = now;
+                return;
+            }
+            if (action === "toggleB") {
+                toggleSelectedPlayer("playerB");
+                lastTapTimeRef.current[key] = now;
+                return;
+            }
+
+            // ダブルタップ判定（timer / incScore / incFoul）
             if (now - lastTap < DOUBLE_TAP_INTERVAL_MS) {
-                // ダブルタップ時のアクション（timer / incScore / incFoul）
                 switch (action) {
                     case "toggleTimer":
                         event.preventDefault();
@@ -51,18 +62,7 @@ export const useKeyboardShortcuts = () => {
                 // アクション実行後はタップ時間をリセット
                 lastTapTimeRef.current[key] = 0;
             } else {
-                // シングルタップ時のアクション（toggleA / toggleB）
-                switch (action) {
-                    case "toggleA":
-                        toggleSelectedPlayer("playerA");
-                        break;
-                    case "toggleB":
-                        toggleSelectedPlayer("playerB");
-                        break;
-                    default:
-                        break;
-                }
-                // 今回のタップ時間を記録
+                // まだシングルタップ（次が来るかもしれない）として記録
                 lastTapTimeRef.current[key] = now;
             }
         };
