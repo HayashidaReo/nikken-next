@@ -9,6 +9,8 @@ import {
 } from "@/components/atoms/card";
 import { Label } from "@/components/atoms/label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
+import { useMonitorStore } from "@/store/use-monitor-store";
+import { SCORE_COLORS } from "@/lib/ui-constants";
 import { cn } from "@/lib/utils/utils";
 
 export interface Player {
@@ -47,6 +49,16 @@ export function PlayerScoreCard({
   isSelected,
   className,
 }: PlayerScoreCardProps) {
+  const { playerA: storePlayerA, playerB: storePlayerB } = useMonitorStore();
+
+  const opponentScore = playerKey === "A" ? storePlayerB.score : storePlayerA.score;
+  const scoreClass =
+    player.score > opponentScore
+      ? SCORE_COLORS.win
+      : player.score === opponentScore
+        ? SCORE_COLORS.draw
+        : SCORE_COLORS.loss;
+
   return (
     <Card
       data-player-key={playerKey === "A" ? "playerA" : "playerB"}
@@ -58,15 +70,49 @@ export function PlayerScoreCard({
       )}
     >
       <CardHeader className="p-4 pb-0">
-        <div className="flex items-center gap-2">
-          <CardTitle className={cn(titleColor)}>{title}</CardTitle>
-          <ShortcutBadge shortcut={playerKey} className="text-xs" />
+        <div className="grid grid-cols-3 items-center">
+          <div className="flex items-center justify-start">
+            {playerKey === "A" && (
+              <div className="flex items-center gap-2">
+                <CardTitle className={cn(titleColor)}>{title}</CardTitle>
+                <ShortcutBadge shortcut={playerKey} className="text-xs" />
+              </div>
+            )}
+          </div>
+          <div />
+
+          <div className="flex items-center justify-end">
+            {playerKey === "B" && (
+              <div className="flex items-center gap-2">
+                <ShortcutBadge shortcut={playerKey} className="text-xs" />
+                <CardTitle className={cn(titleColor)}>{title}</CardTitle>
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-2 p-4 pt-0">
-        <div className="text-center">
-          <div className="text-lg font-medium text-gray-500">{player.teamName}</div>
-          <div className="text-3xl font-bold">{player.displayName}</div>
+        <div className="grid grid-cols-10 items-center text-center">
+          <div className="col-span-1 flex items-center justify-start">
+            {playerKey === "B" && (
+              <span className={cn(scoreClass, "text-6xl font-bold mr-4")}>
+                {player.score}
+              </span>
+            )}
+          </div>
+
+          <div className="col-span-8">
+            <div className="text-lg font-medium text-gray-500">{player.teamName}</div>
+            <div className="text-3xl font-bold">{player.displayName}</div>
+          </div>
+
+          <div className="col-span-1 flex items-center justify-end">
+            {playerKey === "A" && (
+              <span className={cn(scoreClass, "text-6xl font-bold ml-4")}>
+                {player.score}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* 得点 */}
