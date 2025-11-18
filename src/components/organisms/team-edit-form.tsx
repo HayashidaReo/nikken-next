@@ -22,6 +22,8 @@ import type { Team } from "@/types/team.schema";
 import { FormInput, FormTextarea } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+import { AnimatePresence } from "framer-motion";
+import { AnimatedListItem } from "@/components/atoms/animated-list-item";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
@@ -293,54 +295,56 @@ export function TeamEditForm({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
-                >
-                  <div>
-                    <Label className="text-sm">姓 *</Label>
-                    <Input
-                      {...register(`players.${index}.lastName`)}
-                      placeholder="山田"
-                      onChange={handleNameChange}
-                    />
-                    {errors.players?.[index]?.lastName && (
-                      <p className="text-sm text-red-600 mt-1">
-                        {errors.players[index]?.lastName?.message}
-                      </p>
-                    )}
-                  </div>
+              <AnimatePresence initial={false}>
+                {fields.map((field, index) => (
+                  <AnimatedListItem
+                    key={field.id}
+                    className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    <div>
+                      <Label className="text-sm">姓 *</Label>
+                      <Input
+                        {...register(`players.${index}.lastName`)}
+                        placeholder="山田"
+                        onChange={handleNameChange}
+                      />
+                      {errors.players?.[index]?.lastName && (
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.players[index]?.lastName?.message}
+                        </p>
+                      )}
+                    </div>
 
-                  <div>
-                    <Label className="text-sm">名 *</Label>
-                    <Input
-                      {...register(`players.${index}.firstName`)}
-                      placeholder="太郎"
-                      onChange={handleNameChange}
-                    />
-                    {errors.players?.[index]?.firstName && (
-                      <p className="text-sm text-red-600 mt-1">
-                        {errors.players[index]?.firstName?.message}
-                      </p>
-                    )}
-                  </div>
+                    <div>
+                      <Label className="text-sm">名 *</Label>
+                      <Input
+                        {...register(`players.${index}.firstName`)}
+                        placeholder="太郎"
+                        onChange={handleNameChange}
+                      />
+                      {errors.players?.[index]?.firstName && (
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.players[index]?.firstName?.message}
+                        </p>
+                      )}
+                    </div>
 
-                  <div>
-                    <Label className="text-sm">表示名</Label>
-                    <Input
-                      {...register(`players.${index}.displayName`)}
-                      placeholder="自動生成"
-                      readOnly
-                      className="bg-gray-100"
-                    />
-                  </div>
+                    <div>
+                      <Label className="text-sm">表示名</Label>
+                      <Input
+                        {...register(`players.${index}.displayName`)}
+                        placeholder="自動生成"
+                        readOnly
+                        className="bg-gray-100"
+                      />
+                    </div>
 
-                  <div className="flex items-end justify-end">
-                    <RemoveButton onClick={() => requestRemovePlayer(index)} />
-                  </div>
-                </div>
-              ))}
+                    <div className="flex items-end justify-end">
+                      <RemoveButton onClick={() => requestRemovePlayer(index)} />
+                    </div>
+                  </AnimatedListItem>
+                ))}
+              </AnimatePresence>
 
               {/* リストの最後尾に選手追加ボタンを配置（大会組み合わせ画面と同様のフル幅表示） */}
               <div className="mt-2">
