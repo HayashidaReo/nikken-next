@@ -49,6 +49,8 @@ export function PlayerScoreCard({
 }: PlayerScoreCardProps) {
   return (
     <Card
+      data-player-key={playerKey === "A" ? "playerA" : "playerB"}
+      tabIndex={-1}
       className={cn(
         className,
         "transition-all duration-200",
@@ -77,6 +79,7 @@ export function PlayerScoreCard({
             {[0, 1, 2].map(score => (
               <Button
                 key={score}
+                tabIndex={-1}
                 variant={player.score === score ? "default" : "outline"}
                 onClick={() => onScoreChange(playerKey, score)}
                 className="flex-1"
@@ -99,6 +102,7 @@ export function PlayerScoreCard({
             {hansokuOptions.length > 0 && (
               <Button
                 key={hansokuOptions[0].value}
+                tabIndex={-1}
                 variant={player.hansoku === hansokuOptions[0].value ? "default" : "outline"}
                 onClick={() => onHansokuChange(playerKey, hansokuOptions[0].value)}
                 className="text-xs col-span-2"
@@ -113,6 +117,7 @@ export function PlayerScoreCard({
             {hansokuOptions.slice(1).map(hansoku => (
               <Button
                 key={hansoku.value}
+                tabIndex={-1}
                 variant={player.hansoku === hansoku.value ? "default" : "outline"}
                 onClick={() => onHansokuChange(playerKey, hansoku.value)}
                 className="text-xs"

@@ -46,10 +46,15 @@ export const useKeyboardShortcuts = () => {
             // ダブルタップ判定（timer / incScore / incFoul）
             if (now - lastTap < DOUBLE_TAP_INTERVAL_MS) {
                 switch (action) {
-                    case "toggleTimer":
+                    case "toggleTimer": {
                         event.preventDefault();
+                        const currentSelected = useMonitorStore.getState().selectedPlayer;
+                        if (currentSelected) {
+                            toggleSelectedPlayer("none");
+                        }
                         toggleTimer();
                         break;
+                    }
                     case "incScore":
                         incrementScoreForSelectedPlayer();
                         break;

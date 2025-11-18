@@ -52,7 +52,7 @@ interface MonitorState {
   toggleTimer: () => void;
   togglePublic: () => void;
   setPresentationConnected: (connected: boolean) => void;
-  toggleSelectedPlayer: (player: "playerA" | "playerB") => void;
+  toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => void;
   incrementScoreForSelectedPlayer: () => void;
   incrementFoulForSelectedPlayer: () => void;
   saveMatchResult: (
@@ -191,8 +191,13 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     set({ presentationConnected: connected });
   },
 
-  toggleSelectedPlayer: (player: "playerA" | "playerB") => {
+  toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => {
     const { selectedPlayer } = get();
+    if (player === "none") {
+      set({ selectedPlayer: null });
+      return;
+    }
+
     if (selectedPlayer === player) {
       set({ selectedPlayer: null });
     } else {

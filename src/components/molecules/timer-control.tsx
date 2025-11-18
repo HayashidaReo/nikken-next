@@ -30,17 +30,17 @@ export function TimerControl({
 }: TimerControlProps) {
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="p-4 pb-0">
         <div className="flex items-center gap-2">
           <CardTitle>タイマー制御</CardTitle>
           <ShortcutBadge shortcut="Double Space" className="text-xs" />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-center space-x-6">
-          <div className="text-center">
+      <CardContent className="p-4 pt-0">
+        <div className="flex items-start justify-between">
+          <div>
             {/* 共通化されたタイマー表示・調整UI */}
-            <div className="mb-4">
+            <div className="mb-0">
               <TimeAdjuster
                 value={timeRemaining}
                 onChange={onTimeChange}
@@ -50,35 +50,35 @@ export function TimerControl({
                 longPressInterval={80}
               />
             </div>
+          </div>
 
-            <div className="flex items-center space-x-2">
-              <Button
-                variant={isTimerRunning ? "destructive" : "default"}
-                onClick={isTimerRunning ? onStopTimer : onStartTimer}
-                size="lg"
-              >
-                {isTimerRunning ? (
-                  <>
-                    <Pause className="w-4 h-4 mr-2" />
-                    停止
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    開始
-                  </>
-                )}
-              </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={isTimerRunning ? "destructive" : "default"}
+              onClick={isTimerRunning ? onStopTimer : onStartTimer}
+              size="lg"
+            >
+              {isTimerRunning ? (
+                <>
+                  <Pause className="w-4 h-4 mr-2" />
+                  停止
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  開始
+                </>
+              )}
+            </Button>
 
-              <Button
-                variant="outline"
-                onClick={() => onTimeChange(180)}
-                disabled={isTimerRunning}
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                リセット
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              onClick={() => onTimeChange(180)}
+              disabled={isTimerRunning}
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              リセット
+            </Button>
           </div>
         </div>
       </CardContent>
