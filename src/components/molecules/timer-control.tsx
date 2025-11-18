@@ -37,9 +37,12 @@ export function TimerControl({
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0">
-        <div className="flex items-start justify-between">
-          <div>
-            {/* 共通化されたタイマー表示・調整UI */}
+        <div className="grid grid-cols-3 items-center">
+          {/* 左: 空白 */}
+          <div />
+
+          {/* 中央: タイマー */}
+          <div className="flex justify-center">
             <div className="mb-0">
               <TimeAdjuster
                 value={timeRemaining}
@@ -52,7 +55,8 @@ export function TimerControl({
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          {/* 右: ボタン群 */}
+          <div className="flex justify-end items-center space-x-2">
             <Button
               variant={isTimerRunning ? "destructive" : "default"}
               onClick={isTimerRunning ? onStopTimer : onStartTimer}
