@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminTeamRepository } from "@/lib/di";
 import { TeamFormConverter } from "@/lib/converters/team-form-converter";
+import { DisplayNameService } from "@/domains/team/services/display-name.service";
 import type {
     TeamFormData,
     TeamFormWithParams,
@@ -37,7 +38,12 @@ export async function POST(request: NextRequest) {
         }
 
         // TeamFormData を TeamCreate に変換
-        const teamCreate = TeamFormConverter.toTeamCreate(formData as TeamFormData);
+        let teamCreate = TeamFormConverter.toTeamCreate(formData as TeamFormData);
+
+        // 新規登録時はサーバー側で displayName を生成して上書きする
+        if (teamCreate.players && teamCreate.players.length > 0) {
+            teamCreate = { ...teamCreate, players: DisplayNameService.generateDisplayNames(teamCreate.players) };
+        }
 
         // サーバーサイドでFirestoreに保存
 
