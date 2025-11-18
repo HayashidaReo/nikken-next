@@ -32,22 +32,6 @@ export function MatchHeader({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div />
-          <Button
-            onClick={onOpenMonitor}
-            variant={isPresentationConnected ? "destructive" : "outline"}
-          >
-            {isPresentationConnected ? (
-              <>
-                <Unplug className="w-4 h-4 mr-2" />
-                接続を解除
-              </>
-            ) : (
-              <>
-                <Monitor className="w-4 h-4 mr-2" />
-                表示用モニターを開く
-              </>
-            )}
-          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
