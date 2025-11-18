@@ -27,6 +27,8 @@ export default function MonitorControlPage() {
   const storeMatchId = useMonitorStore((s) => s.matchId);
   const storeTournamentName = useMonitorStore((s) => s.tournamentName);
   const presentationConnected = useMonitorStore((s) => s.presentationConnected);
+  const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
+  const monitorStatusMode = presentationConnected ? "presentation" : fallbackOpen ? "fallback" : "disconnected";
   const isPublic = useMonitorStore((s) => s.isPublic);
   const togglePublic = useMonitorStore((s) => s.togglePublic);
 
@@ -122,6 +124,13 @@ export default function MonitorControlPage() {
         const url = `${window.location.origin}/monitor-display?pt=${encodeURIComponent(token)}`;
         window.open(url, "_blank", "width=1920,height=1080");
 
+        // フォールバックで別タブを開いたことをストアに反映
+        try {
+          useMonitorStore.getState().setFallbackOpen(true);
+        } catch {
+          // ignore
+        }
+
         // BroadcastChannel で初回スナップショットを送信
         try {
           const s = useMonitorStore.getState();
@@ -209,7 +218,7 @@ export default function MonitorControlPage() {
               </Link>
 
               <div className="ml-2">
-                <ConnectionStatus isConnected={presentationConnected} error={null} />
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
               </div>
             </div>
           </div>
@@ -238,7 +247,7 @@ export default function MonitorControlPage() {
               </Link>
 
               <div className="ml-2">
-                <ConnectionStatus isConnected={presentationConnected} error={null} />
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
               </div>
             </div>
           </div>
@@ -269,7 +278,7 @@ export default function MonitorControlPage() {
               </Link>
 
               <div className="ml-2">
-                <ConnectionStatus isConnected={presentationConnected} error={null} />
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
               </div>
             </div>
           </div>
@@ -298,7 +307,7 @@ export default function MonitorControlPage() {
             </Link>
 
             <div className="ml-2">
-              <ConnectionStatus isConnected={presentationConnected} error={null} />
+              <ConnectionStatus mode={monitorStatusMode} error={null} />
             </div>
           </div>
 

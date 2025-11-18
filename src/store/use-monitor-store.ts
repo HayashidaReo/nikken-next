@@ -37,6 +37,7 @@ interface MonitorState {
   isSaving: boolean; // 保存処理中フラグ
   presentationConnected: boolean;
   presentationConnection?: PresentationConnection | null;
+  fallbackOpen: boolean;
   selectedPlayer: "playerA" | "playerB" | null;
 
   // アクション
@@ -54,6 +55,7 @@ interface MonitorState {
   togglePublic: () => void;
   setPresentationConnected: (connected: boolean) => void;
   setPresentationConnection: (conn: PresentationConnection | null) => void;
+  setFallbackOpen: (open: boolean) => void;
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => void;
   incrementScoreForSelectedPlayer: () => void;
   incrementFoulForSelectedPlayer: () => void;
@@ -89,6 +91,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   isPublic: false,
   isSaving: false,
   presentationConnected: false,
+  fallbackOpen: false,
   selectedPlayer: null,
 
   // アクション
@@ -195,6 +198,10 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
   setPresentationConnection: (conn: PresentationConnection | null) => {
     set({ presentationConnection: conn });
+  },
+
+  setFallbackOpen: (open: boolean) => {
+    set({ fallbackOpen: open });
   },
 
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => {

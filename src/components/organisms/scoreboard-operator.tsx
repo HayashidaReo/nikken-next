@@ -162,6 +162,11 @@ export function ScoreboardOperator({
     setShowFallbackDialog(false);
     const monitorUrl = `${window.location.origin}/monitor-display`;
     window.open(monitorUrl, "_blank", "width=1920,height=1080");
+    try {
+      useMonitorStore.getState().setFallbackOpen(true);
+    } catch {
+      // ignore
+    }
     // 初回スナップショットを BroadcastChannel で送信
     try {
       const monitorData = {

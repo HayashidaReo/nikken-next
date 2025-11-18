@@ -140,6 +140,8 @@ export function usePresentation(presentationUrl: string) {
       const handleConnect = () => {
         setState(prev => ({ ...prev, isConnected: true }));
         useMonitorStore.getState().setPresentationConnected(true);
+        // プレゼン接続が確立した場合はフォールバックフラグをクリア
+        useMonitorStore.getState().setFallbackOpen(false);
 
         // 初回スナップショットを送信（接続確立時）
         try {
@@ -213,6 +215,7 @@ export function usePresentation(presentationUrl: string) {
         if (registerGlobal) {
           useMonitorStore.getState().setPresentationConnection(null);
           useMonitorStore.getState().setPresentationConnected(false);
+          useMonitorStore.getState().setFallbackOpen(false);
         }
       });
 
@@ -221,6 +224,7 @@ export function usePresentation(presentationUrl: string) {
         if (registerGlobal) {
           useMonitorStore.getState().setPresentationConnection(null);
           useMonitorStore.getState().setPresentationConnected(false);
+          useMonitorStore.getState().setFallbackOpen(false);
         }
       });
 
@@ -252,6 +256,7 @@ export function usePresentation(presentationUrl: string) {
       } finally {
         useMonitorStore.getState().setPresentationConnection(null);
         useMonitorStore.getState().setPresentationConnected(false);
+        useMonitorStore.getState().setFallbackOpen(false);
         setState(prev => ({ ...prev, connection: null, isConnected: false }));
       }
     }
