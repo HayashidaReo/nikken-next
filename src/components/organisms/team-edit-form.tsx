@@ -276,10 +276,10 @@ export function TeamEditForm({
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_80px] gap-4 p-4 border rounded-lg"
+                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   <div>
-                    <Label>姓 *</Label>
+                    <Label className="text-sm">姓 *</Label>
                     <Input
                       {...register(`players.${index}.lastName`)}
                       placeholder="山田"
@@ -293,7 +293,7 @@ export function TeamEditForm({
                   </div>
 
                   <div>
-                    <Label>名 *</Label>
+                    <Label className="text-sm">名 *</Label>
                     <Input
                       {...register(`players.${index}.firstName`)}
                       placeholder="太郎"
@@ -307,7 +307,7 @@ export function TeamEditForm({
                   </div>
 
                   <div>
-                    <Label>表示名</Label>
+                    <Label className="text-sm">表示名</Label>
                     <Input
                       {...register(`players.${index}.displayName`)}
                       placeholder="自動生成"
