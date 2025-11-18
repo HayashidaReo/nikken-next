@@ -45,7 +45,7 @@ const AnimatedListItem = React.forwardRef<HTMLDivElement, Props>(
                 exit="exit"
                 transition={rowTransition}
                 className={className}
-                {...(divProps as unknown as HTMLMotionProps<"div">)}
+                {...(rest as HTMLMotionProps<"div">)}
             >
                 {children}
             </motion.div>
