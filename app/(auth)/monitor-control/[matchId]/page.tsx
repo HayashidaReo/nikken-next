@@ -36,6 +36,7 @@ export default function MonitorControlPage() {
     isAvailable: isPresentationAvailable,
     isConnected: isPresentationConnected,
     stopPresentation,
+    startPresentation,
   } = usePresentation(`${window.location.origin}/monitor-display`);
 
   const handleMonitorAction = async () => {
@@ -64,22 +65,13 @@ export default function MonitorControlPage() {
       const { token } = await tokenResponse.json();
       const monitorUrl = `${window.location.origin}/monitor-display?pt=${encodeURIComponent(token)}`;
 
-      if (isPresentationSupported && isPresentationAvailable) {
+      if (isPresentationSupported && isPresentationAvailable && startPresentation) {
         try {
-          // Try to start the presentation using the Presentation API with the tokenized URL
-          // Use `window.PresentationRequest` if available (typed safely)
-          type PRClass = new (urls: string[]) => { start: () => Promise<unknown> };
-          const PresentationRequestClass = (window as unknown as { PresentationRequest?: PRClass }).PresentationRequest;
-          if (PresentationRequestClass) {
-            const req = new PresentationRequestClass([monitorUrl]);
-            await req.start();
-            // connection established
-            showSuccess("モニター表示を開始しました");
-            return;
-          }
+          await startPresentation(monitorUrl);
+          showSuccess("モニター表示を開始しました");
+          return;
         } catch (err) {
-          console.warn("Presentation API start failed, falling back to window.open:", err);
-          // fall through to window.open
+          console.warn("Presentation API start failed via hook, falling back to window.open:", err);
         }
       }
 

@@ -36,6 +36,7 @@ interface MonitorState {
   isPublic: boolean; // 公開/非公開
   isSaving: boolean; // 保存処理中フラグ
   presentationConnected: boolean;
+  presentationConnection?: PresentationConnection | null;
   selectedPlayer: "playerA" | "playerB" | null;
 
   // アクション
@@ -52,6 +53,7 @@ interface MonitorState {
   toggleTimer: () => void;
   togglePublic: () => void;
   setPresentationConnected: (connected: boolean) => void;
+  setPresentationConnection: (conn: PresentationConnection | null) => void;
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => void;
   incrementScoreForSelectedPlayer: () => void;
   incrementFoulForSelectedPlayer: () => void;
@@ -189,6 +191,10 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
   setPresentationConnected: (connected: boolean) => {
     set({ presentationConnected: connected });
+  },
+
+  setPresentationConnection: (conn: PresentationConnection | null) => {
+    set({ presentationConnection: conn });
   },
 
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => {

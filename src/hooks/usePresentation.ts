@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useMonitorStore } from "@/store/use-monitor-store";
 
 // Presentation API の型定義
 declare global {
@@ -96,18 +97,26 @@ export function usePresentation(presentationUrl: string) {
     }
   }, [state.isSupported, presentationUrl]);
 
-  // プレゼンテーション開始
-  const startPresentation = useCallback(async () => {
-    if (!state.presentation || !state.isAvailable) {
-      setError("プレゼンテーション機能が利用できません");
-      return;
-    }
-
+  // プレゼンテーション開始（オーバーライド URL を受け取れるようにする）
+  const startPresentation = useCallback(async (overrideUrl?: string) => {
     setIsLoading(true);
     setError(null);
 
+    let presentationToStart: PresentationRequest | null = null;
+
     try {
-      const connection = await state.presentation.start();
+      if (overrideUrl) {
+        presentationToStart = new PresentationRequest([overrideUrl]);
+      } else if (state.presentation) {
+        presentationToStart = state.presentation;
+      }
+
+      if (!presentationToStart) {
+        setError("プレゼンテーション機能が利用できません");
+        return;
+      }
+
+      const connection = await presentationToStart.start();
 
       setState(prev => ({
         ...prev,
@@ -115,17 +124,26 @@ export function usePresentation(presentationUrl: string) {
         isConnected: connection.state === "connected",
       }));
 
+      // グローバルストアに接続を保存
+      useMonitorStore.getState().setPresentationConnection(connection);
+      useMonitorStore.getState().setPresentationConnected(connection.state === "connected");
+
       // 接続状態の監視
       connection.addEventListener("connect", () => {
         setState(prev => ({ ...prev, isConnected: true }));
+        useMonitorStore.getState().setPresentationConnected(true);
       });
 
       connection.addEventListener("close", () => {
         setState(prev => ({ ...prev, isConnected: false, connection: null }));
+        useMonitorStore.getState().setPresentationConnection(null);
+        useMonitorStore.getState().setPresentationConnected(false);
       });
 
       connection.addEventListener("terminate", () => {
         setState(prev => ({ ...prev, isConnected: false, connection: null }));
+        useMonitorStore.getState().setPresentationConnection(null);
+        useMonitorStore.getState().setPresentationConnected(false);
       });
 
       return connection;
@@ -136,26 +154,34 @@ export function usePresentation(presentationUrl: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [state.presentation, state.isAvailable]);
+  }, [state.presentation]);
 
   // プレゼンテーション終了
   const stopPresentation = useCallback(() => {
-    if (state.connection) {
-      state.connection.terminate();
+    const conn = useMonitorStore.getState().presentationConnection || state.connection;
+    if (conn) {
+      try {
+        conn.terminate();
+      } finally {
+        useMonitorStore.getState().setPresentationConnection(null);
+        useMonitorStore.getState().setPresentationConnected(false);
+        setState(prev => ({ ...prev, connection: null, isConnected: false }));
+      }
     }
   }, [state.connection]);
 
-  // データ送信
+  // データ送信（グローバルストアの connection を優先して使用）
   const sendMessage = useCallback(
     (data: unknown) => {
-      if (!state.connection || state.connection.state !== "connected") {
+      const conn = useMonitorStore.getState().presentationConnection || state.connection;
+      if (!conn || conn.state !== "connected") {
         console.warn("プレゼンテーション接続が確立されていません");
         return false;
       }
 
       try {
         const message = JSON.stringify(data);
-        state.connection.send(message);
+        conn.send(message);
         return true;
       } catch (err) {
         console.error("メッセージ送信に失敗:", err);
