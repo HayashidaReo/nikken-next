@@ -63,6 +63,10 @@ export const useKeyboardShortcuts = () => {
                 lastTapTimeRef.current[key] = 0;
             } else {
                 // まだシングルタップ（次が来るかもしれない）として記録
+                // space (toggleTimer) の場合は1回目押下でもブラウザのデフォルト動作（スクロール）を抑制
+                if (action === "toggleTimer") {
+                    event.preventDefault();
+                }
                 lastTapTimeRef.current[key] = now;
             }
         };
