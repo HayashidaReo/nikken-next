@@ -132,22 +132,22 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
           <span className="font-medium">選手数: {team.players.length}人</span>
         </button>
 
-        {/* 選手一覧（展開時） */}
+        {/* 選手一覧（展開時）: PCでは2列、モバイルでは1列 */}
         {isPlayersExpanded && (
-          <div className="mt-3 pl-6 space-y-2">
-            {team.players.map(player => (
-              <div
-                key={player.playerId}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div>
-                  <span className="font-medium">{player.displayName}</span>
-                  <span className="text-sm text-gray-500 ml-2">
-                    ({player.lastName} {player.firstName})
-                  </span>
+          <div className="mt-3 pl-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {team.players.map((player) => (
+                <div
+                  key={player.playerId}
+                  className="p-3 bg-gray-50 rounded-lg flex items-center"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium text-base">{player.lastName} {player.firstName}</div>
+                    <div className="text-base text-gray-500">（{player.displayName}）</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
