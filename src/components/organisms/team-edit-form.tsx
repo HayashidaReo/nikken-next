@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -15,7 +15,6 @@ import {
 } from "@/components/atoms/card";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
-import { Switch } from "@/components/atoms/switch";
 import { cn } from "@/lib/utils/utils";
 import type { Team } from "@/types/team.schema";
 
@@ -103,12 +102,6 @@ export function TeamEditForm({
     setHasUnsavedChanges(isDirty);
   }, [isDirty]);
 
-  // 承認状態を個別に監視
-  const isApprovedValue = useWatch({
-    control,
-    name: "isApproved",
-    defaultValue: team.isApproved,
-  });
 
   // displayNameを自動生成する関数
   const updateDisplayNames = () => {
@@ -224,17 +217,6 @@ export function TeamEditForm({
             <CardTitle>基本情報</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 承認状態 */}
-            <div className="flex items-center space-x-3">
-              <Switch
-                {...register("isApproved")}
-                checked={isApprovedValue}
-                onCheckedChange={checked => setValue("isApproved", checked)}
-              />
-              <Label className="font-medium">
-                {isApprovedValue ? "承認済み" : "未承認"}
-              </Label>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
