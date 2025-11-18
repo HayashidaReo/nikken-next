@@ -52,4 +52,3 @@ export function TeamStatsSummary({ teams, className }: TeamStatsSummaryProps) {
     );
 }
 
-export default TeamStatsSummary;

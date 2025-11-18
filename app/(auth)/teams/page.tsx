@@ -3,7 +3,7 @@
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { ShareMenu } from "@/components/molecules/share-menu";
-import TeamStatsSummary from "@/components/molecules/team-stats-summary";
+import { TeamStatsSummary } from "@/components/molecules/team-stats-summary";
 import { useTeams, useApproveTeam } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
