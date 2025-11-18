@@ -20,7 +20,13 @@ interface MatchData {
   isPublic: boolean;
 }
 
-export function useMonitorData() {
+interface TokenData {
+  matchId: string;
+  orgId: string;
+  tournamentId: string;
+}
+
+export function useMonitorData(tokenData?: TokenData | null) {
   const [data, setData] = useState<MatchData>({
     matchId: "",
     tournamentName: "大会名未設定",
@@ -45,6 +51,23 @@ export function useMonitorData() {
 
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // If tokenData is provided, we're in token-based mode
+  // In this mode, we skip the auth requirement and allow the monitor to work
+  useEffect(() => {
+    if (!tokenData) return;
+
+    // Defer state updates to avoid synchronous setState inside effect
+    // and clean up if tokenData changes/unmounts.
+    const t = setTimeout(() => {
+      setIsConnected(true);
+      setData((prev) => ({ ...prev, isPublic: true }));
+    }, 0);
+
+    return () => {
+      clearTimeout(t);
+    };
+  }, [tokenData]);
 
   // BroadcastChannelでのデータ共有
   useEffect(() => {

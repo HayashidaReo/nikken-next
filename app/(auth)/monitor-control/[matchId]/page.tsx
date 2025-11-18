@@ -35,7 +35,6 @@ export default function MonitorControlPage() {
     isSupported: isPresentationSupported,
     isAvailable: isPresentationAvailable,
     isConnected: isPresentationConnected,
-    startPresentation,
     stopPresentation,
   } = usePresentation(`${window.location.origin}/monitor-display`);
 
@@ -47,14 +46,44 @@ export default function MonitorControlPage() {
         return;
       }
 
+      // First, get a presentation token
+      const tokenResponse = await fetch("/api/presentation-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId,
+          orgId: orgId || "",
+          tournamentId: activeTournamentId || "",
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        throw new Error("Failed to obtain presentation token");
+      }
+
+      const { token } = await tokenResponse.json();
+      const monitorUrl = `${window.location.origin}/monitor-display?pt=${encodeURIComponent(token)}`;
+
       if (isPresentationSupported && isPresentationAvailable) {
-        await startPresentation();
-        showSuccess("モニター表示を開始しました");
-        return;
+        try {
+          // Try to start the presentation using the Presentation API with the tokenized URL
+          // Use `window.PresentationRequest` if available (typed safely)
+          type PRClass = new (urls: string[]) => { start: () => Promise<unknown> };
+          const PresentationRequestClass = (window as unknown as { PresentationRequest?: PRClass }).PresentationRequest;
+          if (PresentationRequestClass) {
+            const req = new PresentationRequestClass([monitorUrl]);
+            await req.start();
+            // connection established
+            showSuccess("モニター表示を開始しました");
+            return;
+          }
+        } catch (err) {
+          console.warn("Presentation API start failed, falling back to window.open:", err);
+          // fall through to window.open
+        }
       }
 
       // フォールバック: 新しいタブで開く
-      const monitorUrl = `${window.location.origin}/monitor-display`;
       window.open(monitorUrl, "_blank", "width=1920,height=1080");
       showInfo("新しいタブでモニター表示を開始しました。データは自動的に同期されます。");
     } catch (err) {
