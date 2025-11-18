@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Button } from "@/components/atoms/button";
 import {
   Card,
@@ -9,6 +10,8 @@ import {
 } from "@/components/atoms/card";
 import { Label } from "@/components/atoms/label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
+import { PenaltyDisplay } from "@/components/molecules/penalty-display";
+import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { SCORE_COLORS } from "@/lib/ui-constants";
 import { cn } from "@/lib/utils/utils";
@@ -59,6 +62,8 @@ export function PlayerScoreCard({
         ? SCORE_COLORS.draw
         : SCORE_COLORS.loss;
 
+
+
   return (
     <Card
       data-player-key={playerKey === "A" ? "playerA" : "playerB"}
@@ -71,22 +76,26 @@ export function PlayerScoreCard({
     >
       <CardHeader className="p-4 pb-0">
         <div className="grid grid-cols-3 items-center">
-          <div className="flex items-center justify-start">
-            {playerKey === "A" && (
+          <div className="flex items-center justify-start space-x-2">
+            {playerKey === "A" ? (
               <div className="flex items-center gap-2">
                 <CardTitle className={cn(titleColor)}>{title}</CardTitle>
                 <ShortcutBadge shortcut={playerKey} className="text-xs" />
               </div>
+            ) : (
+              <PenaltyDisplay hansokuCount={player.hansoku as HansokuLevel} variant="medium" ariaLabel={`${title} の反則`} />
             )}
           </div>
           <div />
 
-          <div className="flex items-center justify-end">
-            {playerKey === "B" && (
+          <div className="flex items-center justify-end space-x-2">
+            {playerKey === "B" ? (
               <div className="flex items-center gap-2">
                 <ShortcutBadge shortcut={playerKey} className="text-xs" />
                 <CardTitle className={cn(titleColor)}>{title}</CardTitle>
               </div>
+            ) : (
+              <PenaltyDisplay hansokuCount={player.hansoku as HansokuLevel} variant="medium" ariaLabel={`${title} の反則`} />
             )}
           </div>
         </div>
