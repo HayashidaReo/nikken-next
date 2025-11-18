@@ -16,6 +16,8 @@ import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
+import { FallbackMonitorDialog } from "@/components/molecules";
+import { useState } from "react";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -73,16 +75,46 @@ export default function MonitorControlPage() {
           return;
         } catch (err) {
           console.warn("Presentation API start failed via hook, falling back to window.open:", err);
+          // fall through to fallback dialog
         }
       }
 
-      // フォールバック: 新しいタブで開く
-      window.open(monitorUrl, "_blank", "width=1920,height=1080");
-      showInfo("新しいタブでモニター表示を開始しました。データは自動的に同期されます。");
+      // Presentation API が利用できないか start に失敗した場合はフォールバックダイアログを表示
+      setShowFallbackDialog(true);
     } catch (err) {
       console.error(err);
       showError("モニター表示の開始に失敗しました。もう一度お試しください。");
     }
+  };
+
+  const [showFallbackDialog, setShowFallbackDialog] = useState(false);
+
+  const handleFallbackConfirm = () => {
+    setShowFallbackDialog(false);
+    // We need to request the token again before opening; call same token endpoint
+    (async () => {
+      try {
+        const tokenResponse = await fetch("/api/presentation-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ matchId, orgId: orgId || "", tournamentId: activeTournamentId || "" }),
+        });
+        if (!tokenResponse.ok) {
+          throw new Error("Failed to obtain presentation token");
+        }
+        const { token } = await tokenResponse.json();
+        const url = `${window.location.origin}/monitor-display?pt=${encodeURIComponent(token)}`;
+        window.open(url, "_blank", "width=1920,height=1080");
+        showInfo("新しいタブでモニター表示を開始しました。データは自動的に同期されます。");
+      } catch (e) {
+        console.error(e);
+        showError("モニター表示の開始に失敗しました。もう一度お試しください。");
+      }
+    })();
+  };
+
+  const handleFallbackCancel = () => {
+    setShowFallbackDialog(false);
   };
 
   const handleSave = async () => {
@@ -270,6 +302,11 @@ export default function MonitorControlPage() {
         <ScoreboardOperator
           organizationId={orgId || ""}
           tournamentId={activeTournamentId || ""}
+        />
+        <FallbackMonitorDialog
+          isOpen={showFallbackDialog}
+          onConfirm={handleFallbackConfirm}
+          onCancel={handleFallbackCancel}
         />
       </div>
     </div>
