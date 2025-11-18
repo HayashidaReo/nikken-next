@@ -7,8 +7,7 @@ import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { ArrowLeft, Monitor, Unplug } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import { Switch } from "@/components/atoms/switch";
-import { Label } from "@/components/atoms/label";
+import SwitchLabel from "@/components/molecules/switch-label";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { usePresentation } from "@/hooks/usePresentation";
 import { useToast } from "@/components/providers/notification-provider";
@@ -112,13 +111,17 @@ export default function MonitorControlPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Switch checked={isPublic} onCheckedChange={togglePublic} id="public-toggle-header" />
-                <Label htmlFor="public-toggle-header" className="text-sm">
-                  {isPublic ? "公開中" : "非公開"}
-                </Label>
-              </div>
+            <div className="flex items-center gap-4">
+              <SwitchLabel
+                id="public-toggle-header"
+                checked={isPublic}
+                onChange={(v) => {
+                  if (v !== isPublic) togglePublic();
+                }}
+                onLabel={"公開中"}
+                offLabel={"非公開"}
+                className="flex items-center gap-3"
+              />
 
               <div>
                 <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
@@ -166,13 +169,17 @@ export default function MonitorControlPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Switch checked={isPublic} onCheckedChange={togglePublic} id="public-toggle-header" />
-                <Label htmlFor="public-toggle-header" className="text-sm">
-                  {isPublic ? "公開中" : "非公開"}
-                </Label>
-              </div>
+            <div className="flex items-center gap-4">
+              <SwitchLabel
+                id="public-toggle-header"
+                checked={isPublic}
+                onChange={(v) => {
+                  if (v !== isPublic) togglePublic();
+                }}
+                onLabel={"公開中"}
+                offLabel={"非公開"}
+                className="flex items-center gap-3"
+              />
 
               <div>
                 <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
@@ -222,13 +229,17 @@ export default function MonitorControlPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Switch checked={isPublic} onCheckedChange={togglePublic} id="public-toggle-header" />
-                <Label htmlFor="public-toggle-header" className="text-sm">
-                  {isPublic ? "公開中" : "非公開"}
-                </Label>
-              </div>
+            <div className="flex items-center gap-4">
+              <SwitchLabel
+                id="public-toggle-header"
+                checked={isPublic}
+                onChange={(v) => {
+                  if (v !== isPublic) togglePublic();
+                }}
+                onLabel={"公開中"}
+                offLabel={"非公開"}
+                className="flex items-center gap-3"
+              />
 
               <div>
                 <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
@@ -276,13 +287,17 @@ export default function MonitorControlPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Switch checked={isPublic} onCheckedChange={togglePublic} id="public-toggle-header" />
-              <Label htmlFor="public-toggle-header" className="text-sm">
-                {isPublic ? "公開中" : "非公開"}
-              </Label>
-            </div>
+          <div className="flex items-center gap-4">
+            <SwitchLabel
+              id="public-toggle-header"
+              checked={isPublic}
+              onChange={(v) => {
+                if (v !== isPublic) togglePublic();
+              }}
+              onLabel={"公開中"}
+              offLabel={"非公開"}
+              className="flex items-center gap-3"
+            />
 
             <div>
               <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
