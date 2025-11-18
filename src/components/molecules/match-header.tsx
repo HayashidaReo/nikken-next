@@ -1,21 +1,10 @@
-"use client";
-
-import { Button } from "@/components/atoms/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/atoms/card";
-import { Label } from "@/components/atoms/label";
-import { Monitor, Unplug } from "lucide-react";
-import { useMonitorStore } from "@/store/use-monitor-store";
+import { cn } from "@/lib/utils/utils";
+import { Trophy, MapPin, Repeat } from "lucide-react";
 
 interface MatchHeaderProps {
   tournamentName: string;
   courtName: string;
   round: string;
-  onOpenMonitor: () => void;
   className?: string;
 }
 
@@ -23,33 +12,59 @@ export function MatchHeader({
   tournamentName,
   courtName,
   round,
-  onOpenMonitor,
   className,
 }: MatchHeaderProps) {
-  const isPresentationConnected = useMonitorStore((s) => s.presentationConnected);
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div />
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <Label className="text-sm text-gray-600">大会名</Label>
-            <p className="font-medium">{tournamentName}</p>
-          </div>
-          <div>
-            <Label className="text-sm text-gray-600">コート</Label>
-            <p className="font-medium">{courtName}</p>
-          </div>
-          <div>
-            <Label className="text-sm text-gray-600">ラウンド</Label>
-            <p className="font-medium">{round}</p>
-          </div>
+    <div
+      className={cn(
+        "bg-white rounded-lg border border-gray-200 px-4 pt-2 flex items-stretch justify-around gap-4",
+        className
+      )}
+    >
+      {/* Tournament Section */}
+      <div className="relative flex-1 min-h-[72px]">
+        <div className="absolute left-4 top-1 flex items-center gap-2">
+          <Trophy className="w-6 h-6 text-yellow-500 flex-shrink-0" />
+          <span className="text-xs text-gray-500 font-medium">大会名</span>
         </div>
-      </CardContent>
-    </Card>
+        <div className="absolute inset-0 flex items-start justify-center px-4 pt-7">
+          <p className="font-bold text-lg text-gray-900 text-center leading-tight">
+            {tournamentName}
+          </p>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-r border-gray-200" />
+
+      {/* Court Section */}
+      <div className="relative flex-1 min-h-[72px]">
+        <div className="absolute left-4 top-1 flex items-center gap-2">
+          <MapPin className="w-6 h-6 text-blue-500 flex-shrink-0" />
+          <span className="text-xs text-gray-500 font-medium">コート</span>
+        </div>
+        <div className="absolute inset-0 flex items-start justify-center px-4 pt-7">
+          <p className="font-bold text-lg text-gray-900 text-center leading-tight">
+            {courtName}
+          </p>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-r border-gray-200" />
+
+      {/* Round Section */}
+      <div className="relative flex-1 min-h-[72px]">
+        <div className="absolute left-4 top-1 flex items-center gap-2">
+          <Repeat className="w-6 h-6 text-green-500 flex-shrink-0" />
+          <span className="text-xs text-gray-500 font-medium">ラウンド</span>
+        </div>
+        <div className="absolute inset-0 flex items-start justify-center px-4 pt-7">
+          <p className="font-bold text-lg text-gray-900 text-center leading-tight">
+            {round}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
