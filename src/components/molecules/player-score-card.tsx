@@ -46,13 +46,13 @@ export function PlayerScoreCard({
 }: PlayerScoreCardProps) {
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="p-4 pb-0">
         <CardTitle className={cn(titleColor)}>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2 p-4 pt-0">
         <div className="text-center">
-          <div className="text-lg font-medium">{player.teamName}</div>
-          <div className="text-2xl font-bold">{player.displayName}</div>
+          <div className="text-lg font-medium text-gray-500">{player.teamName}</div>
+          <div className="text-3xl font-bold">{player.displayName}</div>
         </div>
 
         {/* 得点 */}
@@ -76,12 +76,24 @@ export function PlayerScoreCard({
         <div>
           <Label className="text-sm font-medium mb-2 block">反則</Label>
           <div className="grid grid-cols-2 gap-2">
-            {hansokuOptions.map(hansoku => (
+            {/* 1行目: なし を2列分使う */}
+            {hansokuOptions.length > 0 && (
+              <Button
+                key={hansokuOptions[0].value}
+                variant={player.hansoku === hansokuOptions[0].value ? "default" : "outline"}
+                onClick={() => onHansokuChange(playerKey, hansokuOptions[0].value)}
+                className="text-xs col-span-2"
+                size="sm"
+              >
+                {hansokuOptions[0].label}
+              </Button>
+            )}
+
+            {/* 2行目以降: 残りを2列で表示（黄, 赤 がここに来る） */}
+            {hansokuOptions.slice(1).map(hansoku => (
               <Button
                 key={hansoku.value}
-                variant={
-                  player.hansoku === hansoku.value ? "default" : "outline"
-                }
+                variant={player.hansoku === hansoku.value ? "default" : "outline"}
                 onClick={() => onHansokuChange(playerKey, hansoku.value)}
                 className="text-xs"
                 size="sm"
