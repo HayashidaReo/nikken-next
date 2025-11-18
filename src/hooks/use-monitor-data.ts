@@ -60,8 +60,9 @@ export function useMonitorData(tokenData?: TokenData | null) {
     // Defer state updates to avoid synchronous setState inside effect
     // and clean up if tokenData changes/unmounts.
     const t = setTimeout(() => {
+      // mark as connected for token-based access but do not override isPublic
+      // (token grants access without changing the match's visibility)
       setIsConnected(true);
-      setData((prev) => ({ ...prev, isPublic: true }));
     }, 0);
 
     return () => {
@@ -128,6 +129,17 @@ export function useMonitorData(tokenData?: TokenData | null) {
             setError("データの解析に失敗しました");
           }
         });
+
+        // 受信側が準備できたら送信側にスナップショットを要求する
+        try {
+          // 一部の実装では receiver 側の send が存在する
+          const maybeSender = conn as unknown as { send?: (m: string) => void };
+          if (typeof maybeSender.send === "function") {
+            maybeSender.send(JSON.stringify({ type: "request_snapshot" }));
+          }
+        } catch {
+          // 無視
+        }
 
         // 接続終了リスナー
         conn.addEventListener("close", () => {

@@ -67,7 +67,8 @@ export default function MonitorControlPage() {
 
       if (isPresentationSupported && isPresentationAvailable && startPresentation) {
         try {
-          await startPresentation(monitorUrl);
+          // registerGlobal=true でストアに接続を保存する
+          await startPresentation(monitorUrl, true);
           showSuccess("モニター表示を開始しました");
           return;
         } catch (err) {
