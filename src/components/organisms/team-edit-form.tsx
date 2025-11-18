@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -189,6 +189,15 @@ export function TeamEditForm({
 
   const cancelRemovePlayer = () => setDeleteConfirmIndex(null);
 
+  // 削除確認ダイアログのメッセージをメモ化してレンダリング内の IIFE を排除
+  const deleteConfirmMessage = useMemo(() => {
+    if (deleteConfirmIndex === null) return "選手を削除しますか？";
+    // `watchedPlayers` は useWatch で監視しているためレンダリングと同期します
+    const players = watchedPlayers || getValues().players || [];
+    const name = formatPlayerFullName(players, deleteConfirmIndex);
+    return `${name} を削除しますか？ この操作は取り消せません。`;
+  }, [deleteConfirmIndex, watchedPlayers, getValues]);
+
   // displayName の更新は useWatch + useEffect で行うため、個別のハンドラは不要
 
   // フォーム送信
@@ -374,15 +383,7 @@ export function TeamEditForm({
       <ConfirmDialog
         isOpen={deleteConfirmIndex !== null}
         title="選手の削除確認"
-        message={
-          deleteConfirmIndex !== null
-            ? (() => {
-              const players = getValues().players || [];
-              const name = formatPlayerFullName(players, deleteConfirmIndex as number);
-              return `${name} を削除しますか？ この操作は取り消せません。`;
-            })()
-            : "選手を削除しますか？"
-        }
+        message={deleteConfirmMessage}
         onConfirm={confirmRemovePlayer}
         onCancel={cancelRemovePlayer}
         confirmText="削除する"
