@@ -184,7 +184,7 @@ export function MatchRow({
                         onClick={() => setShowConfirm(true)}
                         className="text-red-500 hover:text-red-700 h-8"
                     >
-                        <Trash2 className="h-5 w-5 text-gray-500 hover:text-red-500" />
+                        <Trash2 className="h-5 w-5" aria-hidden />
                     </Button>
                 </TableCell>
             </AnimatedTableRow>
