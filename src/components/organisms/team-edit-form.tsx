@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -97,10 +97,6 @@ export function TeamEditForm({
     onMinItemsRequired: minItems => {
       showWarning(`削除できません。最低${minItems}人の選手が必要です。`);
     },
-    onRemove: () => {
-      // displayNameを再計算
-      setTimeout(updateDisplayNames, 100);
-    },
   });
 
   // フォームの変更を監視（isDirtyフラグを使用）
@@ -112,7 +108,7 @@ export function TeamEditForm({
   // displayNameを自動生成する関数
   const updateDisplayNames = () => {
     const currentValues = getValues();
-    const players = currentValues.players;
+    const players = currentValues.players || [];
 
     // 姓でグループ化
     const lastNameGroups: { [key: string]: number[] } = {};
@@ -128,27 +124,32 @@ export function TeamEditForm({
     Object.entries(lastNameGroups).forEach(([lastName, indices]) => {
       if (indices.length === 1) {
         // 重複なし：姓のみ
-        setValue(`players.${indices[0]}.displayName`, lastName);
+        const idx = indices[0];
+        const current = players[idx]?.displayName || "";
+        if (current !== lastName) {
+          setValue(`players.${idx}.displayName`, lastName);
+        }
       } else {
         // 重複あり：姓 + 名の一部
         indices.forEach(index => {
-          const player = players[index];
-          const firstName = player.firstName;
+          const player = players[index] || { firstName: "", displayName: "" };
+          const firstName = player.firstName || "";
           let displayName = `${lastName} ${firstName.charAt(0)}`;
 
           // 同じ姓＋名の一部でも重複する場合はフルネーム
           const sameDisplay = indices.filter(i => {
-            const otherPlayer = players[i];
-            return (
-              `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName
-            );
+            const otherPlayer = players[i] || { firstName: "" };
+            return `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName;
           });
 
           if (sameDisplay.length > 1) {
             displayName = `${lastName} ${firstName}`;
           }
 
-          setValue(`players.${index}.displayName`, displayName);
+          const current = player.displayName || "";
+          if (current !== displayName) {
+            setValue(`players.${index}.displayName`, displayName);
+          }
         });
       }
     });
@@ -156,6 +157,14 @@ export function TeamEditForm({
 
   // 選手を追加（共通hookを使用）
   const addPlayer = () => addItem();
+
+  // React Hook Form の useWatch を使って players の変更を監視し、displayName を同期的に更新します
+  const watchedPlayers = useWatch({ control, name: "players" });
+
+  useEffect(() => {
+    updateDisplayNames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedPlayers]);
 
   // 選手を削除（共通hookを使用）
 
@@ -180,10 +189,7 @@ export function TeamEditForm({
 
   const cancelRemovePlayer = () => setDeleteConfirmIndex(null);
 
-  // 姓・名が変更されたときにdisplayNameを更新
-  const handleNameChange = () => {
-    setTimeout(updateDisplayNames, 100);
-  };
+  // displayName の更新は useWatch + useEffect で行うため、個別のハンドラは不要
 
   // フォーム送信
   const handleFormSubmit = async (data: TeamEditData) => {
@@ -295,7 +301,6 @@ export function TeamEditForm({
                         <Input
                           {...register(`players.${index}.lastName`)}
                           placeholder="山田"
-                          onChange={handleNameChange}
                         />
                         {errors.players?.[index]?.lastName && (
                           <p className="text-sm text-red-600 mt-1">
@@ -309,7 +314,6 @@ export function TeamEditForm({
                         <Input
                           {...register(`players.${index}.firstName`)}
                           placeholder="太郎"
-                          onChange={handleNameChange}
                         />
                         {errors.players?.[index]?.firstName && (
                           <p className="text-sm text-red-600 mt-1">
