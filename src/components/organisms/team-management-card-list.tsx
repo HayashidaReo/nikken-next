@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { Badge } from "@/components/atoms/badge";
-import { ChevronDown, ChevronRight, Edit } from "lucide-react";
+import { ChevronDown, ChevronRight, Edit, User, Phone, Mail } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { DialogOverlay } from "@/components/molecules/dialog-overlay";
 import type { Team } from "@/types/team.schema";
@@ -68,10 +68,26 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
                 {team.isApproved ? "承認済み" : "未承認"}
               </Badge>
             </CardTitle>
-            <div className="mt-2 text-sm space-y-1 text-gray-600">
-              <div>代表者: {team.representativeName}</div>
-              <div>電話: {team.representativePhone}</div>
-              <div>メール: {team.representativeEmail}</div>
+            <div className="mt-2 text-sm text-gray-600">
+              <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-1 items-center">
+                <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+                  <User className="w-4 h-4 text-gray-400" aria-hidden />
+                  <div className="text-left">代表者</div>
+                </div>
+                <div className="truncate text-sm">{team.representativeName || "—"}</div>
+
+                <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+                  <Phone className="w-4 h-4 text-gray-400" aria-hidden />
+                  <div className="text-left">電話</div>
+                </div>
+                <div className="truncate text-sm">{team.representativePhone || "—"}</div>
+
+                <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+                  <Mail className="w-4 h-4 text-gray-400" aria-hidden />
+                  <div className="text-left">メール</div>
+                </div>
+                <div className="truncate text-sm">{team.representativeEmail || "—"}</div>
+              </div>
             </div>
           </div>
 
