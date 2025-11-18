@@ -21,6 +21,7 @@ import type { Team } from "@/types/team.schema";
 
 import { FormInput, FormTextarea } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
@@ -64,7 +65,7 @@ export function TeamEditForm({
   const { isLoading, handleSubmit: handleFormSubmission } =
     useFormSubmit<TeamEditData>();
   const { confirmNavigation } = useUnsavedChanges(hasUnsavedChanges);
-  const { showWarning } = useToast();
+  const { showWarning, showSuccess } = useToast();
 
   const {
     register,
@@ -156,7 +157,27 @@ export function TeamEditForm({
   const addPlayer = () => addItem();
 
   // 選手を削除（共通hookを使用）
-  const removePlayer = (index: number) => removeItem(index);
+
+  // 削除確認ダイアログの state
+  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
+
+  const requestRemovePlayer = (index: number) => {
+    setDeleteConfirmIndex(index);
+  };
+
+  const confirmRemovePlayer = () => {
+    if (deleteConfirmIndex !== null) {
+      const players = getValues().players || [];
+      const p = players[deleteConfirmIndex];
+      const name = p ? `${p.lastName || ""} ${p.firstName || ""}`.trim() : "この選手";
+
+      removeItem(deleteConfirmIndex);
+      setDeleteConfirmIndex(null);
+      showSuccess(`${name} を削除しました`);
+    }
+  };
+
+  const cancelRemovePlayer = () => setDeleteConfirmIndex(null);
 
   // 姓・名が変更されたときにdisplayNameを更新
   const handleNameChange = () => {
@@ -317,7 +338,7 @@ export function TeamEditForm({
                   </div>
 
                   <div className="flex items-end justify-end">
-                    <RemoveButton onClick={() => removePlayer(index)} />
+                    <RemoveButton onClick={() => requestRemovePlayer(index)} />
                   </div>
                 </div>
               ))}
@@ -331,6 +352,26 @@ export function TeamEditForm({
           </CardContent>
         </Card>
       </form>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmIndex !== null}
+        title="選手の削除確認"
+        message={
+          deleteConfirmIndex !== null
+            ? (() => {
+              const players = getValues().players || [];
+              const p = players[deleteConfirmIndex];
+              const name = p ? `${p.lastName || ""} ${p.firstName || ""}`.trim() : "この選手";
+              return `${name} を削除しますか？ この操作は取り消せません。`;
+            })()
+            : "選手を削除しますか？"
+        }
+        onConfirm={confirmRemovePlayer}
+        onCancel={cancelRemovePlayer}
+        confirmText="削除する"
+        cancelText="キャンセル"
+        variant="destructive"
+      />
     </div>
   );
 }
