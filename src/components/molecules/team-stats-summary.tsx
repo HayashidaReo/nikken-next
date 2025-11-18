@@ -9,9 +9,23 @@ export interface TeamStatsSummaryProps {
 }
 
 // Small stat block component used by TeamStatsSummary
-const StatItem = ({ icon, label, value }: { icon: React.ReactNode; label: React.ReactNode; value: React.ReactNode }) => {
+const StatItem = ({
+    icon,
+    label,
+    value,
+    ariaLabel,
+}: {
+    icon: React.ReactNode;
+    label: React.ReactNode;
+    value: React.ReactNode;
+    ariaLabel?: string;
+}) => {
     return (
-        <div className="flex items-center gap-2">
+        <div
+            className="flex items-center gap-2"
+            role={ariaLabel ? "group" : undefined}
+            aria-label={ariaLabel ?? undefined}
+        >
             <span className="flex items-center" aria-hidden>
                 {icon}
             </span>
@@ -31,9 +45,9 @@ export function TeamStatsSummary({ teams, className }: TeamStatsSummaryProps) {
 
     return (
         <div className={cn("flex items-center gap-4 text-sm text-gray-700", className)}>
-            <StatItem icon={<Users className="w-4 h-4 text-gray-600" />} label="総申請" value={`${total} 件`} />
-            <StatItem icon={<Check className="w-4 h-4 text-green-600" />} label="承認済み" value={`${approved} 件`} />
-            <StatItem icon={<X className="w-4 h-4 text-red-500" />} label="未承認" value={`${pending} 件`} />
+            <StatItem ariaLabel="総申請" icon={<Users className="w-4 h-4 text-gray-600" />} label="総申請" value={`${total} 件`} />
+            <StatItem ariaLabel="承認済み" icon={<Check className="w-4 h-4 text-green-600" />} label="承認済み" value={`${approved} 件`} />
+            <StatItem ariaLabel="未承認" icon={<X className="w-4 h-4 text-red-500" />} label="未承認" value={`${pending} 件`} />
         </div>
     );
 }
