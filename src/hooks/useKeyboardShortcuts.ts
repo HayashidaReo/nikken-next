@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
-
-const DOUBLE_TAP_INTERVAL = 300; // 300ms以内をダブルタップと判定
+import { DOUBLE_TAP_INTERVAL_MS, KEY_MAP } from "@/lib/constants/keyboard";
 
 export const useKeyboardShortcuts = () => {
     const {
@@ -26,21 +25,24 @@ export const useKeyboardShortcuts = () => {
             }
 
             const key = event.key.toLowerCase();
+            const action = KEY_MAP[key];
+            if (!action) return;
+
             const now = Date.now();
             const lastTap = lastTapTimeRef.current[key] || 0;
 
             // ダブルタップ判定
-            if (now - lastTap < DOUBLE_TAP_INTERVAL) {
-                // ダブルタップ時のアクション
-                switch (key) {
-                    case " ":
+            if (now - lastTap < DOUBLE_TAP_INTERVAL_MS) {
+                // ダブルタップ時のアクション（timer / incScore / incFoul）
+                switch (action) {
+                    case "toggleTimer":
                         event.preventDefault();
                         toggleTimer();
                         break;
-                    case "s":
+                    case "incScore":
                         incrementScoreForSelectedPlayer();
                         break;
-                    case "z":
+                    case "incFoul":
                         incrementFoulForSelectedPlayer();
                         break;
                     default:
@@ -49,12 +51,12 @@ export const useKeyboardShortcuts = () => {
                 // アクション実行後はタップ時間をリセット
                 lastTapTimeRef.current[key] = 0;
             } else {
-                // シングルタップ時のアクション
-                switch (key) {
-                    case "a":
+                // シングルタップ時のアクション（toggleA / toggleB）
+                switch (action) {
+                    case "toggleA":
                         toggleSelectedPlayer("playerA");
                         break;
-                    case "b":
+                    case "toggleB":
                         toggleSelectedPlayer("playerB");
                         break;
                     default:
