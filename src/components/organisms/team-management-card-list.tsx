@@ -61,59 +61,56 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="flex items-start gap-3">
-              <div className="flex items-start gap-3">
-                <span className="text-lg font-semibold">{team.teamName}</span>
-                <Badge variant={team.isApproved ? "default" : "secondary"}>
-                  {team.isApproved ? "承認済み" : "未承認"}
-                </Badge>
-              </div>
+          <CardTitle className="flex items-start gap-3">
+            <span className="text-lg font-semibold">{team.teamName}</span>
+            <Badge variant={team.isApproved ? "default" : "secondary"}>
+              {team.isApproved ? "承認済み" : "未承認"}
+            </Badge>
+          </CardTitle>
 
-              <div className="ml-auto flex items-start gap-2">
-                <Link href={`/teams/edit/${team.teamId}`}>
-                  <Button variant="outline" size="sm">
-                    <Edit className="w-4 h-4 mr-2" />
-                    編集
-                  </Button>
-                </Link>
+          <div className="flex items-start gap-2">
+            <Link href={`/teams/edit/${team.teamId}`}>
+              <Button variant="outline" size="sm">
+                <Edit className="w-4 h-4 mr-2" />
+                編集
+              </Button>
+            </Link>
 
-                {team.isApproved ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleApprovalClick("unapprove")}
-                  >
-                    承認前に戻す
-                  </Button>
-                ) : (
-                  <Button size="sm" onClick={() => handleApprovalClick("approve")}>
-                    承認
-                  </Button>
-                )}
-              </div>
-            </CardTitle>
-            <div className="mt-2 text-sm text-gray-600">
-              <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-1 items-center">
-                <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
-                  <User className="w-4 h-4 text-gray-400" aria-hidden />
-                  <div className="text-left">代表者</div>
-                </div>
-                <div className="truncate text-sm">{team.representativeName || "—"}</div>
+            {team.isApproved ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleApprovalClick("unapprove")}
+              >
+                承認前に戻す
+              </Button>
+            ) : (
+              <Button size="sm" onClick={() => handleApprovalClick("approve")}>
+                承認
+              </Button>
+            )}
+          </div>
+        </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
-                  <Phone className="w-4 h-4 text-gray-400" aria-hidden />
-                  <div className="text-left">電話</div>
-                </div>
-                <div className="truncate text-sm">{team.representativePhone || "—"}</div>
-
-                <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
-                  <Mail className="w-4 h-4 text-gray-400" aria-hidden />
-                  <div className="text-left">メール</div>
-                </div>
-                <div className="truncate text-sm">{team.representativeEmail || "—"}</div>
-              </div>
+        <div className="mt-2 text-sm text-gray-600">
+          <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-1 items-center">
+            <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+              <User className="w-4 h-4 text-gray-400" aria-hidden />
+              <div className="text-left">代表者</div>
             </div>
+            <div className="truncate text-sm">{team.representativeName || "—"}</div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+              <Phone className="w-4 h-4 text-gray-400" aria-hidden />
+              <div className="text-left">電話</div>
+            </div>
+            <div className="truncate text-sm">{team.representativePhone || "—"}</div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+              <Mail className="w-4 h-4 text-gray-400" aria-hidden />
+              <div className="text-left">メール</div>
+            </div>
+            <div className="truncate text-sm">{team.representativeEmail || "—"}</div>
           </div>
         </div>
       </CardHeader>
