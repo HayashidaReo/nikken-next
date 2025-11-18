@@ -73,9 +73,25 @@ export default function MonitorControlPage() {
           await startPresentation(monitorUrl, true);
           showSuccess("モニター表示を開始しました");
           return;
-        } catch (err) {
-          console.warn("Presentation API start failed via hook, falling back to window.open:", err);
-          // fall through to fallback dialog
+        } catch (err: unknown) {
+          console.log(err);
+
+          // ユーザーがネイティブのプレゼン選択ダイアログを閉じた（キャンセルした）場合は
+          // フォールバックの確認ダイアログを出さず静かに処理を終了する。
+          // Presentation API の例外はブラウザや実装によって異なるため、
+          // エラー名やメッセージを幅広く判定する。
+          const name = typeof err === "object" && err && "name" in err ? (err as Error).name : "";
+          const message = typeof err === "object" && err && "message" in err ? (err as Error).message : String(err ?? "");
+          const isUserCancelled =
+            name === "NotAllowedError" || name === "AbortError" || /Dialog closed/i.test(message);
+
+          if (isUserCancelled) {
+            showInfo("プレゼンテーションの選択がキャンセルされました");
+            return;
+          }
+
+          // それ以外のエラーは通知してフォールバック（下の setShowFallbackDialog）へ進む
+          showError(`Presentation API の開始に失敗しました: ${message}`);
         }
       }
 
