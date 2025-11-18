@@ -276,7 +276,7 @@ export function TeamEditForm({
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg"
+                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_80px] gap-4 p-4 border rounded-lg"
                 >
                   <div>
                     <Label>姓 *</Label>
@@ -316,7 +316,7 @@ export function TeamEditForm({
                     />
                   </div>
 
-                  <div className="flex items-end">
+                  <div className="flex items-end justify-end">
                     <RemoveButton onClick={() => removePlayer(index)} />
                   </div>
                 </div>
