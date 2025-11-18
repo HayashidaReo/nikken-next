@@ -63,3 +63,16 @@ export function validatePlayerNames(playerNames: string[]): number[] {
     .filter(({ name }) => !validatePlayerName(name))
     .map(({ index }) => index);
 }
+
+/**
+ * 指定インデックスの選手のフルネーム（姓 名）を返すユーティリティ
+ * プレイヤー情報が存在しない、または両名が空の場合は「この選手」を返す
+ */
+export function formatPlayerFullName(players: Array<{ lastName?: string; firstName?: string }>, index: number): string {
+  if (!players || index == null || index < 0 || index >= players.length) return `${index + 1}番目の選手`;
+  const p = players[index] || { lastName: "", firstName: "" };
+  const last = (p.lastName || "").trim();
+  const first = (p.firstName || "").trim();
+  const name = `${last} ${first}`.trim();
+  return name || `${index + 1}番目の選手`;
+}

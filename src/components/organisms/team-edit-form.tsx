@@ -34,6 +34,7 @@ import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useArrayField } from "@/hooks/useArrayField";
 import { createDefaultTeamEditValues } from "@/lib/form-defaults";
+import { formatPlayerFullName } from "@/lib/utils/player-name-utils";
 
 // 編集用のスキーマ
 const teamEditSchema = z.object({
@@ -178,8 +179,7 @@ export function TeamEditForm({
   const confirmRemovePlayer = () => {
     if (deleteConfirmIndex !== null) {
       const players = getValues().players || [];
-      const p = players[deleteConfirmIndex];
-      const name = p ? `${p.lastName || ""} ${p.firstName || ""}`.trim() : "この選手";
+      const name = formatPlayerFullName(players, deleteConfirmIndex);
 
       removeItem(deleteConfirmIndex);
       setDeleteConfirmIndex(null);
@@ -383,8 +383,7 @@ export function TeamEditForm({
           deleteConfirmIndex !== null
             ? (() => {
               const players = getValues().players || [];
-              const p = players[deleteConfirmIndex];
-              const name = p ? `${p.lastName || ""} ${p.firstName || ""}`.trim() : "この選手";
+              const name = formatPlayerFullName(players, deleteConfirmIndex as number);
               return `${name} を削除しますか？ この操作は取り消せません。`;
             })()
             : "選手を削除しますか？"
