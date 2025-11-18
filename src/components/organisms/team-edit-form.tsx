@@ -333,11 +333,7 @@ export function TeamEditForm({
                                 aria-label="表示名は自動的に生成されます"
                                 aria-readonly="true"
                               >
-                                {(() => {
-                                  const players = getValues().players || [];
-                                  const p = players[index];
-                                  return p?.displayName || "自動生成";
-                                })()}
+                                {watchedPlayers?.[index]?.displayName ?? ""}
                               </div>
                             </TooltipTrigger>
                             <TooltipContent side="top" align="center" sideOffset={6}>
