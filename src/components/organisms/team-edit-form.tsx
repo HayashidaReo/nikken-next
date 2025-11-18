@@ -339,7 +339,7 @@ export function TeamEditForm({
                       />
                     </div>
 
-                    <div className="flex items-end justify-end">
+                    <div className="flex items-center justify-center">
                       <RemoveButton onClick={() => requestRemovePlayer(index)} />
                     </div>
                   </AnimatedListItem>

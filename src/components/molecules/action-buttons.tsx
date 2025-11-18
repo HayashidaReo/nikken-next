@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Button } from "@/components/atoms/button";
+import { cn } from "@/lib/utils/utils";
 import { Plus, Trash2 } from "lucide-react";
 
 interface AddButtonProps {
@@ -47,13 +48,13 @@ export function RemoveButton({
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       size={size}
       onClick={onClick}
       disabled={disabled}
-      className={className}
+      className={cn("text-red-500 hover:text-red-700 h-8", className)}
     >
-      <Trash2 className="w-4 h-4" />
+      <Trash2 className="h-5 w-5 text-gray-500 hover:text-red-500" />
     </Button>
   );
 }
