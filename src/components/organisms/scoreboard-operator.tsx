@@ -162,6 +162,24 @@ export function ScoreboardOperator({
     setShowFallbackDialog(false);
     const monitorUrl = `${window.location.origin}/monitor-display`;
     window.open(monitorUrl, "_blank", "width=1920,height=1080");
+    // 初回スナップショットを BroadcastChannel で送信
+    try {
+      const monitorData = {
+        matchId,
+        tournamentName,
+        courtName,
+        round,
+        playerA,
+        playerB,
+        timeRemaining,
+        isTimerRunning,
+        isPublic,
+      };
+      broadcastChannelRef.current?.postMessage(monitorData);
+    } catch {
+      // ignore
+    }
+
     showInfo(
       "新しいタブでモニター表示を開始しました。データは自動的に同期されます。"
     );

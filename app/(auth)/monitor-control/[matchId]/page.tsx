@@ -105,6 +105,28 @@ export default function MonitorControlPage() {
         const { token } = await tokenResponse.json();
         const url = `${window.location.origin}/monitor-display?pt=${encodeURIComponent(token)}`;
         window.open(url, "_blank", "width=1920,height=1080");
+
+        // BroadcastChannel で初回スナップショットを送信
+        try {
+          const s = useMonitorStore.getState();
+          const monitorData = {
+            matchId: s.matchId || "",
+            tournamentName: s.tournamentName,
+            courtName: s.courtName,
+            round: s.round,
+            playerA: s.playerA,
+            playerB: s.playerB,
+            timeRemaining: s.timeRemaining,
+            isTimerRunning: s.isTimerRunning,
+            isPublic: s.isPublic,
+          };
+          const ch = new BroadcastChannel("monitor-display-channel");
+          ch.postMessage(monitorData);
+          ch.close();
+        } catch {
+          // ignore
+        }
+
         showInfo("新しいタブでモニター表示を開始しました。データは自動的に同期されます。");
       } catch (e) {
         console.error(e);
