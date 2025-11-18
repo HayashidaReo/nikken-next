@@ -8,7 +8,6 @@ export { MatchHeader } from "./match-header";
 export { PlayerScoreCard } from "./player-score-card";
 export { TimerControl } from "./timer-control";
 export { TimeAdjuster } from "./time-adjuster";
-export { MatchControlPanel } from "./match-control-panel";
 export { ConfirmationDialog } from "./confirmation-dialog";
 export { PlayerListForm } from "./player-list-form";
 export { FormInput, FormTextarea } from "./form-input";

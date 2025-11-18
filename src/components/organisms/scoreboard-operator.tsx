@@ -9,7 +9,6 @@ import {
   MatchHeader,
   PlayerScoreCard,
   TimerControl,
-  MatchControlPanel,
   FallbackMonitorDialog,
   ConfirmDialog,
 } from "@/components/molecules";
@@ -22,8 +21,6 @@ interface ScoreboardOperatorProps {
 }
 
 export function ScoreboardOperator({
-  organizationId,
-  tournamentId,
   className
 }: ScoreboardOperatorProps) {
   const {
@@ -41,8 +38,6 @@ export function ScoreboardOperator({
     setTimeRemaining,
     startTimer,
     stopTimer,
-    togglePublic,
-    saveMatchResult,
     selectedPlayer,
   } = useMonitorStore();
 
@@ -191,11 +186,15 @@ export function ScoreboardOperator({
     <div className={cn("w-full mx-auto space-y-4", className)}>
       {/* ヘッダー情報 */}
       <div className="px-6 lg:px-12">
-        <MatchHeader
-          tournamentName={tournamentName}
-          courtName={courtName}
-          round={round}
-        />
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <MatchHeader
+              tournamentName={tournamentName}
+              courtName={courtName}
+              round={round}
+            />
+          </div>
+        </div>
       </div>
 
       {/* 選手カード領域（左右いっぱいに寄せる） */}
@@ -248,14 +247,6 @@ export function ScoreboardOperator({
           onStopTimer={stopTimer}
         />
 
-        {/* 表示制御と保存 */}
-        <MatchControlPanel
-          isPublic={isPublic}
-          onTogglePublic={togglePublic}
-          onSaveResult={saveMatchResult}
-          organizationId={organizationId}
-          tournamentId={tournamentId}
-        />
 
         {/* フォールバック確認ダイアログ */}
         <FallbackMonitorDialog
