@@ -2,6 +2,7 @@ import {
   splitPlayerName,
   validatePlayerName,
   validatePlayerNames,
+  formatPlayerFullName,
 } from "./player-name-utils";
 
 describe("player-name-utils", () => {
@@ -42,5 +43,25 @@ describe("player-name-utils", () => {
     const names = ["山田 太郎", "", "単一"];
     const invalid = validatePlayerNames(names);
     expect(invalid).toEqual([1, 2]);
+  });
+
+  test("formatPlayerFullName returns full name when present", () => {
+    const players = [
+      { lastName: "山田", firstName: "太郎" },
+      { lastName: "佐藤", firstName: "花子" },
+    ];
+    expect(formatPlayerFullName(players, 0)).toBe("山田 太郎");
+    expect(formatPlayerFullName(players, 1)).toBe("佐藤 花子");
+  });
+
+  test("formatPlayerFullName handles missing or empty names", () => {
+    const players = [
+      { lastName: "", firstName: "" },
+      { lastName: "山田", firstName: "" },
+    ];
+    // When unable to construct a name, fallback to index-based label (1-indexed)
+    expect(formatPlayerFullName(players, 0)).toBe("1番目の選手");
+    expect(formatPlayerFullName(players, 1)).toBe("山田");
+    expect(formatPlayerFullName(players, 10)).toBe("11番目の選手");
   });
 });

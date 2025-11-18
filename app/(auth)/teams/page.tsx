@@ -3,6 +3,7 @@
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { ShareMenu } from "@/components/molecules/share-menu";
+import { TeamStatsSummary } from "@/components/molecules/team-stats-summary";
 import { useTeams, useApproveTeam } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
@@ -58,11 +59,7 @@ export default function TeamsPage() {
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">チーム・選手管理</h1>
           <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-600">
-              総申請数: {teams.length}件 | 承認済み:{" "}
-              {teams.filter(t => t.isApproved).length}件 | 未承認:{" "}
-              {teams.filter(t => !t.isApproved).length}件
-            </div>
+            <TeamStatsSummary teams={teams} />
             {orgId && activeTournamentId && (
               <ShareMenu
                 itemName="チーム・選手管理ページ"

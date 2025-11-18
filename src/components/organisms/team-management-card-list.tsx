@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { Badge } from "@/components/atoms/badge";
-import { ChevronDown, ChevronRight, Edit } from "lucide-react";
+import { ChevronDown, ChevronRight, Edit, User, Phone, Mail } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { DialogOverlay } from "@/components/molecules/dialog-overlay";
 import type { Team } from "@/types/team.schema";
@@ -60,22 +60,15 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <CardTitle className="flex items-center gap-3">
-              <span>{team.teamName}</span>
-              <Badge variant={team.isApproved ? "default" : "secondary"}>
-                {team.isApproved ? "承認済み" : "未承認"}
-              </Badge>
-            </CardTitle>
-            <div className="mt-2 text-sm space-y-1 text-gray-600">
-              <div>代表者: {team.representativeName}</div>
-              <div>電話: {team.representativePhone}</div>
-              <div>メール: {team.representativeEmail}</div>
-            </div>
-          </div>
+        <div className="flex items-start justify-between">
+          <CardTitle className="flex items-start gap-3">
+            <span className="text-lg font-semibold">{team.teamName}</span>
+            <Badge variant={team.isApproved ? "default" : "secondary"}>
+              {team.isApproved ? "承認済み" : "未承認"}
+            </Badge>
+          </CardTitle>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <Link href={`/teams/edit/${team.teamId}`}>
               <Button variant="outline" size="sm">
                 <Edit className="w-4 h-4 mr-2" />
@@ -98,6 +91,28 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
             )}
           </div>
         </div>
+
+        <div className="mt-2 text-sm text-gray-600">
+          <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-1 items-center">
+            <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+              <User className="w-4 h-4 text-gray-400" aria-hidden="true" />
+              <span id={`rep-label-${team.teamId}`} className="text-left">代表者</span>
+            </div>
+            <div className="truncate text-sm" aria-labelledby={`rep-label-${team.teamId}`}>{team.representativeName || "—"}</div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+              <Phone className="w-4 h-4 text-gray-400" aria-hidden="true" />
+              <span id={`phone-label-${team.teamId}`} className="text-left">電話</span>
+            </div>
+            <div className="truncate text-sm" aria-labelledby={`phone-label-${team.teamId}`}>{team.representativePhone || "—"}</div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-500 justify-start">
+              <Mail className="w-4 h-4 text-gray-400" aria-hidden="true" />
+              <span id={`email-label-${team.teamId}`} className="text-left">メール</span>
+            </div>
+            <div className="truncate text-sm" aria-labelledby={`email-label-${team.teamId}`}>{team.representativeEmail || "—"}</div>
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent>
@@ -114,22 +129,22 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
           <span className="font-medium">選手数: {team.players.length}人</span>
         </button>
 
-        {/* 選手一覧（展開時） */}
+        {/* 選手一覧（展開時）: PCでは2列、モバイルでは1列 */}
         {isPlayersExpanded && (
-          <div className="mt-3 pl-6 space-y-2">
-            {team.players.map(player => (
-              <div
-                key={player.playerId}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div>
-                  <span className="font-medium">{player.displayName}</span>
-                  <span className="text-sm text-gray-500 ml-2">
-                    ({player.lastName} {player.firstName})
-                  </span>
+          <div className="mt-3 pl-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {team.players.map((player) => (
+                <div
+                  key={player.playerId}
+                  className="p-3 bg-gray-50 rounded-lg flex items-center"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium text-base">{player.lastName} {player.firstName}</div>
+                    <div className="text-base text-gray-500">（{player.displayName}）</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 

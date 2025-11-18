@@ -6,7 +6,7 @@ import { Spinner } from "@/components/atoms/spinner-for-button";
 import { cn } from "@/lib/utils/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transform transition-transform duration-150 transition-colors hover:shadow-sm hover:-translate-y-0.5 motion-reduce:transform-none motion-reduce:transition-none motion-reduce:duration-0 motion-reduce:hover:translate-y-0 motion-reduce:hover:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
