@@ -7,6 +7,8 @@ import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { ArrowLeft, Monitor, Unplug } from "lucide-react";
 import { Button } from "@/components/atoms/button";
+import { Switch } from "@/components/atoms/switch";
+import { Label } from "@/components/atoms/label";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { usePresentation } from "@/hooks/usePresentation";
 import { useToast } from "@/components/providers/notification-provider";
@@ -24,6 +26,8 @@ export default function MonitorControlPage() {
   const storeMatchId = useMonitorStore((s) => s.matchId);
   const storeTournamentName = useMonitorStore((s) => s.tournamentName);
   const presentationConnected = useMonitorStore((s) => s.presentationConnected);
+  const isPublic = useMonitorStore((s) => s.isPublic);
+  const togglePublic = useMonitorStore((s) => s.togglePublic);
 
   const { orgId, activeTournamentId, isLoading: authLoading } = useAuthContext();
 
@@ -108,20 +112,29 @@ export default function MonitorControlPage() {
               </div>
             </div>
 
-            <div>
-              <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
-                {presentationConnected ? (
-                  <>
-                    <Unplug className="w-4 h-4 mr-2" />
-                    接続を解除
-                  </>
-                ) : (
-                  <>
-                    <Monitor className="w-4 h-4 mr-2" />
-                    表示用モニターを開く
-                  </>
-                )}
-              </Button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Switch checked={isPublic} onCheckedChange={togglePublic} id="public-toggle-header" />
+                <Label htmlFor="public-toggle-header" className="text-sm">
+                  {isPublic ? "公開中" : "非公開"}
+                </Label>
+              </div>
+
+              <div>
+                <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
+                  {presentationConnected ? (
+                    <>
+                      <Unplug className="w-4 h-4 mr-2" />
+                      接続を解除
+                    </>
+                  ) : (
+                    <>
+                      <Monitor className="w-4 h-4 mr-2" />
+                      表示用モニターを開く
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
           <div className="flex justify-center items-center py-16">
@@ -153,20 +166,29 @@ export default function MonitorControlPage() {
               </div>
             </div>
 
-            <div>
-              <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
-                {presentationConnected ? (
-                  <>
-                    <Unplug className="w-4 h-4 mr-2" />
-                    接続を解除
-                  </>
-                ) : (
-                  <>
-                    <Monitor className="w-4 h-4 mr-2" />
-                    表示用モニターを開く
-                  </>
-                )}
-              </Button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Switch checked={isPublic} onCheckedChange={togglePublic} id="public-toggle-header" />
+                <Label htmlFor="public-toggle-header" className="text-sm">
+                  {isPublic ? "公開中" : "非公開"}
+                </Label>
+              </div>
+
+              <div>
+                <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
+                  {presentationConnected ? (
+                    <>
+                      <Unplug className="w-4 h-4 mr-2" />
+                      接続を解除
+                    </>
+                  ) : (
+                    <>
+                      <Monitor className="w-4 h-4 mr-2" />
+                      表示用モニターを開く
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
           <div className="flex justify-center items-center py-16 w-full">
@@ -200,20 +222,29 @@ export default function MonitorControlPage() {
               </div>
             </div>
 
-            <div>
-              <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
-                {presentationConnected ? (
-                  <>
-                    <Unplug className="w-4 h-4 mr-2" />
-                    接続を解除
-                  </>
-                ) : (
-                  <>
-                    <Monitor className="w-4 h-4 mr-2" />
-                    表示用モニターを開く
-                  </>
-                )}
-              </Button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Switch checked={isPublic} onCheckedChange={togglePublic} id="public-toggle-header" />
+                <Label htmlFor="public-toggle-header" className="text-sm">
+                  {isPublic ? "公開中" : "非公開"}
+                </Label>
+              </div>
+
+              <div>
+                <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
+                  {presentationConnected ? (
+                    <>
+                      <Unplug className="w-4 h-4 mr-2" />
+                      接続を解除
+                    </>
+                  ) : (
+                    <>
+                      <Monitor className="w-4 h-4 mr-2" />
+                      表示用モニターを開く
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
           <div className="flex justify-center items-center py-16 w-full">
@@ -245,20 +276,29 @@ export default function MonitorControlPage() {
             </div>
           </div>
 
-          <div>
-            <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
-              {presentationConnected ? (
-                <>
-                  <Unplug className="w-4 h-4 mr-2" />
-                  接続を解除
-                </>
-              ) : (
-                <>
-                  <Monitor className="w-4 h-4 mr-2" />
-                  表示用モニターを開く
-                </>
-              )}
-            </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Switch checked={isPublic} onCheckedChange={togglePublic} id="public-toggle-header" />
+              <Label htmlFor="public-toggle-header" className="text-sm">
+                {isPublic ? "公開中" : "非公開"}
+              </Label>
+            </div>
+
+            <div>
+              <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
+                {presentationConnected ? (
+                  <>
+                    <Unplug className="w-4 h-4 mr-2" />
+                    接続を解除
+                  </>
+                ) : (
+                  <>
+                    <Monitor className="w-4 h-4 mr-2" />
+                    表示用モニターを開く
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 

@@ -2,8 +2,6 @@
 
 import { Button } from "@/components/atoms/button";
 import { Card, CardContent } from "@/components/atoms/card";
-import { Switch } from "@/components/atoms/switch";
-import { Label } from "@/components/atoms/label";
 import { Save } from "lucide-react";
 import { useToast } from "@/components/providers/notification-provider";
 import { useMonitorStore } from "@/store/use-monitor-store";
@@ -18,8 +16,6 @@ interface MatchControlPanelProps {
 }
 
 export function MatchControlPanel({
-  isPublic,
-  onTogglePublic,
   onSaveResult,
   organizationId,
   tournamentId,
@@ -41,16 +37,7 @@ export function MatchControlPanel({
     <Card className={className}>
       <CardContent className="pt-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={isPublic}
-              onCheckedChange={onTogglePublic}
-              id="public-toggle"
-            />
-            <Label htmlFor="public-toggle" className="font-medium">
-              {isPublic ? "公開中" : "非公開"}
-            </Label>
-          </div>
+          <div />
 
           <Button onClick={handleSave} size="lg" disabled={isSaving} >
             <Save className="w-4 h-4 mr-2" />
