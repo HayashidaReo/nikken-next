@@ -60,13 +60,38 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="flex items-center gap-3">
-              <span>{team.teamName}</span>
-              <Badge variant={team.isApproved ? "default" : "secondary"}>
-                {team.isApproved ? "承認済み" : "未承認"}
-              </Badge>
+            <CardTitle className="flex items-start gap-3">
+              <div className="flex items-start gap-3">
+                <span className="text-lg font-semibold">{team.teamName}</span>
+                <Badge variant={team.isApproved ? "default" : "secondary"}>
+                  {team.isApproved ? "承認済み" : "未承認"}
+                </Badge>
+              </div>
+
+              <div className="ml-auto flex items-start gap-2">
+                <Link href={`/teams/edit/${team.teamId}`}>
+                  <Button variant="outline" size="sm">
+                    <Edit className="w-4 h-4 mr-2" />
+                    編集
+                  </Button>
+                </Link>
+
+                {team.isApproved ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleApprovalClick("unapprove")}
+                  >
+                    承認前に戻す
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={() => handleApprovalClick("approve")}>
+                    承認
+                  </Button>
+                )}
+              </div>
             </CardTitle>
             <div className="mt-2 text-sm text-gray-600">
               <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-1 items-center">
@@ -89,29 +114,6 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
                 <div className="truncate text-sm">{team.representativeEmail || "—"}</div>
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link href={`/teams/edit/${team.teamId}`}>
-              <Button variant="outline" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
-                編集
-              </Button>
-            </Link>
-
-            {team.isApproved ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleApprovalClick("unapprove")}
-              >
-                承認前に戻す
-              </Button>
-            ) : (
-              <Button size="sm" onClick={() => handleApprovalClick("approve")}>
-                承認
-              </Button>
-            )}
           </div>
         </div>
       </CardHeader>
