@@ -24,7 +24,7 @@ const StatItem = ({
         <div
             className="flex items-center gap-2"
             role={ariaLabel ? "group" : undefined}
-            aria-label={ariaLabel ?? undefined}
+            aria-label={ariaLabel}
         >
             <span className="flex items-center" aria-hidden>
                 {icon}
