@@ -216,112 +216,112 @@ export function TeamEditForm({
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-        {/* 基本情報 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>基本情報</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <TooltipProvider delayDuration={20}>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+          {/* 基本情報 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>基本情報</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput
-                label="チーム名"
-                name="teamName"
-                required
-                placeholder="チーム名を入力"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormInput
+                  label="チーム名"
+                  name="teamName"
+                  required
+                  placeholder="チーム名を入力"
+                  register={register}
+                  error={errors.teamName?.message}
+                />
+
+                <FormInput
+                  label="代表者名"
+                  name="representativeName"
+                  required
+                  placeholder="代表者名を入力"
+                  register={register}
+                  error={errors.representativeName?.message}
+                />
+
+                <FormInput
+                  label="電話番号"
+                  name="representativePhone"
+                  required
+                  type="tel"
+                  placeholder="電話番号を入力"
+                  register={register}
+                  error={errors.representativePhone?.message}
+                />
+
+                <FormInput
+                  label="メールアドレス"
+                  name="representativeEmail"
+                  required
+                  type="email"
+                  placeholder="メールアドレスを入力"
+                  register={register}
+                  error={errors.representativeEmail?.message}
+                />
+              </div>
+
+              <FormTextarea
+                label="備考"
+                name="remarks"
+                placeholder="備考があれば入力してください"
+                rows={3}
                 register={register}
-                error={errors.teamName?.message}
               />
+            </CardContent>
+          </Card>
 
-              <FormInput
-                label="代表者名"
-                name="representativeName"
-                required
-                placeholder="代表者名を入力"
-                register={register}
-                error={errors.representativeName?.message}
-              />
+          {/* 選手一覧 */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>参加選手一覧</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <AnimatePresence initial={false}>
+                  {fields.map((field, index) => (
+                    <AnimatedListItem
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      <div>
+                        <Label className="text-sm">姓 *</Label>
+                        <Input
+                          {...register(`players.${index}.lastName`)}
+                          placeholder="山田"
+                          onChange={handleNameChange}
+                        />
+                        {errors.players?.[index]?.lastName && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.players[index]?.lastName?.message}
+                          </p>
+                        )}
+                      </div>
 
-              <FormInput
-                label="電話番号"
-                name="representativePhone"
-                required
-                type="tel"
-                placeholder="電話番号を入力"
-                register={register}
-                error={errors.representativePhone?.message}
-              />
+                      <div>
+                        <Label className="text-sm">名 *</Label>
+                        <Input
+                          {...register(`players.${index}.firstName`)}
+                          placeholder="太郎"
+                          onChange={handleNameChange}
+                        />
+                        {errors.players?.[index]?.firstName && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.players[index]?.firstName?.message}
+                          </p>
+                        )}
+                      </div>
 
-              <FormInput
-                label="メールアドレス"
-                name="representativeEmail"
-                required
-                type="email"
-                placeholder="メールアドレスを入力"
-                register={register}
-                error={errors.representativeEmail?.message}
-              />
-            </div>
+                      <div>
+                        <Label className="text-sm">表示名</Label>
 
-            <FormTextarea
-              label="備考"
-              name="remarks"
-              placeholder="備考があれば入力してください"
-              rows={3}
-              register={register}
-            />
-          </CardContent>
-        </Card>
-
-        {/* 選手一覧 */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>参加選手一覧</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <AnimatePresence initial={false}>
-                {fields.map((field, index) => (
-                  <AnimatedListItem
-                    key={field.id}
-                    className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
-                  >
-                    <div>
-                      <Label className="text-sm">姓 *</Label>
-                      <Input
-                        {...register(`players.${index}.lastName`)}
-                        placeholder="山田"
-                        onChange={handleNameChange}
-                      />
-                      {errors.players?.[index]?.lastName && (
-                        <p className="text-sm text-red-600 mt-1">
-                          {errors.players[index]?.lastName?.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label className="text-sm">名 *</Label>
-                      <Input
-                        {...register(`players.${index}.firstName`)}
-                        placeholder="太郎"
-                        onChange={handleNameChange}
-                      />
-                      {errors.players?.[index]?.firstName && (
-                        <p className="text-sm text-red-600 mt-1">
-                          {errors.players[index]?.firstName?.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label className="text-sm">表示名</Label>
-
-                      <div className="flex items-center gap-2">
-                        <TooltipProvider delayDuration={20}>
+                        <div className="flex items-center gap-2">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div
@@ -341,36 +341,36 @@ export function TeamEditForm({
                               表示名は自動的に生成されます
                             </TooltipContent>
                           </Tooltip>
-                        </TooltipProvider>
 
-                        {/* Hidden input to keep displayName in form state */}
-                        <input type="hidden" {...register(`players.${index}.displayName`)} />
+                          {/* Hidden input to keep displayName in form state */}
+                          <input type="hidden" {...register(`players.${index}.displayName`)} />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center justify-center">
-                      <RemoveButton onClick={() => requestRemovePlayer(index)} />
-                    </div>
-                  </AnimatedListItem>
-                ))}
-              </AnimatePresence>
+                      <div className="flex items-center justify-center">
+                        <RemoveButton onClick={() => requestRemovePlayer(index)} />
+                      </div>
+                    </AnimatedListItem>
+                  ))}
+                </AnimatePresence>
 
-              {/* リストの最後尾に選手追加ボタンを配置（大会組み合わせ画面と同様のフル幅表示） */}
-              <div className="mt-2">
-                <AddButton onClick={addPlayer} className="w-full">
-                  選手を追加
-                </AddButton>
-              </div>
-
-              {fields.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  選手が登録されていません
+                {/* リストの最後尾に選手追加ボタンを配置（大会組み合わせ画面と同様のフル幅表示） */}
+                <div className="mt-2">
+                  <AddButton onClick={addPlayer} className="w-full">
+                    選手を追加
+                  </AddButton>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </form>
+
+                {fields.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    選手が登録されていません
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+      </TooltipProvider>
 
       <ConfirmDialog
         isOpen={deleteConfirmIndex !== null}
