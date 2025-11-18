@@ -23,6 +23,12 @@ import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedListItem } from "@/components/atoms/animated-list-item";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/atoms/tooltip";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
@@ -313,12 +319,33 @@ export function TeamEditForm({
 
                     <div>
                       <Label className="text-sm">表示名</Label>
-                      <Input
-                        {...register(`players.${index}.displayName`)}
-                        placeholder="自動生成"
-                        readOnly
-                        className="bg-gray-100"
-                      />
+
+                      <div className="flex items-center gap-2">
+                        <TooltipProvider delayDuration={20}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div
+                                tabIndex={0}
+                                role="button"
+                                className="min-h-[38px] flex items-center px-3 py-2 rounded-md bg-gray-100 text-sm text-gray-700 w-full"
+                                aria-label="表示名は自動的に生成されます"
+                              >
+                                {(() => {
+                                  const players = getValues().players || [];
+                                  const p = players[index];
+                                  return p?.displayName || "自動生成";
+                                })()}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" align="center" sideOffset={6}>
+                              表示名は自動的に生成されます
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        {/* Hidden input to keep displayName in form state */}
+                        <input type="hidden" {...register(`players.${index}.displayName`)} />
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-center">
