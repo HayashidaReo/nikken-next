@@ -65,6 +65,7 @@ export function PlayerScoreCard({
                 variant={player.score === score ? "default" : "outline"}
                 onClick={() => onScoreChange(playerKey, score)}
                 className="flex-1"
+                disableHover
               >
                 {score}
               </Button>
@@ -84,6 +85,7 @@ export function PlayerScoreCard({
                 onClick={() => onHansokuChange(playerKey, hansokuOptions[0].value)}
                 className="text-xs col-span-2"
                 size="sm"
+                disableHover
               >
                 {hansokuOptions[0].label}
               </Button>
@@ -97,6 +99,7 @@ export function PlayerScoreCard({
                 onClick={() => onHansokuChange(playerKey, hansoku.value)}
                 className="text-xs"
                 size="sm"
+                disableHover
               >
                 {hansoku.label}
               </Button>
