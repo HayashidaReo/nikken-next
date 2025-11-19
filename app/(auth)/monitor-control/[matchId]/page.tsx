@@ -108,40 +108,54 @@ export default function MonitorControlPage() {
 
   const handleFallbackConfirm = () => {
     setShowFallbackDialog(false);
-    // 新しいウィンドウを開く前に再度トークンを要求する必要あり（同じエンドポイントを使用）
-    (async () => {
+
+    // - トークン取得 → 新ウィンドウオープン → ストア反映 → BroadcastChannel 送信 の流れ
+    // - BroadcastChannel は存在しない環境があるため事前チェックとログ出力を行う
+    const openFallbackWindow = async () => {
       try {
         const token = await getPresentationToken.mutateAsync({
           matchId,
           orgId: orgId || "",
           tournamentId: activeTournamentId || "",
         });
+
         const url = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
         window.open(url, "_blank", "width=1920,height=1080");
 
         // フォールバックで別タブを開いたことをストアに反映
         try {
           useMonitorStore.getState().setFallbackOpen(true);
-        } catch {
-          // ignore
+        } catch (err) {
+          console.warn("Failed to set fallbackOpen in store:", err);
         }
 
-        // BroadcastChannel で初回スナップショットを送信
+        // BroadcastChannel で初回スナップショットを送信（存在チェックを行う）
         try {
           const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-          const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
-          ch.postMessage(monitorData);
-          ch.close();
-        } catch {
-          // ignore
+          if (typeof BroadcastChannel !== "undefined") {
+            const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
+            ch.postMessage({ type: "snapshot", timestamp: Date.now(), payload: monitorData });
+            ch.close();
+          } else {
+            console.warn("BroadcastChannel is not available in this environment");
+            showInfo("共有チャネルが利用できません。別タブでの同期に制限があります。");
+
+          }
+        } catch (err) {
+          console.warn("BroadcastChannel post failed:", err);
+          showInfo("共有チャネルへの送信に失敗しましたが、別タブを開きました。");
+
         }
 
         showInfo("新しいタブでモニター表示を開始しました。データは自動的に同期されます。");
-      } catch (e) {
-        console.error(e);
+      } catch (err) {
+        console.error("Failed to open fallback window:", err);
         showError("モニター表示の開始に失敗しました。もう一度お試しください。");
       }
-    })();
+    };
+
+    // 非同期処理は関数呼び出しで開始（UIスレッドをブロックしない）
+    openFallbackWindow();
   };
 
   const handleFallbackCancel = () => {
