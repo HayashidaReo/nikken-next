@@ -72,7 +72,10 @@ export function ScoreboardOperator({
 
       // BroadcastChannelで送信
       try {
-        broadcastChannelRef.current?.postMessage(data);
+        broadcastChannelRef.current?.postMessage({
+          type: "data",
+          payload: data,
+        });
       } catch (err) {
         console.warn("BroadcastChannel送信エラー:", err);
       }
@@ -110,17 +113,7 @@ export function ScoreboardOperator({
   const lastSendTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    const now = Date.now();
-    const isTimerOnlyUpdate =
-      lastSendTimeRef.current > 0 && now - lastSendTimeRef.current < 2000;
-
-    // タイマーのみの更新の場合は送信頻度を制限
-    if (isTimerOnlyUpdate && now - lastSendTimeRef.current < 500) {
-      return;
-    }
-
-    lastSendTimeRef.current = now;
-
+    // データを送信
     const monitorData = useMonitorStore.getState().getMonitorSnapshot();
     sendDataToMonitor(monitorData);
   }, [

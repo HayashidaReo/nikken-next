@@ -11,7 +11,13 @@ import SwitchLabel from "@/components/molecules/switch-label";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { usePresentation } from "@/hooks/usePresentation";
 import { useToast } from "@/components/providers/notification-provider";
-import { MONITOR_DISPLAY_CHANNEL, MONITOR_DISPLAY_PATH } from "@/lib/constants/monitor";
+import {
+  MONITOR_DISPLAY_CHANNEL,
+  MONITOR_DISPLAY_PATH,
+  HEARTBEAT_INTERVAL_MS,
+  HEARTBEAT_TIMEOUT_MS,
+  TIMEOUT_CHECK_INTERVAL_MS,
+} from "@/lib/constants/monitor";
 import { useMatch } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -150,7 +156,7 @@ export default function MonitorControlPage() {
     let lastResponseTime = Date.now();
     let timeoutCheckInterval: ReturnType<typeof setInterval>;
 
-    // ハートビート送信（2秒ごと）
+    // ハートビート送信
     const heartbeatInterval = setInterval(() => {
       try {
         const monitorData = useMonitorStore.getState().getMonitorSnapshot();
@@ -161,7 +167,7 @@ export default function MonitorControlPage() {
       } catch (e) {
         console.error("Failed to send heartbeat:", e);
       }
-    }, 2000);
+    }, HEARTBEAT_INTERVAL_MS);
 
     // ハートビート応答のリスナー
     const handleResponse = (event: MessageEvent) => {
@@ -171,14 +177,14 @@ export default function MonitorControlPage() {
     };
     channel.addEventListener("message", handleResponse);
 
-    // タイムアウト検知（5秒以上応答がない場合）
+    // タイムアウト検知
     timeoutCheckInterval = setInterval(() => {
       const timeSinceLastResponse = Date.now() - lastResponseTime;
-      if (timeSinceLastResponse > 5000) {
-        // 5秒以上応答がない場合、切断されたとみなす
+      if (timeSinceLastResponse > HEARTBEAT_TIMEOUT_MS) {
+        // 応答がない場合、切断されたとみなす
         useMonitorStore.getState().setFallbackOpen(false);
       }
-    }, 1000); // 1秒ごとにチェック
+    }, TIMEOUT_CHECK_INTERVAL_MS);
 
     return () => {
       clearInterval(heartbeatInterval);

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
+import {
+  MONITOR_DISPLAY_CHANNEL,
+  HEARTBEAT_TIMEOUT_MS,
+} from "@/lib/constants/monitor";
 import type { MonitorData } from "@/types/monitor.schema";
 
 interface TokenData {
@@ -75,7 +78,7 @@ export function useMonitorData(tokenData?: TokenData | null) {
             if (heartbeatTimer) clearTimeout(heartbeatTimer);
             heartbeatTimer = setTimeout(() => {
               setIsConnected(false);
-            }, 5000); // 5秒間メッセージがない場合は切断とみなす
+            }, HEARTBEAT_TIMEOUT_MS);
           } else if (event.data.type === "data" && event.data.payload) {
             // 通常のデータメッセージ
             setData(event.data.payload);
@@ -84,7 +87,7 @@ export function useMonitorData(tokenData?: TokenData | null) {
             if (heartbeatTimer) clearTimeout(heartbeatTimer);
             heartbeatTimer = setTimeout(() => {
               setIsConnected(false);
-            }, 5000);
+            }, HEARTBEAT_TIMEOUT_MS);
           }
         }
       } catch (err) {
