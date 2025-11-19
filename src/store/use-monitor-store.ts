@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Match } from "@/types/match.schema";
+import type { MonitorData } from "@/types/monitor.schema";
 import { SCORE_CONSTANTS, API_ENDPOINTS } from "@/lib/constants";
 import {
   calculateOpponentScoreChange,
@@ -64,27 +65,7 @@ interface MonitorState {
     tournamentId: string,
     onSuccess?: () => void
   ) => Promise<void>;
-  getMonitorSnapshot: () => {
-    matchId: string;
-    tournamentName: string;
-    courtName: string;
-    round: string;
-    playerA: {
-      displayName: string;
-      teamName: string;
-      score: number;
-      hansoku: number;
-    };
-    playerB: {
-      displayName: string;
-      teamName: string;
-      score: number;
-      hansoku: number;
-    };
-    timeRemaining: number;
-    isTimerRunning: boolean;
-    isPublic: boolean;
-  };
+  getMonitorSnapshot: () => MonitorData;
 }
 
 export const useMonitorStore = create<MonitorState>((set, get) => ({

@@ -1,25 +1,6 @@
 import { useState, useEffect } from "react";
 import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
-
-// ローカルの型定義（monitor用）
-interface PlayerData {
-  displayName: string;
-  teamName: string;
-  score: number;
-  hansoku: number;
-}
-
-interface MatchData {
-  matchId: string;
-  tournamentName: string;
-  courtName: string;
-  round: string;
-  playerA: PlayerData;
-  playerB: PlayerData;
-  timeRemaining: number;
-  isTimerRunning: boolean;
-  isPublic: boolean;
-}
+import type { MonitorData } from "@/types/monitor.schema";
 
 interface TokenData {
   matchId: string;
@@ -28,7 +9,7 @@ interface TokenData {
 }
 
 export function useMonitorData(tokenData?: TokenData | null) {
-  const [data, setData] = useState<MatchData>({
+  const [data, setData] = useState<MonitorData>({
     matchId: "",
     tournamentName: "大会名未設定",
     courtName: "コート名未設定",
