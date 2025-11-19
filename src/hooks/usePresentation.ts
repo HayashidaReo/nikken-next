@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
+import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
 
 // Presentation API の型定義
 declare global {
@@ -168,7 +169,7 @@ export function usePresentation(presentationUrl: string) {
 
           // BroadcastChannel でもフォールバック送信
           try {
-            const ch = new BroadcastChannel("monitor-display-channel");
+            const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
             ch.postMessage(monitorData);
             ch.close();
           } catch {

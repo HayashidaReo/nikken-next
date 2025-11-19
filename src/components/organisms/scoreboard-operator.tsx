@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { usePresentation } from "@/hooks/usePresentation";
+import { MONITOR_DISPLAY_CHANNEL, MONITOR_DISPLAY_PATH } from "@/lib/constants/monitor";
 import {
   MatchHeader,
   PlayerScoreCard,
@@ -41,7 +42,7 @@ export function ScoreboardOperator({
   const {
     isConnected: isPresentationConnected,
     sendMessage,
-  } = usePresentation(`${window.location.origin}/monitor-display`);
+  } = usePresentation(`${window.location.origin}${MONITOR_DISPLAY_PATH}`);
 
   // プレゼンテーション接続状態をグローバルストアに同期
   useEffect(() => {
@@ -56,9 +57,7 @@ export function ScoreboardOperator({
 
   useEffect(() => {
     // BroadcastChannelの初期化
-    broadcastChannelRef.current = new BroadcastChannel(
-      "monitor-display-channel"
-    );
+    broadcastChannelRef.current = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
 
     return () => {
       broadcastChannelRef.current?.close();

@@ -11,6 +11,7 @@ import SwitchLabel from "@/components/molecules/switch-label";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { usePresentation } from "@/hooks/usePresentation";
 import { useToast } from "@/components/providers/notification-provider";
+import { MONITOR_DISPLAY_CHANNEL, MONITOR_DISPLAY_PATH } from "@/lib/constants/monitor";
 import { useMatch } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -41,7 +42,7 @@ export default function MonitorControlPage() {
     isConnected: isPresentationConnected,
     stopPresentation,
     startPresentation,
-  } = usePresentation(`${window.location.origin}/monitor-display`);
+  } = usePresentation(`${window.location.origin}${MONITOR_DISPLAY_PATH}`);
 
   const handleMonitorAction = async () => {
     try {
@@ -67,7 +68,7 @@ export default function MonitorControlPage() {
       }
 
       const { token } = await tokenResponse.json();
-      const monitorUrl = `${window.location.origin}/monitor-display?pt=${encodeURIComponent(token)}`;
+      const monitorUrl = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
 
       if (isPresentationSupported && isPresentationAvailable && startPresentation) {
         try {
@@ -121,7 +122,7 @@ export default function MonitorControlPage() {
           throw new Error("Failed to obtain presentation token");
         }
         const { token } = await tokenResponse.json();
-        const url = `${window.location.origin}/monitor-display?pt=${encodeURIComponent(token)}`;
+        const url = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
         window.open(url, "_blank", "width=1920,height=1080");
 
         // フォールバックで別タブを開いたことをストアに反映
@@ -145,7 +146,7 @@ export default function MonitorControlPage() {
             isTimerRunning: s.isTimerRunning,
             isPublic: s.isPublic,
           };
-          const ch = new BroadcastChannel("monitor-display-channel");
+          const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
           ch.postMessage(monitorData);
           ch.close();
         } catch {

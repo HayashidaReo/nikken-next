@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useMonitorData } from "./use-monitor-data";
+import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
 
 // BroadcastChannelをモック
 const mockBroadcastChannel = {
@@ -94,7 +95,7 @@ describe("useMonitorData", () => {
       renderHook(() => useMonitorData());
 
       expect(global.BroadcastChannel).toHaveBeenCalledWith(
-        "monitor-display-channel"
+        MONITOR_DISPLAY_CHANNEL
       );
       expect(mockBroadcastChannel.addEventListener).toHaveBeenCalledWith(
         "message",

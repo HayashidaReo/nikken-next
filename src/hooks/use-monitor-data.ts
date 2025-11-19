@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
 
 // ローカルの型定義（monitor用）
 interface PlayerData {
@@ -72,7 +73,7 @@ export function useMonitorData(tokenData?: TokenData | null) {
 
   // BroadcastChannelでのデータ共有
   useEffect(() => {
-    const channel = new BroadcastChannel("monitor-display-channel");
+    const channel = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
 
     // メッセージ受信
     const handleMessage = (event: MessageEvent) => {
