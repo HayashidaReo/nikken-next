@@ -68,13 +68,13 @@ export const TEXT_LENGTH_LIMITS = {
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
   CARD_SIZE: {
-    width: "w-28",
-    height: "h-40",
+    width: "w-36",
+    height: "h-52",
   },
   /** ペナルティ背景サイズ */
   BACKGROUND_SIZE: {
-    width: "w-110",
-    height: "h-60",
+    width: "w-[33rem]",
+    height: "h-[18rem]",
   },
 } as const;
 
