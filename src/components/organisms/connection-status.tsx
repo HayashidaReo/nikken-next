@@ -17,7 +17,6 @@ export function ConnectionStatus({ mode, isConnected = false, error = null }: Co
 
   const statusLabel =
     resolvedMode === "presentation" ? "外部モニター接続中" : resolvedMode === "fallback" ? "別タブ表示中" : "未接続";
-// TODO: 別タブを閉じた時に "未接続" に戻るようにする
   const bgClass = resolvedMode === "presentation" ? "bg-green-500 text-white" : resolvedMode === "fallback" ? "bg-blue-500 text-white" : "bg-gray-400 text-white";
   const dotClass = resolvedMode === "presentation" ? "bg-green-200 animate-pulse" : resolvedMode === "fallback" ? "bg-blue-200" : "bg-gray-200";
 
