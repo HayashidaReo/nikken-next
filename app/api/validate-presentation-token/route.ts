@@ -1,33 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { validatePresentationToken, TokenValidationError } from "@/services/presentation-token-service";
 
-const TOKEN_SECRET = process.env.PRESENTATION_TOKEN_SECRET || "dev-secret-change-in-production";
-
-interface TokenPayload {
-    matchId: string;
-    orgId: string;
-    tournamentId: string;
-    scope: "monitor-view";
-    iat: number;
-    exp: number;
-}
-
+/**
+ * プレゼンテーショントークン検証API
+ * モニター表示画面用のトークンが有効かどうかを検証する
+ */
 export async function POST(request: NextRequest) {
     const startTime = Date.now();
     const clientIp = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
 
     try {
-        // Extract token from Authorization header or body
+        // Authorizationヘッダーまたはボディからトークンを抽出
         const authHeader = request.headers.get("authorization");
         let token: string | null = null;
 
         if (authHeader && authHeader.startsWith("Bearer ")) {
+            // Bearerトークン形式
             token = authHeader.substring(7);
         } else {
+            // ボディからトークンを取得
             const body = await request.json();
             token = body.token;
         }
 
+        // トークンの存在チェック
         if (!token) {
             console.warn("[TokenValidation] Token not provided", { clientIp });
             return NextResponse.json(
@@ -36,69 +32,41 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Verify and decode the token
-        const decoded = jwt.verify(token, TOKEN_SECRET, {
-            issuer: "nikken-next",
-            audience: "monitor-display",
-        }) as TokenPayload;
-
-        // Validate token scope
-        if (decoded.scope !== "monitor-view") {
-            console.warn("[TokenValidation] Invalid token scope", {
-                scope: decoded.scope,
-                clientIp,
-            });
-            return NextResponse.json(
-                { error: "Invalid token scope" },
-                { status: 403 }
-            );
-        }
+        // サービス層でトークンを検証
+        const result = validatePresentationToken(token);
 
         const duration = Date.now() - startTime;
 
-        // Log successful validation
+        // 検証成功のログ出力
         console.log("[TokenValidation] Token validated successfully", {
-            matchId: decoded.matchId,
-            orgId: decoded.orgId,
-            tournamentId: decoded.tournamentId,
+            matchId: result.matchId,
+            orgId: result.orgId,
+            tournamentId: result.tournamentId,
             clientIp,
             duration: `${duration}ms`,
         });
 
-        // Token is valid, return the payload data
-        return NextResponse.json({
-            valid: true,
-            matchId: decoded.matchId,
-            orgId: decoded.orgId,
-            tournamentId: decoded.tournamentId,
-        });
+        return NextResponse.json(result);
     } catch (error) {
         const duration = Date.now() - startTime;
 
-        if (error instanceof jwt.TokenExpiredError) {
-            console.warn("[TokenValidation] Token expired", {
+        // トークン検証エラーのハンドリング
+        if (error instanceof TokenValidationError) {
+            const status = error.code === "EXPIRED" || error.code === "INVALID" ? 401 : 403;
+            console.warn("[TokenValidation] Token validation error:", {
+                code: error.code,
+                message: error.message,
                 clientIp,
                 duration: `${duration}ms`,
             });
             return NextResponse.json(
-                { error: "Token has expired" },
-                { status: 401 }
+                { error: error.message },
+                { status }
             );
         }
 
-        if (error instanceof jwt.JsonWebTokenError) {
-            console.warn("[TokenValidation] Invalid token signature", {
-                clientIp,
-                duration: `${duration}ms`,
-                errorMessage: error.message,
-            });
-            return NextResponse.json(
-                { error: "Invalid token" },
-                { status: 401 }
-            );
-        }
-
-        console.error("[TokenValidation] Token validation error:", error, {
+        // 予期しないエラーのハンドリング
+        console.error("[TokenValidation] Unexpected error:", error, {
             clientIp,
             duration: `${duration}ms`,
         });
@@ -108,3 +76,5 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+
+
