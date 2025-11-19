@@ -23,9 +23,9 @@ export const NOTIFICATION_CONSTANTS = {
 // 🎨 UIレイアウト関連定数
 export const UI_CONSTANTS = {
   /** スコア表示フォントサイズ */
-  SCORE_FONT_SIZE: "text-[12rem]",
+  SCORE_FONT_SIZE: "text-[16rem]",
   /** スコア表示幅 */
-  SCORE_WIDTH: "w-80",
+  SCORE_WIDTH: "w-[150px]",
   /** フォーム最大幅 */
   FORM_MAX_WIDTH: "max-w-4xl",
   /** コンテナ最大幅 */
@@ -60,13 +60,13 @@ export const TEXT_LENGTH_LIMITS = {
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
   CARD_SIZE: {
-    width: "w-16",
-    height: "h-24",
+    width: "w-28",
+    height: "h-40",
   },
   /** ペナルティ背景サイズ */
   BACKGROUND_SIZE: {
-    width: "w-66",
-    height: "h-40",
+    width: "w-110",
+    height: "h-60",
   },
 } as const;
 
