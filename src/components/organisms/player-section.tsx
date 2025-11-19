@@ -31,10 +31,10 @@ export function PlayerSection({
       {/* 左側：チーム名と選手名 */}
       <div className="flex items-center h-full">
         <div className="flex-1">
-          <div className="text-5xl font-medium mb-2 opacity-90 py-4">
+          <div className="text-7xl font-medium mb-2 opacity-90 py-4">
             {player.teamName || "チーム名未設定"}
           </div>
-          <div className="text-[12rem] font-black leading-none">{playerName}</div>
+          <div className="text-[16rem] font-black leading-none">{playerName}</div>
         </div>
       </div>
 

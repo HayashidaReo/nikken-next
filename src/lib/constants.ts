@@ -22,10 +22,10 @@ export const NOTIFICATION_CONSTANTS = {
 
 // 🎨 UIレイアウト関連定数
 export const UI_CONSTANTS = {
-  /** スコア表示フォントサイズ */
-  SCORE_FONT_SIZE: "text-[16rem]",
-  /** スコア表示幅 */
-  SCORE_WIDTH: "w-[150px]",
+  /** スコア表示フォントサイズ（拡大） */
+  SCORE_FONT_SIZE: "text-[20rem]",
+  /** スコア表示幅（フォントに合わせて拡張） */
+  SCORE_WIDTH: "w-[22rem]",
   /** フォーム最大幅 */
   FORM_MAX_WIDTH: "max-w-4xl",
   /** コンテナ最大幅 */
