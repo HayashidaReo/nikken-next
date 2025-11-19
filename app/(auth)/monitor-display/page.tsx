@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { MonitorDisplayContainer } from "@/components/organisms/monitor-display-container";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
+import { useValidatePresentationToken } from "@/queries/use-presentation";
 
 interface TokenData {
   matchId: string;
@@ -16,6 +17,7 @@ export default function MonitorDisplayPage() {
   const searchParams = useSearchParams();
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [isValidating, setIsValidating] = useState(true);
+  const validatePresentationToken = useValidatePresentationToken();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,29 +30,17 @@ export default function MonitorDisplayPage() {
     }
 
     // プレゼンテーション用トークンを検証
-    fetch("/api/validate-presentation-token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || "Token validation failed");
-        }
-        return res.json();
-      })
-      .then((data) => {
+    validatePresentationToken.mutate(token, {
+      onSuccess: (data) => {
         setTokenData(data);
         setIsValidating(false);
-      })
-      .catch((err) => {
+      },
+      onError: (err) => {
         console.error("Token validation error:", err);
         setError(err.message || "トークンの検証に失敗しました");
         setIsValidating(false);
-      });
+      },
+    });
   }, [searchParams]);
 
   if (isValidating) {

@@ -19,6 +19,7 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { FallbackMonitorDialog } from "@/components/molecules";
 import { useState } from "react";
+import { useGetPresentationToken } from "@/queries/use-presentation";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -53,21 +54,11 @@ export default function MonitorControlPage() {
       }
 
       // まず、プレゼンテーション用トークンを取得する
-      const tokenResponse = await fetch("/api/presentation-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          matchId,
-          orgId: orgId || "",
-          tournamentId: activeTournamentId || "",
-        }),
+      const token = await getPresentationToken.mutateAsync({
+        matchId,
+        orgId: orgId || "",
+        tournamentId: activeTournamentId || "",
       });
-
-      if (!tokenResponse.ok) {
-        throw new Error("Failed to obtain presentation token");
-      }
-
-      const { token } = await tokenResponse.json();
       const monitorUrl = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
 
       if (isPresentationSupported && isPresentationAvailable && startPresentation) {
@@ -107,21 +98,18 @@ export default function MonitorControlPage() {
   };
 
   const [showFallbackDialog, setShowFallbackDialog] = useState(false);
+  const getPresentationToken = useGetPresentationToken();
 
   const handleFallbackConfirm = () => {
     setShowFallbackDialog(false);
     // 新しいウィンドウを開く前に再度トークンを要求する必要あり（同じエンドポイントを使用）
     (async () => {
       try {
-        const tokenResponse = await fetch("/api/presentation-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ matchId, orgId: orgId || "", tournamentId: activeTournamentId || "" }),
+        const token = await getPresentationToken.mutateAsync({
+          matchId,
+          orgId: orgId || "",
+          tournamentId: activeTournamentId || "",
         });
-        if (!tokenResponse.ok) {
-          throw new Error("Failed to obtain presentation token");
-        }
-        const { token } = await tokenResponse.json();
         const url = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
         window.open(url, "_blank", "width=1920,height=1080");
 
