@@ -32,6 +32,14 @@ export const UI_CONSTANTS = {
   CONTAINER_MAX_WIDTH: "max-w-6xl",
 } as const;
 
+// 📺 モニター表示関連定数（基準解像度）
+export const MONITOR_CONSTANTS = {
+  /** モニター用の基準幅（px） */
+  BASE_WIDTH: 1920,
+  /** モニター用の基準高さ（px） */
+  BASE_HEIGHT: 1080,
+} as const;
+
 // 📝 フォーム関連定数
 export const FORM_CONSTANTS = {
   /** 時間入力の最小値 */

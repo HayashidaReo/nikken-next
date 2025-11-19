@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { useMonitorData } from "@/hooks/use-monitor-data";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
+import { MONITOR_CONSTANTS } from "@/lib/constants";
 
 interface TokenData {
   matchId: string;
@@ -18,6 +20,26 @@ export function MonitorDisplayContainer({
   tokenData,
 }: MonitorDisplayContainerProps) {
   const { data } = useMonitorData(tokenData);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const BASE_WIDTH = MONITOR_CONSTANTS.BASE_WIDTH;
+      const BASE_HEIGHT = MONITOR_CONSTANTS.BASE_HEIGHT;
+
+      const scaleX = window.innerWidth / BASE_WIDTH;
+      const scaleY = window.innerHeight / BASE_HEIGHT;
+
+      // 画面に収まるように小さい方の倍率を採用（contain）
+      setScale(Math.min(scaleX, scaleY));
+    };
+
+    // 初期化とイベントリスナー設定
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // 非公開時の表示
   if (!data.isPublic) {
@@ -26,24 +48,19 @@ export function MonitorDisplayContainer({
 
   return (
     <div
-      className={`min-h-screen bg-black text-white relative overflow-hidden ${className}`}
+      className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
     >
-      {/* メイン画面レイアウト */}
-      {/* モニター表示は常に中央で 16:9 比率を保ち、画面比率が異なる場合は余白を黒で埋める */}
-      <div className="w-full h-full flex items-center justify-center">
-        <div
-          // `min()` を使って画面幅/高さに合わせて最大化しつつ 16:9 を維持
-          style={{
-            width: "min(100vw, calc(16 / 9 * 100vh))",
-            height: "min(100vh, calc(9 / 16 * 100vw))",
-          }}
-          className="bg-black w-auto h-auto"
-        >
-          {/* MonitorLayout は親のサイズに合わせて伸縮 */}
-          <div className="w-full h-full">
-            <MonitorLayout data={data} />
-          </div>
-        </div>
+      {/* 基準解像度 BASE_WIDTH×BASE_HEIGHT でレイアウトし、画面サイズに合わせてスケールする */}
+      <div
+        style={{
+          width: MONITOR_CONSTANTS.BASE_WIDTH,
+          height: MONITOR_CONSTANTS.BASE_HEIGHT,
+          transform: `scale(${scale})`,
+          transformOrigin: "center",
+        }}
+        className="bg-black flex-shrink-0"
+      >
+        <MonitorLayout data={data} />
       </div>
     </div>
   );
