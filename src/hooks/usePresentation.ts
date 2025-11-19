@@ -132,6 +132,7 @@ export function usePresentation(presentationUrl: string) {
       }));
 
       // グローバルストアに接続を保存（呼び出し側が望む場合のみ）
+      // オペレーター画面などから、この接続を使用してデータを送信するために必要
       if (registerGlobal) {
         useMonitorStore.getState().setPresentationConnection(connection);
         useMonitorStore.getState().setPresentationConnected(connection.state === "connected");
