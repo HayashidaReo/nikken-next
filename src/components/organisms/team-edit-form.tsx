@@ -164,7 +164,9 @@ export function TeamEditForm({
 
   useEffect(() => {
     updateDisplayNames();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- updateDisplayNames intentionally omitted; see note above
+    // 「フォーム上の選手データが変更されたときにのみ表示名を再計算する」ことであり、
+    // updateDisplayNames の参照が変わるたびに effect を再実行させたくないため
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- updateDisplayNames intentionally omitted on purpose
   }, [watchedPlayers]);
 
   // 選手を削除（共通hookを使用）

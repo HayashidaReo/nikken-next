@@ -6,7 +6,7 @@ import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 
 interface PenaltyDisplayProps {
     hansokuCount: HansokuLevel;
-    variant?: "compact" | "normal";
+    variant?: "compact" | "medium" | "normal";
     className?: string;
     ariaLabel?: string;
 }
@@ -27,8 +27,9 @@ export function PenaltyDisplay({
     const cards = getPenaltyCards(hansokuCount);
 
     // カードのサイズ定義
-    const cardSizeClasses = {
+    const cardSizeClasses: Record<NonNullable<PenaltyDisplayProps['variant']>, string> = {
         compact: "w-3 h-4",
+        medium: "w-4 h-5.5",
         normal: "w-16 h-24",
     };
 

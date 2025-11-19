@@ -1,50 +1,35 @@
 import { cn } from "@/lib/utils/utils";
 
 interface ConnectionStatusProps {
-  isConnected: boolean;
-  error: string | null;
+  /**
+   * Optional explicit mode. If not provided, `isConnected` will be used to determine display.
+   * - 'disconnected' : 未接続
+   * - 'presentation' : 外部モニター接続中
+   * - 'fallback' : 別タブ表示中
+   */
+  mode?: "disconnected" | "presentation" | "fallback";
+  isConnected?: boolean;
+  error?: string | null;
 }
 
-export function ConnectionStatus({
-  isConnected,
-  error,
-}: ConnectionStatusProps) {
+export function ConnectionStatus({ mode, isConnected = false, error = null }: ConnectionStatusProps) {
+  const resolvedMode = mode ?? (isConnected ? "presentation" : "disconnected");
+
+  const statusLabel =
+    resolvedMode === "presentation" ? "外部モニター接続中" : resolvedMode === "fallback" ? "別タブ表示中" : "未接続";
+  const bgClass = resolvedMode === "presentation" ? "bg-green-500 text-white" : resolvedMode === "fallback" ? "bg-blue-500 text-white" : "bg-gray-400 text-white";
+  const dotClass = resolvedMode === "presentation" ? "bg-green-200 animate-pulse" : resolvedMode === "fallback" ? "bg-blue-200" : "bg-gray-200";
+
   return (
-    <>
-      {/* 接続状態表示 */}
-      <div className="fixed top-4 right-4 z-50">
-        <div
-          className={cn(
-            "px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2",
-            isConnected ? "bg-green-500 text-white" : "bg-yellow-500 text-white"
-          )}
-        >
-          <div
-            className={cn(
-              "w-2 h-2 rounded-full",
-              isConnected ? "bg-green-200 animate-pulse" : "bg-yellow-200"
-            )}
-          />
-          {isConnected ? "データ同期中" : "スタンバイ中"}
-        </div>
+    <div className="flex items-center gap-3">
+      <span className="text-lg font-semibold">モニター操作画面</span>
+
+      <div className={cn("px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2", bgClass)}>
+        <div className={cn("w-2 h-2 rounded-full", dotClass)} />
+        <span>{statusLabel}</span>
       </div>
 
-      {/* 接続方法の説明 */}
-      {!isConnected && (
-        <div className="fixed top-16 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm max-w-xs">
-          <p className="font-semibold mb-1">使用方法</p>
-          <p>
-            スコアボード操作画面から「モニター表示開始」ボタンを押すと、このページにデータが表示されます。
-          </p>
-        </div>
-      )}
-
-      {/* エラー表示 */}
-      {error && (
-        <div className="fixed top-16 right-4 bg-red-500 text-white px-4 py-2 rounded-lg">
-          {error}
-        </div>
-      )}
-    </>
+      {error && <span className="text-red-500 text-sm ml-2">{error}</span>}
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Match } from "@/types/match.schema";
-import { SCORE_CONSTANTS, API_ENDPOINTS } from "@/lib/constants";
+import type { MonitorData } from "@/types/monitor.schema";
+import { SCORE_CONSTANTS, HANSOKU_CONSTANTS } from "@/lib/constants";
 import {
   calculateOpponentScoreChange,
   updateOpponentScore,
@@ -34,7 +35,10 @@ interface MonitorState {
 
   // 表示制御
   isPublic: boolean; // 公開/非公開
-  isSaving: boolean; // 保存処理中フラグ
+  presentationConnected: boolean;
+  presentationConnection?: PresentationConnection | null;
+  fallbackOpen: boolean;
+  selectedPlayer: "playerA" | "playerB" | null;
 
   // アクション
   initializeMatch: (
@@ -47,12 +51,15 @@ interface MonitorState {
   setTimeRemaining: (seconds: number) => void;
   startTimer: () => void;
   stopTimer: () => void;
+  toggleTimer: () => void;
   togglePublic: () => void;
-  saveMatchResult: (
-    organizationId: string,
-    tournamentId: string,
-    onSuccess?: () => void
-  ) => Promise<void>;
+  setPresentationConnected: (connected: boolean) => void;
+  setPresentationConnection: (conn: PresentationConnection | null) => void;
+  setFallbackOpen: (open: boolean) => void;
+  toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => void;
+  incrementScoreForSelectedPlayer: () => void;
+  incrementFoulForSelectedPlayer: () => void;
+  getMonitorSnapshot: () => MonitorData;
 }
 
 export const useMonitorStore = create<MonitorState>((set, get) => ({
@@ -78,7 +85,9 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   timeRemaining: 180, // デフォルト3分
   isTimerRunning: false,
   isPublic: false,
-  isSaving: false,
+  presentationConnected: false,
+  fallbackOpen: false,
+  selectedPlayer: null,
 
   // アクション
   initializeMatch: (
@@ -168,61 +177,78 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     set({ isTimerRunning: false });
   },
 
+  toggleTimer: () => {
+    const { isTimerRunning } = get();
+    set({ isTimerRunning: !isTimerRunning });
+  },
+
   togglePublic: () => {
     const currentState = get();
     set({ isPublic: !currentState.isPublic });
   },
 
-  saveMatchResult: async (
-    organizationId: string,
-    tournamentId: string,
-    onSuccess?: () => void
-  ) => {
-    const currentState = get();
+  setPresentationConnected: (connected: boolean) => {
+    set({ presentationConnected: connected });
+  },
 
-    if (!currentState.matchId) {
-      console.error("Match ID is not available for saving");
+  setPresentationConnection: (conn: PresentationConnection | null) => {
+    set({ presentationConnection: conn });
+  },
+
+  setFallbackOpen: (open: boolean) => {
+    set({ fallbackOpen: open });
+  },
+
+  toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => {
+    const { selectedPlayer } = get();
+    if (player === "none") {
+      set({ selectedPlayer: null });
       return;
     }
 
-    try {
-      // 保存処理開始
-      set({ isSaving: true });
-
-      const response = await fetch(API_ENDPOINTS.MATCH_UPDATE(currentState.matchId), {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          organizationId,
-          tournamentId,
-          players: {
-            playerA: {
-              score: currentState.playerA.score,
-              hansoku: currentState.playerA.hansoku,
-            },
-            playerB: {
-              score: currentState.playerB.score,
-              hansoku: currentState.playerB.hansoku,
-            },
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save match result");
-      }
-
-      // 成功時のコールバック実行
-      onSuccess?.();
-    } catch (error) {
-      console.error("Failed to save match result:", error);
-      throw error;
-    } finally {
-      // 保存処理終了
-      set({ isSaving: false });
+    if (selectedPlayer === player) {
+      set({ selectedPlayer: null });
+    } else {
+      set({ selectedPlayer: player });
     }
+  },
+
+  incrementScoreForSelectedPlayer: () => {
+    const { selectedPlayer, playerA, playerB, setPlayerScore } = get();
+    if (!selectedPlayer) return;
+
+    const targetPlayer = selectedPlayer === "playerA" ? playerA : playerB;
+    const newScore = targetPlayer.score + 1;
+
+    if (newScore <= SCORE_CONSTANTS.MAX_SCORE) {
+      setPlayerScore(selectedPlayer === "playerA" ? "A" : "B", newScore);
+    }
+  },
+
+  incrementFoulForSelectedPlayer: () => {
+    const { selectedPlayer, playerA, playerB, setPlayerHansoku } = get();
+    if (!selectedPlayer) return;
+
+    const targetPlayer = selectedPlayer === "playerA" ? playerA : playerB;
+    const newHansoku = targetPlayer.hansoku + 1;
+
+    if (newHansoku <= HANSOKU_CONSTANTS.MAX_HANSOKU) {
+      setPlayerHansoku(selectedPlayer === "playerA" ? "A" : "B", newHansoku);
+    }
+  },
+
+  getMonitorSnapshot: () => {
+    const s = get();
+    return {
+      matchId: s.matchId || "",
+      tournamentName: s.tournamentName,
+      courtName: s.courtName,
+      round: s.round,
+      playerA: s.playerA,
+      playerB: s.playerB,
+      timeRemaining: s.timeRemaining,
+      isTimerRunning: s.isTimerRunning,
+      isPublic: s.isPublic,
+    };
   },
 }));

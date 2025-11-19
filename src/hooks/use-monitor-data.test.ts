@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useMonitorData } from "./use-monitor-data";
+import { MONITOR_DISPLAY_CHANNEL, HEARTBEAT_TIMEOUT_MS } from "@/lib/constants/monitor";
 
 // BroadcastChannelをモック
 const mockBroadcastChannel = {
@@ -94,7 +95,7 @@ describe("useMonitorData", () => {
       renderHook(() => useMonitorData());
 
       expect(global.BroadcastChannel).toHaveBeenCalledWith(
-        "monitor-display-channel"
+        MONITOR_DISPLAY_CHANNEL
       );
       expect(mockBroadcastChannel.addEventListener).toHaveBeenCalledWith(
         "message",
@@ -104,6 +105,121 @@ describe("useMonitorData", () => {
   });
 
   describe("BroadcastChannel通信", () => {
+    it("heartbeat を受けると ack を返す & タイムアウトで切断される", () => {
+      jest.useFakeTimers();
+      const { result } = renderHook(() => useMonitorData());
+
+      const messageHandler =
+        mockBroadcastChannel.addEventListener.mock.calls.find(
+          call => call[0] === "message"
+        )?.[1];
+
+      const payload = {
+        matchId: "hb-1",
+        tournamentName: "HB大会",
+        courtName: "コート",
+        round: "決勝",
+        playerA: { displayName: "A", teamName: "T", score: 0, hansoku: 0 },
+        playerB: { displayName: "B", teamName: "T", score: 0, hansoku: 0 },
+        timeRemaining: 60,
+        isTimerRunning: false,
+        isPublic: false,
+      };
+
+      act(() => {
+        messageHandler?.({ data: { type: "heartbeat", payload } } as MessageEvent);
+      });
+
+      expect(mockBroadcastChannel.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: "ack" }));
+      expect(result.current.isConnected).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(HEARTBEAT_TIMEOUT_MS + 10);
+      });
+
+      expect(result.current.isConnected).toBe(false);
+      jest.useRealTimers();
+    });
+
+    it("連続 heartbeat でタイマーがリセットされる", () => {
+      jest.useFakeTimers();
+      const { result } = renderHook(() => useMonitorData());
+
+      const messageHandler =
+        mockBroadcastChannel.addEventListener.mock.calls.find(
+          call => call[0] === "message"
+        )?.[1];
+
+      const payload = {
+        matchId: "hb-2",
+        tournamentName: "HB2",
+        courtName: "C",
+        round: "準決勝",
+        playerA: { displayName: "A", teamName: "T", score: 0, hansoku: 0 },
+        playerB: { displayName: "B", teamName: "T", score: 0, hansoku: 0 },
+        timeRemaining: 60,
+        isTimerRunning: false,
+        isPublic: false,
+      };
+
+      act(() => {
+        messageHandler?.({ data: { type: "heartbeat", payload } } as MessageEvent);
+      });
+
+      // タイムアウト直前まで進める
+      act(() => {
+        jest.advanceTimersByTime(HEARTBEAT_TIMEOUT_MS - 10);
+      });
+
+      // ここで再度 heartbeat を受ける（タイマーがリセットされる）
+      act(() => {
+        messageHandler?.({ data: { type: "heartbeat", payload } } as MessageEvent);
+      });
+
+      // 少し進めても切断されない
+      act(() => {
+        jest.advanceTimersByTime(20);
+      });
+
+      expect(result.current.isConnected).toBe(true);
+
+      // 最後の heartbeat からタイムアウト分進めると切断される
+      act(() => {
+        jest.advanceTimersByTime(HEARTBEAT_TIMEOUT_MS + 10);
+      });
+
+      expect(result.current.isConnected).toBe(false);
+      jest.useRealTimers();
+    });
+
+    it("生の MonitorData オブジェクトも受け入れる (wrapped で送る)", () => {
+      const { result } = renderHook(() => useMonitorData());
+
+      const raw = {
+        matchId: "raw-1",
+        tournamentName: "Raw大会",
+        courtName: "R",
+        round: "予選",
+        playerA: { displayName: "A", teamName: "T", score: 1, hansoku: 0 },
+        playerB: { displayName: "B", teamName: "T", score: 2, hansoku: 0 },
+        timeRemaining: 120,
+        isTimerRunning: false,
+        isPublic: false,
+      };
+
+      const messageHandler =
+        mockBroadcastChannel.addEventListener.mock.calls.find(
+          call => call[0] === "message"
+        )?.[1];
+
+      act(() => {
+        messageHandler?.({ data: { type: "data", payload: raw } } as MessageEvent);
+      });
+
+      expect(result.current.data.matchId).toBe("raw-1");
+      expect(result.current.isConnected).toBe(true);
+    });
+
     it("メッセージ受信時にデータが更新される", () => {
       const { result } = renderHook(() => useMonitorData());
 
@@ -137,9 +253,9 @@ describe("useMonitorData", () => {
 
       expect(messageHandler).toBeDefined();
 
-      // メッセージイベントをシミュレート
+      // メッセージイベントをシミュレート（ラップされたデータ形式）
       act(() => {
-        messageHandler?.({ data: testData } as MessageEvent);
+        messageHandler?.({ data: { type: "data", payload: testData } } as MessageEvent);
       });
 
       expect(result.current.data).toEqual(testData);
@@ -236,16 +352,15 @@ describe("useMonitorData", () => {
           call => call[0] === "message"
         )?.[1];
 
-      // tournamentNameのないオブジェクトは無視される
-      const incompleteObj = { data: { matchId: "test" } };
+      // tournamentNameのないオブジェクト（ラップ形式で送ると matchId は反映される）
+      const incompletePayload = { matchId: "test" };
 
       act(() => {
-        messageHandler?.({ data: incompleteObj } as MessageEvent);
+        messageHandler?.({ data: { type: "data", payload: incompletePayload } } as MessageEvent);
       });
 
-      // 無効なデータは無視され、初期値を保持する
-      expect(result.current.data.tournamentName).toBe("大会名未設定");
-      expect(result.current.data.matchId).toBe(""); // 初期値のまま
+      // ラップされたpayloadはそのまま反映される（matchId が更新される）
+      expect(result.current.data.matchId).toBe("test");
 
       // エラーが発生する場合をテスト: 循環参照
       const circularObj: Record<string, unknown> = {
@@ -256,7 +371,7 @@ describe("useMonitorData", () => {
       (circularObj.data as Record<string, unknown>).self = circularObj;
 
       act(() => {
-        messageHandler?.({ data: circularObj } as MessageEvent);
+        messageHandler?.({ data: { type: "data", payload: circularObj } } as MessageEvent);
       });
 
       // 有効なtournamentNameとmatchIdがあるので更新される
@@ -282,7 +397,7 @@ describe("useMonitorData", () => {
         )?.[1];
 
       act(() => {
-        messageHandler?.({ data: partialData } as MessageEvent);
+        messageHandler?.({ data: { type: "data", payload: partialData } } as MessageEvent);
       });
 
       // 部分的なデータが受け入れられて更新される
