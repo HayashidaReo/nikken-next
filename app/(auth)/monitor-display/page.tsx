@@ -25,7 +25,7 @@ export default function MonitorDisplayPage() {
 
     if (!token) {
       // トークンが提供されていない場合 - 通常のフローを許可（BroadcastChannel/Presentation APIを使用）
-      setIsValidating(false);
+      setTimeout(() => setIsValidating(false), 0);
       return;
     }
 
@@ -41,7 +41,7 @@ export default function MonitorDisplayPage() {
         setIsValidating(false);
       },
     });
-  }, [searchParams]);
+  }, [searchParams, validatePresentationToken]);
 
   if (isValidating) {
     return (
