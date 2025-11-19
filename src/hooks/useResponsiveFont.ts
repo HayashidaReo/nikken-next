@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { PLAYER_FONT_CONSTANTS } from "@/lib/constants";
 
 interface UseResponsiveFontOptions {
     baseFontSize: number; // rem単位
@@ -21,7 +20,7 @@ interface UseResponsiveFontOptions {
 export function useResponsiveFont({
     baseFontSize,
     minFontSize,
-    maxWidth = PLAYER_FONT_CONSTANTS.RESPONSIVE_FONT.MAX_WIDTH,
+    maxWidth = 100,
 }: UseResponsiveFontOptions) {
     const elementRef = useRef<HTMLDivElement>(null);
     const [fontSizeRem, setFontSizeRem] = useState(baseFontSize);
@@ -61,13 +60,12 @@ export function useResponsiveFont({
             }
         };
 
-        // maxWidth が変わった時のみ再計算
         const timeoutId = setTimeout(calculateFontSize, 50);
 
         return () => {
             clearTimeout(timeoutId);
         };
-    }, [baseFontSize, minFontSize, maxWidth]); // maxWidth が変わったときのみ再実行
+    }, [baseFontSize, minFontSize, maxWidth]);
 
     return { fontSizeRem, elementRef };
 }

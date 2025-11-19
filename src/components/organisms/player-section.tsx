@@ -9,7 +9,7 @@ import {
 import { type MatchPlayer } from "@/types/match.schema";
 import { type HansokuLevel } from "@/lib/utils/penalty-utils";
 import { useResponsiveFont } from "@/hooks/useResponsiveFont";
-import { PLAYER_FONT_CONSTANTS } from "@/lib/constants";
+import { RESPONSIVE_FONT_CONSTANTS } from "@/lib/constants";
 
 interface PlayerSectionProps {
   player: MatchPlayer;
@@ -28,9 +28,9 @@ export function PlayerSection({
 
   // 選手名のフォントサイズを自動調整（最大横幅 700px まで）
   const { fontSizeRem, elementRef } = useResponsiveFont({
-    baseFontSize: PLAYER_FONT_CONSTANTS.RESPONSIVE_FONT.BASE_FONT_SIZE,
-    minFontSize: PLAYER_FONT_CONSTANTS.RESPONSIVE_FONT.MIN_FONT_SIZE,
-    maxWidth: PLAYER_FONT_CONSTANTS.RESPONSIVE_FONT.MAX_WIDTH,
+    baseFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE,
+    minFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE,
+    maxWidth: RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH,
   });
 
   return (
@@ -48,7 +48,7 @@ export function PlayerSection({
             ref={elementRef}
             style={{
               fontSize: `${fontSizeRem}rem`,
-              maxWidth: `${PLAYER_FONT_CONSTANTS.RESPONSIVE_FONT.MAX_WIDTH}px`,
+              maxWidth: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}px`,
               height: "250px",
             }}
             className="font-black leading-none whitespace-nowrap"

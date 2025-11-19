@@ -41,15 +41,26 @@ export const MONITOR_CONSTANTS = {
 } as const;
 
 // 選手表示関連定数
-export const PLAYER_FONT_CONSTANTS = {
-  RESPONSIVE_FONT: {
+export const RESPONSIVE_FONT_CONSTANTS = {
+  /** 選手表示部分のレスポンシブフォント設定 */
+  PLAYER: {
     /** ベースフォントサイズ（rem） */
     BASE_FONT_SIZE: 16,
     /** 最小フォントサイズ（rem） */
     MIN_FONT_SIZE: 8,
-    /** 選手表示部分の maxWidth（px） */
+    /** 自動調整の 最大横幅（px） */
     MAX_WIDTH: 1000,
   },
+  /** 大会名,コート名,ラウンド名の表示部分のレスポンシブフォント設定 */
+  INFO: {
+    /** ベースフォントサイズ（rem） */
+    BASE_FONT_SIZE: 5,
+    /** 最小フォントサイズ（rem） */
+    MIN_FONT_SIZE: 0.8,
+    /** 最大横幅（px） */
+    MAX_WIDTH: 980,
+  },
+  
 } as const;
 
 // 📝 フォーム関連定数
