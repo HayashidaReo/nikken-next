@@ -50,15 +50,6 @@ export function useMonitorData(tokenData?: TokenData | null) {
     if (!tokenData) return;
 
     // エフェクト内での同期的な状態更新を避けるため、更新を遅延させる
-    // setIsConnected(true) をここで即時に呼ぶ理由:
-    // - トークンによる限定的アクセスが許可されている旨をUI側に即座に反映し、
-    //   読み込み中や未接続の表示を避けるため。
-    // - その後のBroadcastChannel/Presentation API経由でのデータ受信や
-    //   更新処理（スナップショット要求など）への移行をスムーズにするため。
-    // 影響範囲:
-    // - `isConnected` に依存するコンポーネントはこのフラグで表示ロジックを切り替えるため、
-    //   即時に画面にモニター情報領域を表示するようになる。
-    // - セキュリティ的にはトークン発行側での妥当性担保が前提となる点に注意。
     const t = setTimeout(() => {
       setIsConnected(true);
     }, 0);
