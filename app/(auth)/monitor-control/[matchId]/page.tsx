@@ -74,7 +74,7 @@ export default function MonitorControlPage() {
           showSuccess("モニター表示を開始しました");
           return;
         } catch (err: unknown) {
-          console.log(err);
+          console.error(err);
 
           // ユーザーがネイティブのプレゼン選択ダイアログを閉じた（キャンセルした）場合は
           // フォールバックの確認ダイアログを出さず静かに処理を終了する。
@@ -154,7 +154,6 @@ export default function MonitorControlPage() {
 
     const channel = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
     let lastResponseTime = Date.now();
-    let timeoutCheckInterval: ReturnType<typeof setInterval>;
 
     // ハートビート送信
     const heartbeatInterval = setInterval(() => {
@@ -178,7 +177,7 @@ export default function MonitorControlPage() {
     channel.addEventListener("message", handleResponse);
 
     // タイムアウト検知
-    timeoutCheckInterval = setInterval(() => {
+    const timeoutCheckInterval = setInterval(() => {
       const timeSinceLastResponse = Date.now() - lastResponseTime;
       if (timeSinceLastResponse > HEARTBEAT_TIMEOUT_MS) {
         // 応答がない場合、切断されたとみなす
