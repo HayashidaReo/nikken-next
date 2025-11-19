@@ -109,8 +109,6 @@ export function ScoreboardOperator({
     };
   }, [isTimerRunning]);
 
-  // データが変更されたときにモニター画面に送信（タイマー更新は制限）
-  const lastSendTimeRef = useRef<number>(0);
 
   useEffect(() => {
     // データを送信
