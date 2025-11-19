@@ -155,8 +155,8 @@ export function useMonitorData(tokenData?: TokenData | null) {
           if (typeof maybeSender.send === "function") {
             maybeSender.send(JSON.stringify({ type: "request_snapshot" }));
           }
-        } catch {
-          // 無視
+        } catch (err) {
+          console.warn("Failed to request snapshot from connection:", err);
         }
 
         // 接続終了リスナー
