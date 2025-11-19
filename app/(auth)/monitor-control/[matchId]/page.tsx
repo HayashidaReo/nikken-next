@@ -126,7 +126,7 @@ export default function MonitorControlPage() {
         try {
           useMonitorStore.getState().setFallbackOpen(true);
         } catch (err) {
-          console.warn("Failed to set fallbackOpen in store:", err);
+          console.warn("ストアの fallbackOpen 設定に失敗しました:", err);
         }
 
         // BroadcastChannel で初回スナップショットを送信（存在チェックを行う）
@@ -144,12 +144,11 @@ export default function MonitorControlPage() {
         } catch (err) {
           console.warn("ブロードキャストチャネルへの送信に失敗しました:", err);
           showInfo("共有チャネルへの送信に失敗しましたが、別タブを開きました。");
-
         }
 
         showInfo("新しいタブでモニター表示を開始しました。データは自動的に同期されます。");
       } catch (err) {
-        console.error("Failed to open fallback window:", err);
+        console.error("フォールバックウィンドウを開くのに失敗しました:", err);
         showError("モニター表示の開始に失敗しました。もう一度お試しください。");
       }
     };
@@ -178,7 +177,7 @@ export default function MonitorControlPage() {
           payload: monitorData,
         });
       } catch (e) {
-        console.error("Failed to send heartbeat:", e);
+        console.error("ハートビートの送信に失敗しました:", e);
       }
     }, HEARTBEAT_INTERVAL_MS);
 
