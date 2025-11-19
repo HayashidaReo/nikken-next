@@ -59,20 +59,32 @@ export function useMonitorData(tokenData?: TokenData | null) {
     const handleMessage = (event: MessageEvent) => {
       try {
         if (event.data && typeof event.data === "object") {
-          // MatchDataの最低限の必須フィールドをチェック
-          const hasRequiredFields =
-            typeof event.data.tournamentName === "string" &&
-            typeof event.data.matchId === "string";
-
-          if (hasRequiredFields) {
-            setData(event.data);
+          // 型付きメッセージの処理
+          if (event.data.type === "heartbeat" && event.data.payload) {
+            // ハートビートメッセージを受信したら、データを更新して応答を返す
+            setData(event.data.payload);
             setIsConnected(true);
 
-            // ハートビート受信時にタイマーをリセット
+            // ハートビート応答を送信
+            channel.postMessage({
+              type: "heartbeat_response",
+              timestamp: Date.now(),
+            });
+
+            // タイマーをリセット
             if (heartbeatTimer) clearTimeout(heartbeatTimer);
             heartbeatTimer = setTimeout(() => {
               setIsConnected(false);
             }, 5000); // 5秒間メッセージがない場合は切断とみなす
+          } else if (event.data.type === "data" && event.data.payload) {
+            // 通常のデータメッセージ
+            setData(event.data.payload);
+            setIsConnected(true);
+
+            if (heartbeatTimer) clearTimeout(heartbeatTimer);
+            heartbeatTimer = setTimeout(() => {
+              setIsConnected(false);
+            }, 5000);
           }
         }
       } catch (err) {

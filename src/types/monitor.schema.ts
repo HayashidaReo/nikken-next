@@ -27,5 +27,13 @@ export const monitorDataSchema = z.object({
     isPublic: z.boolean(),
 });
 
+/**
+ * BroadcastChannel経由で送信されるメッセージの型定義
+ */
+export type MonitorMessage =
+    | { type: "data"; payload: MonitorData }              // 通常のデータ送信
+    | { type: "heartbeat"; payload: MonitorData }         // ハートビート（データ付き）
+    | { type: "heartbeat_response"; timestamp: number };  // ハートビート応答
+
 export type MonitorPlayer = z.infer<typeof monitorPlayerSchema>;
 export type MonitorData = z.infer<typeof monitorDataSchema>;

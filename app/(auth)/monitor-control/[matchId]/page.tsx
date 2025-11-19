@@ -142,22 +142,48 @@ export default function MonitorControlPage() {
     setShowFallbackDialog(false);
   };
 
-  // フォールバック表示（別タブ）へのハートビート送信
+  // フォールバック表示（別タブ）へのハートビート送信と応答検知
   useEffect(() => {
     if (!fallbackOpen) return;
 
     const channel = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
-    const interval = setInterval(() => {
+    let lastResponseTime = Date.now();
+    let timeoutCheckInterval: ReturnType<typeof setInterval>;
+
+    // ハートビート送信（2秒ごと）
+    const heartbeatInterval = setInterval(() => {
       try {
         const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-        channel.postMessage(monitorData);
+        channel.postMessage({
+          type: "heartbeat",
+          payload: monitorData,
+        });
       } catch (e) {
         console.error("Failed to send heartbeat:", e);
       }
-    }, 2000); // 2秒ごとに送信
+    }, 2000);
+
+    // ハートビート応答のリスナー
+    const handleResponse = (event: MessageEvent) => {
+      if (event.data?.type === "heartbeat_response") {
+        lastResponseTime = Date.now();
+      }
+    };
+    channel.addEventListener("message", handleResponse);
+
+    // タイムアウト検知（5秒以上応答がない場合）
+    timeoutCheckInterval = setInterval(() => {
+      const timeSinceLastResponse = Date.now() - lastResponseTime;
+      if (timeSinceLastResponse > 5000) {
+        // 5秒以上応答がない場合、切断されたとみなす
+        useMonitorStore.getState().setFallbackOpen(false);
+      }
+    }, 1000); // 1秒ごとにチェック
 
     return () => {
-      clearInterval(interval);
+      clearInterval(heartbeatInterval);
+      clearInterval(timeoutCheckInterval);
+      channel.removeEventListener("message", handleResponse);
       channel.close();
     };
   }, [fallbackOpen]);
