@@ -17,11 +17,11 @@ export function TimerDisplay({
     <div
       className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 ${className}`}
     >
-      <SkewedBackground className="pl-34 pr-14 py-0">
+      <SkewedBackground className="pl-40 pr-16">
         <div className="text-right">
           <div
             className={cn(
-              "text-[10rem] font-mono font-black",
+              "text-[14rem] font-mono font-black",
               isTimerRunning ? "text-green-400" : "text-white"
             )}
           >
