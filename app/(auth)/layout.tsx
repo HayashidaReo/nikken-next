@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useValidatePresentationToken } from "@/queries/use-presentation";
 
 export default function AuthLayout({
     children,
@@ -17,8 +18,9 @@ export default function AuthLayout({
     const { user, isInitialized, isLoading } = useAuthStore();
     const [hasValidToken, setHasValidToken] = useState(false);
     const [tokenChecked, setTokenChecked] = useState(false);
+    const validatePresentationToken = useValidatePresentationToken();
 
-    // Check for presentation token on monitor-display route
+    // monitor-displayルートでのプレゼンテーショントークンを確認する
     useEffect(() => {
         const isMonitorDisplay = pathname?.includes("/monitor-display");
         const presentationToken = searchParams?.get("pt");
@@ -26,26 +28,19 @@ export default function AuthLayout({
         let timer: ReturnType<typeof setTimeout> | null = null;
 
         if (isMonitorDisplay && presentationToken) {
-            // Validate token quickly
-            fetch("/api/validate-presentation-token", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${presentationToken}`
+            // トークンを即座に検証する
+            validatePresentationToken.mutate(presentationToken, {
+                onSuccess: () => {
+                    setHasValidToken(true);
+                    // エフェクト内での同期的な状態更新を避けるため、更新を遅延させる
+                    timer = setTimeout(() => setTokenChecked(true), 0);
                 },
-            })
-                .then(res => {
-                    if (res.ok) {
-                        setHasValidToken(true);
-                    }
-                    // Defer state update to avoid synchronous setState inside effect
+                onError: () => {
                     timer = setTimeout(() => setTokenChecked(true), 0);
-                })
-                .catch(() => {
-                    timer = setTimeout(() => setTokenChecked(true), 0);
-                });
+                }
+            });
         } else {
-            // Defer state update to avoid synchronous setState inside effect
+            // エフェクト内での同期的な状態更新を避けるため、更新を遅延させる
             timer = setTimeout(() => setTokenChecked(true), 0);
         }
 
@@ -55,7 +50,7 @@ export default function AuthLayout({
     }, [pathname, searchParams]);
 
     useEffect(() => {
-        // Skip auth check if valid presentation token exists
+        // 有効なプレゼンテーショントークンが存在する場合は認証チェックをスキップする
         if (hasValidToken) {
             return;
         }
