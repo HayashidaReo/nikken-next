@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   MONITOR_DISPLAY_CHANNEL,
   HEARTBEAT_TIMEOUT_MS,
@@ -36,6 +36,7 @@ export function useMonitorData(tokenData?: TokenData | null) {
 
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const heartbeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // トークンデータが提供されている場合は、トークンベース認証モードとして動作する
   // このモードでは、通常の認証要件をスキップし、モニター表示を許可する
@@ -75,8 +76,8 @@ export function useMonitorData(tokenData?: TokenData | null) {
             });
 
             // タイマーをリセット
-            if (heartbeatTimer) clearTimeout(heartbeatTimer);
-            heartbeatTimer = setTimeout(() => {
+            if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
+            heartbeatTimerRef.current = setTimeout(() => {
               setIsConnected(false);
             }, HEARTBEAT_TIMEOUT_MS);
           } else if (event.data.type === "data" && event.data.payload) {
@@ -84,8 +85,8 @@ export function useMonitorData(tokenData?: TokenData | null) {
             setData(event.data.payload);
             setIsConnected(true);
 
-            if (heartbeatTimer) clearTimeout(heartbeatTimer);
-            heartbeatTimer = setTimeout(() => {
+            if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
+            heartbeatTimerRef.current = setTimeout(() => {
               setIsConnected(false);
             }, HEARTBEAT_TIMEOUT_MS);
           }
@@ -95,12 +96,12 @@ export function useMonitorData(tokenData?: TokenData | null) {
       }
     };
 
-    let heartbeatTimer: ReturnType<typeof setTimeout>;
+    // タイマー参照は `heartbeatTimerRef` を使用する
     channel.addEventListener("message", handleMessage);
 
     return () => {
       channel.removeEventListener("message", handleMessage);
-      if (heartbeatTimer) clearTimeout(heartbeatTimer);
+      if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
       channel.close();
     };
   }, []);
