@@ -3,6 +3,7 @@
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { Textarea } from "@/components/atoms/textarea";
+import type { UseFormRegister, FieldValues, Path } from "react-hook-form";
 
 interface FormInputProps {
   label: string;
@@ -18,9 +19,8 @@ interface FormInputProps {
   trailingIconLabel?: string;
 }
 
-interface FormInputWithRegisterProps extends FormInputProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: any;
+interface FormInputWithRegisterProps<T extends FieldValues> extends FormInputProps {
+  register: UseFormRegister<T>;
 }
 
 interface FormTextareaProps {
@@ -33,12 +33,11 @@ interface FormTextareaProps {
   className?: string;
 }
 
-interface FormTextareaWithRegisterProps extends FormTextareaProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: any;
+interface FormTextareaWithRegisterProps<T extends FieldValues> extends FormTextareaProps {
+  register: UseFormRegister<T>;
 }
 
-export function FormInput({
+export function FormInput<T extends FieldValues>({
   label,
   name,
   error,
@@ -51,14 +50,14 @@ export function FormInput({
   trailingIconLabel,
   register,
   ...props
-}: FormInputWithRegisterProps) {
+}: FormInputWithRegisterProps<T>) {
   return (
     <div className={className}>
       <Label htmlFor={name}>
         {label} {required && "*"}
       </Label>
       <Input
-        {...register(name)}
+        {...register(name as Path<T>)}
         id={name}
         type={type}
         placeholder={placeholder}
@@ -73,7 +72,7 @@ export function FormInput({
   );
 }
 
-export function FormTextarea({
+export function FormTextarea<T extends FieldValues>({
   label,
   name,
   error,
@@ -83,14 +82,14 @@ export function FormTextarea({
   className,
   register,
   ...props
-}: FormTextareaWithRegisterProps) {
+}: FormTextareaWithRegisterProps<T>) {
   return (
     <div className={className}>
       <Label htmlFor={name}>
         {label} {required && "*"}
       </Label>
       <Textarea
-        {...register(name)}
+        {...register(name as Path<T>)}
         id={name}
         placeholder={placeholder}
         rows={rows}

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Match } from "@/types/match.schema";
 import type { MonitorData } from "@/types/monitor.schema";
-import { SCORE_CONSTANTS } from "@/lib/constants";
+import { SCORE_CONSTANTS, HANSOKU_CONSTANTS } from "@/lib/constants";
 import {
   calculateOpponentScoreChange,
   updateOpponentScore,
@@ -232,8 +232,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     const targetPlayer = selectedPlayer === "playerA" ? playerA : playerB;
     const newHansoku = targetPlayer.hansoku + 1;
 
-    // NOTE: FOUL_CONSTANTS.MAX_FOUL のような定数が存在しないため、マジックナンバーを使用
-    if (newHansoku <= 4) {
+    if (newHansoku <= HANSOKU_CONSTANTS.MAX_HANSOKU) {
       setPlayerHansoku(selectedPlayer === "playerA" ? "A" : "B", newHansoku);
     }
   },

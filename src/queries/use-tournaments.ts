@@ -32,8 +32,7 @@ export function useTournamentsByOrganization(orgId: string | null) {
             const tournaments = data.data || [];
 
             // APIから返ってくるISO文字列をDateに変換
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return tournaments.map((tournament: any) => ({
+            return tournaments.map((tournament: Tournament) => ({
                 ...tournament,
                 tournamentDate: tournament.tournamentDate ? new Date(tournament.tournamentDate) : null,
                 createdAt: tournament.createdAt ? new Date(tournament.createdAt) : undefined,
