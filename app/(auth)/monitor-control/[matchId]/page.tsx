@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
@@ -9,114 +8,43 @@ import { ArrowLeft, Monitor, Unplug, Save } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
-import { usePresentation } from "@/hooks/usePresentation";
 import { useToast } from "@/components/providers/notification-provider";
-import {
-  MONITOR_DISPLAY_PATH,
-} from "@/lib/constants/monitor";
-import { useMatch } from "@/queries/use-matches";
-import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { FallbackMonitorDialog } from "@/components/molecules";
-import { useState } from "react";
-import { useGetPresentationToken } from "@/queries/use-presentation";
-import { useFallbackMonitor } from "@/hooks/useFallbackMonitor";
+import { useMatchDataWithPriority } from "@/hooks/useMatchDataWithPriority";
+import { useMonitorController } from "@/hooks/useMonitorController";
 
 export default function MonitorControlPage() {
   const params = useParams();
   const matchId = params.matchId as string;
-  const { initializeMatch, saveMatchResult, isSaving } = useMonitorStore();
-  // ストアに保存されているデータ（遷移元で initializeMatch が呼ばれた場合）
-  const storeMatchId = useMonitorStore((s) => s.matchId);
-  const storeTournamentName = useMonitorStore((s) => s.tournamentName);
+  const { saveMatchResult, isSaving } = useMonitorStore();
+
   const presentationConnected = useMonitorStore((s) => s.presentationConnected);
   const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
   const monitorStatusMode = presentationConnected ? "presentation" : fallbackOpen ? "fallback" : "disconnected";
   const isPublic = useMonitorStore((s) => s.isPublic);
   const togglePublic = useMonitorStore((s) => s.togglePublic);
 
-  const { orgId, activeTournamentId, isLoading: authLoading } = useAuthContext();
+  const { orgId, activeTournamentId } = useAuthContext();
+  const { showSuccess, showError } = useToast();
 
-  const { showSuccess, showError, showInfo } = useToast();
+  // データ取得ロジック（ストア優先）
+  const { isLoading, hasError, matchFound } = useMatchDataWithPriority(matchId);
+
+  // モニター制御ロジック
   const {
-    isSupported: isPresentationSupported,
-    isAvailable: isPresentationAvailable,
-    isConnected: isPresentationConnected,
-    stopPresentation,
-    startPresentation,
-  } = usePresentation(`${window.location.origin}${MONITOR_DISPLAY_PATH}`);
-
-  const handleMonitorAction = async () => {
-    try {
-      if (isPresentationConnected) {
-        await stopPresentation();
-        showInfo("プレゼンテーション接続を停止しました");
-        return;
-      }
-
-      // まず、プレゼンテーション用トークンを取得する
-      const token = await getPresentationToken.mutateAsync({
-        matchId,
-        orgId: orgId || "",
-        tournamentId: activeTournamentId || "",
-      });
-      const monitorUrl = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
-
-      if (isPresentationSupported && isPresentationAvailable && startPresentation) {
-        try {
-          // registerGlobal=true でストアに接続を保存する
-          await startPresentation(monitorUrl, true);
-          showSuccess("モニター表示を開始しました");
-          return;
-        } catch (err: unknown) {
-          console.error(err);
-
-          // ユーザーがネイティブのプレゼン選択ダイアログを閉じた（キャンセルした）場合は
-          // フォールバックの確認ダイアログを出さず静かに処理を終了する。
-          // Presentation API の例外はブラウザや実装によって異なるため、
-          // エラー名やメッセージを幅広く判定する。
-          const name = typeof err === "object" && err && "name" in err ? (err as Error).name : "";
-          const message = typeof err === "object" && err && "message" in err ? (err as Error).message : String(err ?? "");
-          const isUserCancelled =
-            name === "NotAllowedError" || name === "AbortError" || /Dialog closed/i.test(message);
-
-          if (isUserCancelled) {
-            showInfo("プレゼンテーションの選択がキャンセルされました");
-            return;
-          }
-
-          // それ以外のエラーは通知してフォールバック（下の setShowFallbackDialog）へ進む
-          showError(`Presentation API の開始に失敗しました: ${message}`);
-        }
-      }
-
-      // Presentation API が利用できないか start に失敗した場合はフォールバックダイアログを表示
-      setShowFallbackDialog(true);
-    } catch (err) {
-      console.error(err);
-      showError("モニター表示の開始に失敗しました。もう一度お試しください。");
-    }
-  };
-
-  const [showFallbackDialog, setShowFallbackDialog] = useState(false);
-  const getPresentationToken = useGetPresentationToken();
-  const { openFallbackWindow } = useFallbackMonitor({
+    isPresentationConnected,
+    handleMonitorAction,
+    showFallbackDialog,
+    handleFallbackConfirm,
+    handleFallbackCancel,
+  } = useMonitorController({
     matchId,
     orgId: orgId || "",
     tournamentId: activeTournamentId || "",
   });
-
-  const handleFallbackConfirm = () => {
-    setShowFallbackDialog(false);
-    // 非同期処理は関数呼び出しで開始（UIスレッドをブロックしない）
-    openFallbackWindow();
-  };
-
-  const handleFallbackCancel = () => {
-    setShowFallbackDialog(false);
-  };
 
   const handleSave = async () => {
     try {
@@ -127,35 +55,6 @@ export default function MonitorControlPage() {
       showError("試合結果の保存に失敗しました");
     }
   };
-
-  // ストア優先: ストアに現在の matchId のデータがあれば Firebase クエリは無効化する
-  const hasStoreData = Boolean(storeMatchId && storeMatchId === matchId && storeTournamentName);
-
-  // Firebase からデータを取得（ただしストアにあればクエリは無効化）
-  const { data: match, isLoading: matchLoading, error: matchError } = useMatch(hasStoreData ? null : matchId);
-  const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(
-    hasStoreData ? null : orgId,
-    hasStoreData ? null : activeTournamentId
-  );
-
-  // ストア優先のため、ストアデータがある場合は fetch 側の loading/error を無視する
-  const isLoading = authLoading || (!hasStoreData && (matchLoading || tournamentLoading));
-  const hasError = !hasStoreData && (matchError || tournamentError);
-
-  useEffect(() => {
-    // ストアに既にデータがある場合は初期化不要
-    if (hasStoreData) return;
-
-    // Firebase から取得したデータで初期化（フォールバック）
-    if (match && tournament) {
-      const court = tournament.courts.find(
-        (c: { courtId: string; courtName: string }) => c.courtId === match.courtId
-      );
-      const courtName = court ? court.courtName : match.courtId;
-
-      initializeMatch(match, tournament.tournamentName, courtName);
-    }
-  }, [hasStoreData, match, tournament, initializeMatch]);
 
   // ローディング状態
   if (isLoading) {
@@ -217,8 +116,8 @@ export default function MonitorControlPage() {
     );
   }
 
-  // 試合が見つからない場合（ストアにもデータが無い場合のみ表示）
-  if (!hasStoreData && !match) {
+  // 試合が見つからない場合
+  if (!matchFound) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
@@ -278,8 +177,8 @@ export default function MonitorControlPage() {
             />
 
             <div className="flex items-center gap-3">
-              <Button onClick={handleMonitorAction} variant={presentationConnected ? "destructive" : "outline"}>
-                {presentationConnected ? (
+              <Button onClick={handleMonitorAction} variant={isPresentationConnected ? "destructive" : "outline"}>
+                {isPresentationConnected ? (
                   <>
                     <Unplug className="w-4 h-4 mr-2" />
                     接続を解除

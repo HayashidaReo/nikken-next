@@ -3,8 +3,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { usePresentation } from "@/hooks/usePresentation";
-import { MONITOR_DISPLAY_CHANNEL, MONITOR_DISPLAY_PATH } from "@/lib/constants/monitor";
+import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
 import {
   MatchHeader,
   PlayerScoreCard,
@@ -39,15 +38,8 @@ export function ScoreboardOperator({
     selectedPlayer,
   } = useMonitorStore();
 
-  const {
-    isConnected: isPresentationConnected,
-    sendMessage,
-  } = usePresentation(`${window.location.origin}${MONITOR_DISPLAY_PATH}`);
-
-  // プレゼンテーション接続状態をグローバルストアに同期
-  useEffect(() => {
-    useMonitorStore.getState().setPresentationConnected(isPresentationConnected);
-  }, [isPresentationConnected]);
+  const isPresentationConnected = useMonitorStore((s) => s.presentationConnected);
+  const presentationConnection = useMonitorStore((s) => s.presentationConnection);
 
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -68,8 +60,12 @@ export function ScoreboardOperator({
   const sendDataToMonitor = useCallback(
     (data: unknown) => {
       // Presentation APIで送信
-      if (isPresentationConnected) {
-        sendMessage(data);
+      if (isPresentationConnected && presentationConnection && presentationConnection.state === "connected") {
+        try {
+          presentationConnection.send(JSON.stringify(data));
+        } catch (err) {
+          console.error("メッセージ送信に失敗:", err);
+        }
       }
 
       // BroadcastChannelで送信
@@ -82,7 +78,7 @@ export function ScoreboardOperator({
         console.warn("BroadcastChannel送信エラー:", err);
       }
     },
-    [sendMessage, isPresentationConnected]
+    [isPresentationConnected, presentationConnection]
   );
 
   // キーボードショートカットの有効化

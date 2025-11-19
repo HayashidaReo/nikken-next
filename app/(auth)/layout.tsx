@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
@@ -19,7 +19,6 @@ export default function AuthLayout({
     const [hasValidToken, setHasValidToken] = useState(false);
     const [tokenChecked, setTokenChecked] = useState(false);
     const validatePresentationToken = useValidatePresentationToken();
-    const lastValidatedTokenRef = useRef<string | null>(null);
 
     // monitor-displayルートでのプレゼンテーショントークンを確認する
     useEffect(() => {
@@ -29,18 +28,10 @@ export default function AuthLayout({
         let timer: ReturnType<typeof setTimeout> | null = null;
 
         if (isMonitorDisplay && presentationToken) {
-            // 同一トークンに対する重複検証を避けるガード
-            if (lastValidatedTokenRef.current === presentationToken) {
-                // 既に検証済みのトークンなので再検証をスキップ
-                timer = setTimeout(() => setTokenChecked(true), 0);
-                return;
-            }
-            // トークンを即座に検証する
+            // トークンを検証する
             validatePresentationToken.mutate(presentationToken, {
                 onSuccess: () => {
                     setHasValidToken(true);
-                    lastValidatedTokenRef.current = presentationToken;
-                    
                     // setTokenChecked を即時に呼び出すと effect の実行中に同期的な
                     // state 更新が発生し、意図しないバッチングやレンダリング順序の問題を
                     // 引き起こす可能性があるため、マクロタスクに遅延させて実行している。
@@ -48,12 +39,9 @@ export default function AuthLayout({
                 },
                 onError: () => {
                     // エラー時も同様に遅延してトークンチェック完了フラグを立てる
-                    lastValidatedTokenRef.current = presentationToken;
                     timer = setTimeout(() => setTokenChecked(true), 0);
                 }
             });
-            // 検証を開始したトークンを記録（成功/失敗いずれでも再検証は不要）
-            lastValidatedTokenRef.current = presentationToken;
         } else {
             // 上記と同じ理由で、ここでも同期的な state 更新を避けてマクロタスクに遅延させる
             timer = setTimeout(() => setTokenChecked(true), 0);
@@ -62,7 +50,8 @@ export default function AuthLayout({
         return () => {
             if (timer) clearTimeout(timer);
         };
-    }, [pathname, searchParams, validatePresentationToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname, searchParams, validatePresentationToken.mutate]);
 
     useEffect(() => {
         // 有効なプレゼンテーショントークンが存在する場合は認証チェックをスキップする
