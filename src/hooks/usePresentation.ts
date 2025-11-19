@@ -158,6 +158,8 @@ export function usePresentation(presentationUrl: string) {
           }
 
           // BroadcastChannel でもフォールバック送信
+          // プレゼン接続（Presentation API）で届く受信者と、
+          // BroadcastChannel を使う別の監視ウィンドウ／タブの両方へデータを届けるため
           try {
             const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
             ch.postMessage(monitorData);
