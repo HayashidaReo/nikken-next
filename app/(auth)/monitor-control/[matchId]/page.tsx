@@ -52,7 +52,7 @@ export default function MonitorControlPage() {
         return;
       }
 
-      // First, get a presentation token
+      // まず、プレゼンテーション用トークンを取得する
       const tokenResponse = await fetch("/api/presentation-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -110,7 +110,7 @@ export default function MonitorControlPage() {
 
   const handleFallbackConfirm = () => {
     setShowFallbackDialog(false);
-    // We need to request the token again before opening; call same token endpoint
+    // 新しいウィンドウを開く前に再度トークンを要求する必要あり（同じエンドポイントを使用）
     (async () => {
       try {
         const tokenResponse = await fetch("/api/presentation-token", {

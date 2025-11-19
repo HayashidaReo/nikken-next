@@ -52,7 +52,7 @@ export function ScoreboardOperator({
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 
-  // BroadcastChannel for data sharing
+  // データ共有用のBroadcastChannel
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
   useEffect(() => {

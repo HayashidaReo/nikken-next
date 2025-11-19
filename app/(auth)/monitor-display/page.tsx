@@ -22,12 +22,12 @@ export default function MonitorDisplayPage() {
     const token = searchParams?.get("pt");
 
     if (!token) {
-      // No token provided - allow normal flow (will use BroadcastChannel/Presentation API)
+      // トークンが提供されていない場合 - 通常のフローを許可（BroadcastChannel/Presentation APIを使用）
       setIsValidating(false);
       return;
     }
 
-    // Validate the presentation token
+    // プレゼンテーション用トークンを検証
     fetch("/api/validate-presentation-token", {
       method: "POST",
       headers: {

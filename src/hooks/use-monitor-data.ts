@@ -53,16 +53,15 @@ export function useMonitorData(tokenData?: TokenData | null) {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // If tokenData is provided, we're in token-based mode
-  // In this mode, we skip the auth requirement and allow the monitor to work
+  // トークンデータが提供されている場合は、トークンベース認証モードとして動作する
+  // このモードでは、通常の認証要件をスキップし、モニター表示を許可する
   useEffect(() => {
     if (!tokenData) return;
 
-    // Defer state updates to avoid synchronous setState inside effect
-    // and clean up if tokenData changes/unmounts.
+    // エフェクト内での同期的な状態更新を避けるため、更新を遅延させる
+    // また、tokenDataが変更されたりアンマウントされた場合のクリーンアップも行う
     const t = setTimeout(() => {
-      // mark as connected for token-based access but do not override isPublic
-      // (token grants access without changing the match's visibility)
+      // トークンベースのアクセスとして接続済みとマーク
       setIsConnected(true);
     }, 0);
 
