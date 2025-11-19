@@ -29,7 +29,22 @@ export function MonitorDisplayContainer({
       className={`min-h-screen bg-black text-white relative overflow-hidden ${className}`}
     >
       {/* メイン画面レイアウト */}
-      <MonitorLayout data={data} />
+      {/* モニター表示は常に中央で 16:9 比率を保ち、画面比率が異なる場合は余白を黒で埋める */}
+      <div className="w-full h-full flex items-center justify-center">
+        <div
+          // `min()` を使って画面幅/高さに合わせて最大化しつつ 16:9 を維持
+          style={{
+            width: "min(100vw, calc(16 / 9 * 100vh))",
+            height: "min(100vh, calc(9 / 16 * 100vw))",
+          }}
+          className="bg-black w-auto h-auto"
+        >
+          {/* MonitorLayout は親のサイズに合わせて伸縮 */}
+          <div className="w-full h-full">
+            <MonitorLayout data={data} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

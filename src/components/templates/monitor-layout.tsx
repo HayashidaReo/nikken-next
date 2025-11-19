@@ -12,7 +12,7 @@ export function MonitorLayout({
   className = "",
 }: MonitorLayoutProps) {
   return (
-    <div className={`h-screen flex flex-col ${className}`}>
+    <div className={`w-full h-full flex flex-col ${className}`}>
       {/* 上側 - 選手A（赤チーム） */}
       {/* PlayerSection は MatchPlayer を期待するため、MonitorPlayer を MatchPlayer に変換して渡す */}
       <PlayerSection player={toMatchPlayerForMonitor(data.playerA)} variant="red" />
