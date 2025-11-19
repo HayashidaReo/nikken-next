@@ -164,8 +164,9 @@ export function usePresentation(presentationUrl: string) {
             const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
             ch.postMessage(monitorData);
             ch.close();
-          } catch {
-            // BroadcastChannel が使えない環境もある
+          } catch (err) {
+            console.warn("BroadcastChannel が使えない環境", err);
+
           }
         } catch (err) {
           console.warn("初回スナップショット送信に失敗:", err);
