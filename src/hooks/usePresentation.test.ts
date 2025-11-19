@@ -4,6 +4,7 @@
 
 import { renderHook, act } from "@testing-library/react";
 import { usePresentation } from "./usePresentation";
+import { useMonitorStore } from "@/store/use-monitor-store";
 
 // Presentation APIのモック実装
 const mockPresentationConnection = {
@@ -29,10 +30,10 @@ const mockPresentationRequest = {
 
 const mockConsoleError = jest
   .spyOn(console, "error")
-  .mockImplementation(() => {});
+  .mockImplementation(() => { });
 const mockConsoleWarn = jest
   .spyOn(console, "warn")
-  .mockImplementation(() => {});
+  .mockImplementation(() => { });
 
 describe("usePresentation", () => {
   const presentationUrl = "http://localhost:3000/monitor";
@@ -203,6 +204,50 @@ describe("usePresentation", () => {
       });
 
       expect(result.current.isConnected).toBe(true);
+    });
+
+    it("初回スナップショットが Presentation と BroadcastChannel に送信される", async () => {
+      // BroadcastChannel をモックして postMessage を監視
+      const mockBroadcastChannel = { postMessage: jest.fn(), close: jest.fn() };
+      Object.defineProperty(globalThis, "BroadcastChannel", {
+        value: jest.fn(() => mockBroadcastChannel),
+        writable: true,
+      });
+
+      // ストアのスナップショットを設定
+      useMonitorStore.setState({
+        matchId: "snap-1",
+        tournamentName: "Snap Tournament",
+        courtName: "Court 1",
+        round: "Final",
+        playerA: { displayName: "A", teamName: "T", score: 1, hansoku: 0 },
+        playerB: { displayName: "B", teamName: "T", score: 2, hansoku: 0 },
+        timeRemaining: 90,
+        isTimerRunning: false,
+        isPublic: false,
+      });
+
+      const { result } = renderHook(() => usePresentation(presentationUrl));
+
+      // 利用可能性の初期化を待つ
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // プレゼンテーション開始
+      await act(async () => {
+        await result.current.startPresentation();
+      });
+
+      // connection.send が MonitorData の JSON を送っていること
+      expect(mockPresentationConnection.send).toHaveBeenCalledWith(
+        JSON.stringify(useMonitorStore.getState().getMonitorSnapshot())
+      );
+
+      // BroadcastChannel にも同じデータが送信される
+      expect(mockBroadcastChannel.postMessage).toHaveBeenCalledWith(
+        useMonitorStore.getState().getMonitorSnapshot()
+      );
     });
 
     it("プレゼンテーションが利用できない場合はエラーが設定される", async () => {

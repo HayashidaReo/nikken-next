@@ -63,6 +63,33 @@ export function usePresentation(presentationUrl: string) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 初回スナップショット送信ヘルパー
+  const sendInitialSnapshot = (connection?: PresentationConnection) => {
+    try {
+      const monitorData = useMonitorStore.getState().getMonitorSnapshot();
+
+      // Presentation 接続が確立していれば直接送信を試みる
+      try {
+        if (connection && connection.state === "connected") {
+          connection.send(JSON.stringify(monitorData));
+        }
+      } catch (err) {
+        console.warn("初回データ送信（Presentation）に失敗:", err);
+      }
+
+      // BroadcastChannel でもフォールバック送信
+      try {
+        const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
+        ch.postMessage(monitorData);
+        ch.close();
+      } catch (err) {
+        console.warn("BroadcastChannel が使えない環境", err);
+      }
+    } catch (err) {
+      console.warn("初回スナップショット送信に失敗:", err);
+    }
+  };
+
   // Presentation APIのサポート確認
   useEffect(() => {
     const isSupported =
@@ -147,29 +174,9 @@ export function usePresentation(presentationUrl: string) {
 
         // 初回スナップショットを送信（接続確立時）
         try {
-          const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-
-          try {
-            if (connection.state === "connected") {
-              connection.send(JSON.stringify(monitorData));
-            }
-          } catch (err) {
-            console.warn("初回データ送信（Presentation）に失敗:", err);
-          }
-
-          // BroadcastChannel でもフォールバック送信
-          // プレゼン接続（Presentation API）で届く受信者と、
-          // BroadcastChannel を使う別の監視ウィンドウ／タブの両方へデータを届けるため
-          try {
-            const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
-            ch.postMessage(monitorData);
-            ch.close();
-          } catch (err) {
-            console.warn("BroadcastChannel が使えない環境", err);
-
-          }
-        } catch (err) {
-          console.warn("初回スナップショット送信に失敗:", err);
+          sendInitialSnapshot(connection);
+        } catch {
+          // sendInitialSnapshot 内でログは行っているため、ここでは無視
         }
       };
 
