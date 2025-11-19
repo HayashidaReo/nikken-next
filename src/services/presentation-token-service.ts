@@ -1,7 +1,11 @@
 import jwt from "jsonwebtoken";
 
 // トークン設定
-const TOKEN_SECRET = process.env.PRESENTATION_TOKEN_SECRET || "dev-secret-change-in-production";
+// 環境変数 `PRESENTATION_TOKEN_SECRET` を必須
+const TOKEN_SECRET = process.env.PRESENTATION_TOKEN_SECRET as string;
+if (!TOKEN_SECRET || TOKEN_SECRET.length === 0) {
+    throw new Error("PRESENTATION_TOKEN_SECRET must be set in the environment");
+}
 const TOKEN_EXPIRY = "5m"; // 5分
 const TOKEN_ISSUER = "nikken-next";
 const TOKEN_AUDIENCE = "monitor-display";
