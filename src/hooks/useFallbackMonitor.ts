@@ -2,6 +2,7 @@ import { useEffect, useCallback } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { useGetPresentationToken } from "@/queries/use-presentation";
 import { useToast } from "@/components/providers/notification-provider";
+import { useMonitorSender } from "@/hooks/useMonitorSender";
 import {
     MONITOR_DISPLAY_CHANNEL,
     MONITOR_DISPLAY_PATH,
@@ -27,6 +28,7 @@ export function useFallbackMonitor({
 }: UseFallbackMonitorProps) {
     const { showInfo, showError } = useToast();
     const getPresentationToken = useGetPresentationToken();
+    const { sendMessage } = useMonitorSender();
 
     const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
     const presentationConnected = useMonitorStore((s) => s.presentationConnected);
@@ -53,17 +55,10 @@ export function useFallbackMonitor({
                 console.warn("ストアの fallbackOpen 設定に失敗しました:", err);
             }
 
-            // BroadcastChannel で初回スナップショットを送信（存在チェックを行う）
+            // 初回スナップショットを送信（存在チェックを行う）
             try {
                 const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-                if (typeof BroadcastChannel !== "undefined") {
-                    const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
-                    ch.postMessage({ type: "snapshot", timestamp: Date.now(), payload: monitorData });
-                    ch.close();
-                } else {
-                    console.warn("ブロードキャストチャネルがこの環境で利用できません");
-                    showInfo("共有チャネルが利用できません。別タブでの同期に制限があります。");
-                }
+                sendMessage("snapshot", monitorData);
             } catch (err) {
                 console.warn("ブロードキャストチャネルへの送信に失敗しました:", err);
                 showInfo("共有チャネルへの送信に失敗しましたが、別タブを開きました。");
@@ -74,7 +69,7 @@ export function useFallbackMonitor({
             console.error("フォールバックウィンドウを開くのに失敗しました:", err);
             showError("モニター表示の開始に失敗しました。もう一度お試しください。");
         }
-    }, [matchId, orgId, tournamentId, getPresentationToken, setFallbackOpen, showInfo, showError]);
+    }, [matchId, orgId, tournamentId, getPresentationToken, setFallbackOpen, showInfo, showError, sendMessage]);
 
     /**
      * ページロード時や再接続時に既存のモニタータブ（BroadcastChannel）を探す
@@ -96,13 +91,13 @@ export function useFallbackMonitor({
         channel.addEventListener("message", handleResponse);
 
         // pingを送信
-        channel.postMessage({ type: "ping", timestamp: Date.now() });
+        sendMessage("ping", { timestamp: Date.now() });
 
         return () => {
             channel.removeEventListener("message", handleResponse);
             channel.close();
         };
-    }, [fallbackOpen, presentationConnected, setFallbackOpen]);
+    }, [fallbackOpen, presentationConnected, setFallbackOpen, sendMessage]);
 
     /**
      * フォールバック表示（別タブ）へのハートビート送信と応答検知
@@ -118,10 +113,7 @@ export function useFallbackMonitor({
         const heartbeatInterval = setInterval(() => {
             try {
                 const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-                channel.postMessage({
-                    type: "heartbeat",
-                    payload: monitorData,
-                });
+                sendMessage("heartbeat", monitorData);
             } catch (e) {
                 console.error("ハートビートの送信に失敗しました:", e);
             }
@@ -150,7 +142,7 @@ export function useFallbackMonitor({
             channel.removeEventListener("message", handleResponse);
             channel.close();
         };
-    }, [fallbackOpen, setFallbackOpen]);
+    }, [fallbackOpen, setFallbackOpen, sendMessage]);
 
     return {
         openFallbackWindow,

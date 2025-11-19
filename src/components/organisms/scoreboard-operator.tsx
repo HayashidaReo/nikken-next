@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
 import {
   MatchHeader,
   PlayerScoreCard,
   TimerControl,
 } from "@/components/molecules";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useMonitorSender } from "@/hooks/useMonitorSender";
 
 interface ScoreboardOperatorProps {
   organizationId: string;
@@ -38,48 +38,8 @@ export function ScoreboardOperator({
     selectedPlayer,
   } = useMonitorStore();
 
-  const isPresentationConnected = useMonitorStore((s) => s.presentationConnected);
-  const presentationConnection = useMonitorStore((s) => s.presentationConnection);
-
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-
-  // データ共有用のBroadcastChannel
-  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-
-  useEffect(() => {
-    // BroadcastChannelの初期化
-    broadcastChannelRef.current = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
-
-    return () => {
-      broadcastChannelRef.current?.close();
-    };
-  }, []);
-
-  // データ送信関数（Presentation API + BroadcastChannel）
-  const sendDataToMonitor = useCallback(
-    (data: unknown) => {
-      // Presentation APIで送信
-      if (isPresentationConnected && presentationConnection && presentationConnection.state === "connected") {
-        try {
-          presentationConnection.send(JSON.stringify(data));
-        } catch (err) {
-          console.error("メッセージ送信に失敗:", err);
-        }
-      }
-
-      // BroadcastChannelで送信
-      try {
-        broadcastChannelRef.current?.postMessage({
-          type: "data",
-          payload: data,
-        });
-      } catch (err) {
-        console.warn("BroadcastChannel送信エラー:", err);
-      }
-    },
-    [isPresentationConnected, presentationConnection]
-  );
+  const { sendMessage } = useMonitorSender();
 
   // キーボードショートカットの有効化
   useKeyboardShortcuts();
@@ -111,7 +71,7 @@ export function ScoreboardOperator({
   useEffect(() => {
     // データを送信
     const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-    sendDataToMonitor(monitorData);
+    sendMessage("data", monitorData);
   }, [
     matchId,
     tournamentName,
@@ -122,7 +82,7 @@ export function ScoreboardOperator({
     timeRemaining,
     isTimerRunning,
     isPublic,
-    sendDataToMonitor,
+    sendMessage,
   ]);
 
   return (

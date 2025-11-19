@@ -154,7 +154,13 @@ export function useMonitorData(tokenData?: TokenData | null) {
           const msgEvent = messageEvent as MessageEvent;
           try {
             const receivedData = JSON.parse(msgEvent.data);
-            setData(receivedData);
+
+            // { type, payload } 形式のメッセージから payload を抽出
+            if (receivedData && typeof receivedData === 'object' && 'payload' in receivedData) {
+              setData(receivedData.payload);
+            } else {
+              setData(receivedData);
+            }
           } catch (err) {
             console.error("メッセージ解析エラー:", err);
             setError("データの解析に失敗しました");
