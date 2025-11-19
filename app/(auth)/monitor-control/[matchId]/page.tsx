@@ -137,12 +137,12 @@ export default function MonitorControlPage() {
             ch.postMessage({ type: "snapshot", timestamp: Date.now(), payload: monitorData });
             ch.close();
           } else {
-            console.warn("BroadcastChannel is not available in this environment");
+            console.warn("ブロードキャストチャネルがこの環境で利用できません");
             showInfo("共有チャネルが利用できません。別タブでの同期に制限があります。");
 
           }
         } catch (err) {
-          console.warn("BroadcastChannel post failed:", err);
+          console.warn("ブロードキャストチャネルへの送信に失敗しました:", err);
           showInfo("共有チャネルへの送信に失敗しましたが、別タブを開きました。");
 
         }

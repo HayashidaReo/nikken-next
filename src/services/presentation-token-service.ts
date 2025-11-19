@@ -70,11 +70,11 @@ export function generatePresentationToken(params: GenerateTokenParams): Generate
 
     // バリデーション
     if (!matchId || !orgId || !tournamentId) {
-        throw new Error("Missing required fields: matchId, orgId, tournamentId");
+        throw new Error("必要なフィールドが不足しています: matchId, orgId, tournamentId");
     }
 
     if (typeof matchId !== "string" || typeof orgId !== "string" || typeof tournamentId !== "string") {
-        throw new Error("Invalid field types");
+        throw new Error("フィールドの型が不正です");
     }
 
     // JWTペイロードの作成
@@ -107,7 +107,7 @@ export function generatePresentationToken(params: GenerateTokenParams): Generate
  */
 export function validatePresentationToken(token: string): ValidateTokenResult {
     if (!token) {
-        throw new TokenValidationError("Token not provided", "INVALID");
+        throw new TokenValidationError("トークンが提供されていません", "INVALID");
     }
 
     try {
@@ -115,11 +115,11 @@ export function validatePresentationToken(token: string): ValidateTokenResult {
         const decoded = jwt.verify(token, TOKEN_SECRET, {
             issuer: TOKEN_ISSUER,
             audience: TOKEN_AUDIENCE,
-        }) as TokenPayload;
+        }) as unknown as TokenPayload;
 
         // スコープの検証
         if (decoded.scope !== "monitor-view") {
-            throw new TokenValidationError("Invalid token scope", "SCOPE_MISMATCH");
+            throw new TokenValidationError("トークンのスコープが不正です", "SCOPE_MISMATCH");
         }
 
         return {
@@ -134,13 +134,13 @@ export function validatePresentationToken(token: string): ValidateTokenResult {
         }
 
         if (error instanceof jwt.TokenExpiredError) {
-            throw new TokenValidationError("Token has expired", "EXPIRED");
+            throw new TokenValidationError("トークンの有効期限が切れています", "EXPIRED");
         }
 
         if (error instanceof jwt.JsonWebTokenError) {
-            throw new TokenValidationError("Invalid token", "INVALID");
+            throw new TokenValidationError("トークンが無効です", "INVALID");
         }
 
-        throw new TokenValidationError("Token validation failed", "UNKNOWN");
+        throw new TokenValidationError("トークンの検証に失敗しました", "UNKNOWN");
     }
 }
