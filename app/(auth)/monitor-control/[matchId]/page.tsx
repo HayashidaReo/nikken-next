@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
+import { useSaveMatchResult } from "@/queries/use-match-result";
 import { ArrowLeft, Monitor, Unplug, Save } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
@@ -19,7 +20,7 @@ import { useMonitorController } from "@/hooks/useMonitorController";
 export default function MonitorControlPage() {
   const params = useParams();
   const matchId = params.matchId as string;
-  const { saveMatchResult, isSaving } = useMonitorStore();
+  const saveMatchResultMutation = useSaveMatchResult();
 
   const presentationConnected = useMonitorStore((s) => s.presentationConnected);
   const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
@@ -48,7 +49,21 @@ export default function MonitorControlPage() {
 
   const handleSave = async () => {
     try {
-      await saveMatchResult(orgId || "", activeTournamentId || "");
+      const store = useMonitorStore.getState();
+      const matchId = store.matchId;
+      if (!matchId) {
+        throw new Error('Match ID is missing');
+      }
+      const snapshot = store.getMonitorSnapshot();
+      await saveMatchResultMutation.mutateAsync({
+        matchId,
+        organizationId: orgId || "",
+        tournamentId: activeTournamentId || "",
+        players: {
+          playerA: { score: snapshot.playerA.score, hansoku: snapshot.playerA.hansoku },
+          playerB: { score: snapshot.playerB.score, hansoku: snapshot.playerB.hansoku },
+        },
+      });
       showSuccess("試合結果を保存しました");
     } catch (err) {
       console.error(err);
@@ -191,9 +206,9 @@ export default function MonitorControlPage() {
                 )}
               </Button>
 
-              <Button onClick={handleSave} size="sm" disabled={isSaving}>
+              <Button onClick={handleSave} size="sm" disabled={saveMatchResultMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "保存中..." : "保存"}
+                {saveMatchResultMutation.isPending ? "保存中..." : "保存"}
               </Button>
             </div>
           </div>

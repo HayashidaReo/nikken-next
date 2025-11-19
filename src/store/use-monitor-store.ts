@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Match } from "@/types/match.schema";
 import type { MonitorData } from "@/types/monitor.schema";
-import { SCORE_CONSTANTS, API_ENDPOINTS } from "@/lib/constants";
+import { SCORE_CONSTANTS } from "@/lib/constants";
 import {
   calculateOpponentScoreChange,
   updateOpponentScore,
@@ -35,7 +35,6 @@ interface MonitorState {
 
   // 表示制御
   isPublic: boolean; // 公開/非公開
-  isSaving: boolean; // 保存処理中フラグ
   presentationConnected: boolean;
   presentationConnection?: PresentationConnection | null;
   fallbackOpen: boolean;
@@ -60,11 +59,6 @@ interface MonitorState {
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => void;
   incrementScoreForSelectedPlayer: () => void;
   incrementFoulForSelectedPlayer: () => void;
-  saveMatchResult: (
-    organizationId: string,
-    tournamentId: string,
-    onSuccess?: () => void
-  ) => Promise<void>;
   getMonitorSnapshot: () => MonitorData;
 }
 
@@ -91,7 +85,6 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   timeRemaining: 180, // デフォルト3分
   isTimerRunning: false,
   isPublic: false,
-  isSaving: false,
   presentationConnected: false,
   fallbackOpen: false,
   selectedPlayer: null,
@@ -242,59 +235,6 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     // NOTE: FOUL_CONSTANTS.MAX_FOUL のような定数が存在しないため、マジックナンバーを使用
     if (newHansoku <= 4) {
       setPlayerHansoku(selectedPlayer === "playerA" ? "A" : "B", newHansoku);
-    }
-  },
-
-  saveMatchResult: async (
-    organizationId: string,
-    tournamentId: string,
-    onSuccess?: () => void
-  ) => {
-    const currentState = get();
-
-    if (!currentState.matchId) {
-      console.error("Match ID is not available for saving");
-      return;
-    }
-
-    try {
-      // 保存処理開始
-      set({ isSaving: true });
-
-      const response = await fetch(API_ENDPOINTS.MATCH_UPDATE(currentState.matchId), {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          organizationId,
-          tournamentId,
-          players: {
-            playerA: {
-              score: currentState.playerA.score,
-              hansoku: currentState.playerA.hansoku,
-            },
-            playerB: {
-              score: currentState.playerB.score,
-              hansoku: currentState.playerB.hansoku,
-            },
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save match result");
-      }
-
-      // 成功時のコールバック実行
-      onSuccess?.();
-    } catch (error) {
-      console.error("Failed to save match result:", error);
-      throw error;
-    } finally {
-      // 保存処理終了
-      set({ isSaving: false });
     }
   },
 
