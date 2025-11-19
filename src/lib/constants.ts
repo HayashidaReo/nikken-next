@@ -40,6 +40,18 @@ export const MONITOR_CONSTANTS = {
   BASE_HEIGHT: 1080,
 } as const;
 
+// 選手表示関連定数
+export const PLAYER_FONT_CONSTANTS = {
+  RESPONSIVE_FONT: {
+    /** ベースフォントサイズ（rem） */
+    BASE_FONT_SIZE: 16,
+    /** 最小フォントサイズ（rem） */
+    MIN_FONT_SIZE: 8,
+    /** 選手表示部分の maxWidth（px） */
+    MAX_WIDTH: 1000,
+  },
+} as const;
+
 // 📝 フォーム関連定数
 export const FORM_CONSTANTS = {
   /** 時間入力の最小値 */
