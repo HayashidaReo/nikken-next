@@ -39,10 +39,11 @@ export default function AuthLayout({
             validatePresentationToken.mutate(presentationToken, {
                 onSuccess: () => {
                     setHasValidToken(true);
+                    lastValidatedTokenRef.current = presentationToken;
+                    
                     // setTokenChecked を即時に呼び出すと effect の実行中に同期的な
                     // state 更新が発生し、意図しないバッチングやレンダリング順序の問題を
                     // 引き起こす可能性があるため、マクロタスクに遅延させて実行している。
-
                     timer = setTimeout(() => setTokenChecked(true), 0);
                 },
                 onError: () => {
