@@ -1,43 +1,45 @@
 import { PlayerSection } from "@/components/organisms/player-section";
 import { CenterSection } from "@/components/organisms/center-section";
-import { type MatchPlayer } from "@/types/match.schema";
+import { type MonitorData } from "@/types/monitor.schema";
 
 interface MonitorLayoutProps {
-  playerA: MatchPlayer;
-  playerB: MatchPlayer;
-  tournamentName: string;
-  courtName: string;
-  round: string;
-  timeRemaining: number;
-  isTimerRunning: boolean;
+  data: MonitorData;
   className?: string;
 }
 export function MonitorLayout({
-  playerA,
-  playerB,
-  tournamentName,
-  courtName,
-  round,
-  timeRemaining,
-  isTimerRunning,
+  data,
   className = "",
 }: MonitorLayoutProps) {
   return (
     <div className={`h-screen flex flex-col ${className}`}>
       {/* 上側 - 選手A（赤チーム） */}
-      <PlayerSection player={playerA} variant="red" />
+      <PlayerSection
+        player={{
+          ...data.playerA,
+          playerId: "", // モニター表示には不要
+          teamId: "", // モニター表示には不要
+        }}
+        variant="red"
+      />
 
       {/* 中央セクション - 大会情報とタイマー */}
       <CenterSection
-        tournamentName={tournamentName}
-        courtName={courtName}
-        round={round}
-        timeRemaining={timeRemaining}
-        isTimerRunning={isTimerRunning}
+        tournamentName={data.tournamentName}
+        courtName={data.courtName}
+        round={data.round}
+        timeRemaining={data.timeRemaining}
+        isTimerRunning={data.isTimerRunning}
       />
 
       {/* 下側 - 選手B（グレー/白チーム） */}
-      <PlayerSection player={playerB} variant="white" />
+      <PlayerSection
+        player={{
+          ...data.playerB,
+          playerId: "", // モニター表示には不要
+          teamId: "", // モニター表示には不要
+        }}
+        variant="white"
+      />
     </div>
   );
 }

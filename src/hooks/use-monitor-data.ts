@@ -67,6 +67,12 @@ export function useMonitorData(tokenData?: TokenData | null) {
           if (hasRequiredFields) {
             setData(event.data);
             setIsConnected(true);
+
+            // ハートビート受信時にタイマーをリセット
+            if (heartbeatTimer) clearTimeout(heartbeatTimer);
+            heartbeatTimer = setTimeout(() => {
+              setIsConnected(false);
+            }, 5000); // 5秒間メッセージがない場合は切断とみなす
           }
         }
       } catch (err) {
@@ -74,10 +80,12 @@ export function useMonitorData(tokenData?: TokenData | null) {
       }
     };
 
+    let heartbeatTimer: ReturnType<typeof setTimeout>;
     channel.addEventListener("message", handleMessage);
 
     return () => {
       channel.removeEventListener("message", handleMessage);
+      if (heartbeatTimer) clearTimeout(heartbeatTimer);
       channel.close();
     };
   }, []);

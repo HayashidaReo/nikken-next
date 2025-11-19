@@ -33,29 +33,7 @@ export function MonitorDisplayContainer({
       <ConnectionStatus isConnected={isConnected} error={error} />
 
       {/* メイン画面レイアウト */}
-      <MonitorLayout
-        playerA={{
-          displayName: data.playerA.displayName,
-          playerId: "", // PlayerDataには含まれていない
-          teamId: "", // PlayerDataには含まれていない
-          teamName: data.playerA.teamName,
-          score: data.playerA.score,
-          hansoku: data.playerA.hansoku,
-        }}
-        playerB={{
-          displayName: data.playerB.displayName,
-          playerId: "", // PlayerDataには含まれていない
-          teamId: "", // PlayerDataには含まれていない
-          teamName: data.playerB.teamName,
-          score: data.playerB.score,
-          hansoku: data.playerB.hansoku,
-        }}
-        tournamentName={data.tournamentName}
-        courtName={data.courtName}
-        round={data.round}
-        timeRemaining={data.timeRemaining}
-        isTimerRunning={data.isTimerRunning}
-      />
+      <MonitorLayout data={data} />
     </div>
   );
 }

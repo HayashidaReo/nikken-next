@@ -142,6 +142,26 @@ export default function MonitorControlPage() {
     setShowFallbackDialog(false);
   };
 
+  // フォールバック表示（別タブ）へのハートビート送信
+  useEffect(() => {
+    if (!fallbackOpen) return;
+
+    const channel = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
+    const interval = setInterval(() => {
+      try {
+        const monitorData = useMonitorStore.getState().getMonitorSnapshot();
+        channel.postMessage(monitorData);
+      } catch (e) {
+        console.error("Failed to send heartbeat:", e);
+      }
+    }, 2000); // 2秒ごとに送信
+
+    return () => {
+      clearInterval(interval);
+      channel.close();
+    };
+  }, [fallbackOpen]);
+
   const handleSave = async () => {
     try {
       await saveMatchResult(orgId || "", activeTournamentId || "");
