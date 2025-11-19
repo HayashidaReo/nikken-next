@@ -1,6 +1,7 @@
 import { PlayerSection } from "@/components/organisms/player-section";
 import { CenterSection } from "@/components/organisms/center-section";
 import { type MonitorData } from "@/types/monitor.schema";
+import { toMatchPlayerForMonitor } from "@/lib/mappers/monitor";
 
 interface MonitorLayoutProps {
   data: MonitorData;
@@ -13,14 +14,8 @@ export function MonitorLayout({
   return (
     <div className={`h-screen flex flex-col ${className}`}>
       {/* 上側 - 選手A（赤チーム） */}
-      <PlayerSection
-        player={{
-          ...data.playerA,
-          playerId: "", // モニター表示には不要
-          teamId: "", // モニター表示には不要
-        }}
-        variant="red"
-      />
+      {/* PlayerSection は MatchPlayer を期待するため、MonitorPlayer を MatchPlayer に変換して渡す */}
+      <PlayerSection player={toMatchPlayerForMonitor(data.playerA)} variant="red" />
 
       {/* 中央セクション - 大会情報とタイマー */}
       <CenterSection
@@ -32,14 +27,7 @@ export function MonitorLayout({
       />
 
       {/* 下側 - 選手B（グレー/白チーム） */}
-      <PlayerSection
-        player={{
-          ...data.playerB,
-          playerId: "", // モニター表示には不要
-          teamId: "", // モニター表示には不要
-        }}
-        variant="white"
-      />
+      <PlayerSection player={toMatchPlayerForMonitor(data.playerB)} variant="white" />
     </div>
   );
 }
