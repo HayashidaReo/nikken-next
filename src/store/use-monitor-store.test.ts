@@ -31,6 +31,8 @@ const mockMatch: Match = {
   },
   createdAt: new Date(),
   updatedAt: new Date(),
+  sortOrder: 1,
+  isCompleted: false,
 };
 
 // スパイを設定
@@ -337,6 +339,43 @@ describe("useMonitorStore", () => {
       });
 
       expect(result.current.isPublic).toBe(false);
+    });
+  });
+
+  describe("getMonitorSnapshot", () => {
+    it("現在の状態のスナップショットを正しく返す", () => {
+      const { result } = renderHook(() => useMonitorStore());
+
+      // 状態を変更
+      act(() => {
+        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート");
+        result.current.setPlayerScore("A", 1);
+        result.current.togglePublic();
+      });
+
+      const snapshot = result.current.getMonitorSnapshot();
+
+      expect(snapshot).toEqual({
+        matchId: "test-match-001",
+        tournamentName: "テスト大会",
+        courtName: "Aコート",
+        round: "決勝",
+        playerA: {
+          displayName: "山田",
+          teamName: "チームA",
+          score: 1,
+          hansoku: 0,
+        },
+        playerB: {
+          displayName: "鈴木",
+          teamName: "チームB",
+          score: 1,
+          hansoku: 1,
+        },
+        timeRemaining: 180,
+        isTimerRunning: false,
+        isPublic: true,
+      });
     });
   });
 

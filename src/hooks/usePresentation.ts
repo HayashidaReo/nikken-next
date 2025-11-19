@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useMonitorStore } from "@/store/use-monitor-store";
+import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
 
 // Presentation API の型定義
 declare global {
@@ -61,6 +63,33 @@ export function usePresentation(presentationUrl: string) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 初回スナップショット送信ヘルパー
+  const sendInitialSnapshot = (connection?: PresentationConnection) => {
+    try {
+      const monitorData = useMonitorStore.getState().getMonitorSnapshot();
+
+      // Presentation 接続が確立していれば直接送信を試みる
+      try {
+        if (connection && connection.state === "connected") {
+          connection.send(JSON.stringify(monitorData));
+        }
+      } catch (err) {
+        console.warn("初回データ送信（Presentation）に失敗:", err);
+      }
+
+      // BroadcastChannel でもフォールバック送信
+      try {
+        const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
+        ch.postMessage(monitorData);
+        ch.close();
+      } catch (err) {
+        console.warn("BroadcastChannel が使えない環境", err);
+      }
+    } catch (err) {
+      console.warn("初回スナップショット送信に失敗:", err);
+    }
+  };
+
   // Presentation APIのサポート確認
   useEffect(() => {
     const isSupported =
@@ -96,18 +125,32 @@ export function usePresentation(presentationUrl: string) {
     }
   }, [state.isSupported, presentationUrl]);
 
-  // プレゼンテーション開始
-  const startPresentation = useCallback(async () => {
-    if (!state.presentation || !state.isAvailable) {
-      setError("プレゼンテーション機能が利用できません");
-      return;
-    }
-
+  // プレゼンテーション開始（オーバーライド URL を受け取れるようにする）
+  const startPresentation = useCallback(async (overrideUrl?: string, registerGlobal: boolean = false) => {
     setIsLoading(true);
     setError(null);
 
+    let presentationToStart: PresentationRequest | null = null;
+
     try {
-      const connection = await state.presentation.start();
+      if (overrideUrl) {
+        presentationToStart = new PresentationRequest([overrideUrl]);
+      } else if (state.presentation) {
+        presentationToStart = state.presentation;
+      }
+
+      if (!presentationToStart) {
+        setError("プレゼンテーション機能が利用できません");
+        return;
+      }
+
+      // overrideUrl が渡されない場合は利用可能性を確認して失敗させる
+      if (!overrideUrl && !state.isAvailable) {
+        setError("プレゼンテーション機能が利用できません");
+        return;
+      }
+
+      const connection = await presentationToStart.start();
 
       setState(prev => ({
         ...prev,
@@ -115,18 +158,66 @@ export function usePresentation(presentationUrl: string) {
         isConnected: connection.state === "connected",
       }));
 
+      // グローバルストアに接続を保存（呼び出し側が望む場合のみ）
+      // オペレーター画面などから、この接続を使用してデータを送信するために必要
+      if (registerGlobal) {
+        useMonitorStore.getState().setPresentationConnection(connection);
+        useMonitorStore.getState().setPresentationConnected(connection.state === "connected");
+      }
+
       // 接続状態の監視
-      connection.addEventListener("connect", () => {
+      const handleConnect = () => {
         setState(prev => ({ ...prev, isConnected: true }));
+        useMonitorStore.getState().setPresentationConnected(true);
+        // プレゼン接続が確立した場合はフォールバックフラグをクリア
+        useMonitorStore.getState().setFallbackOpen(false);
+
+        // 初回スナップショットを送信（接続確立時）
+        sendInitialSnapshot(connection);
+      };
+
+      connection.addEventListener("connect", handleConnect);
+      // 送信側でも、受信側からスナップショット要求が来たら応答するリスナーを追加
+      connection.addEventListener("message", (ev: MessageEvent) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg && msg.type === "request_snapshot") {
+            try {
+              const monitorData = useMonitorStore.getState().getMonitorSnapshot();
+              if (connection.state === "connected") {
+                connection.send(JSON.stringify(monitorData));
+              }
+            } catch (err) {
+              console.error("メッセージ解析に失敗:", err);
+            }
+          }
+        } catch (err) {
+          console.error("メッセージ解析に失敗:", err);
+        }
       });
 
       connection.addEventListener("close", () => {
         setState(prev => ({ ...prev, isConnected: false, connection: null }));
+        if (registerGlobal) {
+          useMonitorStore.getState().setPresentationConnection(null);
+          useMonitorStore.getState().setPresentationConnected(false);
+          useMonitorStore.getState().setFallbackOpen(false);
+        }
       });
 
       connection.addEventListener("terminate", () => {
         setState(prev => ({ ...prev, isConnected: false, connection: null }));
+        if (registerGlobal) {
+          useMonitorStore.getState().setPresentationConnection(null);
+          useMonitorStore.getState().setPresentationConnected(false);
+          useMonitorStore.getState().setFallbackOpen(false);
+        }
       });
+
+      // 既に接続状態なら初回送信を行う
+      if (connection.state === "connected") {
+        handleConnect();
+      }
 
       return connection;
     } catch (err) {
@@ -140,22 +231,32 @@ export function usePresentation(presentationUrl: string) {
 
   // プレゼンテーション終了
   const stopPresentation = useCallback(() => {
-    if (state.connection) {
-      state.connection.terminate();
+    const conn = useMonitorStore.getState().presentationConnection || state.connection;
+    if (conn) {
+      try {
+        conn.terminate();
+      } finally {
+        useMonitorStore.getState().setPresentationConnection(null);
+        useMonitorStore.getState().setPresentationConnected(false);
+        useMonitorStore.getState().setFallbackOpen(false);
+        setState(prev => ({ ...prev, connection: null, isConnected: false }));
+      }
     }
   }, [state.connection]);
 
-  // データ送信
+  // データ送信（グローバルストアの connection を優先して使用）
   const sendMessage = useCallback(
     (data: unknown) => {
-      if (!state.connection || state.connection.state !== "connected") {
+      // ローカルフックの connection を優先し、なければグローバルの store 上の connection を使う
+      const conn = state.connection || useMonitorStore.getState().presentationConnection;
+      if (!conn || conn.state !== "connected") {
         console.warn("プレゼンテーション接続が確立されていません");
         return false;
       }
 
       try {
         const message = JSON.stringify(data);
-        state.connection.send(message);
+        conn.send(message);
         return true;
       } catch (err) {
         console.error("メッセージ送信に失敗:", err);

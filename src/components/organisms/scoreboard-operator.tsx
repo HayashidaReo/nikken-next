@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { usePresentation } from "@/hooks/usePresentation";
-import { useToast } from "@/components/providers/notification-provider";
+import { MONITOR_DISPLAY_CHANNEL, MONITOR_DISPLAY_PATH } from "@/lib/constants/monitor";
 import {
   MatchHeader,
   PlayerScoreCard,
   TimerControl,
-  FallbackMonitorDialog,
-  ConfirmDialog,
 } from "@/components/molecules";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
@@ -41,12 +39,10 @@ export function ScoreboardOperator({
     selectedPlayer,
   } = useMonitorStore();
 
-  const { showInfo } = useToast();
   const {
     isConnected: isPresentationConnected,
-    stopPresentation,
     sendMessage,
-  } = usePresentation(`${window.location.origin}/monitor-display`);
+  } = usePresentation(`${window.location.origin}${MONITOR_DISPLAY_PATH}`);
 
   // プレゼンテーション接続状態をグローバルストアに同期
   useEffect(() => {
@@ -55,20 +51,13 @@ export function ScoreboardOperator({
 
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // フォールバックダイアログの状態
-  const [showFallbackDialog, setShowFallbackDialog] = useState(false);
 
-  // 接続解除確認ダイアログの状態
-  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
-
-  // BroadcastChannel for data sharing
+  // データ共有用のBroadcastChannel
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
   useEffect(() => {
     // BroadcastChannelの初期化
-    broadcastChannelRef.current = new BroadcastChannel(
-      "monitor-display-channel"
-    );
+    broadcastChannelRef.current = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
 
     return () => {
       broadcastChannelRef.current?.close();
@@ -83,7 +72,10 @@ export function ScoreboardOperator({
 
       // BroadcastChannelで送信
       try {
-        broadcastChannelRef.current?.postMessage(data);
+        broadcastChannelRef.current?.postMessage({
+          type: "data",
+          payload: data,
+        });
       } catch (err) {
         console.warn("BroadcastChannel送信エラー:", err);
       }
@@ -117,32 +109,10 @@ export function ScoreboardOperator({
     };
   }, [isTimerRunning]);
 
-  // データが変更されたときにモニター画面に送信（タイマー更新は制限）
-  const lastSendTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    const now = Date.now();
-    const isTimerOnlyUpdate =
-      lastSendTimeRef.current > 0 && now - lastSendTimeRef.current < 2000;
-
-    // タイマーのみの更新の場合は送信頻度を制限
-    if (isTimerOnlyUpdate && now - lastSendTimeRef.current < 500) {
-      return;
-    }
-
-    lastSendTimeRef.current = now;
-
-    const monitorData = {
-      matchId,
-      tournamentName,
-      courtName,
-      round,
-      playerA,
-      playerB,
-      timeRemaining,
-      isTimerRunning,
-      isPublic,
-    };
+    // データを送信
+    const monitorData = useMonitorStore.getState().getMonitorSnapshot();
     sendDataToMonitor(monitorData);
   }, [
     matchId,
@@ -156,31 +126,6 @@ export function ScoreboardOperator({
     isPublic,
     sendDataToMonitor,
   ]);
-
-  // フォールバック確認後の処理
-  const handleFallbackConfirm = () => {
-    setShowFallbackDialog(false);
-    const monitorUrl = `${window.location.origin}/monitor-display`;
-    window.open(monitorUrl, "_blank", "width=1920,height=1080");
-    showInfo(
-      "新しいタブでモニター表示を開始しました。データは自動的に同期されます。"
-    );
-  };
-
-  const handleFallbackCancel = () => {
-    setShowFallbackDialog(false);
-  };
-
-  // 接続解除確認のハンドラー
-  const handleDisconnectConfirm = () => {
-    setShowDisconnectDialog(false);
-    stopPresentation();
-    showInfo("プレゼンテーション接続を停止しました");
-  };
-
-  const handleDisconnectCancel = () => {
-    setShowDisconnectDialog(false);
-  };
 
   return (
     <div className={cn("w-full mx-auto space-y-4", className)}>
@@ -245,26 +190,6 @@ export function ScoreboardOperator({
           onTimeChange={setTimeRemaining}
           onStartTimer={startTimer}
           onStopTimer={stopTimer}
-        />
-
-
-        {/* フォールバック確認ダイアログ */}
-        <FallbackMonitorDialog
-          isOpen={showFallbackDialog}
-          onConfirm={handleFallbackConfirm}
-          onCancel={handleFallbackCancel}
-        />
-
-        {/* 接続解除確認ダイアログ */}
-        <ConfirmDialog
-          isOpen={showDisconnectDialog}
-          title="プレゼンテーション接続解除"
-          message="プレゼンテーション接続を解除しますか？モニター画面での表示が停止されます。"
-          confirmText="解除"
-          cancelText="キャンセル"
-          variant="destructive"
-          onConfirm={handleDisconnectConfirm}
-          onCancel={handleDisconnectCancel}
         />
       </div>
     </div>

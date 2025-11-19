@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Match } from "@/types/match.schema";
+import type { MonitorData } from "@/types/monitor.schema";
 import { SCORE_CONSTANTS, API_ENDPOINTS } from "@/lib/constants";
 import {
   calculateOpponentScoreChange,
@@ -36,6 +37,8 @@ interface MonitorState {
   isPublic: boolean; // 公開/非公開
   isSaving: boolean; // 保存処理中フラグ
   presentationConnected: boolean;
+  presentationConnection?: PresentationConnection | null;
+  fallbackOpen: boolean;
   selectedPlayer: "playerA" | "playerB" | null;
 
   // アクション
@@ -52,6 +55,8 @@ interface MonitorState {
   toggleTimer: () => void;
   togglePublic: () => void;
   setPresentationConnected: (connected: boolean) => void;
+  setPresentationConnection: (conn: PresentationConnection | null) => void;
+  setFallbackOpen: (open: boolean) => void;
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => void;
   incrementScoreForSelectedPlayer: () => void;
   incrementFoulForSelectedPlayer: () => void;
@@ -60,6 +65,7 @@ interface MonitorState {
     tournamentId: string,
     onSuccess?: () => void
   ) => Promise<void>;
+  getMonitorSnapshot: () => MonitorData;
 }
 
 export const useMonitorStore = create<MonitorState>((set, get) => ({
@@ -87,6 +93,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   isPublic: false,
   isSaving: false,
   presentationConnected: false,
+  fallbackOpen: false,
   selectedPlayer: null,
 
   // アクション
@@ -191,6 +198,14 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     set({ presentationConnected: connected });
   },
 
+  setPresentationConnection: (conn: PresentationConnection | null) => {
+    set({ presentationConnection: conn });
+  },
+
+  setFallbackOpen: (open: boolean) => {
+    set({ fallbackOpen: open });
+  },
+
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => {
     const { selectedPlayer } = get();
     if (player === "none") {
@@ -281,5 +296,20 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       // 保存処理終了
       set({ isSaving: false });
     }
+  },
+
+  getMonitorSnapshot: () => {
+    const s = get();
+    return {
+      matchId: s.matchId || "",
+      tournamentName: s.tournamentName,
+      courtName: s.courtName,
+      round: s.round,
+      playerA: s.playerA,
+      playerB: s.playerB,
+      timeRemaining: s.timeRemaining,
+      isTimerRunning: s.isTimerRunning,
+      isPublic: s.isPublic,
+    };
   },
 }));

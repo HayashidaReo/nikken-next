@@ -11,11 +11,18 @@ import SwitchLabel from "@/components/molecules/switch-label";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { usePresentation } from "@/hooks/usePresentation";
 import { useToast } from "@/components/providers/notification-provider";
+import {
+  MONITOR_DISPLAY_PATH,
+} from "@/lib/constants/monitor";
 import { useMatch } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
+import { FallbackMonitorDialog } from "@/components/molecules";
+import { useState } from "react";
+import { useGetPresentationToken } from "@/queries/use-presentation";
+import { useFallbackMonitor } from "@/hooks/useFallbackMonitor";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -25,6 +32,8 @@ export default function MonitorControlPage() {
   const storeMatchId = useMonitorStore((s) => s.matchId);
   const storeTournamentName = useMonitorStore((s) => s.tournamentName);
   const presentationConnected = useMonitorStore((s) => s.presentationConnected);
+  const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
+  const monitorStatusMode = presentationConnected ? "presentation" : fallbackOpen ? "fallback" : "disconnected";
   const isPublic = useMonitorStore((s) => s.isPublic);
   const togglePublic = useMonitorStore((s) => s.togglePublic);
 
@@ -35,9 +44,9 @@ export default function MonitorControlPage() {
     isSupported: isPresentationSupported,
     isAvailable: isPresentationAvailable,
     isConnected: isPresentationConnected,
-    startPresentation,
     stopPresentation,
-  } = usePresentation(`${window.location.origin}/monitor-display`);
+    startPresentation,
+  } = usePresentation(`${window.location.origin}${MONITOR_DISPLAY_PATH}`);
 
   const handleMonitorAction = async () => {
     try {
@@ -47,20 +56,66 @@ export default function MonitorControlPage() {
         return;
       }
 
-      if (isPresentationSupported && isPresentationAvailable) {
-        await startPresentation();
-        showSuccess("モニター表示を開始しました");
-        return;
+      // まず、プレゼンテーション用トークンを取得する
+      const token = await getPresentationToken.mutateAsync({
+        matchId,
+        orgId: orgId || "",
+        tournamentId: activeTournamentId || "",
+      });
+      const monitorUrl = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
+
+      if (isPresentationSupported && isPresentationAvailable && startPresentation) {
+        try {
+          // registerGlobal=true でストアに接続を保存する
+          await startPresentation(monitorUrl, true);
+          showSuccess("モニター表示を開始しました");
+          return;
+        } catch (err: unknown) {
+          console.error(err);
+
+          // ユーザーがネイティブのプレゼン選択ダイアログを閉じた（キャンセルした）場合は
+          // フォールバックの確認ダイアログを出さず静かに処理を終了する。
+          // Presentation API の例外はブラウザや実装によって異なるため、
+          // エラー名やメッセージを幅広く判定する。
+          const name = typeof err === "object" && err && "name" in err ? (err as Error).name : "";
+          const message = typeof err === "object" && err && "message" in err ? (err as Error).message : String(err ?? "");
+          const isUserCancelled =
+            name === "NotAllowedError" || name === "AbortError" || /Dialog closed/i.test(message);
+
+          if (isUserCancelled) {
+            showInfo("プレゼンテーションの選択がキャンセルされました");
+            return;
+          }
+
+          // それ以外のエラーは通知してフォールバック（下の setShowFallbackDialog）へ進む
+          showError(`Presentation API の開始に失敗しました: ${message}`);
+        }
       }
 
-      // フォールバック: 新しいタブで開く
-      const monitorUrl = `${window.location.origin}/monitor-display`;
-      window.open(monitorUrl, "_blank", "width=1920,height=1080");
-      showInfo("新しいタブでモニター表示を開始しました。データは自動的に同期されます。");
+      // Presentation API が利用できないか start に失敗した場合はフォールバックダイアログを表示
+      setShowFallbackDialog(true);
     } catch (err) {
       console.error(err);
       showError("モニター表示の開始に失敗しました。もう一度お試しください。");
     }
+  };
+
+  const [showFallbackDialog, setShowFallbackDialog] = useState(false);
+  const getPresentationToken = useGetPresentationToken();
+  const { openFallbackWindow } = useFallbackMonitor({
+    matchId,
+    orgId: orgId || "",
+    tournamentId: activeTournamentId || "",
+  });
+
+  const handleFallbackConfirm = () => {
+    setShowFallbackDialog(false);
+    // 非同期処理は関数呼び出しで開始（UIスレッドをブロックしない）
+    openFallbackWindow();
+  };
+
+  const handleFallbackCancel = () => {
+    setShowFallbackDialog(false);
   };
 
   const handleSave = async () => {
@@ -117,7 +172,7 @@ export default function MonitorControlPage() {
               </Link>
 
               <div className="ml-2">
-                <ConnectionStatus isConnected={presentationConnected} error={null} />
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
               </div>
             </div>
           </div>
@@ -146,7 +201,7 @@ export default function MonitorControlPage() {
               </Link>
 
               <div className="ml-2">
-                <ConnectionStatus isConnected={presentationConnected} error={null} />
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
               </div>
             </div>
           </div>
@@ -177,7 +232,7 @@ export default function MonitorControlPage() {
               </Link>
 
               <div className="ml-2">
-                <ConnectionStatus isConnected={presentationConnected} error={null} />
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
               </div>
             </div>
           </div>
@@ -206,7 +261,7 @@ export default function MonitorControlPage() {
             </Link>
 
             <div className="ml-2">
-              <ConnectionStatus isConnected={presentationConnected} error={null} />
+              <ConnectionStatus mode={monitorStatusMode} error={null} />
             </div>
           </div>
 
@@ -248,6 +303,11 @@ export default function MonitorControlPage() {
         <ScoreboardOperator
           organizationId={orgId || ""}
           tournamentId={activeTournamentId || ""}
+        />
+        <FallbackMonitorDialog
+          isOpen={showFallbackDialog}
+          onConfirm={handleFallbackConfirm}
+          onCancel={handleFallbackCancel}
         />
       </div>
     </div>
