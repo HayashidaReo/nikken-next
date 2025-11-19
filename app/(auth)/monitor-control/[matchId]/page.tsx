@@ -12,11 +12,7 @@ import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { usePresentation } from "@/hooks/usePresentation";
 import { useToast } from "@/components/providers/notification-provider";
 import {
-  MONITOR_DISPLAY_CHANNEL,
   MONITOR_DISPLAY_PATH,
-  HEARTBEAT_INTERVAL_MS,
-  HEARTBEAT_TIMEOUT_MS,
-  TIMEOUT_CHECK_INTERVAL_MS,
 } from "@/lib/constants/monitor";
 import { useMatch } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
@@ -26,6 +22,7 @@ import { InfoDisplay } from "@/components/molecules/info-display";
 import { FallbackMonitorDialog } from "@/components/molecules";
 import { useState } from "react";
 import { useGetPresentationToken } from "@/queries/use-presentation";
+import { useFallbackMonitor } from "@/hooks/useFallbackMonitor";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -105,54 +102,14 @@ export default function MonitorControlPage() {
 
   const [showFallbackDialog, setShowFallbackDialog] = useState(false);
   const getPresentationToken = useGetPresentationToken();
+  const { openFallbackWindow } = useFallbackMonitor({
+    matchId,
+    orgId: orgId || "",
+    tournamentId: activeTournamentId || "",
+  });
 
   const handleFallbackConfirm = () => {
     setShowFallbackDialog(false);
-
-    // - トークン取得 → 新ウィンドウオープン → ストア反映 → BroadcastChannel 送信 の流れ
-    // - BroadcastChannel は存在しない環境があるため事前チェックとログ出力を行う
-    const openFallbackWindow = async () => {
-      try {
-        const token = await getPresentationToken.mutateAsync({
-          matchId,
-          orgId: orgId || "",
-          tournamentId: activeTournamentId || "",
-        });
-
-        const url = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
-        window.open(url, "_blank", "width=1920,height=1080");
-
-        // フォールバックで別タブを開いたことをストアに反映
-        try {
-          useMonitorStore.getState().setFallbackOpen(true);
-        } catch (err) {
-          console.warn("ストアの fallbackOpen 設定に失敗しました:", err);
-        }
-
-        // BroadcastChannel で初回スナップショットを送信（存在チェックを行う）
-        try {
-          const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-          if (typeof BroadcastChannel !== "undefined") {
-            const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
-            ch.postMessage({ type: "snapshot", timestamp: Date.now(), payload: monitorData });
-            ch.close();
-          } else {
-            console.warn("ブロードキャストチャネルがこの環境で利用できません");
-            showInfo("共有チャネルが利用できません。別タブでの同期に制限があります。");
-
-          }
-        } catch (err) {
-          console.warn("ブロードキャストチャネルへの送信に失敗しました:", err);
-          showInfo("共有チャネルへの送信に失敗しましたが、別タブを開きました。");
-        }
-
-        showInfo("新しいタブでモニター表示を開始しました。データは自動的に同期されます。");
-      } catch (err) {
-        console.error("フォールバックウィンドウを開くのに失敗しました:", err);
-        showError("モニター表示の開始に失敗しました。もう一度お試しください。");
-      }
-    };
-
     // 非同期処理は関数呼び出しで開始（UIスレッドをブロックしない）
     openFallbackWindow();
   };
@@ -160,51 +117,6 @@ export default function MonitorControlPage() {
   const handleFallbackCancel = () => {
     setShowFallbackDialog(false);
   };
-
-  // フォールバック表示（別タブ）へのハートビート送信と応答検知
-  useEffect(() => {
-    if (!fallbackOpen) return;
-
-    const channel = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
-    let lastResponseTime = Date.now();
-
-    // ハートビート送信
-    const heartbeatInterval = setInterval(() => {
-      try {
-        const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-        channel.postMessage({
-          type: "heartbeat",
-          payload: monitorData,
-        });
-      } catch (e) {
-        console.error("ハートビートの送信に失敗しました:", e);
-      }
-    }, HEARTBEAT_INTERVAL_MS);
-
-    // ハートビート応答のリスナー
-    const handleResponse = (event: MessageEvent) => {
-      if (event.data?.type === "heartbeat_response") {
-        lastResponseTime = Date.now();
-      }
-    };
-    channel.addEventListener("message", handleResponse);
-
-    // タイムアウト検知
-    const timeoutCheckInterval = setInterval(() => {
-      const timeSinceLastResponse = Date.now() - lastResponseTime;
-      if (timeSinceLastResponse > HEARTBEAT_TIMEOUT_MS) {
-        // 応答がない場合、切断されたとみなす
-        useMonitorStore.getState().setFallbackOpen(false);
-      }
-    }, TIMEOUT_CHECK_INTERVAL_MS);
-
-    return () => {
-      clearInterval(heartbeatInterval);
-      clearInterval(timeoutCheckInterval);
-      channel.removeEventListener("message", handleResponse);
-      channel.close();
-    };
-  }, [fallbackOpen]);
 
   const handleSave = async () => {
     try {

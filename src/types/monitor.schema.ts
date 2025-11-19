@@ -33,7 +33,8 @@ export const monitorDataSchema = z.object({
 export type MonitorMessage =
     | { type: "data"; payload: MonitorData }              // 通常のデータ送信
     | { type: "heartbeat"; payload: MonitorData }         // ハートビート（データ付き）
-    | { type: "heartbeat_response"; timestamp: number };  // ハートビート応答
+    | { type: "ping"; timestamp: number }                 // 疎通確認
+    | { type: "ack"; timestamp: number };                 // 応答（データ受信確認・生存確認）
 
 export type MonitorPlayer = z.infer<typeof monitorPlayerSchema>;
 export type MonitorData = z.infer<typeof monitorDataSchema>;

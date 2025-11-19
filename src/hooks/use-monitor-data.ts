@@ -73,9 +73,9 @@ export function useMonitorData(tokenData?: TokenData | null) {
             setData(event.data.payload);
             setIsConnected(true);
 
-            // ハートビート応答を送信
+            // ハートビート応答（ACK）を送信
             channel.postMessage({
-              type: "heartbeat_response",
+              type: "ack",
               timestamp: Date.now(),
             });
 
@@ -89,6 +89,28 @@ export function useMonitorData(tokenData?: TokenData | null) {
             setData(event.data.payload);
             setIsConnected(true);
 
+            // データ受信確認（ACK）を返す
+            // これにより、操作画面側（送信側）はモニタータブが生存していることを確認し、
+            // 接続ステータスを「接続中」に復帰させることができます。
+            channel.postMessage({
+              type: "ack",
+              timestamp: Date.now(),
+            });
+
+            if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
+            heartbeatTimerRef.current = setTimeout(() => {
+              setIsConnected(false);
+            }, HEARTBEAT_TIMEOUT_MS);
+          } else if (event.data.type === "ping") {
+            // 疎通確認（ping）を受信したら応答（ACK）を返す
+            // 操作画面がリロードされた際などに、既存のモニタータブを見つけるために使用されます。
+            channel.postMessage({
+              type: "ack",
+              timestamp: Date.now(),
+            });
+
+            // 接続確認とみなしてタイマーをリセット
+            setIsConnected(true);
             if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
             heartbeatTimerRef.current = setTimeout(() => {
               setIsConnected(false);
