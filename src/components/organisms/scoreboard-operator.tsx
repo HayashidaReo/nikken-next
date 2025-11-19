@@ -68,7 +68,9 @@ export function ScoreboardOperator({
   const sendDataToMonitor = useCallback(
     (data: unknown) => {
       // Presentation APIで送信
-      sendMessage(data);
+      if (isPresentationConnected) {
+        sendMessage(data);
+      }
 
       // BroadcastChannelで送信
       try {
@@ -80,7 +82,7 @@ export function ScoreboardOperator({
         console.warn("BroadcastChannel送信エラー:", err);
       }
     },
-    [sendMessage]
+    [sendMessage, isPresentationConnected]
   );
 
   // キーボードショートカットの有効化

@@ -41,7 +41,7 @@ export default function MonitorDisplayPage() {
         setIsValidating(false);
       },
     });
-  }, [searchParams, validatePresentationToken]);
+  }, [searchParams, validatePresentationToken.mutate]);
 
   if (isValidating) {
     return (
