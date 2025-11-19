@@ -173,11 +173,7 @@ export function usePresentation(presentationUrl: string) {
         useMonitorStore.getState().setFallbackOpen(false);
 
         // 初回スナップショットを送信（接続確立時）
-        try {
-          sendInitialSnapshot(connection);
-        } catch {
-          // sendInitialSnapshot 内でログは行っているため、ここでは無視
-        }
+        sendInitialSnapshot(connection);
       };
 
       connection.addEventListener("connect", handleConnect);
@@ -220,11 +216,7 @@ export function usePresentation(presentationUrl: string) {
 
       // 既に接続状態なら初回送信を行う
       if (connection.state === "connected") {
-        try {
-          handleConnect();
-        } catch {
-          // ignore
-        }
+        handleConnect();
       }
 
       return connection;
