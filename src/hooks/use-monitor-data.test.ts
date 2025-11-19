@@ -105,7 +105,7 @@ describe("useMonitorData", () => {
   });
 
   describe("BroadcastChannel通信", () => {
-    it("heartbeat を受けると heartbeat_response を返す & タイムアウトで切断される", () => {
+    it("heartbeat を受けると ack を返す & タイムアウトで切断される", () => {
       jest.useFakeTimers();
       const { result } = renderHook(() => useMonitorData());
 
@@ -130,7 +130,7 @@ describe("useMonitorData", () => {
         messageHandler?.({ data: { type: "heartbeat", payload } } as MessageEvent);
       });
 
-      expect(mockBroadcastChannel.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: "heartbeat_response" }));
+      expect(mockBroadcastChannel.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: "ack" }));
       expect(result.current.isConnected).toBe(true);
 
       act(() => {
