@@ -41,6 +41,7 @@ export default function MonitorDisplayPage() {
         setIsValidating(false);
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, validatePresentationToken.mutate]);
 
   if (isValidating) {
