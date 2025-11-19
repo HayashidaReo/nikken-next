@@ -134,18 +134,7 @@ export default function MonitorControlPage() {
 
         // BroadcastChannel で初回スナップショットを送信
         try {
-          const s = useMonitorStore.getState();
-          const monitorData = {
-            matchId: s.matchId || "",
-            tournamentName: s.tournamentName,
-            courtName: s.courtName,
-            round: s.round,
-            playerA: s.playerA,
-            playerB: s.playerB,
-            timeRemaining: s.timeRemaining,
-            isTimerRunning: s.isTimerRunning,
-            isPublic: s.isPublic,
-          };
+          const monitorData = useMonitorStore.getState().getMonitorSnapshot();
           const ch = new BroadcastChannel(MONITOR_DISPLAY_CHANNEL);
           ch.postMessage(monitorData);
           ch.close();

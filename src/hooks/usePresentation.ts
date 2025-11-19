@@ -146,18 +146,7 @@ export function usePresentation(presentationUrl: string) {
 
         // 初回スナップショットを送信（接続確立時）
         try {
-          const s = useMonitorStore.getState();
-          const monitorData = {
-            matchId: s.matchId || "",
-            tournamentName: s.tournamentName,
-            courtName: s.courtName,
-            round: s.round,
-            playerA: s.playerA,
-            playerB: s.playerB,
-            timeRemaining: s.timeRemaining,
-            isTimerRunning: s.isTimerRunning,
-            isPublic: s.isPublic,
-          };
+          const monitorData = useMonitorStore.getState().getMonitorSnapshot();
 
           try {
             if (connection.state === "connected") {
@@ -187,18 +176,7 @@ export function usePresentation(presentationUrl: string) {
           const msg = JSON.parse(ev.data);
           if (msg && msg.type === "request_snapshot") {
             try {
-              const s = useMonitorStore.getState();
-              const monitorData = {
-                matchId: s.matchId || "",
-                tournamentName: s.tournamentName,
-                courtName: s.courtName,
-                round: s.round,
-                playerA: s.playerA,
-                playerB: s.playerB,
-                timeRemaining: s.timeRemaining,
-                isTimerRunning: s.isTimerRunning,
-                isPublic: s.isPublic,
-              };
+              const monitorData = useMonitorStore.getState().getMonitorSnapshot();
               if (connection.state === "connected") {
                 connection.send(JSON.stringify(monitorData));
               }

@@ -121,17 +121,7 @@ export function ScoreboardOperator({
 
     lastSendTimeRef.current = now;
 
-    const monitorData = {
-      matchId,
-      tournamentName,
-      courtName,
-      round,
-      playerA,
-      playerB,
-      timeRemaining,
-      isTimerRunning,
-      isPublic,
-    };
+    const monitorData = useMonitorStore.getState().getMonitorSnapshot();
     sendDataToMonitor(monitorData);
   }, [
     matchId,

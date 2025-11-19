@@ -64,6 +64,27 @@ interface MonitorState {
     tournamentId: string,
     onSuccess?: () => void
   ) => Promise<void>;
+  getMonitorSnapshot: () => {
+    matchId: string;
+    tournamentName: string;
+    courtName: string;
+    round: string;
+    playerA: {
+      displayName: string;
+      teamName: string;
+      score: number;
+      hansoku: number;
+    };
+    playerB: {
+      displayName: string;
+      teamName: string;
+      score: number;
+      hansoku: number;
+    };
+    timeRemaining: number;
+    isTimerRunning: boolean;
+    isPublic: boolean;
+  };
 }
 
 export const useMonitorStore = create<MonitorState>((set, get) => ({
@@ -294,5 +315,20 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       // 保存処理終了
       set({ isSaving: false });
     }
+  },
+
+  getMonitorSnapshot: () => {
+    const s = get();
+    return {
+      matchId: s.matchId || "",
+      tournamentName: s.tournamentName,
+      courtName: s.courtName,
+      round: s.round,
+      playerA: s.playerA,
+      playerB: s.playerB,
+      timeRemaining: s.timeRemaining,
+      isTimerRunning: s.isTimerRunning,
+      isPublic: s.isPublic,
+    };
   },
 }));
