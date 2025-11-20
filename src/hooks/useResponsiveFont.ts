@@ -24,7 +24,7 @@ export function useResponsiveFont({
 }: UseResponsiveFontOptions) {
     const elementRef = useRef<HTMLDivElement>(null);
     const [fontSizeRem, setFontSizeRem] = useState(baseFontSize);
-    const stateRef = useRef({ currentFontSize: baseFontSize, calculationScheduled: false });
+    const currentFontRef = useRef(baseFontSize);
 
     useEffect(() => {
         const el = elementRef.current;
@@ -35,8 +35,6 @@ export function useResponsiveFont({
         // フォントサイズを計算する関数
         const calculateFontSize = () => {
             const scrollWidth = el.scrollWidth;
-            console.log(`[calculateFontSize] scrollWidth: ${scrollWidth}, maxWidth: ${maxWidth}`);
-
             let newFontSize = baseFontSize;
 
             if (scrollWidth > maxWidth) {
@@ -44,19 +42,12 @@ export function useResponsiveFont({
                 // 計算：最大幅に収まるまでスケール
                 const scaleFactor = maxWidth / scrollWidth;
                 newFontSize = Math.max(minSize, baseFontSize * scaleFactor);
-                console.log(`[calculateFontSize] Text overflows, scaling down to ${newFontSize}rem`);
-            } else {
-                console.log(`[calculateFontSize] Text fits, keeping base size ${baseFontSize}rem`);
             }
 
-            // 状態を更新
-            if (Math.abs(newFontSize - stateRef.current.currentFontSize) > 0.01) {
-                console.log(`[calculateFontSize] Updating font size from ${stateRef.current.currentFontSize}rem to ${newFontSize}rem`);
-                stateRef.current.currentFontSize = newFontSize;
-                stateRef.current.calculationScheduled = false;
+            // 状態を更新（差があれば setState）
+            if (Math.abs(newFontSize - currentFontRef.current) > 0.01) {
+                currentFontRef.current = newFontSize;
                 setFontSizeRem(newFontSize);
-            } else {
-                stateRef.current.calculationScheduled = false;
             }
         };
 
