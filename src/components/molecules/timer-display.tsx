@@ -21,7 +21,7 @@ export function TimerDisplay({
         <div className="text-right">
           <div
             className={cn(
-              "text-[23rem] leading-[1.1] font-mono font-black",
+              "text-[28rem] leading-[0.9] font-timer font-black",
               isTimerRunning ? "text-green-400" : "text-white"
             )}
           >
