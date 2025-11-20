@@ -26,7 +26,7 @@ export function PlayerSection({
   const playerName = getPlayerDisplayName(variant, player.displayName);
   const scorePositionClass = getPlayerPositionClass(variant);
 
-  // 選手名のフォントサイズを自動調整（最大横幅 700px まで）
+  // 選手名のフォントサイズを自動調整
   const { fontSizeRem, elementRef } = useResponsiveFont({
     baseFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE,
     minFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE,
