@@ -24,7 +24,6 @@ export function TimerDisplay({
               "text-[26rem] leading-[0.9] font-black tracking-tight",
               isTimerRunning ? "text-green-400" : "text-white"
             )}
-            style={{ letterSpacing: "-0.02em" }}
           >
             {formatTime(timeRemaining)}
           </div>
