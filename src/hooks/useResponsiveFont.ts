@@ -14,7 +14,7 @@ interface UseResponsiveFontOptions {
  *
  * @param options.baseFontSize - ベースのフォントサイズ（rem）
  * @param options.minFontSize - 最小フォントサイズ（rem、デフォルト: baseFontSize * 0.6）
- * @param options.maxWidth - テキストの最大横幅（px、デフォルト: 600）
+ * @param options.maxWidth - テキストの最大横幅（px）
  * @returns fontSizeRem - 計算されたフォントサイズ（rem）
  */
 export function useResponsiveFont({
