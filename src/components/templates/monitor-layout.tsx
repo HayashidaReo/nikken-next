@@ -17,11 +17,8 @@ export function MonitorLayout({
       {/* PlayerSection は MatchPlayer を期待するため、MonitorPlayer を MatchPlayer に変換して渡す */}
       <PlayerSection player={toMatchPlayerForMonitor(data.playerA)} variant="red" />
 
-      {/* 中央セクション - 大会情報とタイマー */}
+      {/* 中央セクション - 線とタイマー */}
       <CenterSection
-        tournamentName={data.tournamentName}
-        courtName={data.courtName}
-        round={data.round}
         timeRemaining={data.timeRemaining}
         isTimerRunning={data.isTimerRunning}
       />

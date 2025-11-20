@@ -17,13 +17,14 @@ export function TimerDisplay({
     <div
       className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 ${className}`}
     >
-      <SkewedBackground className="pl-64 pr-10">
+      <SkewedBackground className="pl-50 pr-8">
         <div className="text-right">
           <div
             className={cn(
-              "text-[26rem] leading-[0.9] font-mono font-black",
+              "text-[26rem] leading-[0.9] font-black tracking-tight",
               isTimerRunning ? "text-green-400" : "text-white"
             )}
+            style={{ letterSpacing: "-0.02em" }}
           >
             {formatTime(timeRemaining)}
           </div>
