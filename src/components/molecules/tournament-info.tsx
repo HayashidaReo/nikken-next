@@ -26,7 +26,7 @@ export function TournamentInfo({
     <div className={`flex items-center text-white ${className}`}>
       <div
         ref={elementRef}
-        style={{ fontSize: `${fontSizeRem}rem`, maxWidth: "1000px" }}
+        style={{ fontSize: `${fontSizeRem}rem`, maxWidth: `${RESPONSIVE_FONT_CONSTANTS.INFO.MAX_WIDTH}px` }}
         className="font-bold leading-tight whitespace-nowrap"
       >
         {combined}
