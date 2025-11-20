@@ -49,7 +49,7 @@ export function PlayerSection({
             style={{
               fontSize: `${fontSizeRem}rem`,
               maxWidth: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}px`,
-              height: "250px",
+              height: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.HEIGHT}px`,
             }}
             className="font-black leading-none whitespace-nowrap"
           >

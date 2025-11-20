@@ -50,6 +50,8 @@ export const RESPONSIVE_FONT_CONSTANTS = {
     MIN_FONT_SIZE: 8,
     /** 自動調整の最大横幅（px） */
     MAX_WIDTH: 1000,
+    /** 選手名領域の高さ（px） */
+    HEIGHT: 250,
   },
   /** 大会名,コート名,ラウンド名の表示部分のレスポンシブフォント設定 */
   INFO: {
