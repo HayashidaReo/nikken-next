@@ -48,7 +48,7 @@ export const RESPONSIVE_FONT_CONSTANTS = {
     BASE_FONT_SIZE: 16,
     /** 最小フォントサイズ（rem） */
     MIN_FONT_SIZE: 8,
-    /** 自動調整の 最大横幅（px） */
+    /** 自動調整の最大横幅（px） */
     MAX_WIDTH: 1000,
   },
   /** 大会名,コート名,ラウンド名の表示部分のレスポンシブフォント設定 */
@@ -60,7 +60,7 @@ export const RESPONSIVE_FONT_CONSTANTS = {
     /** 最大横幅（px） */
     MAX_WIDTH: 980,
   },
-  
+
 } as const;
 
 // 📝 フォーム関連定数
