@@ -53,16 +53,6 @@ export const RESPONSIVE_FONT_CONSTANTS = {
     /** 選手名領域の高さ（px） */
     HEIGHT: 250,
   },
-  /** 大会名,コート名,ラウンド名の表示部分のレスポンシブフォント設定 */
-  INFO: {
-    /** ベースフォントサイズ（rem） */
-    BASE_FONT_SIZE: 5,
-    /** 最小フォントサイズ（rem） */
-    MIN_FONT_SIZE: 0.8,
-    /** 最大横幅（px） */
-    MAX_WIDTH: 980,
-  },
-
 } as const;
 
 // 📝 フォーム関連定数
