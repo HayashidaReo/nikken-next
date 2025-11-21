@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,27 +15,33 @@ import {
 } from "@/components/atoms/card";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
-import { Switch } from "@/components/atoms/switch";
 import { cn } from "@/lib/utils/utils";
 import type { Team } from "@/types/team.schema";
 
 import { FormInput, FormTextarea } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
-import { LoadingButton } from "@/components/molecules/loading-button";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+import { AnimatePresence } from "framer-motion";
+import { AnimatedListItem } from "@/components/atoms/animated-list-item";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/atoms/tooltip";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useArrayField } from "@/hooks/useArrayField";
 import { createDefaultTeamEditValues } from "@/lib/form-defaults";
+import { formatPlayerFullName } from "@/lib/utils/player-name-utils";
 
 // 編集用のスキーマ
 const teamEditSchema = z.object({
   teamName: z.string().min(1, "チーム名は必須です"),
   representativeName: z.string().min(1, "代表者名は必須です"),
   representativePhone: z.string().min(1, "電話番号は必須です"),
-  representativeEmail: z
-    .string()
-    .email("正しいメールアドレスを入力してください"),
+  representativeEmail: z.email("正しいメールアドレスを入力してください"),
   isApproved: z.boolean(),
   remarks: z.string(),
   players: z.array(
@@ -67,7 +73,7 @@ export function TeamEditForm({
   const { isLoading, handleSubmit: handleFormSubmission } =
     useFormSubmit<TeamEditData>();
   const { confirmNavigation } = useUnsavedChanges(hasUnsavedChanges);
-  const { showWarning } = useToast();
+  const { showWarning, showSuccess } = useToast();
 
   const {
     register,
@@ -92,10 +98,6 @@ export function TeamEditForm({
     onMinItemsRequired: minItems => {
       showWarning(`削除できません。最低${minItems}人の選手が必要です。`);
     },
-    onRemove: () => {
-      // displayNameを再計算
-      setTimeout(updateDisplayNames, 100);
-    },
   });
 
   // フォームの変更を監視（isDirtyフラグを使用）
@@ -103,17 +105,11 @@ export function TeamEditForm({
     setHasUnsavedChanges(isDirty);
   }, [isDirty]);
 
-  // 承認状態を個別に監視
-  const isApprovedValue = useWatch({
-    control,
-    name: "isApproved",
-    defaultValue: team.isApproved,
-  });
 
   // displayNameを自動生成する関数
-  const updateDisplayNames = () => {
+  const updateDisplayNames = useCallback(() => {
     const currentValues = getValues();
-    const players = currentValues.players;
+    const players = currentValues.players || [];
 
     // 姓でグループ化
     const lastNameGroups: { [key: string]: number[] } = {};
@@ -129,42 +125,82 @@ export function TeamEditForm({
     Object.entries(lastNameGroups).forEach(([lastName, indices]) => {
       if (indices.length === 1) {
         // 重複なし：姓のみ
-        setValue(`players.${indices[0]}.displayName`, lastName);
+        const idx = indices[0];
+        const current = players[idx]?.displayName || "";
+        if (current !== lastName) {
+          setValue(`players.${idx}.displayName`, lastName);
+        }
       } else {
         // 重複あり：姓 + 名の一部
         indices.forEach(index => {
-          const player = players[index];
-          const firstName = player.firstName;
+          const player = players[index] || { firstName: "", displayName: "" };
+          const firstName = player.firstName || "";
           let displayName = `${lastName} ${firstName.charAt(0)}`;
 
           // 同じ姓＋名の一部でも重複する場合はフルネーム
           const sameDisplay = indices.filter(i => {
-            const otherPlayer = players[i];
-            return (
-              `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName
-            );
+            const otherPlayer = players[i] || { firstName: "" };
+            return `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName;
           });
 
           if (sameDisplay.length > 1) {
             displayName = `${lastName} ${firstName}`;
           }
 
-          setValue(`players.${index}.displayName`, displayName);
+          const current = player.displayName || "";
+          if (current !== displayName) {
+            setValue(`players.${index}.displayName`, displayName);
+          }
         });
       }
     });
-  };
+  }, [getValues, setValue]);
 
   // 選手を追加（共通hookを使用）
   const addPlayer = () => addItem();
 
-  // 選手を削除（共通hookを使用）
-  const removePlayer = (index: number) => removeItem(index);
+  // React Hook Form の useWatch を使って players の変更を監視し、displayName を同期的に更新します
+  const watchedPlayers = useWatch({ control, name: "players" });
 
-  // 姓・名が変更されたときにdisplayNameを更新
-  const handleNameChange = () => {
-    setTimeout(updateDisplayNames, 100);
+  useEffect(() => {
+    updateDisplayNames();
+    // 「フォーム上の選手データが変更されたときにのみ表示名を再計算する」ことであり、
+    // updateDisplayNames の参照が変わるたびに effect を再実行させたくないため
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- updateDisplayNames intentionally omitted on purpose
+  }, [watchedPlayers]);
+
+  // 選手を削除（共通hookを使用）
+
+  // 削除確認ダイアログの state
+  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
+
+  const requestRemovePlayer = (index: number) => {
+    setDeleteConfirmIndex(index);
   };
+
+  const confirmRemovePlayer = () => {
+    if (deleteConfirmIndex !== null) {
+      const players = getValues().players || [];
+      const name = formatPlayerFullName(players, deleteConfirmIndex);
+
+      removeItem(deleteConfirmIndex);
+      setDeleteConfirmIndex(null);
+      showSuccess(`${name} を削除しました`);
+    }
+  };
+
+  const cancelRemovePlayer = () => setDeleteConfirmIndex(null);
+
+  // 削除確認ダイアログのメッセージをメモ化してレンダリング内の IIFE を排除
+  const deleteConfirmMessage = useMemo(() => {
+    if (deleteConfirmIndex === null) return "選手を削除しますか？";
+    // `watchedPlayers` は useWatch で監視しているためレンダリングと同期します
+    const players = watchedPlayers || getValues().players || [];
+    const name = formatPlayerFullName(players, deleteConfirmIndex);
+    return `${name} を削除しますか？ この操作は取り消せません。`;
+  }, [deleteConfirmIndex, watchedPlayers, getValues]);
+
+  // displayName の更新は useWatch + useEffect で行うため、個別のハンドラは不要
 
   // フォーム送信
   const handleFormSubmit = async (data: TeamEditData) => {
@@ -192,151 +228,170 @@ export function TeamEditForm({
           </Button>
           <h1 className="text-2xl font-bold text-gray-900">チーム情報編集</h1>
         </div>
-        <LoadingButton
-          onClick={handleSubmit(handleFormSubmit)}
-          isLoading={isLoading}
-        >
+        <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading} loadingText="保存中...">
           保存
-        </LoadingButton>
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-        {/* 基本情報 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>基本情報</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* 承認状態 */}
-            <div className="flex items-center space-x-3">
-              <Switch
-                {...register("isApproved")}
-                checked={isApprovedValue}
-                onCheckedChange={checked => setValue("isApproved", checked)}
-              />
-              <Label className="font-medium">
-                {isApprovedValue ? "承認済み" : "未承認"}
-              </Label>
-            </div>
+      <TooltipProvider delayDuration={20}>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+          {/* 基本情報 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>基本情報</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput
-                label="チーム名"
-                name="teamName"
-                required
-                placeholder="チーム名を入力"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormInput
+                  label="チーム名"
+                  name="teamName"
+                  required
+                  placeholder="チーム名を入力"
+                  register={register}
+                  error={errors.teamName?.message}
+                />
+
+                <FormInput
+                  label="代表者名"
+                  name="representativeName"
+                  required
+                  placeholder="代表者名を入力"
+                  register={register}
+                  error={errors.representativeName?.message}
+                />
+
+                <FormInput
+                  label="電話番号"
+                  name="representativePhone"
+                  required
+                  type="tel"
+                  placeholder="電話番号を入力"
+                  register={register}
+                  error={errors.representativePhone?.message}
+                />
+
+                <FormInput
+                  label="メールアドレス"
+                  name="representativeEmail"
+                  required
+                  type="email"
+                  placeholder="メールアドレスを入力"
+                  register={register}
+                  error={errors.representativeEmail?.message}
+                />
+              </div>
+
+              <FormTextarea
+                label="備考"
+                name="remarks"
+                placeholder="備考があれば入力してください"
+                rows={3}
                 register={register}
-                error={errors.teamName?.message}
               />
+            </CardContent>
+          </Card>
 
-              <FormInput
-                label="代表者名"
-                name="representativeName"
-                required
-                placeholder="代表者名を入力"
-                register={register}
-                error={errors.representativeName?.message}
-              />
+          {/* 選手一覧 */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>参加選手一覧</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <AnimatePresence initial={false}>
+                  {fields.map((field, index) => (
+                    <AnimatedListItem
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-[repeat(3,1fr)_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      <div>
+                        <Label className="text-sm">姓 *</Label>
+                        <Input
+                          {...register(`players.${index}.lastName`)}
+                          placeholder="山田"
+                        />
+                        {errors.players?.[index]?.lastName && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.players[index]?.lastName?.message}
+                          </p>
+                        )}
+                      </div>
 
-              <FormInput
-                label="電話番号"
-                name="representativePhone"
-                required
-                type="tel"
-                placeholder="電話番号を入力"
-                register={register}
-                error={errors.representativePhone?.message}
-              />
+                      <div>
+                        <Label className="text-sm">名 *</Label>
+                        <Input
+                          {...register(`players.${index}.firstName`)}
+                          placeholder="太郎"
+                        />
+                        {errors.players?.[index]?.firstName && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.players[index]?.firstName?.message}
+                          </p>
+                        )}
+                      </div>
 
-              <FormInput
-                label="メールアドレス"
-                name="representativeEmail"
-                required
-                type="email"
-                placeholder="メールアドレスを入力"
-                register={register}
-                error={errors.representativeEmail?.message}
-              />
-            </div>
+                      <div>
+                        <Label className="text-sm">表示名</Label>
 
-            <FormTextarea
-              label="備考"
-              name="remarks"
-              placeholder="備考があれば入力してください"
-              rows={3}
-              register={register}
-            />
-          </CardContent>
-        </Card>
+                        <div className="flex items-center gap-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div
+                                className="min-h-[38px] flex items-center px-3 py-2 rounded-md bg-gray-100 text-sm text-gray-700 w-full"
+                                aria-label="表示名は自動的に生成されます"
+                                aria-readonly="true"
+                              >
+                                {watchedPlayers?.[index]?.displayName ?? ""}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" align="center" sideOffset={6}>
+                              表示名は自動的に生成されます
+                            </TooltipContent>
+                          </Tooltip>
 
-        {/* 選手一覧 */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>参加選手一覧</CardTitle>
-              <AddButton onClick={addPlayer}>選手を追加</AddButton>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg"
-                >
-                  <div>
-                    <Label>姓 *</Label>
-                    <Input
-                      {...register(`players.${index}.lastName`)}
-                      placeholder="山田"
-                      onChange={handleNameChange}
-                    />
-                    {errors.players?.[index]?.lastName && (
-                      <p className="text-sm text-red-600 mt-1">
-                        {errors.players[index]?.lastName?.message}
-                      </p>
-                    )}
-                  </div>
+                          {/* Hidden input to keep displayName in form state */}
+                          <input type="hidden" {...register(`players.${index}.displayName`)} />
+                        </div>
+                      </div>
 
-                  <div>
-                    <Label>名 *</Label>
-                    <Input
-                      {...register(`players.${index}.firstName`)}
-                      placeholder="太郎"
-                      onChange={handleNameChange}
-                    />
-                    {errors.players?.[index]?.firstName && (
-                      <p className="text-sm text-red-600 mt-1">
-                        {errors.players[index]?.firstName?.message}
-                      </p>
-                    )}
-                  </div>
+                      <div className="flex items-center justify-center">
+                        <RemoveButton onClick={() => requestRemovePlayer(index)} />
+                      </div>
+                    </AnimatedListItem>
+                  ))}
+                </AnimatePresence>
 
-                  <div>
-                    <Label>表示名</Label>
-                    <Input
-                      {...register(`players.${index}.displayName`)}
-                      placeholder="自動生成"
-                      readOnly
-                      className="bg-gray-100"
-                    />
-                  </div>
-
-                  <div className="flex items-end">
-                    <RemoveButton onClick={() => removePlayer(index)} />
-                  </div>
+                {/* リストの最後尾に選手追加ボタンを配置（大会組み合わせ画面と同様のフル幅表示） */}
+                <div className="mt-2">
+                  <AddButton onClick={addPlayer} className="w-full">
+                    選手を追加
+                  </AddButton>
                 </div>
-              ))}
 
-              {fields.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  選手が登録されていません
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </form>
+                {fields.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    選手が登録されていません
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+      </TooltipProvider>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmIndex !== null}
+        title="選手の削除確認"
+        message={deleteConfirmMessage}
+        onConfirm={confirmRemovePlayer}
+        onCancel={cancelRemovePlayer}
+        confirmText="削除する"
+        cancelText="キャンセル"
+        variant="destructive"
+      />
     </div>
   );
 }

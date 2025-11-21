@@ -8,6 +8,8 @@ import {
 } from "@/lib/utils/player-utils";
 import { type MatchPlayer } from "@/types/match.schema";
 import { type HansokuLevel } from "@/lib/utils/penalty-utils";
+import { useResponsiveFont } from "@/hooks/useResponsiveFont";
+import { RESPONSIVE_FONT_CONSTANTS } from "@/lib/constants";
 
 interface PlayerSectionProps {
   player: MatchPlayer;
@@ -24,6 +26,13 @@ export function PlayerSection({
   const playerName = getPlayerDisplayName(variant, player.displayName);
   const scorePositionClass = getPlayerPositionClass(variant);
 
+  // 選手名のフォントサイズを自動調整
+  const { fontSizeRem, elementRef } = useResponsiveFont({
+    baseFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE,
+    minFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE,
+    maxWidth: RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH,
+  });
+
   return (
     <div
       className={`flex-1 ${styles.background} relative px-16 py-8 ${styles.text} ${className}`}
@@ -31,10 +40,21 @@ export function PlayerSection({
       {/* 左側：チーム名と選手名 */}
       <div className="flex items-center h-full">
         <div className="flex-1">
-          <div className="text-2xl font-medium mb-2 opacity-90">
+          <div className="text-7xl font-bold mb-2 opacity-90 py-4">
             {player.teamName || "チーム名未設定"}
           </div>
-          <div className="text-8xl font-black leading-none">{playerName}</div>
+          {/* 選手名は最大横幅を超過するとフォント自動縮小 */}
+          <div
+            ref={elementRef}
+            style={{
+              fontSize: `${fontSizeRem}rem`,
+              maxWidth: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}px`,
+              height: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.HEIGHT}px`,
+            }}
+            className="font-black leading-none whitespace-nowrap"
+          >
+            {playerName}
+          </div>
         </div>
       </div>
 

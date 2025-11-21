@@ -8,17 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/atoms/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/atoms/select";
 import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { useAuthStore } from "@/store/use-auth-store";
-import { Tournament } from "@/types/tournament.schema";
+import { AlertCircle } from "lucide-react";
+import { ROUTES } from "@/lib/constants";
+import { TournamentSelectDropdown } from "@/components/atoms/tournament-select-dropdown";
 
 interface TournamentSelectionDialogProps {
   /** ダイアログの表示状態 */
@@ -45,6 +40,7 @@ export function TournamentSelectionDialog({
   const { user } = useAuthStore();
   const { setActiveTournament } = useActiveTournament();
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>("");
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // ユーザーのUIDを組織IDとして使用（大会設定画面と同じ実装）
   const orgId = user?.uid || null;
@@ -55,11 +51,16 @@ export function TournamentSelectionDialog({
     error,
   } = useTournamentsByOrganization(orgId);
 
-  const handleConfirm = () => {
-    if (selectedTournamentId) {
+  const handleConfirm = async () => {
+    if (selectedTournamentId && !isConfirming) {
+      setIsConfirming(true);
+
+      // アクティブな大会を設定
       setActiveTournament(selectedTournamentId);
-      // 明示的にダイアログを閉じる
+
       onClose?.();
+
+      setIsConfirming(false);
     }
   };
 
@@ -67,127 +68,87 @@ export function TournamentSelectionDialog({
     setSelectedTournamentId(value);
   };
 
-  const selectedTournament = tournaments.find(
-    (t: Tournament) => t.tournamentId === selectedTournamentId
-  );
+  const handleOpenChange = (newOpen: boolean) => {
+    // dismissibleがtrueの場合のみ、外部からのクローズ要求を受け入れる
+    if (dismissible && !newOpen) {
+      onClose?.();
+    }
+  };
 
   if (!user) {
     return null; // 未ログイン時は表示しない
   }
 
   return (
-    <Dialog open={open} onOpenChange={dismissible ? undefined : () => { }}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="sm:max-w-md bg-white"
         onInteractOutside={dismissible ? undefined : e => e.preventDefault()}
         onEscapeKeyDown={dismissible ? undefined : e => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-center">
+          <DialogTitle className="text-center text-xl">
             大会を選択してください
           </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-sm text-gray-600 text-center mt-1">
             操作を続行するには大会を選択する必要があります。
           </p>
+        </DialogHeader>
 
+        <div className="space-y-4 py-2">
           {error && (
-            <div className="text-sm text-destructive text-center space-y-2">
-              <p>大会一覧の取得に失敗しました</p>
-              {error.message.includes("組織が見つかりません") && (
-                <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                  <p>まず大会設定画面で組織と大会を作成してください。</p>
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-destructive">
+                  <p className="font-medium">大会一覧の取得に失敗しました</p>
+                  {error.message.includes("組織が見つかりません") && (
+                    <p className="text-xs mt-1 text-gray-600">
+                      大会設定画面で大会を作成してください。
+                    </p>
+                  )}
                 </div>
+              </div>
+              {error.message && (
+                <details className="text-xs text-gray-500 ml-6">
+                  <summary className="cursor-pointer hover:text-gray-700">詳細を表示</summary>
+                  <p className="mt-1 font-mono break-words">{error.message}</p>
+                </details>
               )}
-              <details className="text-xs text-gray-500">
-                <summary>詳細を表示</summary>
-                <p className="mt-1">{error.message}</p>
-              </details>
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">大会</label>
-            <Select
-              value={selectedTournamentId}
-              onValueChange={handleTournamentChange}
-              disabled={isLoading}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue
-                  placeholder={
-                    isLoading ? "読み込み中..." : "大会を選択してください"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {tournaments
-                  .filter((tournament: Tournament) => tournament.tournamentId)
-                  .map((tournament: Tournament) => (
-                    <SelectItem
-                      key={tournament.tournamentId}
-                      value={tournament.tournamentId!}
-                    >
-                      <div className="flex flex-col text-left">
-                        <span className="font-medium">
-                          {tournament.tournamentName}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {tournament.tournamentDate instanceof Date
-                            ? tournament.tournamentDate.toLocaleDateString(
-                              "ja-JP"
-                            )
-                            : tournament.tournamentDate}{" "}
-                          - {tournament.location}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                {tournaments.length === 0 && !isLoading && !error && (
-                  <div className="p-3 text-sm text-center space-y-2">
-                    <p className="text-muted-foreground">
-                      利用可能な大会がありません
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      大会設定画面で大会を作成してください
-                    </p>
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
+          <div>
+            <TournamentSelectDropdown
+              tournaments={tournaments}
+              selectedId={selectedTournamentId}
+              onSelect={handleTournamentChange}
+              isLoading={isLoading}
+              isError={!!error}
+              placeholder="大会を選択してください"
+              showSelectedDetails={true}
+              triggerClassName="w-full border-gray-200"
+              contentMinWidth="min-w-[280px]"
+              disabled={isLoading || !!error}
+            />
           </div>
 
-          {selectedTournament && (
-            <div className="rounded-md border p-3 bg-white shadow-sm">
-              <h4 className="font-medium text-sm mb-1">選択中の大会</h4>
-              <p className="text-sm text-gray-700">
-                {selectedTournament.tournamentName}
-              </p>
-              <p className="text-xs text-gray-500">
-                {selectedTournament.tournamentDate} -{" "}
-                {selectedTournament.location}
-              </p>
-            </div>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-2 justify-end">
-            {(tournaments.length === 0 || error) && (
+          <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-2">
+            {tournaments.length === 0 && !isLoading && !error && (
               <Button
-                variant="outline"
-                onClick={() => (window.location.href = "/tournament-settings")}
-                className="w-full sm:w-auto"
+                variant="link"
+                onClick={() => (window.location.href = ROUTES.TOURNAMENT_SETTINGS)}
+                className="w-full sm:w-auto px-10"
               >
-                大会を作成する
+                こちらから大会を新規作成
               </Button>
             )}
             <Button
               onClick={handleConfirm}
-              disabled={!selectedTournamentId || isLoading}
+              disabled={!selectedTournamentId || isLoading || isConfirming}
               className="w-full sm:w-auto"
             >
-              この大会で続行
+              {isConfirming ? "設定中..." : "この大会で続行"}
             </Button>
           </div>
         </div>

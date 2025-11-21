@@ -195,7 +195,7 @@ export class MatchData {
     }
 
     /**
-     * 特定の回戦の試合を取得
+     * 特定のラウンドの試合を取得
      */
     async getMatchesByRound(round: string): Promise<Match[]> {
         return this.queryMatches([

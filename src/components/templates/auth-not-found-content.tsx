@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Home, Search, Settings } from "lucide-react";
 import { Button } from "@/components/atoms/button";
+import { ROUTES } from "@/lib/constants";
 import { NotFoundLayout } from "./not-found-layout";
 
 interface AuthNotFoundContentProps {
@@ -43,7 +44,7 @@ export function AuthNotFoundContent({
       )}
 
       {showSettingsLink && (
-        <Link href="/tournament-settings" className="block">
+        <Link href={ROUTES.TOURNAMENT_SETTINGS} className="block">
           <Button variant="outline" className="w-full" size="lg">
             <Settings className="w-5 h-5 mr-2" />
             大会設定

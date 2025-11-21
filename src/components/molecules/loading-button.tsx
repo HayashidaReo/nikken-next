@@ -7,14 +7,15 @@ import { Loader2 } from "lucide-react";
 interface LoadingButtonProps {
   isLoading: boolean;
   children: React.ReactNode;
+  loadingText?: string;
   type?: "button" | "submit" | "reset";
   variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+  | "default"
+  | "destructive"
+  | "outline"
+  | "secondary"
+  | "ghost"
+  | "link";
   size?: "default" | "sm" | "lg" | "icon";
   disabled?: boolean;
   onClick?: () => void;
@@ -24,6 +25,7 @@ interface LoadingButtonProps {
 export function LoadingButton({
   isLoading,
   children,
+  loadingText,
   type = "button",
   variant = "default",
   size = "default",
@@ -43,7 +45,7 @@ export function LoadingButton({
       {...props}
     >
       {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-      {children}
+      {isLoading && loadingText ? loadingText : children}
     </Button>
   );
 }

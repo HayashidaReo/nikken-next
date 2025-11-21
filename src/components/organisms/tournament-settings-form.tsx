@@ -17,7 +17,7 @@ import { FORM_CONSTANTS, TIME_CONSTANTS } from "@/lib/constants";
 
 import { FormInput } from "@/components/molecules/form-input";
 import { AddButton, RemoveButton } from "@/components/molecules/action-buttons";
-import { LoadingButton } from "@/components/molecules/loading-button";
+import { Button } from "@/components/atoms/button";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useArrayField } from "@/hooks/useArrayField";
 import { useToast } from "@/components/providers/notification-provider";
@@ -51,7 +51,7 @@ interface TournamentSettingsFormProps {
   tournament: Tournament | null;
   onSave: (data: {
     tournamentName: string;
-    tournamentDate: string;
+    tournamentDate: Date; // string から Date に変更
     location: string;
     defaultMatchTime: number;
     courts: { courtId: string; courtName: string }[];
@@ -68,7 +68,7 @@ export function TournamentSettingsForm({
 }: TournamentSettingsFormProps) {
   const { isLoading, handleSubmit: handleFormSubmission } = useFormSubmit<{
     tournamentName: string;
-    tournamentDate: string;
+    tournamentDate: Date; // string から Date に変更
     location: string;
     defaultMatchTime: number;
     courts: { courtId: string; courtName: string }[];
@@ -78,8 +78,8 @@ export function TournamentSettingsForm({
   // 秒を分と秒に分割（新規作成時はデフォルト値）
   const defaultMinutes = tournament
     ? Math.floor(
-        tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE
-      )
+      tournament.defaultMatchTime / TIME_CONSTANTS.SECONDS_PER_MINUTE
+    )
     : 3; // デフォルト3分
   const defaultSeconds = tournament
     ? tournament.defaultMatchTime % TIME_CONSTANTS.SECONDS_PER_MINUTE
@@ -123,16 +123,19 @@ export function TournamentSettingsForm({
     const totalSeconds =
       data.defaultMatchTimeMinutes * 60 + data.defaultMatchTimeSeconds;
 
+    // tournamentDateを文字列からDateに変換
+    const tournamentDate = new Date(data.tournamentDate);
+
     const tournamentData = {
       tournamentName: data.tournamentName,
-      tournamentDate: data.tournamentDate,
+      tournamentDate, // Date型に変換済み
       location: data.location,
       defaultMatchTime: totalSeconds,
       courts: data.courts,
     };
 
     await handleFormSubmission(onSave, tournamentData, {
-      onSuccess: () => {},
+      onSuccess: () => { },
     });
   };
 
@@ -142,12 +145,9 @@ export function TournamentSettingsForm({
         <h1 className="text-2xl font-bold text-gray-900">
           {isNewTournament ? "新しい大会を作成" : "大会設定"}
         </h1>
-        <LoadingButton
-          onClick={handleSubmit(handleFormSubmit)}
-          isLoading={isLoading}
-        >
+        <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading}>
           {isNewTournament ? "作成" : "保存"}
-        </LoadingButton>
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">

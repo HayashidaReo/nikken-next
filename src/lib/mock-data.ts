@@ -121,6 +121,7 @@ export const mockMatches: Match[] = [
     matchId: "match-1",
     courtId: "court-1",
     round: "1回戦",
+    sortOrder: 0,
     players: {
       playerA: {
         displayName: "山田",
@@ -139,6 +140,8 @@ export const mockMatches: Match[] = [
         hansoku: 0, // なし
       },
     },
+    // モックデータは完了済みとして扱う
+    isCompleted: true,
     createdAt: new Date("2024-02-25"),
     updatedAt: new Date("2024-03-01"),
   },
@@ -146,6 +149,7 @@ export const mockMatches: Match[] = [
     matchId: "match-2",
     courtId: "court-2",
     round: "1回戦",
+    sortOrder: 1,
     players: {
       playerA: {
         displayName: "佐藤",
@@ -164,6 +168,7 @@ export const mockMatches: Match[] = [
         hansoku: 2, // 赤
       },
     },
+    isCompleted: true,
     createdAt: new Date("2024-02-25"),
     updatedAt: new Date("2024-03-01"),
   },
@@ -171,6 +176,7 @@ export const mockMatches: Match[] = [
     matchId: "match-3",
     courtId: "court-3",
     round: "準決勝",
+    sortOrder: 2,
     players: {
       playerA: {
         displayName: "山田 次",
@@ -189,6 +195,7 @@ export const mockMatches: Match[] = [
         hansoku: 1, // 黄
       },
     },
+    isCompleted: true,
     createdAt: new Date("2024-02-25"),
     updatedAt: new Date("2024-03-01"),
   },

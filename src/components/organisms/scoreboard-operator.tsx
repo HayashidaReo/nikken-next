@@ -1,18 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { usePresentation } from "@/hooks/usePresentation";
-import { useToast } from "@/components/providers/notification-provider";
 import {
   MatchHeader,
   PlayerScoreCard,
   TimerControl,
-  MatchControlPanel,
-  FallbackMonitorDialog,
-  ConfirmDialog,
 } from "@/components/molecules";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useMonitorSender } from "@/hooks/useMonitorSender";
 
 interface ScoreboardOperatorProps {
   organizationId: string;
@@ -21,8 +18,6 @@ interface ScoreboardOperatorProps {
 }
 
 export function ScoreboardOperator({
-  organizationId,
-  tournamentId,
   className
 }: ScoreboardOperatorProps) {
   const {
@@ -40,57 +35,14 @@ export function ScoreboardOperator({
     setTimeRemaining,
     startTimer,
     stopTimer,
-    togglePublic,
-    saveMatchResult,
+    selectedPlayer,
   } = useMonitorStore();
 
-  const { showSuccess, showError, showInfo } = useToast();
-  const {
-    isSupported: isPresentationSupported,
-    isAvailable: isPresentationAvailable,
-    isConnected: isPresentationConnected,
-    startPresentation,
-    stopPresentation,
-    sendMessage,
-  } = usePresentation(`${window.location.origin}/monitor-display`);
-
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { sendMessage } = useMonitorSender();
 
-  // フォールバックダイアログの状態
-  const [showFallbackDialog, setShowFallbackDialog] = useState(false);
-
-  // 接続解除確認ダイアログの状態
-  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
-
-  // BroadcastChannel for data sharing
-  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-
-  useEffect(() => {
-    // BroadcastChannelの初期化
-    broadcastChannelRef.current = new BroadcastChannel(
-      "monitor-display-channel"
-    );
-
-    return () => {
-      broadcastChannelRef.current?.close();
-    };
-  }, []);
-
-  // データ送信関数（Presentation API + BroadcastChannel）
-  const sendDataToMonitor = useCallback(
-    (data: unknown) => {
-      // Presentation APIで送信
-      sendMessage(data);
-
-      // BroadcastChannelで送信
-      try {
-        broadcastChannelRef.current?.postMessage(data);
-      } catch (err) {
-        console.warn("BroadcastChannel送信エラー:", err);
-      }
-    },
-    [sendMessage]
-  );
+  // キーボードショートカットの有効化
+  useKeyboardShortcuts();
 
   // タイマー処理
   useEffect(() => {
@@ -115,33 +67,11 @@ export function ScoreboardOperator({
     };
   }, [isTimerRunning]);
 
-  // データが変更されたときにモニター画面に送信（タイマー更新は制限）
-  const lastSendTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    const now = Date.now();
-    const isTimerOnlyUpdate =
-      lastSendTimeRef.current > 0 && now - lastSendTimeRef.current < 2000;
-
-    // タイマーのみの更新の場合は送信頻度を制限
-    if (isTimerOnlyUpdate && now - lastSendTimeRef.current < 500) {
-      return;
-    }
-
-    lastSendTimeRef.current = now;
-
-    const monitorData = {
-      matchId,
-      tournamentName,
-      courtName,
-      round,
-      playerA,
-      playerB,
-      timeRemaining,
-      isTimerRunning,
-      isPublic,
-    };
-    sendDataToMonitor(monitorData);
+    // データを送信
+    const monitorData = useMonitorStore.getState().getMonitorSnapshot();
+    sendMessage("data", monitorData);
   }, [
     matchId,
     tournamentName,
@@ -152,126 +82,74 @@ export function ScoreboardOperator({
     timeRemaining,
     isTimerRunning,
     isPublic,
-    sendDataToMonitor,
+    sendMessage,
   ]);
 
-  // 表示用モニターを開く/停止する関数
-  const handleMonitorAction = async () => {
-    if (isPresentationConnected) {
-      // 接続中の場合は確認ダイアログを表示
-      setShowDisconnectDialog(true);
-    } else {
-      // 未接続の場合は開始
-      try {
-        if (isPresentationSupported && isPresentationAvailable) {
-          // Presentation APIを使用
-          await startPresentation();
-          showSuccess("モニター表示を開始しました");
-        } else {
-          // 確認ダイアログを表示
-          setShowFallbackDialog(true);
-        }
-      } catch (error) {
-        console.error("Monitor display failed:", error);
-        showError("モニター表示の開始に失敗しました。もう一度お試しください。");
-      }
-    }
-  };
-
-  // フォールバック確認後の処理
-  const handleFallbackConfirm = () => {
-    setShowFallbackDialog(false);
-    const monitorUrl = `${window.location.origin}/monitor-display`;
-    window.open(monitorUrl, "_blank", "width=1920,height=1080");
-    showInfo(
-      "新しいタブでモニター表示を開始しました。データは自動的に同期されます。"
-    );
-  };
-
-  const handleFallbackCancel = () => {
-    setShowFallbackDialog(false);
-  };
-
-  // 接続解除確認のハンドラー
-  const handleDisconnectConfirm = () => {
-    setShowDisconnectDialog(false);
-    stopPresentation();
-    showInfo("プレゼンテーション接続を停止しました");
-  };
-
-  const handleDisconnectCancel = () => {
-    setShowDisconnectDialog(false);
-  };
-
   return (
-    <div className={cn("w-full max-w-6xl mx-auto space-y-6", className)}>
+    <div className={cn("w-full mx-auto space-y-4", className)}>
       {/* ヘッダー情報 */}
-      <MatchHeader
-        tournamentName={tournamentName}
-        courtName={courtName}
-        round={round}
-        onOpenMonitor={handleMonitorAction}
-        isPresentationConnected={isPresentationConnected}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 選手A */}
-        <PlayerScoreCard
-          player={playerA}
-          playerKey="A"
-          title="選手A"
-          titleColor="text-blue-600"
-          onScoreChange={setPlayerScore}
-          onHansokuChange={setPlayerHansoku}
-        />
-
-        {/* 選手B */}
-        <PlayerScoreCard
-          player={playerB}
-          playerKey="B"
-          title="選手B"
-          titleColor="text-red-600"
-          onScoreChange={setPlayerScore}
-          onHansokuChange={setPlayerHansoku}
-        />
+      <div className="px-6 lg:px-12">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <MatchHeader
+              tournamentName={tournamentName}
+              courtName={courtName}
+              round={round}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* タイマーコントロール */}
-      <TimerControl
-        timeRemaining={timeRemaining}
-        isTimerRunning={isTimerRunning}
-        onTimeChange={setTimeRemaining}
-        onStartTimer={startTimer}
-        onStopTimer={stopTimer}
-      />
+      {/* 選手カード領域（左右いっぱいに寄せる） */}
+      <div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-y-6">
+          {/* 左: 選手A */}
+          <div className="flex justify-start">
+            <PlayerScoreCard
+              player={playerA}
+              playerKey="A"
+              title="選手A"
+              titleColor="text-blue-600"
+              onScoreChange={setPlayerScore}
+              onHansokuChange={setPlayerHansoku}
+              isSelected={selectedPlayer === "playerA"}
+              className="w-full"
+            />
+          </div>
 
-      {/* 表示制御と保存 */}
-      <MatchControlPanel
-        isPublic={isPublic}
-        onTogglePublic={togglePublic}
-        onSaveResult={saveMatchResult}
-        organizationId={organizationId}
-        tournamentId={tournamentId}
-      />
+          {/* 中央: VS */}
+          <div className="flex items-center justify-center">
+            <div className="px-4 items-center justify-center overflow-hidden">
+              <span className="inline-block text-base lg:text-3xl font-bold text-gray-400">VS</span>
+            </div>
+          </div>
 
-      {/* フォールバック確認ダイアログ */}
-      <FallbackMonitorDialog
-        isOpen={showFallbackDialog}
-        onConfirm={handleFallbackConfirm}
-        onCancel={handleFallbackCancel}
-      />
+          {/* 右: 選手B */}
+          <div className="flex justify-end">
+            <PlayerScoreCard
+              player={playerB}
+              playerKey="B"
+              title="選手B"
+              titleColor="text-red-600"
+              onScoreChange={setPlayerScore}
+              onHansokuChange={setPlayerHansoku}
+              isSelected={selectedPlayer === "playerB"}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </div>
 
-      {/* 接続解除確認ダイアログ */}
-      <ConfirmDialog
-        isOpen={showDisconnectDialog}
-        title="プレゼンテーション接続解除"
-        message="プレゼンテーション接続を解除しますか？モニター画面での表示が停止されます。"
-        confirmText="解除"
-        cancelText="キャンセル"
-        variant="destructive"
-        onConfirm={handleDisconnectConfirm}
-        onCancel={handleDisconnectCancel}
-      />
+      <div className="px-6 lg:px-12">
+        {/* タイマーコントロール */}
+        <TimerControl
+          timeRemaining={timeRemaining}
+          isTimerRunning={isTimerRunning}
+          onTimeChange={setTimeRemaining}
+          onStartTimer={startTimer}
+          onStopTimer={stopTimer}
+        />
+      </div>
     </div>
   );
 }

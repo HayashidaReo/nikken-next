@@ -1,5 +1,10 @@
 import "@testing-library/jest-dom";
 
+// Mock scrollIntoView for JSDOM (only in browser-like environment)
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = jest.fn();
+}
+
 // Web APIs polyfills for Firebase Node.js compatibility
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const fetch = require("node-fetch");
@@ -15,6 +20,9 @@ process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = "mock-project";
 process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "mock-project.appspot.com";
 process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "123456789";
 process.env.NEXT_PUBLIC_FIREBASE_APP_ID = "1:123456789:web:abc123def456";
+
+// テスト実行時にプレゼンテーショントークンのシークレットを設定
+process.env.PRESENTATION_TOKEN_SECRET = "test-secret";
 
 // Firebase Auth/Firestore のモック
 jest.mock("firebase/auth", () => ({
@@ -89,4 +97,4 @@ global.Request = class Request {
     this.headers = new Map(Object.entries(options?.headers || {}));
   }
 };
-global.Headers = class Headers extends Map {};
+global.Headers = class Headers extends Map { };

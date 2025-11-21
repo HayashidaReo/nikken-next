@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Link from "next/link";
 import { Button } from "@/components/atoms/button";
 import {
@@ -13,19 +12,14 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
-import { LoadingButton } from "@/components/molecules/loading-button";
 import { useToast } from "@/components/providers/notification-provider";
 import { AuthService } from "@/lib/auth/service";
-
-// パスワード再設定フォーム用のZodスキーマ
-const passwordResetSchema = z.object({
-  email: z
-    .string()
-    .min(1, "メールアドレスは必須です")
-    .email("正しいメールアドレスを入力してください"),
-});
-
-type PasswordResetFormData = z.infer<typeof passwordResetSchema>;
+import {
+  passwordResetSchema,
+  type PasswordResetFormData,
+} from "@/types/password-reset.schema";
+import SuccessPanel from "@/components/atoms/success-panel";
+import { getLoginRedirectUrl } from "@/lib/utils";
 
 export function PasswordResetForm() {
   const { showSuccess, showError } = useToast();
@@ -45,11 +39,13 @@ export function PasswordResetForm() {
     try {
       setIsLoading(true);
 
-      await AuthService.sendPasswordResetEmail(data.email);
+      // パスワードリセットメール送信
+      await AuthService.sendPasswordResetEmail(data.email, getLoginRedirectUrl());
 
+      // 成功時の状態更新
       setSubmittedEmail(data.email);
       setIsSubmitted(true);
-      showSuccess(`${data.email}にパスワード再設定メールを送信しました。`);
+      showSuccess(`${data.email} にパスワード再設定メールを送信しました。`);
     } catch (error) {
       console.error("Password reset error:", error);
 
@@ -68,21 +64,21 @@ export function PasswordResetForm() {
   if (isSubmitted) {
     return (
       <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">メール送信完了</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center space-y-4">
-          <p className="text-sm text-gray-600">
-            {submittedEmail} にパスワード再設定用のメールを送信しました。
-          </p>
-          <p className="text-sm text-gray-600">
-            メールに記載されたリンクをクリックしてパスワードを再設定してください。
-          </p>
-          <Link href="/login">
-            <Button variant="outline" className="w-full">
-              ログイン画面に戻る
-            </Button>
-          </Link>
+        <CardContent className="pt-6">
+          <SuccessPanel
+            title="送信完了"
+            subtitle="パスワード再設定用のメールを送信しました。"
+            highlight={submittedEmail}
+            note={
+              <>
+                <p>
+                  ※ メールが届かない場合は迷惑メールフォルダをご確認いただくか、入力したアドレスに誤りがないかご確認ください。
+                </p>
+              </>
+            }
+            ctaLabel="ログイン画面に戻る"
+            ctaHref="/login"
+          />
         </CardContent>
       </Card>
     );
@@ -103,10 +99,10 @@ export function PasswordResetForm() {
             required
             register={register}
             error={errors.email?.message}
-          />{" "}
-          <LoadingButton type="submit" className="w-full" isLoading={isLoading}>
-            {isLoading ? "送信中..." : "再設定メールを送信"}
-          </LoadingButton>
+          />
+          <Button type="submit" className="w-full" isLoading={isLoading} loadingText="送信中...">
+            再設定メールを送信
+          </Button>
           <div className="text-center">
             <Link
               href="/login"

@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/atoms/button";
 import {
   Card,
   CardContent,
@@ -10,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
-import { LoadingButton } from "@/components/molecules/loading-button";
+import { Button } from "@/components/atoms/button";
 import { useToast } from "@/components/providers/notification-provider";
 import { organizationCreateWithAccountSchema } from "@/types/organization.schema";
 import type { OrganizationCreateWithAccount } from "@/types/organization.schema";
@@ -39,7 +38,7 @@ export function OrganizationCreateForm() {
       const result = await createOrganizationMutation.mutateAsync(data);
       showSuccess(
         `組織「${result.orgName}」を作成し、管理者アカウントを発行しました。` +
-          `デフォルト大会も自動作成されました。`
+        `デフォルト大会も自動作成されました。`
       );
       reset(); // フォームをリセット
     } catch (error) {
@@ -136,13 +135,15 @@ export function OrganizationCreateForm() {
             >
               リセット
             </Button>
-            <LoadingButton
+            <Button
               type="submit"
+              className="w-full"
               isLoading={createOrganizationMutation.isPending}
+              loadingText="作成中..."
               disabled={createOrganizationMutation.isPending}
             >
               組織を作成
-            </LoadingButton>
+            </Button>
           </div>
         </form>
       </CardContent>

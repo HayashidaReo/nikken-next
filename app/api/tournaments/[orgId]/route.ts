@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { adminDb } from "@/lib/firebase-admin/server";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
+import { tournamentCreateSchema } from "@/types/tournament.schema";
+import { z } from "zod";
 
 /**
  * 組織内の大会一覧取得API Route
@@ -56,7 +58,7 @@ export async function GET(
       return {
         id: doc.id,
         ...data,
-        tournamentDate: data.tournamentDate?.toDate?.() || null,
+        tournamentDate: data.tournamentDate?.toDate?.()?.toISOString() || null,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
       };
@@ -107,6 +109,18 @@ export async function POST(
     // リクエストボディを取得
     const body = await request.json();
 
+    // Zodスキーマでバリデーション
+    let validatedData;
+    try {
+      validatedData = tournamentCreateSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessage = error.issues[0]?.message || "入力データが不正です";
+        return NextResponse.json({ error: errorMessage }, { status: 400 });
+      }
+      return NextResponse.json({ error: "入力データが不正です" }, { status: 400 });
+    }
+
     const {
       tournamentName,
       tournamentDate,
@@ -114,16 +128,7 @@ export async function POST(
       location,
       defaultMatchTime,
       courts,
-    } = body;
-
-    // バリデーション
-    if (
-      !tournamentName ||
-      typeof tournamentName !== "string" ||
-      tournamentName.trim() === ""
-    ) {
-      return NextResponse.json({ error: "大会名は必須です" }, { status: 400 });
-    }
+    } = validatedData;
 
     // Firebase Admin DB の初期化チェック
     if (!adminDb) {
@@ -146,32 +151,24 @@ export async function POST(
       );
     }
 
-    // 大会データを作成
+    // サーバー側で createdAt/updatedAt を生成
     const now = new Date();
-    // tournamentDateがDate型の場合の処理
-    let parsedTournamentDate = now;
-    if (tournamentDate) {
-      if (typeof tournamentDate === "string") {
-        parsedTournamentDate = new Date(tournamentDate);
-      } else if (tournamentDate instanceof Date) {
-        parsedTournamentDate = tournamentDate;
-      }
-    }
+
 
     // UUIDを生成
     const tournamentId = uuidv4();
 
     const tournamentData = {
       tournamentId,
-      tournamentName: tournamentName.trim(),
-      tournamentDate: parsedTournamentDate,
+      tournamentName: tournamentName,
+      tournamentDate: tournamentDate,
       tournamentDetail: tournamentDetail || "",
       location: location || "",
       defaultMatchTime:
         typeof defaultMatchTime === "number" ? defaultMatchTime : 180,
       courts: Array.isArray(courts) ? courts : [],
-      createdAt: now,
-      updatedAt: now,
+      createdAt: now, // サーバー側で生成
+      updatedAt: now, // サーバー側で生成
     };
 
     // 大会を作成
@@ -188,7 +185,7 @@ export async function POST(
         data: {
           tournamentId,
           tournamentName: tournamentData.tournamentName,
-          tournamentDate: tournamentData.tournamentDate,
+          tournamentDate: tournamentData.tournamentDate.toISOString(),
           tournamentDetail: tournamentData.tournamentDetail,
           location: tournamentData.location,
           defaultMatchTime: tournamentData.defaultMatchTime,

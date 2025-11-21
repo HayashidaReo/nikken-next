@@ -163,7 +163,7 @@ export function MatchSetupTable({
             <TableHeader>
               <TableRow>
                 <TableHead className="min-w-[120px]">コート名</TableHead>
-                <TableHead className="min-w-[100px]">回戦</TableHead>
+                <TableHead className="min-w-[100px]">ラウンド</TableHead>
                 <TableHead className="min-w-[150px]">選手A所属</TableHead>
                 <TableHead className="min-w-[150px]">選手A表示名</TableHead>
                 <TableHead className="min-w-[150px]">選手B所属</TableHead>
@@ -199,7 +199,7 @@ export function MatchSetupTable({
                       </Select>
                     </TableCell>
 
-                    {/* 回戦 */}
+                    {/* ラウンド */}
                     <TableCell className="p-2">
                       <Select
                         value={row.round}
@@ -208,7 +208,7 @@ export function MatchSetupTable({
                         }
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="回戦を選択" />
+                          <SelectValue placeholder="ラウンドを選択" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="1回戦">1回戦</SelectItem>

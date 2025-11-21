@@ -31,6 +31,8 @@ const mockMatch: Match = {
   },
   createdAt: new Date(),
   updatedAt: new Date(),
+  sortOrder: 1,
+  isCompleted: false,
 };
 
 // スパイを設定
@@ -340,45 +342,39 @@ describe("useMonitorStore", () => {
     });
   });
 
-  describe("saveMatchResult", () => {
-    it("matchIdが未設定の場合はエラーログを出力する", async () => {
-      const { result } = renderHook(() => useMonitorStore());
-      const errorSpy = jest.spyOn(console, "error").mockImplementation(() => { });
-
-      await act(async () => {
-        await result.current.saveMatchResult("org-1", "tournament-1");
-      });
-
-      expect(errorSpy).toHaveBeenCalledWith("Match ID is not available for saving");
-
-      errorSpy.mockRestore();
-    });
-
-    it("matchIdが設定されている場合は保存処理が実行される", async () => {
+  describe("getMonitorSnapshot", () => {
+    it("現在の状態のスナップショットを正しく返す", () => {
       const { result } = renderHook(() => useMonitorStore());
 
-      // 試合を初期化
+      // 状態を変更
       act(() => {
         result.current.initializeMatch(mockMatch, "テスト大会", "Aコート");
-        result.current.setPlayerScore("A", 2);
+        result.current.setPlayerScore("A", 1);
+        result.current.togglePublic();
       });
 
-      // モック関数をテスト用に設定
-      const onSuccessMock = jest.fn();
+      const snapshot = result.current.getMonitorSnapshot();
 
-      // 実際のFirebase呼び出しはモック環境では失敗する可能性があるため、
-      // ここではmatchIdが正しく設定されていることのみを確認
-      expect(result.current.matchId).toBe("test-match-001");
-
-      // 本来であればFirebaseのモックを設定すべきだが、
-      // 今回は基本的な動作確認のみとする
-      await act(async () => {
-        try {
-          await result.current.saveMatchResult("org-1", "tournament-1", onSuccessMock);
-        } catch {
-          // Firebase接続エラーは想定内（モック環境のため）
-          console.log("Firebase connection error in test environment (expected)");
-        }
+      expect(snapshot).toEqual({
+        matchId: "test-match-001",
+        tournamentName: "テスト大会",
+        courtName: "Aコート",
+        round: "決勝",
+        playerA: {
+          displayName: "山田",
+          teamName: "チームA",
+          score: 1,
+          hansoku: 0,
+        },
+        playerB: {
+          displayName: "鈴木",
+          teamName: "チームB",
+          score: 1,
+          hansoku: 1,
+        },
+        timeRemaining: 180,
+        isTimerRunning: false,
+        isPublic: true,
       });
     });
   });

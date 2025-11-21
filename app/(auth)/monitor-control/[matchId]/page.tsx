@@ -1,69 +1,94 @@
 "use client";
 
-import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/atoms/button";
-import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
+import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { useMatch } from "@/queries/use-matches";
-import { useTournament } from "@/queries/use-tournaments";
+import { useSaveMatchResult } from "@/queries/use-match-result";
+import { ArrowLeft, Monitor, Unplug, Save } from "lucide-react";
+import { Button } from "@/components/atoms/button";
+import SwitchLabel from "@/components/molecules/switch-label";
+import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
+import { useToast } from "@/components/providers/notification-provider";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
+import { FallbackMonitorDialog } from "@/components/molecules";
+import { useMatchDataWithPriority } from "@/hooks/useMatchDataWithPriority";
+import { useMonitorController } from "@/hooks/useMonitorController";
 
 export default function MonitorControlPage() {
   const params = useParams();
   const matchId = params.matchId as string;
-  const { initializeMatch } = useMonitorStore();
-  // ストアに保存されているデータ（遷移元で initializeMatch が呼ばれた場合）
-  const storeMatchId = useMonitorStore((s) => s.matchId);
-  const storeTournamentName = useMonitorStore((s) => s.tournamentName);
+  const saveMatchResultMutation = useSaveMatchResult();
 
-  const { orgId, activeTournamentId, isLoading: authLoading } = useAuthContext();
+  const presentationConnected = useMonitorStore((s) => s.presentationConnected);
+  const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
+  const monitorStatusMode = presentationConnected ? "presentation" : fallbackOpen ? "fallback" : "disconnected";
+  const isPublic = useMonitorStore((s) => s.isPublic);
+  const togglePublic = useMonitorStore((s) => s.togglePublic);
 
-  // ストア優先: ストアに現在の matchId のデータがあれば Firebase クエリは無効化する
-  const hasStoreData = Boolean(storeMatchId && storeMatchId === matchId && storeTournamentName);
+  const { orgId, activeTournamentId } = useAuthContext();
+  const { showSuccess, showError } = useToast();
 
-  // Firebase からデータを取得（ただしストアにあればクエリは無効化）
-  const { data: match, isLoading: matchLoading, error: matchError } = useMatch(hasStoreData ? null : matchId);
-  const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(
-    hasStoreData ? null : orgId,
-    hasStoreData ? null : activeTournamentId
-  );
+  // データ取得ロジック（ストア優先）
+  const { isLoading, hasError, matchFound } = useMatchDataWithPriority(matchId);
 
-  // ストア優先のため、ストアデータがある場合は fetch 側の loading/error を無視する
-  const isLoading = authLoading || (!hasStoreData && (matchLoading || tournamentLoading));
-  const hasError = !hasStoreData && (matchError || tournamentError);
+  // モニター制御ロジック
+  const {
+    isPresentationConnected,
+    handleMonitorAction,
+    showFallbackDialog,
+    handleFallbackConfirm,
+    handleFallbackCancel,
+  } = useMonitorController({
+    matchId,
+    orgId: orgId || "",
+    tournamentId: activeTournamentId || "",
+  });
 
-  useEffect(() => {
-    // ストアに既にデータがある場合は初期化不要
-    if (hasStoreData) return;
-
-    // Firebase から取得したデータで初期化（フォールバック）
-    if (match && tournament) {
-      const court = tournament.courts.find(
-        (c: { courtId: string; courtName: string }) => c.courtId === match.courtId
-      );
-      const courtName = court ? court.courtName : match.courtId;
-
-      initializeMatch(match, tournament.tournamentName, courtName);
+  const handleSave = async () => {
+    try {
+      const store = useMonitorStore.getState();
+      const matchId = store.matchId;
+      if (!matchId) {
+        throw new Error('Match ID is missing');
+      }
+      const snapshot = store.getMonitorSnapshot();
+      await saveMatchResultMutation.mutateAsync({
+        matchId,
+        organizationId: orgId || "",
+        tournamentId: activeTournamentId || "",
+        players: {
+          playerA: { score: snapshot.playerA.score, hansoku: snapshot.playerA.hansoku },
+          playerB: { score: snapshot.playerB.score, hansoku: snapshot.playerB.hansoku },
+        },
+      });
+      showSuccess("試合結果を保存しました");
+    } catch (err) {
+      console.error(err);
+      showError("試合結果の保存に失敗しました");
     }
-  }, [hasStoreData, match, tournament, initializeMatch]);
+  };
 
   // ローディング状態
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <Link href="/dashboard">
-              <Button variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                試合一覧に戻る
-              </Button>
-            </Link>
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  試合一覧に戻る
+                </Button>
+              </Link>
+
+              <div className="ml-2">
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
+              </div>
+            </div>
           </div>
           <div className="flex justify-center items-center py-16">
             <div className="w-full">
@@ -80,13 +105,19 @@ export default function MonitorControlPage() {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <Link href="/dashboard">
-              <Button variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                試合一覧に戻る
-              </Button>
-            </Link>
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  試合一覧に戻る
+                </Button>
+              </Link>
+
+              <div className="ml-2">
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
+              </div>
+            </div>
           </div>
           <div className="flex justify-center items-center py-16 w-full">
             <InfoDisplay
@@ -100,18 +131,24 @@ export default function MonitorControlPage() {
     );
   }
 
-  // 試合が見つからない場合（ストアにもデータが無い場合のみ表示）
-  if (!hasStoreData && !match) {
+  // 試合が見つからない場合
+  if (!matchFound) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <Link href="/dashboard">
-              <Button variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                試合一覧に戻る
-              </Button>
-            </Link>
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  試合一覧に戻る
+                </Button>
+              </Link>
+
+              <div className="ml-2">
+                <ConnectionStatus mode={monitorStatusMode} error={null} />
+              </div>
+            </div>
           </div>
           <div className="flex justify-center items-center py-16 w-full">
             <InfoDisplay
@@ -128,18 +165,63 @@ export default function MonitorControlPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <Link href="/dashboard">
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              試合一覧に戻る
-            </Button>
-          </Link>
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard">
+              <Button variant="outline">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                試合一覧に戻る
+              </Button>
+            </Link>
+
+            <div className="ml-2">
+              <ConnectionStatus mode={monitorStatusMode} error={null} />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <SwitchLabel
+              id="public-toggle-header"
+              checked={isPublic}
+              onChange={(v) => {
+                if (v !== isPublic) togglePublic();
+              }}
+              onLabel={"公開中"}
+              offLabel={"非公開"}
+              className="flex items-center gap-3"
+            />
+
+            <div className="flex items-center gap-3">
+              <Button onClick={handleMonitorAction} variant={isPresentationConnected ? "destructive" : "outline"}>
+                {isPresentationConnected ? (
+                  <>
+                    <Unplug className="w-4 h-4 mr-2" />
+                    接続を解除
+                  </>
+                ) : (
+                  <>
+                    <Monitor className="w-4 h-4 mr-2" />
+                    表示用モニターを開く
+                  </>
+                )}
+              </Button>
+
+              <Button onClick={handleSave} size="sm" disabled={saveMatchResultMutation.isPending}>
+                <Save className="w-4 h-4 mr-2" />
+                {saveMatchResultMutation.isPending ? "保存中..." : "保存"}
+              </Button>
+            </div>
+          </div>
         </div>
 
         <ScoreboardOperator
           organizationId={orgId || ""}
           tournamentId={activeTournamentId || ""}
+        />
+        <FallbackMonitorDialog
+          isOpen={showFallbackDialog}
+          onConfirm={handleFallbackConfirm}
+          onCancel={handleFallbackCancel}
         />
       </div>
     </div>

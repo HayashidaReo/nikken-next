@@ -56,7 +56,7 @@ export class FirestoreMatchRepository implements MatchRepository {
 
     async listAll(orgId: string, tournamentId: string): Promise<Match[]> {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
-        const q = query(collectionRef, orderBy("createdAt", "asc"));
+        const q = query(collectionRef, orderBy("sortOrder", "asc"));
         const snaps = await getDocs(q);
         const matches: Match[] = snaps.docs.map((snap) => {
             const data = snap.data() as FirestoreMatchDoc;
@@ -252,7 +252,7 @@ export class FirestoreMatchRepository implements MatchRepository {
 
     listenAll(orgId: string, tournamentId: string, onChange: (matches: Match[]) => void): () => void {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
-        const q = query(collectionRef, orderBy("createdAt", "asc"));
+        const q = query(collectionRef, orderBy("sortOrder", "asc"));
         const unsub: Unsubscribe = onSnapshot(q, (snapshot) => {
             const matches = snapshot.docs.map((d) => {
                 const data = d.data() as FirestoreMatchDoc;

@@ -12,7 +12,9 @@ export const organizationSchema = z.object({
   representativeEmail: z
     .string()
     .min(1, "団体代表者メールアドレスは必須です")
-    .email("正しいメールアドレスを入力してください"),
+    .refine((val) => z.email().safeParse(val).success, {
+      message: "正しいメールアドレスを入力してください",
+    }),
   createdAt: z.date().optional(), // Firestoreで自動設定
   updatedAt: z.date().optional(), // Firestoreで自動設定
 });
@@ -32,7 +34,9 @@ export const organizationCreateWithAccountSchema = organizationSchema
     adminEmail: z
       .string()
       .min(1, "管理者メールアドレスは必須です")
-      .email("正しいメールアドレスを入力してください"),
+      .refine((val) => z.email().safeParse(val).success, {
+        message: "正しいメールアドレスを入力してください",
+      }),
     adminPassword: z
       .string()
       .min(6, "パスワードは6文字以上である必要があります"),

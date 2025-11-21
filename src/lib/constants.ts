@@ -22,14 +22,37 @@ export const NOTIFICATION_CONSTANTS = {
 
 // 🎨 UIレイアウト関連定数
 export const UI_CONSTANTS = {
-  /** スコア表示フォントサイズ */
-  SCORE_FONT_SIZE: "text-[12rem]",
-  /** スコア表示幅 */
-  SCORE_WIDTH: "w-80",
+  /** スコア表示フォントサイズ（拡大） */
+  SCORE_FONT_SIZE: "text-[20rem]",
+  /** スコア表示幅（フォントに合わせて拡張） */
+  SCORE_WIDTH: "w-[22rem]",
   /** フォーム最大幅 */
   FORM_MAX_WIDTH: "max-w-4xl",
   /** コンテナ最大幅 */
   CONTAINER_MAX_WIDTH: "max-w-6xl",
+} as const;
+
+// 📺 モニター表示関連定数（基準解像度）
+export const MONITOR_CONSTANTS = {
+  /** モニター用の基準幅（px） */
+  BASE_WIDTH: 1920,
+  /** モニター用の基準高さ（px） */
+  BASE_HEIGHT: 1080,
+} as const;
+
+// 選手表示関連定数
+export const RESPONSIVE_FONT_CONSTANTS = {
+  /** 選手表示部分のレスポンシブフォント設定 */
+  PLAYER: {
+    /** ベースフォントサイズ（rem） */
+    BASE_FONT_SIZE: 16,
+    /** 最小フォントサイズ（rem） */
+    MIN_FONT_SIZE: 8,
+    /** 自動調整の最大横幅（px） */
+    MAX_WIDTH: 1000,
+    /** 選手名領域の高さ（px） */
+    HEIGHT: 250,
+  },
 } as const;
 
 // 📝 フォーム関連定数
@@ -42,17 +65,31 @@ export const FORM_CONSTANTS = {
   MIN_COURTS: 1,
 } as const;
 
+// 📏 文字数制限関連定数
+export const TEXT_LENGTH_LIMITS = {
+  /** 大会名の最大文字数 */
+  TOURNAMENT_NAME_MAX: 15,
+  /** コート名の最大文字数 */
+  COURT_NAME_MAX: 8,
+  /** 開催場所の最大文字数 */
+  LOCATION_MAX: 10,
+  /** ラウンド名の最大文字数 */
+  ROUND_NAME_MAX: 11,
+  /** 大会概要の最大文字数 */
+  TOURNAMENT_DETAIL_MAX: 1000,
+} as const;
+
 // 🥋 ペナルティ関連定数
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
   CARD_SIZE: {
-    width: "w-16",
-    height: "h-24",
+    width: "w-36",
+    height: "h-52",
   },
   /** ペナルティ背景サイズ */
   BACKGROUND_SIZE: {
-    width: "w-66",
-    height: "h-40",
+    width: "w-[33rem]",
+    height: "h-[18rem]",
   },
 } as const;
 
@@ -102,4 +139,29 @@ export const API_ENDPOINTS = {
 export const AUTH_CONSTANTS = {
   /** ログアウト後にリダイレクトするまでの待機時間（ミリ秒） */
   LOGOUT_REDIRECT_DELAY: 500,
+} as const;
+
+// 🛣️ ルートパス定数
+export const ROUTES = {
+  LOGIN: "/login",
+  DASHBOARD: "/dashboard",
+  TOURNAMENT_SETTINGS: "/tournament-settings",
+} as const;
+
+// 💬 テキストメッセージ定数（ユーザーに表示するメッセージ）
+export const TEXT_MESSAGES = {
+  /** メールアドレスの形式が正しくない */
+  INVALID_EMAIL: "メールアドレスを正しい形式で入力してください",
+  /** ユーザーが無効化されている */
+  USER_DISABLED: "このアカウントは無効化されています",
+  /** メールアドレスまたはパスワードが間違っている（セキュリティ上、ユーザーなしとパスワード誤りを同じメッセージ） */
+  INVALID_CREDENTIALS: "メールアドレスまたはパスワードが間違っています",
+  /** ログイン試行回数が多すぎる */
+  TOO_MANY_REQUESTS: "ログイン試行回数が上限に達しました。しばらく待ってからお試しください",
+  /** 予期しないエラー */
+  UNEXPECTED_ERROR: "予期しないエラーが発生しました",
+  /** ネットワークエラー */
+  NETWORK_ERROR: "ネットワークエラーが発生しました。接続を確認してください",
+  /** パスワードリセットメール送信エラー */
+  PASSWORD_RESET_EMAIL_ERROR: "パスワード再設定メールの送信に失敗しました",
 } as const;

@@ -9,10 +9,12 @@ export interface FirestoreMatchDoc {
     matchId: string; // ドキュメントIDをフィールドとして保存
     courtId: string;
     round: string;
+    sortOrder: number; // 表示順序（昇順で並び替え）
     players: {
         playerA: FirestoreMatchPlayerDoc;
         playerB: FirestoreMatchPlayerDoc;
     };
+    isCompleted: boolean; // 試合完了フラグ
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -61,10 +63,12 @@ export class MatchMapper {
             matchId,
             courtId: doc.courtId,
             round: doc.round,
+            sortOrder: doc.sortOrder,
             players: {
                 playerA: this.playerToDomain(doc.players.playerA),
                 playerB: this.playerToDomain(doc.players.playerB),
             },
+            isCompleted: doc.isCompleted,
             createdAt,
             updatedAt,
         };
@@ -112,7 +116,7 @@ export class MatchMapper {
     static toFirestoreForCreate(
         match: Partial<Match> & { id?: string }
     ): FirestoreMatchCreateDoc {
-        if (!match.courtId || !match.round || !match.players) {
+        if (!match.courtId || !match.round || !match.players || match.sortOrder === undefined) {
             throw new Error("Required fields missing for match creation");
         }
 
@@ -129,10 +133,12 @@ export class MatchMapper {
             matchId,
             courtId: match.courtId,
             round: match.round,
+            sortOrder: match.sortOrder,
             players: {
                 playerA: this.playerToFirestore(match.players.playerA),
                 playerB: this.playerToFirestore(match.players.playerB),
             },
+            isCompleted: false, // 組み合わせ作成時は必ずfalse
         };
     }
 
@@ -155,6 +161,13 @@ export class MatchMapper {
                 playerA: this.playerToFirestore(match.players.playerA),
                 playerB: this.playerToFirestore(match.players.playerB),
             };
+        }
+        // sortOrder が指定されている場合は更新データに含める
+        if (match.sortOrder !== undefined) {
+            firestoreData.sortOrder = match.sortOrder;
+        }
+        if (match.isCompleted !== undefined) {
+            firestoreData.isCompleted = match.isCompleted;
         }
 
         // updatedAtは自動で設定されるため、ここでは設定しない

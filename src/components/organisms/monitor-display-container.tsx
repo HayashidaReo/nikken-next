@@ -1,16 +1,45 @@
+import { useEffect, useState } from "react";
 import { useMonitorData } from "@/hooks/use-monitor-data";
-import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
+import { MONITOR_CONSTANTS } from "@/lib/constants";
+
+interface TokenData {
+  matchId: string;
+  orgId: string;
+  tournamentId: string;
+}
 
 interface MonitorDisplayContainerProps {
   className?: string;
+  tokenData?: TokenData | null;
 }
 
 export function MonitorDisplayContainer({
   className = "",
+  tokenData,
 }: MonitorDisplayContainerProps) {
-  const { data, isConnected, error } = useMonitorData();
+  const { data } = useMonitorData(tokenData);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const BASE_WIDTH = MONITOR_CONSTANTS.BASE_WIDTH;
+      const BASE_HEIGHT = MONITOR_CONSTANTS.BASE_HEIGHT;
+
+      const scaleX = window.innerWidth / BASE_WIDTH;
+      const scaleY = window.innerHeight / BASE_HEIGHT;
+
+      // 画面に収まるように小さい方の倍率を採用（contain）
+      setScale(Math.min(scaleX, scaleY));
+    };
+
+    // 初期化とイベントリスナー設定
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // 非公開時の表示
   if (!data.isPublic) {
@@ -19,35 +48,20 @@ export function MonitorDisplayContainer({
 
   return (
     <div
-      className={`min-h-screen bg-black text-white relative overflow-hidden ${className}`}
+      className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
     >
-      {/* 接続状態とエラー表示 */}
-      <ConnectionStatus isConnected={isConnected} error={error} />
-
-      {/* メイン画面レイアウト */}
-      <MonitorLayout
-        playerA={{
-          displayName: data.playerA.displayName,
-          playerId: "", // PlayerDataには含まれていない
-          teamId: "", // PlayerDataには含まれていない
-          teamName: data.playerA.teamName,
-          score: data.playerA.score,
-          hansoku: data.playerA.hansoku,
+      {/* 基準解像度 BASE_WIDTH×BASE_HEIGHT でレイアウトし、画面サイズに合わせてスケールする */}
+      <div
+        style={{
+          width: MONITOR_CONSTANTS.BASE_WIDTH,
+          height: MONITOR_CONSTANTS.BASE_HEIGHT,
+          transform: `scale(${scale})`,
+          transformOrigin: "center",
         }}
-        playerB={{
-          displayName: data.playerB.displayName,
-          playerId: "", // PlayerDataには含まれていない
-          teamId: "", // PlayerDataには含まれていない
-          teamName: data.playerB.teamName,
-          score: data.playerB.score,
-          hansoku: data.playerB.hansoku,
-        }}
-        tournamentName={data.tournamentName}
-        courtName={data.courtName}
-        round={data.round}
-        timeRemaining={data.timeRemaining}
-        isTimerRunning={data.isTimerRunning}
-      />
+        className="bg-black flex-shrink-0"
+      >
+        <MonitorLayout data={data} />
+      </div>
     </div>
   );
 }
