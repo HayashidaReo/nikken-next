@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
-import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
 import { MatchListTableMemo } from "@/components/organisms/match-list-table";
 import { useMatchesRealtime } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
@@ -30,7 +29,6 @@ export default function DashboardPage() {
   return (
     <MainLayout activeTab="matches">
       <div className="space-y-6">
-        <AuthenticatedHeader title="試合一覧" />
 
         {/* 大会が選択されていない場合 */}
         {needsTournamentSelection && (
