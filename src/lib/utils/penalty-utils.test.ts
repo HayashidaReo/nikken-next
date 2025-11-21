@@ -76,7 +76,7 @@ describe("penalty-utils", () => {
   });
 
   describe("getCardStyles", () => {
-    const baseStyles = "w-16 h-24 rounded-md border-2 border-white shadow-lg";
+    const baseStyles = "w-36 h-52 rounded-md border-2 border-white shadow-lg";
 
     it("イエローカードの場合は適切なスタイルを返す", () => {
       const result = getCardStyles("yellow");
@@ -92,15 +92,15 @@ describe("penalty-utils", () => {
       const yellowResult = getCardStyles("yellow");
       const redResult = getCardStyles("red");
 
-      expect(yellowResult).toContain("w-16");
-      expect(yellowResult).toContain("h-24");
+      expect(yellowResult).toContain("w-36");
+      expect(yellowResult).toContain("h-52");
       expect(yellowResult).toContain("rounded-md");
       expect(yellowResult).toContain("border-2");
       expect(yellowResult).toContain("border-white");
       expect(yellowResult).toContain("shadow-lg");
 
-      expect(redResult).toContain("w-16");
-      expect(redResult).toContain("h-24");
+      expect(redResult).toContain("w-36");
+      expect(redResult).toContain("h-52");
       expect(redResult).toContain("rounded-md");
       expect(redResult).toContain("border-2");
       expect(redResult).toContain("border-white");

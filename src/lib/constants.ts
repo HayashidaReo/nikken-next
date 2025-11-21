@@ -22,14 +22,37 @@ export const NOTIFICATION_CONSTANTS = {
 
 // 🎨 UIレイアウト関連定数
 export const UI_CONSTANTS = {
-  /** スコア表示フォントサイズ */
-  SCORE_FONT_SIZE: "text-[12rem]",
-  /** スコア表示幅 */
-  SCORE_WIDTH: "w-80",
+  /** スコア表示フォントサイズ（拡大） */
+  SCORE_FONT_SIZE: "text-[20rem]",
+  /** スコア表示幅（フォントに合わせて拡張） */
+  SCORE_WIDTH: "w-[22rem]",
   /** フォーム最大幅 */
   FORM_MAX_WIDTH: "max-w-4xl",
   /** コンテナ最大幅 */
   CONTAINER_MAX_WIDTH: "max-w-6xl",
+} as const;
+
+// 📺 モニター表示関連定数（基準解像度）
+export const MONITOR_CONSTANTS = {
+  /** モニター用の基準幅（px） */
+  BASE_WIDTH: 1920,
+  /** モニター用の基準高さ（px） */
+  BASE_HEIGHT: 1080,
+} as const;
+
+// 選手表示関連定数
+export const RESPONSIVE_FONT_CONSTANTS = {
+  /** 選手表示部分のレスポンシブフォント設定 */
+  PLAYER: {
+    /** ベースフォントサイズ（rem） */
+    BASE_FONT_SIZE: 16,
+    /** 最小フォントサイズ（rem） */
+    MIN_FONT_SIZE: 8,
+    /** 自動調整の最大横幅（px） */
+    MAX_WIDTH: 1000,
+    /** 選手名領域の高さ（px） */
+    HEIGHT: 250,
+  },
 } as const;
 
 // 📝 フォーム関連定数
@@ -60,13 +83,13 @@ export const TEXT_LENGTH_LIMITS = {
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
   CARD_SIZE: {
-    width: "w-16",
-    height: "h-24",
+    width: "w-36",
+    height: "h-52",
   },
   /** ペナルティ背景サイズ */
   BACKGROUND_SIZE: {
-    width: "w-66",
-    height: "h-40",
+    width: "w-[33rem]",
+    height: "h-[18rem]",
   },
 } as const;
 

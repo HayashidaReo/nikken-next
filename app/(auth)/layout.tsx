@@ -6,6 +6,7 @@ import { ROUTES } from "@/lib/constants";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useValidatePresentationToken } from "@/queries/use-presentation";
+import { loadTokenSession, saveTokenSession } from "@/utils/presentation-token-storage";
 
 export default function AuthLayout({
     children,
@@ -28,10 +29,21 @@ export default function AuthLayout({
         let timer: ReturnType<typeof setTimeout> | null = null;
 
         if (isMonitorDisplay && presentationToken) {
+            // まずセッションストレージを確認（リロード対策・有効期限切れ対策）
+            const cachedData = loadTokenSession(presentationToken);
+            if (cachedData) {
+                setHasValidToken(true);
+                timer = setTimeout(() => setTokenChecked(true), 0);
+                return;
+            }
+
             // トークンを検証する
             validatePresentationToken.mutate(presentationToken, {
-                onSuccess: () => {
+                onSuccess: (data) => {
                     setHasValidToken(true);
+                    // 認証成功時にセッションストレージに保存
+                    saveTokenSession(presentationToken, data);
+
                     // setTokenChecked を即時に呼び出すと effect の実行中に同期的な
                     // state 更新が発生し、意図しないバッチングやレンダリング順序の問題を
                     // 引き起こす可能性があるため、マクロタスクに遅延させて実行している。
@@ -50,7 +62,7 @@ export default function AuthLayout({
         return () => {
             if (timer) clearTimeout(timer);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname, searchParams, validatePresentationToken.mutate]);
 
     useEffect(() => {

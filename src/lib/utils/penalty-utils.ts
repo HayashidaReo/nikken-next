@@ -1,4 +1,5 @@
 import { hansokuStateToNumber } from "@/types/match.schema";
+import { PENALTY_CONSTANTS } from "@/lib/constants";
 
 // 旧来のHANSOKU_LEVELSをmatch.schemaの定義に合わせる（後方互換性のため）
 export const HANSOKU_LEVELS = {
@@ -103,7 +104,7 @@ export const getHansokuDescription = (hansokuLevel: HansokuLevel): string => {
  * カードタイプに応じたCSSクラスを取得
  */
 export const getCardStyles = (cardType: CardType): string => {
-  const baseStyles = "w-16 h-24 rounded-md border-2 border-white shadow-lg";
+  const baseStyles = `${PENALTY_CONSTANTS.CARD_SIZE.width} ${PENALTY_CONSTANTS.CARD_SIZE.height} rounded-md border-2 border-white shadow-lg`;
   const colorStyles = {
     yellow: "bg-yellow-400",
     red: "bg-red-600",

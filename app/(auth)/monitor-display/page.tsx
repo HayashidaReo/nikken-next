@@ -6,6 +6,7 @@ import { MonitorDisplayContainer } from "@/components/organisms/monitor-display-
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { useValidatePresentationToken } from "@/queries/use-presentation";
+import { loadTokenSession, saveTokenSession } from "@/utils/presentation-token-storage";
 
 interface TokenData {
   matchId: string;
@@ -29,11 +30,21 @@ export default function MonitorDisplayPage() {
       return;
     }
 
+    // まずセッションストレージを確認（リロード対策・有効期限切れ対策）
+    const cachedData = loadTokenSession(token);
+    if (cachedData) {
+      setTokenData(cachedData);
+      setIsValidating(false);
+      return;
+    }
+
     // プレゼンテーション用トークンを検証
     validatePresentationToken.mutate(token, {
       onSuccess: (data) => {
         setTokenData(data);
         setIsValidating(false);
+        // 認証成功時にセッションストレージに保存
+        saveTokenSession(token, data);
       },
       onError: (err) => {
         console.error("Token validation error:", err);
