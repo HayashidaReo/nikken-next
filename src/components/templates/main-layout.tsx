@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/atoms/button";
 import {
   Tooltip,
@@ -33,6 +34,7 @@ function Header({ activeTab }: HeaderProps) {
   const { signOut } = useAuthStore();
   const { showSuccess, showError } = useToast();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
@@ -61,6 +63,14 @@ function Header({ activeTab }: HeaderProps) {
     router.push(ROUTES.TOURNAMENT_SETTINGS);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   const navItems = [
     { label: "試合一覧", href: "/dashboard", value: "matches" },
     { label: "試合の組み合わせ設定", href: "/match-setup", value: "match-setup" },
@@ -82,7 +92,7 @@ function Header({ activeTab }: HeaderProps) {
               </span>
             </Link>
 
-            {/* ナビゲーション */}
+            {/* PC用ナビゲーション */}
             <nav className="hidden md:flex space-x-1">
               {navItems.map((item) => (
                 <Link
@@ -102,9 +112,11 @@ function Header({ activeTab }: HeaderProps) {
           </div>
 
           {/* 右側：大会選択と設定ボタン */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             {/* 大会選択ドロップダウン */}
-            <HeaderTournamentSelector onManageClick={handleManageTournaments} />
+            <div className="block">
+              <HeaderTournamentSelector onManageClick={handleManageTournaments} />
+            </div>
 
             <div className="flex items-center">
               <TooltipProvider delayDuration={20}>
@@ -125,29 +137,57 @@ function Header({ activeTab }: HeaderProps) {
                 </Tooltip>
               </TooltipProvider>
             </div>
+
+            {/* モバイル用ハンバーガーメニューボタン */}
+            <div className="md:hidden flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleMobileMenu}
+                aria-label="メニューを開く"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* モバイル用ナビゲーション（必要に応じて表示） */}
-      <div className="md:hidden border-t px-4 py-2 overflow-x-auto">
-        <nav className="flex space-x-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.value}
-              href={item.href}
-              className={cn(
-                "px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
-                activeTab === item.value
-                  ? "bg-gray-100 text-gray-900"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      {/* モバイル用メニューオーバーレイ */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-t bg-white overflow-hidden"
+          >
+            <div className="px-4 py-4 space-y-4">
+              <nav className="flex flex-col space-y-2">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.value}
+                    href={item.href}
+                    onClick={closeMobileMenu}
+                    className={cn(
+                      "px-3 py-2 rounded-md text-base font-medium transition-colors",
+                      activeTab === item.value
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ログアウト確認ダイアログ */}
       <ConfirmDialog
