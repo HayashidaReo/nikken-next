@@ -40,7 +40,7 @@ export const teamSchema = baseTeamSchema.extend({
 
 /**
  * フォーム入力用のTeamスキーマ
- * 選手登録フォームで使用（ID、タイムスタンプなし）
+ * 出場チーム申請フォームで使用（ID、タイムスタンプなし）
  */
 export const teamCreateSchema = baseTeamSchema;
 

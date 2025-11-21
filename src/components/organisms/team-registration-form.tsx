@@ -88,7 +88,7 @@ export function TeamRegistrationForm({
     <div className={cn("max-w-4xl mx-auto", className)}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">選手登録フォーム</CardTitle>
+          <CardTitle className="text-2xl">出場チーム申請フォーム</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
