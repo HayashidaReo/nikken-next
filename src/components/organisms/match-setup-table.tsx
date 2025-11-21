@@ -90,7 +90,6 @@ export function MatchSetupTable({
         playerBId: match.players.playerB.playerId,
         sortOrder: match.sortOrder,
       }))
-      .sort((a, b) => a.sortOrder - b.sortOrder);
   }, [matches]);
 
   // data の初期化と更新

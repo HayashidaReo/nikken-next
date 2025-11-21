@@ -438,10 +438,6 @@ export default function MatchSetupPage() {
       // 削除された試合を除外
       const deletedMatchIds = new Set(detectedChanges.deletedMatches.map(m => m.matchId));
       updated = updated.filter(m => !m.matchId || !deletedMatchIds.has(m.matchId));
-
-      // サーバーの sortOrder を反映して並び替え
-      updated.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-
       return updated;
     });
 
