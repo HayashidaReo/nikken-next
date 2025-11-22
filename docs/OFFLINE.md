@@ -19,22 +19,31 @@ npm install @serwist/next serwist
 ## 2\. next.config.js の設定（アプリ本体のキャッシュ）
 
 `@serwist/next` を設定し、ビルド時に Service Worker を自動生成させます。
+環境変数 `ENABLE_PWA` を使用して、PWA機能の有効/無効を切り替えられるように設定します。また、Turbopack との競合を避けるための設定も追加します。
 
 ```javascript
 // next.config.js
 // @ts-check
 import withSerwistInit from "@serwist/next";
 
+// 1. 環境変数をチェックしてスイッチ判定を行う
+const isPwaEnabled = process.env.ENABLE_PWA === "true";
+
 const withSerwist = withSerwistInit({
-  swSrc: "app/sw.ts",
-  swDest: "public/sw.js",
-  disable: process.env.NODE_ENV !== "production",
+    swSrc: "app/sw.ts",
+    swDest: "public/sw.js",
+    // 2. フラグが立っていない時は強制的に無効化
+    disable: !isPwaEnabled,
 });
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+    // Turbopack の設定（空オブジェクトで明示的に設定なしとする）
+    turbopack: {},
+};
 
-export default withSerwist(nextConfig);
+// 3. PWAモードの時だけ withSerwist でラップし、それ以外は素の config を返す
+export default isPwaEnabled ? withSerwist(nextConfig) : nextConfig;
 ```
 
 > **重要**: `disable: process.env.NODE_ENV !== "production"` により、開発時は Service Worker が無効化されます。
@@ -195,17 +204,21 @@ PWAとしてインストール可能にするため、マニフェストで指�
 
 ## 10\. ビルドスクリプトの更新
 
-`package.json` のビルドスクリプトを更新し、webpack を使用するようにします。
+`package.json` のスクリプトを更新し、PWA有効化フラグを使用するようにします。
 
 ```json
 {
   "scripts": {
-    "build": "next build --webpack"
+    "dev": "next dev --turbo",
+    "dev:pwa": "ENABLE_PWA=true next dev",
+    "build": "ENABLE_PWA=true next build"
   }
 }
 ```
 
-> **重要**: Serwist は webpack を使用するため、`--webpack` フラグが必須です。
+*   `dev`: 通常の開発モード（Turbopack有効、PWA無効）
+*   `dev:pwa`: PWA有効での開発モード
+*   `build`: 本番ビルド（PWA有効）
 
 ## 11\. 確認方法
 
@@ -429,43 +442,116 @@ export function handleFirestoreError(error: unknown): FirestoreErrorHandler {
 
 ### 5. グローバルオンライン状態インジケーター
 
-完全オフライン時には、アプリ全体を通して画面上部に「オフライン中」のラベルを最前面で表示します。
+完全オフライン時には、画面左上に「オフライン」インジケーターを表示します。
 
 ```typescript
-// src/components/molecules/offline-banner.tsx
-'use client';
+// src/components/molecules/offline-indicator.tsx
+"use client";
 
-import { useOnlineStatus } from '@/hooks/use-online-status';
-import { WifiOff } from 'lucide-react';
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { WifiOff } from "lucide-react";
 
-export function OfflineBanner() {
-  const isOnline = useOnlineStatus();
+export function OfflineIndicator() {
+    const isOnline = useOnlineStatus();
 
-  if (isOnline) return null;
+    if (isOnline) {
+        return null;
+    }
 
-  return (
-    <div className="fixed top-0 left-0 w-full bg-red-600 text-white px-4 py-2 z-[9999] flex items-center justify-center gap-2 shadow-md animate-in slide-in-from-top">
-      <WifiOff className="h-4 w-4" />
-      <span className="text-sm font-bold">現在オフラインです。データはローカルに保存されます。</span>
-    </div>
-  );
+    return (
+        <div className="fixed top-4 left-4 z-50 flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-2xl transform-gpu will-change-transform transition-transform">
+            <WifiOff className="h-4 w-4" />
+            <span>オフライン</span>
+        </div>
+    );
 }
 ```
 
-このコンポーネントを `app/layout.tsx` の `<body>` 直下に配置します。
+このコンポーネントを `app/layout.tsx` の `<body>` 内（プロバイダーの下など）に配置します。
 
-## 実装の流れ
+## Phase 5: 楽観的更新とオフライン同期の実装詳細
 
-1. **Phase 1**: `useOnlineStatus` フックの実装
-2. **Phase 2**: `withTimeout` ユーティリティの実装
-3. **Phase 3**: `handleFirestoreError` ユーティリティの実装
-4. **Phase 4**: `OfflineBanner` コンポーネントの実装と配置
-5. **Phase 5**: 既存の mutation にタイムアウトとエラーハンドリングを追加
+Firestore の `persistentLocalCache` を有効にしている場合、オフライン時に `setDoc` や `addDoc` を実行すると、SDK は自動的にローカルDB (IndexedDB) に書き込み、ネットワーク復帰時にサーバーと同期します。
 
+しかし、アプリ側で `await` を使って完了を待つと、サーバーからの応答がないためタイムアウトしたり、エラーとして扱われたりします。
 
-## 注意事項
+そこで、**「TanStack Query でUIを即座に書き換え（楽観的更新）、オフライン起因のエラーが発生してもUIを元に戻さない（ロールバックしない）」**という手法をとります。
 
-- Firestore のオフライン永続化により、オンライン復帰時に**自動的に同期**されます
-- 楽観的更新を保持することで、オフライン時でもアプリの操作性を維持します
-- トースト通知により、ユーザーはオフライン状態を明確に認識できます
-- ネットワークエラーと他のエラーを区別し、適切なメッセージを表示します
+### 実装パターン
+
+```typescript
+// src/queries/use-save-data.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
+import { useNotification } from '@/components/providers/notification-provider';
+import { withTimeout, TimeoutError } from '@/lib/utils/with-timeout';
+import { handleFirestoreError } from '@/lib/utils/firestore-error-handler';
+
+export function useSaveData() {
+  const queryClient = useQueryClient();
+  const { showNotification } = useNotification();
+
+  return useMutation({
+    mutationFn: async (data: SomeData) => {
+      const docRef = doc(db, 'collection', data.id);
+      // タイムアウト付きで実行（オフライン時はここでタイムアウトする可能性がある）
+      await withTimeout(setDoc(docRef, data));
+      return data;
+    },
+    onMutate: async (newData) => {
+      // 1. 楽観的更新: UIを即座に更新
+      await queryClient.cancelQueries({ queryKey: ['data'] });
+      const previousData = queryClient.getQueryData(['data']);
+      
+      queryClient.setQueryData(['data'], (old: SomeData[]) => {
+        return [...old, newData];
+      });
+
+      return { previousData };
+    },
+    onError: (error, newData, context) => {
+      // 2. エラーハンドリング
+      const { isOffline, message, shouldRetainOptimisticUpdate } = handleFirestoreError(error);
+
+      if (shouldRetainOptimisticUpdate) {
+        // オフライン/タイムアウト時は、楽観的更新を維持する（ロールバックしない）
+        // ユーザーには「ローカルに保存された」旨を伝える
+        showNotification({
+          type: 'warning',
+          message: message,
+        });
+        
+        // 必要であれば、ここで再度キャッシュを更新して確実にする
+        queryClient.setQueryData(['data'], (old: SomeData[]) => {
+          // 重複チェックなどをしつつ追加
+          return [...old, newData];
+        });
+      } else {
+        // 本当のエラー（権限不足など）の場合はロールバックする
+        if (context?.previousData) {
+          queryClient.setQueryData(['data'], context.previousData);
+        }
+        showNotification({
+          type: 'error',
+          message: message,
+        });
+      }
+    },
+    onSuccess: () => {
+        showNotification({
+            type: 'success',
+            message: '保存しました',
+        });
+    }
+  });
+}
+```
+
+### ポイント
+
+1.  **`onMutate` で即座にキャッシュ更新**: ユーザーには待ち時間ゼロで反応を返します。
+2.  **`withTimeout` で待機**: Firestore SDK はオフライン時に Promise を解決しない（または時間がかかる）場合があるため、強制的にタイムアウトさせます。
+3.  **`onError` で分岐**:
+    *   **オフライン/タイムアウト**: UIをロールバックせず、警告トーストを表示。「サーバーには届いてないけど、アプリ上では保存したよ」という状態にします。
+    *   **その他のエラー**: 通常通りロールバックし、エラーを表示します。
