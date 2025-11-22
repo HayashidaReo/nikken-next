@@ -1,105 +1,98 @@
-React + Vite + Firebase (Firestore) + Vercel 環境向けのオフライン対応実装ガイドです。
+React + Next.js + Firebase (Firestore) + Vercel 環境向けのオフライン対応実装ガイドです。
 
 -----
 
-# Reactアプリ オフライン対応実装ガイド
+# Next.js アプリ オフライン対応実装ガイド
 
-このガイドでは、ReactアプリをPWA（Progressive Web App）化し、Firestoreのオフラインデータ永続化機能を有効にする手順を解説します。これにより、スマホ・PC問わず、インターネット接続がない状態でもアプリを起動し、データを閲覧・操作することが可能になります。
+このガイドでは、Next.jsアプリをPWA（Progressive Web App）化し、Firestoreのオフラインデータ永続化機能を有効にする手順を解説します。これにより、スマホ・PC問わず、インターネット接続がない状態でもアプリを起動し、データを閲覧・操作することが可能になります。
 
 ## 1\. 必要なパッケージのインストール
 
-ViteでPWAを生成するためのプラグインを開発用依存としてインストールします。
+Next.jsでPWAを生成するためのプラグインをインストールします。
 
 ```bash
-npm install vite-plugin-pwa -D
+npm install @ducanh2912/next-pwa
 ```
 
-## 2\. vite.config.ts の設定（アプリ本体のキャッシュ）
+## 2\. next.config.ts の設定（アプリ本体のキャッシュ）
 
-`vite-plugin-pwa` を設定し、ビルド時に Service Worker と Web Manifest を自動生成させます。
+`@ducanh2912/next-pwa` を設定し、ビルド時に Service Worker と Web Manifest を自動生成させます。
 
 ```typescript
-// vite.config.ts
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+// next.config.ts
+import type { NextConfig } from "next";
+import withPWA from "@ducanh2912/next-pwa";
 
-export default defineConfig({
-  plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate', // 更新即反映
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'], // 静的アセットのキャッシュ
-      manifest: {
-        name: 'My Offline App',
-        short_name: 'OfflineApp',
-        description: 'オフライン対応のReactアプリケーション',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
-        display: 'standalone', // PCやスマホでアプリライクに表示（ブラウザ枠を消す）
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      },
-      // Service Workerの設定（キャッシュ戦略）
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        // ランタイムキャッシュ（外部API画像のキャッシュなどが必要な場合に追加）
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1年
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
-      }
-    })
-  ],
-})
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default withPWA({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development", // 開発時は無効化
+})(nextConfig);
 ```
 
-## 3\. Firestoreのオフライン永続化設定（データのキャッシュ）
+## 3\. Web Manifest の作成
+
+`public/manifest.json` を作成し、PWAのメタデータを定義します。
+
+```json
+{
+  "name": "Nikken Next App",
+  "short_name": "Nikken",
+  "description": "オフライン対応のNext.jsアプリケーション",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+```
+
+## 4\. Firestoreのオフライン永続化設定（データのキャッシュ）
 
 Firebaseの初期化コードを修正し、オフライン時でもデータの読み書きができるようにします。これにより、ネット切断時に書き込んだデータはローカルに保存され、復帰時に自動でサーバーと同期されます。
 
 ```typescript
-// src/firebase.ts (または firebaseConfig.ts)
-import { initializeApp } from "firebase/app";
+// src/lib/firebase/client.ts
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { 
   initializeFirestore, 
   persistentLocalCache, 
   persistentMultipleTabManager 
 } from "firebase/firestore";
 
+// Firebase設定（環境変数から取得）
 const firebaseConfig = {
-  // ... あなたのFirebase設定
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+// Firebase初期化
+// Next.jsの高速リロード（HMR）に対応するため、すでに初期化済みかチェックする
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+// Firebase サービスの取得
+export const auth = getAuth(app);
 
 // Firestoreの初期化（永続化キャッシュを有効化）
 export const db = initializeFirestore(app, {
@@ -108,9 +101,12 @@ export const db = initializeFirestore(app, {
     tabManager: persistentMultipleTabManager()
   })
 });
+
+// デフォルトエクスポート
+export default app;
 ```
 
-## 4\. アイコン画像の配置
+## 5\. アイコン画像の配置
 
 PWAとしてインストール可能にするため（特にPCのChromeでインストールボタンを表示させるため）には、マニフェストで指定したサイズのアイコン画像が必須です。
 
@@ -120,24 +116,24 @@ PWAとしてインストール可能にするため（特にPCのChromeでイン
   * `public/pwa-512x512.png`
   * `public/favicon.ico` (既存のものでOK)
 
-## 5\. 確認方法
+## 6\. 確認方法
 
-開発サーバー（`npm run dev`）ではService Workerが正しく動作しない場合があるため、プロダクションビルドを行って確認します。
+開発サーバー（`npm run dev`）ではService Workerが無効化されているため、プロダクションビルドを行って確認します。
 
-1.  **ビルドとプレビュー:**
+1.  **ビルドと起動:**
     ```bash
     npm run build
-    npm run preview
+    npm run start
     ```
 2.  **ブラウザでの確認:**
-      * 表示されたURL（例: `http://localhost:4173`）を開く。
+      * 表示されたURL（例: `http://localhost:3000`）を開く。
       * **Chrome DevTools** (F12) を開く。
       * **Application** タブ \> **Service Workers** を選択し、「Status」が緑色の丸（Running）になっているか確認。
       * **Network** タブを開き、スロットリング設定を「No throttling」から「**Offline**」に変更。
       * ページをリロードし、アプリが表示されれば成功です。
       * Firestoreへのデータ追加操作を行い、エラーが出ずに反映（見た目上）されればデータ永続化も成功です。
 
-## 6\. Vercelへのデプロイ
+## 7\. Vercelへのデプロイ
 
 特別な設定は不要です。通常通りGitHubへプッシュし、Vercel側でビルドが走れば、自動的にService Workerが含まれた状態でデプロイされます。
 
