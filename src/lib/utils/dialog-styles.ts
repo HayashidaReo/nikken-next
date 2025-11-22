@@ -12,4 +12,4 @@ export const dialogOverlayStyle = {
 
 // ダイアログオーバーレイの共通クラス名
 export const DIALOG_OVERLAY_CLASSES =
-  "fixed inset-0 flex items-center justify-center z-50";
+  "fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm";

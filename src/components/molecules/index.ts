@@ -10,6 +10,7 @@ export { TimerControl } from "./timer-control";
 export { TimeAdjuster } from "./time-adjuster";
 export { ConfirmationDialog } from "./confirmation-dialog";
 export { PlayerListForm } from "./player-list-form";
+export { PlayerInputRow } from "./player-input-row";
 export { FormInput, FormTextarea } from "./form-input";
 export { AddButton, RemoveButton } from "./action-buttons";
 export { Toast, ToastContainer } from "./toast";

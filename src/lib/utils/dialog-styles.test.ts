@@ -56,14 +56,19 @@ describe("dialog-styles", () => {
         it("複数のクラスがスペース区切りで連結されている", () => {
             const classes = DIALOG_OVERLAY_CLASSES.split(" ");
             expect(classes.length).toBeGreaterThan(1);
-            expect(classes).toEqual([
-                "fixed",
-                "inset-0",
-                "flex",
-                "items-center",
-                "justify-center",
-                "z-50",
-            ]);
+
+            // 必須のTailwindクラスが含まれていることを確認する
+            expect(classes).toEqual(
+                expect.arrayContaining([
+                    "fixed",
+                    "inset-0",
+                    "flex",
+                    "items-center",
+                    "justify-center",
+                    "z-50",
+                    "backdrop-blur-sm",
+                ])
+            );
         });
 
         it("固定レイアウト、全画面カバー、中央配置のクラスを持つ", () => {

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FirestoreTeamRepository } from "@/repositories/firestore/team-repository";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -9,7 +10,7 @@ import type { TeamFormData } from "@/types/team-form.schema";
  *
  * 注意: このクエリは認証済みユーザー専用です
  * - 管理画面（チーム一覧、承認機能など）で使用
- * - 選手登録フォームでは API Route (/api/teams/register) を使用
+ * - 出場チーム申請フォームでは API Route (/api/teams/register) を使用
  */
 const teamRepository = new FirestoreTeamRepository();
 
@@ -44,6 +45,7 @@ export function useTeams() {
     staleTime: 5 * 60 * 1000, // 5分間はキャッシュを有効とする
   });
 }
+
 
 /**
  * 特定のチームを取得するQuery
@@ -195,34 +197,44 @@ export function useRegisterTeamWithParams(orgId: string, tournamentId: string) {
 }
 
 /**
- * リアルタイム購読用のフック（オプション）
- * 使用例: チーム管理画面でリアルタイム更新が必要な場合
+ * リアルタイム購読用のフック
+ * チーム一覧をリアルタイムに監視し、キャッシュを更新します
  */
 export function useTeamsRealtime() {
   const queryClient = useQueryClient();
   const { orgId, activeTournamentId, isReady } = useAuthContext();
 
+  // 監視対象のクエリキー（useTeamsと同じキーを使用）
+  const queryKey = teamKeys.list({ orgId, tournamentId: activeTournamentId });
+
+  useEffect(() => {
+    if (!isReady || !orgId || !activeTournamentId) return;
+
+    // リアルタイムリスナーのセットアップ
+    const unsubscribe = teamRepository.listenAll(
+      orgId,
+      activeTournamentId,
+      (teams) => {
+        // 取得したデータでキャッシュを更新
+        queryClient.setQueryData(queryKey, teams);
+      }
+    );
+
+    // クリーンアップ
+    return () => unsubscribe();
+  }, [isReady, orgId, activeTournamentId, queryClient, queryKey]);
+
+  // 初回データ取得用（またはキャッシュ利用用）のクエリ
   return useQuery({
-    queryKey: [...teamKeys.lists(), "realtime", { orgId, tournamentId: activeTournamentId }],
+    queryKey,
     queryFn: () => {
       if (!orgId || !activeTournamentId) {
         throw new Error("Organization ID and Tournament ID are required");
       }
-
-      return new Promise<Team[]>(resolve => {
-        // リアルタイム購読を開始
-        const unsubscribe = teamRepository.listenAll(orgId, activeTournamentId, (teams: Team[]) => {
-          // キャッシュを更新
-          queryClient.setQueryData(teamKeys.list({ orgId, tournamentId: activeTournamentId }), teams);
-          resolve(teams);
-        });
-
-        // クリーンアップ関数を返す
-        return () => unsubscribe();
-      });
+      return teamRepository.listAll(orgId, activeTournamentId);
     },
     enabled: Boolean(isReady && orgId && activeTournamentId),
-    staleTime: Infinity, // リアルタイム更新なので常にフレッシュ
+    staleTime: Infinity, // リアルタイム更新されるため、自動再取得は無効化
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

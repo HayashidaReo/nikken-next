@@ -25,6 +25,20 @@ export function DialogOverlay({
   children,
   className,
 }: DialogOverlayProps) {
+  React.useEffect(() => {
+    if (isOpen) {
+      // 現在のスタイルを保存
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      // スクロールを無効化
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        // クリーンアップ時に元のスタイルに戻す
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleOverlayClick = (e: React.MouseEvent) => {

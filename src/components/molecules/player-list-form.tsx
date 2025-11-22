@@ -2,16 +2,9 @@
 
 import { useFieldArray } from "react-hook-form";
 import { Control, FieldErrors, UseFormRegister } from "react-hook-form";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/atoms/card";
-import { Input } from "@/components/atoms/input";
-import { Label } from "@/components/atoms/label";
 
-import { AddButton, RemoveButton } from "./action-buttons";
+import { AddButton } from "./action-buttons";
+import { PlayerInputRow } from "./player-input-row";
 import type { TeamFormData } from "@/types/team-form.schema";
 
 interface PlayerListFormProps {
@@ -31,50 +24,34 @@ export function PlayerListForm({
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>選手一覧</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-4">
+      <div className="space-y-4">
         {fields.map((field, index) => (
-          <div key={field.id} className="flex gap-2 items-start">
-            <div className="flex-1">
-              <Label htmlFor={`players.${index}.fullName`}>
-                選手名 {index + 1}{" "}
-                <span className="text-sm text-gray-600">
-                  （姓と名の間に半角スペースを入力）
-                </span>
-              </Label>
-              <Input
-                {...register(`players.${index}.fullName`)}
-                id={`players.${index}.fullName`}
-                placeholder="例: 山田 太郎"
-                className={
-                  errors.players?.[index]?.fullName ? "border-red-500" : ""
-                }
-              />
-              {errors.players?.[index]?.fullName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.players?.[index]?.fullName?.message}
-                </p>
-              )}
-            </div>
-
-            {fields.length > 1 && (
-              <RemoveButton
-                onClick={() => remove(index)}
-                className="mt-6 shrink-0"
-              />
-            )}
-          </div>
+          <PlayerInputRow
+            key={field.id}
+            index={index}
+            register={register}
+            error={errors.players?.[index]?.fullName}
+            onRemove={() => remove(index)}
+            canRemove={fields.length > 1}
+          />
         ))}
-        <AddButton onClick={() => append({ fullName: "" })} className="w-full">
-          選手を追加
-        </AddButton>{" "}
+      </div>
+
+      <div className="pt-2">
+        <AddButton
+          onClick={() => append({ fullName: "" })}
+          className="w-full h-12 border-2 border-dashed border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all"
+        >
+          <span className="flex items-center justify-center gap-2 font-medium">
+            選手を追加する
+          </span>
+        </AddButton>
+
         {errors.players?.root && (
-          <p className="text-red-500 text-sm">{errors.players.root.message}</p>
+          <p className="text-red-500 text-sm mt-2 text-center">{errors.players.root.message}</p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -5,6 +5,8 @@ import { Label } from "@/components/atoms/label";
 import { Textarea } from "@/components/atoms/textarea";
 import type { UseFormRegister, FieldValues, Path } from "react-hook-form";
 
+import { cn } from "@/lib/utils/utils";
+
 interface FormInputProps {
   label: string;
   name: string;
@@ -13,6 +15,7 @@ interface FormInputProps {
   placeholder?: string;
   type?: "text" | "email" | "tel" | "password" | "number";
   className?: string;
+  inputClassName?: string;
   trailingIcon?: React.ReactNode;
   onTrailingIconClick?: () => void;
   /** trailing icon の aria-label を渡す（任意） */
@@ -31,6 +34,7 @@ interface FormTextareaProps {
   placeholder?: string;
   rows?: number;
   className?: string;
+  textareaClassName?: string;
 }
 
 interface FormTextareaWithRegisterProps<T extends FieldValues> extends FormTextareaProps {
@@ -45,6 +49,7 @@ export function FormInput<T extends FieldValues>({
   placeholder,
   type = "text",
   className,
+  inputClassName,
   trailingIcon,
   onTrailingIconClick,
   trailingIconLabel,
@@ -61,7 +66,7 @@ export function FormInput<T extends FieldValues>({
         id={name}
         type={type}
         placeholder={placeholder}
-        className={error ? "border-red-500" : ""}
+        className={cn(error ? "border-red-500" : "", inputClassName)}
         trailingIcon={trailingIcon}
         onTrailingIconClick={onTrailingIconClick}
         trailingIconLabel={trailingIconLabel}
@@ -80,6 +85,7 @@ export function FormTextarea<T extends FieldValues>({
   placeholder,
   rows = 3,
   className,
+  textareaClassName,
   register,
   ...props
 }: FormTextareaWithRegisterProps<T>) {
@@ -93,7 +99,7 @@ export function FormTextarea<T extends FieldValues>({
         id={name}
         placeholder={placeholder}
         rows={rows}
-        className={error ? "border-red-500" : ""}
+        className={cn(error ? "border-red-500" : "", textareaClassName)}
         {...props}
       />
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
