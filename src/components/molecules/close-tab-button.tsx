@@ -2,10 +2,18 @@
 
 import { Button } from "@/components/atoms/button";
 import { X } from "lucide-react";
+import { useToast } from "@/components/providers/notification-provider";
 
 export function CloseTabButton() {
+    const { showInfo } = useToast();
+
     const handleClose = () => {
-        window.close();
+        // window.close(); はJavaScriptで開かれたウィンドウにしか機能しないため、無理な場合は手動で閉じるよう促す
+        if (window.opener) {
+            window.close();
+        } else {
+            showInfo("このタブは自動的に閉じることができません。手動でタブを閉じてください。");
+        }
     };
 
     return (
