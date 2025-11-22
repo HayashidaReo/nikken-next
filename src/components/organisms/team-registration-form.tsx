@@ -18,6 +18,7 @@ import { teamFormSchema } from "@/types/team-form.schema";
 import { useFormSubmit } from "@/hooks";
 import { useToast } from "@/components/providers/notification-provider";
 import { defaultTeamFormValues } from "@/lib/form-defaults";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 interface TeamRegistrationFormProps {
   onSubmit: (data: TeamFormData) => Promise<void>;
@@ -42,11 +43,14 @@ export function TeamRegistrationForm({
     handleSubmit,
     trigger,
     getValues,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<TeamFormData>({
     resolver: zodResolver(teamFormSchema),
     defaultValues: defaultTeamFormValues,
   });
+
+  // ブラウザのリロード/閉じる操作に対する警告
+  useUnsavedChanges(isDirty);
 
   const { handleSubmit: submitForm, isLoading, error } = useFormSubmit();
 
@@ -195,14 +199,6 @@ export function TeamRegistrationForm({
           </section>
 
           <div className="pt-6 border-t border-gray-100 flex gap-4 justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="px-8 h-12 text-base"
-            >
-              戻る
-            </Button>
             <Button
               type="submit"
               isLoading={isLoading}
