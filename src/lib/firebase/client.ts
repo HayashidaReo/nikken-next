@@ -1,6 +1,10 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from "firebase/firestore";
 
 // Firebase設定（環境変数から取得）
 const firebaseConfig = {
@@ -18,7 +22,15 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Firebase サービスの取得
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Firestoreの初期化(永続化キャッシュを有効化)
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    // 複数タブでのデータ整合性を保つ設定
+    tabManager: persistentMultipleTabManager()
+  })
+});
+
 
 // デフォルトエクスポート
 export default app;
