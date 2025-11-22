@@ -26,6 +26,26 @@ export const teamKeys = {
   detail: (id: string) => [...teamKeys.details(), id] as const,
 };
 
+/**
+ * 全てのチームを取得するQuery
+ * 認証コンテキストから組織・大会IDを自動取得
+ */
+export function useTeams() {
+  const { orgId, activeTournamentId, isReady } = useAuthContext();
+
+  return useQuery({
+    queryKey: teamKeys.list({ orgId, tournamentId: activeTournamentId }),
+    queryFn: () => {
+      if (!orgId || !activeTournamentId) {
+        throw new Error("Organization ID and Tournament ID are required");
+      }
+      return teamRepository.listAll(orgId, activeTournamentId);
+    },
+    enabled: Boolean(isReady && orgId && activeTournamentId), // 認証・組織・大会が揃った場合のみ実行
+    staleTime: 5 * 60 * 1000, // 5分間はキャッシュを有効とする
+  });
+}
+
 
 /**
  * 特定のチームを取得するQuery
