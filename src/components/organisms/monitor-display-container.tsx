@@ -3,6 +3,7 @@ import { useMonitorData } from "@/hooks/use-monitor-data";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
+import { useBuzzer } from "@/hooks/useBuzzer";
 
 interface MonitorDisplayContainerProps {
   className?: string;
@@ -13,6 +14,9 @@ export function MonitorDisplayContainer({
 }: MonitorDisplayContainerProps) {
   const { data } = useMonitorData();
   const [scale, setScale] = useState(1);
+
+  // タイマーが0になったらブザーを鳴らす
+  useBuzzer(data.timeRemaining);
 
   useEffect(() => {
     const handleResize = () => {
