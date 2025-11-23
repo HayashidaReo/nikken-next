@@ -1,8 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import {
-  initializeFirestore
-} from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 // Firebase設定（環境変数から取得）
 const firebaseConfig = {
@@ -21,8 +19,9 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Firebase サービスの取得
 export const auth = getAuth(app);
 
-// Firestoreの初期化（Dexie.jsをローカルストレージとして使用するため、永続化キャッシュは無効化）
-export const db = initializeFirestore(app, {});
+// Firestore インスタンスを取得
+// 既存インスタンスがあればそれを返す getFirestore を使用します。
+export const db = getFirestore(app);
 
 
 // デフォルトエクスポート
