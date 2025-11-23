@@ -41,11 +41,7 @@ export default function MonitorControlPage() {
     showFallbackDialog,
     handleFallbackConfirm,
     handleFallbackCancel,
-  } = useMonitorController({
-    matchId,
-    orgId: orgId || "",
-    tournamentId: activeTournamentId || "",
-  });
+  } = useMonitorController();
 
   const handleSave = async () => {
     try {

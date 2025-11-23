@@ -1,4 +1,4 @@
-# Presentation Token Implementation Summary
+# Presentation Token Implementation Summary (不必要になった)
 
 ## 概要
 

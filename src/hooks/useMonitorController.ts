@@ -1,24 +1,13 @@
 import { useState } from "react";
 import { usePresentation } from "@/hooks/usePresentation";
-import { useGetPresentationToken } from "@/queries/use-presentation";
 import { useFallbackMonitor } from "@/hooks/useFallbackMonitor";
 import { useToast } from "@/components/providers/notification-provider";
 import { MONITOR_DISPLAY_PATH } from "@/lib/constants/monitor";
 
-interface UseMonitorControllerProps {
-    matchId: string;
-    orgId: string;
-    tournamentId: string;
-}
 
-export function useMonitorController({
-    matchId,
-    orgId,
-    tournamentId,
-}: UseMonitorControllerProps) {
+export function useMonitorController() {
     const [showFallbackDialog, setShowFallbackDialog] = useState(false);
     const { showSuccess, showError, showInfo } = useToast();
-    const getPresentationToken = useGetPresentationToken();
 
     const {
         isSupported: isPresentationSupported,
@@ -28,11 +17,7 @@ export function useMonitorController({
         startPresentation,
     } = usePresentation(`${window.location.origin}${MONITOR_DISPLAY_PATH}`);
 
-    const { openFallbackWindow } = useFallbackMonitor({
-        matchId,
-        orgId,
-        tournamentId,
-    });
+    const { openFallbackWindow } = useFallbackMonitor();
 
     const handleMonitorAction = async () => {
         try {
@@ -42,13 +27,7 @@ export function useMonitorController({
                 return;
             }
 
-            // まず、プレゼンテーション用トークンを取得する
-            const token = await getPresentationToken.mutateAsync({
-                matchId,
-                orgId,
-                tournamentId,
-            });
-            const monitorUrl = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
+            const monitorUrl = `${window.location.origin}${MONITOR_DISPLAY_PATH}`;
 
             if (isPresentationSupported && isPresentationAvailable && startPresentation) {
                 try {
