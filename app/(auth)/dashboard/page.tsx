@@ -42,8 +42,7 @@ export default function DashboardPage() {
     try {
       await syncService.downloadTournamentData(orgId, activeTournamentId);
       showSuccess("データの取得が完了しました");
-    } catch (e) {
-      console.error(e);
+    } catch {
       showError("データの取得に失敗しました");
     } finally {
       setIsDownloading(false);
