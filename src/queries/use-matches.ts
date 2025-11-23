@@ -4,7 +4,7 @@ import { FirestoreMatchRepository } from "@/repositories/firestore/match-reposit
 import { useAuthContext } from "@/hooks/useAuthContext";
 import type { Match, MatchCreate } from "@/types/match.schema";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { localMatchRepository } from "@/repositories/local/match-repository";
 
 /**
  * Match リポジトリのインスタンス（シングルトン）
@@ -38,9 +38,7 @@ export function useMatches() {
 
     const matches = useLiveQuery(async () => {
         if (!orgId || !activeTournamentId) return [];
-        return await db.matches
-            .where({ organizationId: orgId, tournamentId: activeTournamentId })
-            .sortBy("sortOrder"); // sortOrderで並び替え
+        return await localMatchRepository.listAll(orgId, activeTournamentId);
     }, [orgId, activeTournamentId]);
 
     return {
@@ -58,11 +56,7 @@ export function useMatch(matchId: string | null | undefined) {
 
     const match = useLiveQuery(async () => {
         if (!matchId || !orgId || !activeTournamentId) return undefined;
-        // matchId is unique enough, but we can add compound index check if needed
-        return await db.matches
-            .where("matchId")
-            .equals(matchId)
-            .first();
+        return await localMatchRepository.getById(matchId);
     }, [matchId, orgId, activeTournamentId]);
 
     return {
@@ -80,9 +74,7 @@ export function useMatchesByCourtId(courtId: string | null | undefined) {
 
     const matches = useLiveQuery(async () => {
         if (!courtId || !orgId || !activeTournamentId) return [];
-        return await db.matches
-            .where({ organizationId: orgId, tournamentId: activeTournamentId, courtId: courtId })
-            .sortBy("sortOrder");
+        return await localMatchRepository.listByCourtId(orgId, activeTournamentId, courtId);
     }, [courtId, orgId, activeTournamentId]);
 
     return {
@@ -100,9 +92,7 @@ export function useMatchesByRound(round: string | null | undefined) {
 
     const matches = useLiveQuery(async () => {
         if (!round || !orgId || !activeTournamentId) return [];
-        return await db.matches
-            .where({ organizationId: orgId, tournamentId: activeTournamentId, round: round })
-            .sortBy("sortOrder");
+        return await localMatchRepository.listByRound(orgId, activeTournamentId, round);
     }, [round, orgId, activeTournamentId]);
 
     return {

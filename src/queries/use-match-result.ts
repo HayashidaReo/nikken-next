@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { db } from "@/lib/db";
+import { localMatchRepository } from "@/repositories/local/match-repository";
 
 export interface SaveMatchResultRequest {
     matchId: string;
@@ -26,7 +26,7 @@ export function useSaveMatchResult() {
             const { matchId, players } = request;
 
             // ローカルDBから現在の試合データを取得
-            const currentMatch = await db.matches.where("matchId").equals(matchId).first();
+            const currentMatch = await localMatchRepository.getById(matchId);
 
             if (!currentMatch) {
                 throw new Error(`Match not found in local DB: ${matchId}`);
@@ -53,7 +53,7 @@ export function useSaveMatchResult() {
             };
 
             // ローカルDBを更新
-            await db.matches.put(updatedMatch);
+            await localMatchRepository.put(updatedMatch);
 
             return updatedMatch;
         },

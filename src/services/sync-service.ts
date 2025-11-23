@@ -1,5 +1,6 @@
 import { db, LocalMatch, LocalTournament } from '@/lib/db';
 import { FirestoreMatchRepository } from '@/repositories/firestore/match-repository';
+import { localMatchRepository } from '@/repositories/local/match-repository';
 
 const matchRepository = new FirestoreMatchRepository();
 
@@ -25,7 +26,7 @@ export const syncService = {
         // 2. ローカルDBをトランザクションで更新
         await db.transaction('rw', db.matches, db.tournaments, async () => {
             // 既存のこの大会のデータを削除 (クリーンな状態で上書き)
-            await db.matches.where({ organizationId: orgId, tournamentId }).delete();
+            await localMatchRepository.deleteByTournament(orgId, tournamentId);
             await db.tournaments.where({ organizationId: orgId, tournamentId }).delete();
 
             // 大会データを保存
@@ -46,7 +47,7 @@ export const syncService = {
                 tournamentId: tournamentId,
                 isSynced: true, // ダウンロード直後は同期済み
             }));
-            await db.matches.bulkPut(localMatches);
+            await localMatchRepository.bulkPut(localMatches);
         });
 
         console.log(`[SyncService] Downloaded ${matches.length} matches for tournament ${tournamentId}`);
@@ -62,10 +63,7 @@ export const syncService = {
         }
 
         // 1. 未送信の試合データを取得
-        const unsyncedMatches = await db.matches
-            .where({ organizationId: orgId, tournamentId })
-            .filter(m => m.isSynced === false)
-            .toArray();
+        const unsyncedMatches = await localMatchRepository.getUnsynced(orgId, tournamentId);
 
         if (unsyncedMatches.length === 0) {
             return 0;
@@ -86,7 +84,7 @@ export const syncService = {
                 });
 
                 // 3. ローカルDBのフラグを更新
-                await db.matches.update(match.id!, { isSynced: true });
+                await localMatchRepository.update(match.id!, { isSynced: true });
                 successCount++;
             } catch (error) {
                 console.error(`[SyncService] Failed to upload match ${match.matchId}`, error);
@@ -101,9 +99,6 @@ export const syncService = {
      * 未送信データの件数を取得
      */
     async getUnsyncedCount(orgId: string, tournamentId: string): Promise<number> {
-        return await db.matches
-            .where({ organizationId: orgId, tournamentId })
-            .filter(m => m.isSynced === false)
-            .count();
+        return await localMatchRepository.countUnsynced(orgId, tournamentId);
     }
 };
