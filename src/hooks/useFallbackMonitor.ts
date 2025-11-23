@@ -1,6 +1,5 @@
 import { useEffect, useCallback } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { useGetPresentationToken } from "@/queries/use-presentation";
 import { useToast } from "@/components/providers/notification-provider";
 import { useMonitorSender } from "@/hooks/useMonitorSender";
 import {
@@ -11,23 +10,12 @@ import {
     TIMEOUT_CHECK_INTERVAL_MS,
 } from "@/lib/constants/monitor";
 
-interface UseFallbackMonitorProps {
-    matchId: string;
-    orgId: string;
-    tournamentId: string;
-}
-
 /**
  * フォールバックモニター（別タブ表示）の制御を行うフック
  * BroadcastChannelを使用した通信、ハートビート、接続状態の管理を行います。
  */
-export function useFallbackMonitor({
-    matchId,
-    orgId,
-    tournamentId,
-}: UseFallbackMonitorProps) {
+export function useFallbackMonitor() {
     const { showInfo, showError } = useToast();
-    const getPresentationToken = useGetPresentationToken();
     const { sendMessage } = useMonitorSender();
 
     const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
@@ -39,13 +27,7 @@ export function useFallbackMonitor({
      */
     const openFallbackWindow = useCallback(async () => {
         try {
-            const token = await getPresentationToken.mutateAsync({
-                matchId,
-                orgId: orgId || "",
-                tournamentId: tournamentId || "",
-            });
-
-            const url = `${window.location.origin}${MONITOR_DISPLAY_PATH}?pt=${encodeURIComponent(token)}`;
+            const url = `${window.location.origin}${MONITOR_DISPLAY_PATH}`;
             window.open(url, "_blank", "width=1920,height=1080");
 
             // フォールバックで別タブを開いたことをストアに反映
@@ -69,7 +51,7 @@ export function useFallbackMonitor({
             console.error("フォールバックウィンドウを開くのに失敗しました:", err);
             showError("モニター表示の開始に失敗しました。もう一度お試しください。");
         }
-    }, [matchId, orgId, tournamentId, getPresentationToken, setFallbackOpen, showInfo, showError, sendMessage]);
+    }, [setFallbackOpen, showInfo, showError, sendMessage]);
 
     /**
      * ページロード時や再接続時に既存のモニタータブ（BroadcastChannel）を探す

@@ -4,22 +4,14 @@ import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
 
-interface TokenData {
-  matchId: string;
-  orgId: string;
-  tournamentId: string;
-}
-
 interface MonitorDisplayContainerProps {
   className?: string;
-  tokenData?: TokenData | null;
 }
 
 export function MonitorDisplayContainer({
   className = "",
-  tokenData,
 }: MonitorDisplayContainerProps) {
-  const { data } = useMonitorData(tokenData);
+  const { data } = useMonitorData();
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
