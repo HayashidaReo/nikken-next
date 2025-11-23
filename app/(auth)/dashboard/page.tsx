@@ -3,17 +3,24 @@
 import { useMemo } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { MatchListTableMemo } from "@/components/organisms/match-list-table";
-import { useMatchesRealtime } from "@/queries/use-matches";
+import { useMatches } from "@/queries/use-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
+import { Button } from "@/components/atoms/button";
+import { DownloadCloud } from "lucide-react";
+import { syncService } from "@/services/sync-service";
+import { useState } from "react";
+import { useToast } from "@/components/providers/notification-provider";
 
 export default function DashboardPage() {
   const { needsTournamentSelection, activeTournamentId, orgId, isLoading: authLoading } = useAuthContext();
+  const { showSuccess, showError } = useToast();
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  // Firebase からデータを取得（リアルタイム更新対応）
-  const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatchesRealtime();
+  // ローカルDBからデータを取得（useLiveQueryを使用）
+  const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatches();
   const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(orgId, activeTournamentId);
 
   // matches リストをメモ化して不要な再レンダリングを防止
@@ -26,9 +33,40 @@ export default function DashboardPage() {
   const isLoading = authLoading || matchesLoading || tournamentLoading;
   const hasError = matchesError || tournamentError;
 
+  const handleDownload = async () => {
+    if (!orgId || !activeTournamentId) return;
+
+    if (!confirm("データを再取得しますか？\nローカルの未送信データは上書きされる可能性があります。")) return;
+
+    setIsDownloading(true);
+    try {
+      await syncService.downloadTournamentData(orgId, activeTournamentId);
+      showSuccess("データの取得が完了しました");
+    } catch (e) {
+      console.error(e);
+      showError("データの取得に失敗しました");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <MainLayout activeTab="matches">
       <div className="space-y-6">
+        {/* データ取得ボタン */}
+        {!needsTournamentSelection && orgId && activeTournamentId && (
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              disabled={isDownloading}
+            >
+              <DownloadCloud className="w-4 h-4 mr-2" />
+              {isDownloading ? "取得中..." : "データ取得"}
+            </Button>
+          </div>
+        )}
 
         {/* 大会が選択されていない場合 */}
         {needsTournamentSelection && (

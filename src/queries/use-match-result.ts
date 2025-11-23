@@ -1,7 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FirestoreMatchRepository } from "@/repositories/firestore/match-repository";
-import { matchKeys } from "./use-matches";
-import type { Match } from "@/types/match.schema";
+import { useMutation } from "@tanstack/react-query";
+import { db } from "@/lib/db";
 
 export interface SaveMatchResultRequest {
     matchId: string;
@@ -20,78 +18,44 @@ export interface SaveMatchResultRequest {
 }
 
 /**
- * Match リポジトリのインスタンス
- */
-const matchRepository = new FirestoreMatchRepository();
-
-/**
- * 試合結果を保存するMutation
- * Firestore SDK を直接使用してオフライン対応
+ * 試合結果を保存するMutation (Local DB)
  */
 export function useSaveMatchResult() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (request: SaveMatchResultRequest) => {
-            const { matchId, organizationId, tournamentId, players } = request;
+            const { matchId, players } = request;
 
-            // まず現在の試合データを取得
-            const currentMatch = await matchRepository.getById(
-                organizationId,
-                tournamentId,
-                matchId
-            );
+            // ローカルDBから現在の試合データを取得
+            const currentMatch = await db.matches.where("matchId").equals(matchId).first();
 
             if (!currentMatch) {
-                throw new Error(`Match not found: ${matchId}`);
+                throw new Error(`Match not found in local DB: ${matchId}`);
             }
 
-            // Repository 経由で Firestore に直接書き込み
-            // score と hansoku のみを更新
-            const updatedMatch = await matchRepository.update(
-                organizationId,
-                tournamentId,
-                matchId,
-                {
-                    players: {
-                        playerA: {
-                            ...currentMatch.players.playerA,
-                            score: players.playerA.score,
-                            hansoku: players.playerA.hansoku,
-                        },
-                        playerB: {
-                            ...currentMatch.players.playerB,
-                            score: players.playerB.score,
-                            hansoku: players.playerB.hansoku,
-                        },
+            // 更新データを作成
+            const updatedMatch = {
+                ...currentMatch,
+                players: {
+                    playerA: {
+                        ...currentMatch.players.playerA,
+                        score: players.playerA.score,
+                        hansoku: players.playerA.hansoku,
                     },
-                    isCompleted: true, // 試合結果保存時は完了フラグを立てる
-                }
-            );
+                    playerB: {
+                        ...currentMatch.players.playerB,
+                        score: players.playerB.score,
+                        hansoku: players.playerB.hansoku,
+                    },
+                },
+                isCompleted: true,
+                updatedAt: new Date(),
+                isSynced: false, // 未送信フラグを立てる
+            };
+
+            // ローカルDBを更新
+            await db.matches.put(updatedMatch);
 
             return updatedMatch;
-        },
-        onSuccess: (updatedMatch, variables) => {
-            const { organizationId, tournamentId, matchId } = variables;
-
-            // キャッシュを更新
-            queryClient.setQueryData<Match>(
-                matchKeys.detail(matchId),
-                updatedMatch
-            );
-
-            // 一覧キャッシュを無効化
-            queryClient.invalidateQueries({
-                queryKey: matchKeys.list({ orgId: organizationId, tournamentId }),
-            });
-
-            // コート別・ラウンド別のキャッシュも無効化
-            queryClient.invalidateQueries({
-                queryKey: matchKeys.courtMatches(updatedMatch.courtId),
-            });
-            queryClient.invalidateQueries({
-                queryKey: matchKeys.roundMatches(updatedMatch.round),
-            });
         },
     });
 }
