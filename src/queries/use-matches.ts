@@ -33,13 +33,17 @@ export const matchKeys = {
 /**
  * 全ての試合を取得するQuery (Local DB)
  */
-export function useMatches() {
+export function useMatches(enabled: boolean = true) {
     const { orgId, activeTournamentId } = useAuthContext();
 
     const matches = useLiveQuery(async () => {
-        if (!orgId || !activeTournamentId) return [];
-        return await localMatchRepository.listAll(orgId, activeTournamentId);
-    }, [orgId, activeTournamentId]);
+        if (!enabled || !orgId || !activeTournamentId) {
+            return [];
+        }
+
+        const result = await localMatchRepository.listAll(orgId, activeTournamentId);
+        return result;
+    }, [orgId, activeTournamentId, enabled]);
 
     return {
         data: matches,

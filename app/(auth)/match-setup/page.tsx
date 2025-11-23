@@ -31,11 +31,11 @@ import {
 
 export default function MatchSetupPage() {
   const { showSuccess, showError } = useToast();
-  const { needsTournamentSelection, activeTournamentId, orgId, isLoading: authLoading } = useAuthContext();
+  const { needsTournamentSelection, activeTournamentId, activeTournamentType, orgId, isLoading: authLoading } = useAuthContext();
 
   // データ取得
   const { data: teams = [], isLoading: teamsLoading, error: teamsError } = useTeams();
-  const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatches();
+  const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatches(activeTournamentType === 'individual');
   const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(orgId, activeTournamentId);
 
   // リアルタイム購読（serverState） - 他端末の変更を常に監視

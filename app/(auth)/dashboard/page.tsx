@@ -18,19 +18,24 @@ import { useToast } from "@/components/providers/notification-provider";
 import { DashboardContent } from "@/components/templates/dashboard-content";
 
 export default function DashboardPage() {
-  const { needsTournamentSelection, activeTournamentId, orgId, isLoading: authLoading } = useAuthContext();
+  const { needsTournamentSelection, activeTournamentId, activeTournamentType, orgId, isLoading: authLoading } = useAuthContext();
   const { showSuccess, showError } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchGroupId = searchParams.get("matchGroupId");
 
+  // 大会種別に応じてフックを条件付きで呼び出す
   // ローカルDBからデータを取得（useLiveQueryを使用）
-  const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatches();
+  const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatches(activeTournamentType === 'individual');
   const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(orgId, activeTournamentId);
   const { data: teams = [] } = useTeams();
   const { data: matchGroups = [] } = useMatchGroups();
   const { data: teamMatches = [] } = useTeamMatches(matchGroupId);
+
+  // 大会種別に応じたローディング・エラー状態の判定
+  const isLoading = authLoading || tournamentLoading || (activeTournamentType === 'individual' ? matchesLoading : false);
+  const hasError = tournamentError || (activeTournamentType === 'individual' ? matchesError : null);
 
   // matches リストをメモ化して不要な再レンダリングを防止
   const memoizedMatches = useMemo(() => matches, [matches]);
@@ -38,9 +43,6 @@ export default function DashboardPage() {
   // tournament データをメモ化
   const memoizedTournament = useMemo(() => tournament, [tournament]);
   const memoizedCourts = useMemo(() => tournament?.courts ?? [], [tournament?.courts]);
-
-  const isLoading = authLoading || matchesLoading || tournamentLoading;
-  const hasError = matchesError || tournamentError;
 
   const handleDownload = async () => {
     if (!orgId || !activeTournamentId) return;
