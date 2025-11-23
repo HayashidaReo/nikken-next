@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/templates/main-layout";
-import { MatchListTableMemo } from "@/components/organisms/match-list-table";
 import { useMatches } from "@/queries/use-matches";
+import { useMatchGroups } from "@/queries/use-match-groups";
+import { useTeamMatches } from "@/queries/use-team-matches";
+import { useTeams } from "@/queries/use-teams";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
@@ -11,17 +14,23 @@ import { InfoDisplay } from "@/components/molecules/info-display";
 import { Button } from "@/components/atoms/button";
 import { DownloadCloud } from "lucide-react";
 import { syncService } from "@/services/sync-service";
-import { useState } from "react";
 import { useToast } from "@/components/providers/notification-provider";
+import { DashboardContent } from "@/components/templates/dashboard-content";
 
 export default function DashboardPage() {
   const { needsTournamentSelection, activeTournamentId, orgId, isLoading: authLoading } = useAuthContext();
   const { showSuccess, showError } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const matchGroupId = searchParams.get("matchGroupId");
 
   // ローカルDBからデータを取得（useLiveQueryを使用）
   const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatches();
   const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(orgId, activeTournamentId);
+  const { data: teams = [] } = useTeams();
+  const { data: matchGroups = [] } = useMatchGroups();
+  const { data: teamMatches = [] } = useTeamMatches(matchGroupId);
 
   // matches リストをメモ化して不要な再レンダリングを防止
   const memoizedMatches = useMemo(() => matches, [matches]);
@@ -101,10 +110,16 @@ export default function DashboardPage() {
 
         {/* 正常時の表示 */}
         {!needsTournamentSelection && !isLoading && !hasError && memoizedTournament && (
-          <MatchListTableMemo
+          <DashboardContent
+            tournamentType={memoizedTournament.tournamentType}
+            matchGroupId={matchGroupId}
             matches={memoizedMatches}
+            matchGroups={matchGroups}
+            teamMatches={teamMatches}
+            teams={teams}
             tournamentName={memoizedTournament.tournamentName}
             courts={memoizedCourts}
+            onBack={() => router.push("/dashboard")}
           />
         )}
       </div>

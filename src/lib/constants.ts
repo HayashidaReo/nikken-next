@@ -127,6 +127,10 @@ export const FIRESTORE_COLLECTIONS = {
   MATCHES: "matches",
   /** ユーザーコレクション */
   USERS: "users",
+  /** 団体戦グループコレクション */
+  MATCH_GROUPS: "matchGroups",
+  /** 団体戦試合コレクション */
+  TEAM_MATCHES: "teamMatches",
 } as const;
 
 // 🌐 APIエンドポイント定数

@@ -7,7 +7,8 @@ export const ACTIVE_TOURNAMENT_KEY = "active-tournament-storage";
 
 interface ActiveTournamentState {
     activeTournamentId: string | null;
-    setActiveTournament: (tournamentId: string | null) => void;
+    activeTournamentType: "individual" | "team" | null;
+    setActiveTournament: (tournamentId: string | null, tournamentType?: "individual" | "team" | null) => void;
     clearActiveTournament: () => void;
 }
 
@@ -19,16 +20,20 @@ export const useActiveTournamentStore = create<ActiveTournamentState>()(
     persist(
         (set) => ({
             activeTournamentId: null,
-            setActiveTournament: (tournamentId: string | null) => {
-                set({ activeTournamentId: tournamentId });
+            activeTournamentType: null,
+            setActiveTournament: (tournamentId: string | null, tournamentType: "individual" | "team" | null = null) => {
+                set({ activeTournamentId: tournamentId, activeTournamentType: tournamentType });
             },
             clearActiveTournament: () => {
-                set({ activeTournamentId: null });
+                set({ activeTournamentId: null, activeTournamentType: null });
             },
         }),
         {
             name: ACTIVE_TOURNAMENT_KEY,
-            partialize: (state) => ({ activeTournamentId: state.activeTournamentId }),
+            partialize: (state) => ({
+                activeTournamentId: state.activeTournamentId,
+                activeTournamentType: state.activeTournamentType
+            }),
         }
     )
 );
@@ -37,7 +42,7 @@ export const useActiveTournamentStore = create<ActiveTournamentState>()(
  * React Hook ラッパー
  */
 export function useActiveTournament() {
-    const { activeTournamentId, setActiveTournament, clearActiveTournament } =
+    const { activeTournamentId, activeTournamentType, setActiveTournament, clearActiveTournament } =
         useActiveTournamentStore();
 
     const hasTournamentSelected = Boolean(activeTournamentId);
@@ -45,6 +50,7 @@ export function useActiveTournament() {
 
     return {
         activeTournamentId,
+        activeTournamentType,
         setActiveTournament,
         clearActiveTournament,
         hasTournamentSelected,

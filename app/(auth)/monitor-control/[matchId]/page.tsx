@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { useSaveMatchResult } from "@/queries/use-match-result";
+import { useSaveIndividualMatchResult, useSaveTeamMatchResult } from "@/queries/use-match-result";
 import { ArrowLeft, Monitor, Unplug, Save } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
@@ -20,7 +20,8 @@ import { useMonitorController } from "@/hooks/useMonitorController";
 export default function MonitorControlPage() {
   const params = useParams();
   const matchId = params.matchId as string;
-  const saveMatchResultMutation = useSaveMatchResult();
+  const saveIndividualMatchResultMutation = useSaveIndividualMatchResult();
+  const saveTeamMatchResultMutation = useSaveTeamMatchResult();
 
   const presentationConnected = useMonitorStore((s) => s.presentationConnected);
   const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
@@ -28,7 +29,7 @@ export default function MonitorControlPage() {
   const isPublic = useMonitorStore((s) => s.isPublic);
   const togglePublic = useMonitorStore((s) => s.togglePublic);
 
-  const { orgId, activeTournamentId } = useAuthContext();
+  const { orgId, activeTournamentId, activeTournamentType } = useAuthContext();
   const { showSuccess, showError } = useToast();
 
   // データ取得ロジック（ストア優先）
@@ -51,7 +52,7 @@ export default function MonitorControlPage() {
         throw new Error('Match ID is missing');
       }
       const snapshot = store.getMonitorSnapshot();
-      await saveMatchResultMutation.mutateAsync({
+      const request = {
         matchId,
         organizationId: orgId || "",
         tournamentId: activeTournamentId || "",
@@ -59,13 +60,30 @@ export default function MonitorControlPage() {
           playerA: { score: snapshot.playerA.score, hansoku: snapshot.playerA.hansoku },
           playerB: { score: snapshot.playerB.score, hansoku: snapshot.playerB.hansoku },
         },
-      });
+      };
+
+      // 大会種別に応じて保存先を切り替え
+      if (activeTournamentType === "team") {
+        await saveTeamMatchResultMutation.mutateAsync(request);
+      } else if (activeTournamentType === "individual") {
+        await saveIndividualMatchResultMutation.mutateAsync(request);
+      } else {
+        // 種別が不明な場合はフォールバック（両方試行）
+        try {
+          await saveIndividualMatchResultMutation.mutateAsync(request);
+        } catch {
+          await saveTeamMatchResultMutation.mutateAsync(request);
+        }
+      }
+
       showSuccess("試合結果を保存しました");
     } catch (err) {
       console.error(err);
       showError("試合結果の保存に失敗しました");
     }
   };
+
+  const isSaving = saveIndividualMatchResultMutation.isPending || saveTeamMatchResultMutation.isPending;
 
   // ローディング状態
   if (isLoading) {
@@ -202,10 +220,12 @@ export default function MonitorControlPage() {
                 )}
               </Button>
 
-              <Button onClick={handleSave} size="sm" disabled={saveMatchResultMutation.isPending}>
-                <Save className="w-4 h-4 mr-2" />
-                {saveMatchResultMutation.isPending ? "保存中..." : "保存"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button onClick={handleSave} size="sm" disabled={isSaving}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSaving ? "保存中..." : "保存"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

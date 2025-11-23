@@ -5,6 +5,7 @@ import { MainLayout } from "@/components/templates/main-layout";
 import { MatchSetupTable } from "@/components/organisms/match-setup-table";
 import { MatchSetupSaveConflictDialog } from "@/components/molecules/match-setup-save-conflict-dialog";
 import { MatchSetupUpdateDialog } from "@/components/molecules/match-setup-update-dialog";
+import { MatchGroupSetupManager } from "@/components/organisms/match-group-setup-manager";
 import { useTeams } from "@/queries/use-teams";
 import {
   useMatches,
@@ -564,6 +565,15 @@ export default function MatchSetupPage() {
           title="大会情報が見つかりません"
           message="大会情報が見つかりません。管理者に問い合わせるか、大会を作成してください。"
         />
+      </MainLayout>
+    );
+  }
+
+  // 団体戦の場合
+  if (tournament.tournamentType === "team") {
+    return (
+      <MainLayout activeTab="match-setup">
+        <MatchGroupSetupManager tournament={tournament} teams={teams} />
       </MainLayout>
     );
   }

@@ -119,3 +119,50 @@ export type Match = z.infer<typeof matchSchema>;
 export type MatchCreate = z.infer<typeof matchCreateSchema>;
 export type MatchUpdate = z.infer<typeof matchUpdateSchema>;
 export type MatchUpdateRequest = z.infer<typeof matchUpdateRequestSchema>;
+
+/**
+ * 団体戦のチーム対戦（MatchGroup）スキーマ
+ */
+export const matchGroupSchema = z.object({
+  matchGroupId: z.string().optional(), // Firestoreで自動生成
+  courtId: z.string().min(1, "コートIDは必須です"),
+  round: z.string()
+    .min(1, "ラウンドは必須です")
+    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+  sortOrder: z.number().int().min(0),
+  teamAId: z.string().min(1, "チームAは必須です"),
+  teamBId: z.string().min(1, "チームBは必須です"),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+/**
+ * 団体戦内の個人試合（TeamMatch）スキーマ
+ * 基本的にMatchと同じだが、matchGroupIdを持つ
+ */
+export const teamMatchSchema = matchSchema.extend({
+  matchGroupId: z.string().min(1, "チーム対戦IDは必須です"),
+});
+
+/**
+ * チーム対戦作成用のスキーマ
+ */
+export const matchGroupCreateSchema = matchGroupSchema.omit({
+  matchGroupId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+/**
+ * 団体戦内の個人試合作成用のスキーマ
+ */
+export const teamMatchCreateSchema = teamMatchSchema.omit({
+  matchId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type MatchGroup = z.infer<typeof matchGroupSchema>;
+export type TeamMatch = z.infer<typeof teamMatchSchema>;
+export type MatchGroupCreate = z.infer<typeof matchGroupCreateSchema>;
+export type TeamMatchCreate = z.infer<typeof teamMatchCreateSchema>;
