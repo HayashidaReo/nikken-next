@@ -12,7 +12,6 @@ import { TournamentForm } from "@/components/organisms/tournament-form";
 import { TournamentFormPlaceholder } from "@/components/organisms/tournament-form-placeholder";
 import { TournamentSettingsLayout } from "@/components/templates/tournament-settings-layout";
 import { useTournamentSettings } from "@/hooks/useTournamentSettings";
-import type { TournamentWithId } from "@/types/tournament.schema";
 
 export default function TournamentSettingsPage() {
   const {
@@ -35,7 +34,7 @@ export default function TournamentSettingsPage() {
   // 選択されている大会
   const selectedTournament = selectedTournamentId
     ? tournaments.find(
-      (t: TournamentWithId) => t.tournamentId === selectedTournamentId
+      (t) => t.tournamentId === selectedTournamentId
     )
     : null;
 

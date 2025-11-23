@@ -1,6 +1,7 @@
 import { db, LocalMatch, LocalTournament } from '@/lib/db';
 import { FirestoreMatchRepository } from '@/repositories/firestore/match-repository';
 import { localMatchRepository } from '@/repositories/local/match-repository';
+import { localTournamentRepository } from '@/repositories/local/tournament-repository';
 
 const matchRepository = new FirestoreMatchRepository();
 
@@ -27,7 +28,7 @@ export const syncService = {
         await db.transaction('rw', db.matches, db.tournaments, async () => {
             // 既存のこの大会のデータを削除 (クリーンな状態で上書き)
             await localMatchRepository.deleteByTournament(orgId, tournamentId);
-            await db.tournaments.where({ organizationId: orgId, tournamentId }).delete();
+            await localTournamentRepository.delete(orgId, tournamentId);
 
             // 大会データを保存
             const localTournament: LocalTournament = {
@@ -38,7 +39,7 @@ export const syncService = {
                 createdAt: tournament.createdAt ? new Date(tournament.createdAt) : undefined,
                 updatedAt: tournament.updatedAt ? new Date(tournament.updatedAt) : undefined,
             };
-            await db.tournaments.put(localTournament);
+            await localTournamentRepository.put(localTournament);
 
             // 試合データを保存
             const localMatches: LocalMatch[] = matches.map(m => ({

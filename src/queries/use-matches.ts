@@ -44,7 +44,7 @@ export function useMatches() {
     return {
         data: matches,
         isLoading: matches === undefined,
-        error: null
+        error: null as Error | null
     };
 }
 
@@ -62,7 +62,7 @@ export function useMatch(matchId: string | null | undefined) {
     return {
         data: match,
         isLoading: match === undefined,
-        error: null
+        error: null as Error | null
     };
 }
 
@@ -80,7 +80,7 @@ export function useMatchesByCourtId(courtId: string | null | undefined) {
     return {
         data: matches,
         isLoading: matches === undefined,
-        error: null
+        error: null as Error | null
     };
 }
 
@@ -98,7 +98,7 @@ export function useMatchesByRound(round: string | null | undefined) {
     return {
         data: matches,
         isLoading: matches === undefined,
-        error: null
+        error: null as Error | null
     };
 }
 
