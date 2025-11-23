@@ -1,7 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { useSaveIndividualMatchResult, useSaveTeamMatchResult } from "@/queries/use-match-result";
@@ -19,6 +18,7 @@ import { useMonitorController } from "@/hooks/useMonitorController";
 
 export default function MonitorControlPage() {
   const params = useParams();
+  const router = useRouter();
   const matchId = params.matchId as string;
   const saveIndividualMatchResultMutation = useSaveIndividualMatchResult();
   const saveTeamMatchResultMutation = useSaveTeamMatchResult();
@@ -92,12 +92,10 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  試合一覧に戻る
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={() => router.back()}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                戻る
+              </Button>
 
               <div className="ml-2">
                 <ConnectionStatus mode={monitorStatusMode} error={null} />
@@ -121,12 +119,10 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  試合一覧に戻る
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={() => router.back()}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                戻る
+              </Button>
 
               <div className="ml-2">
                 <ConnectionStatus mode={monitorStatusMode} error={null} />
@@ -152,12 +148,10 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  試合一覧に戻る
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={() => router.back()}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                戻る
+              </Button>
 
               <div className="ml-2">
                 <ConnectionStatus mode={monitorStatusMode} error={null} />
@@ -181,12 +175,10 @@ export default function MonitorControlPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                試合一覧に戻る
-              </Button>
-            </Link>
+            <Button variant="outline" onClick={() => router.back()}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              戻る
+            </Button>
 
             <div className="ml-2">
               <ConnectionStatus mode={monitorStatusMode} error={null} />
