@@ -29,8 +29,8 @@ export class LocalTournamentRepository {
     /**
      * 複数の大会を一括保存
      */
-    async bulkPut(tournaments: LocalTournament[]): Promise<string> {
-        return await db.tournaments.bulkPut(tournaments);
+    async bulkPut(tournaments: LocalTournament[]): Promise<void> {
+        await db.tournaments.bulkPut(tournaments);
     }
 
     /**

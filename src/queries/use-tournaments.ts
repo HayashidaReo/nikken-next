@@ -37,7 +37,6 @@ export function useTournamentsByOrganization(orgId: string | null) {
 
             try {
                 const response = await fetch(`/api/tournaments/${orgId}`, { signal: controller.signal });
-                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     // オフラインやサーバーエラーの場合は無視してローカルデータを使用
@@ -59,10 +58,11 @@ export function useTournamentsByOrganization(orgId: string | null) {
 
                 await localTournamentRepository.bulkPut(localTournaments);
                 return tournaments;
-            } catch (e) {
+            } catch {
                 // タイムアウトやネットワークエラーは無視
-                console.warn("Failed to sync tournaments:", e);
                 return null;
+            } finally {
+                clearTimeout(timeoutId);
             }
         },
         enabled: !!orgId,

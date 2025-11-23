@@ -12,7 +12,7 @@ export const syncService = {
      */
     async downloadTournamentData(orgId: string, tournamentId: string): Promise<void> {
         if (!navigator.onLine) {
-            throw new Error("オフラインのためデータを取得できません。");
+            throw new Error("オフラインのためデータを取得できません。インターネット接続を確認してから再度お試しください。");
         }
 
         // 1. Firestoreからデータを取得
@@ -50,8 +50,6 @@ export const syncService = {
             }));
             await localMatchRepository.bulkPut(localMatches);
         });
-
-        console.log(`[SyncService] Downloaded ${matches.length} matches for tournament ${tournamentId}`);
     },
 
     /**
@@ -60,7 +58,7 @@ export const syncService = {
      */
     async uploadResults(orgId: string, tournamentId: string): Promise<number> {
         if (!navigator.onLine) {
-            throw new Error("オフラインのためデータを送信できません。");
+            throw new Error("オフラインのためデータを送信できません。インターネット接続を確認してから再度お試しください。");
         }
 
         // 1. 未送信の試合データを取得
@@ -70,26 +68,37 @@ export const syncService = {
             return 0;
         }
 
-        // 2. Firestoreに保存 (逐次処理または並列処理)
-        // ここでは安全のため逐次処理し、成功したものからローカルのフラグを更新する
+        // 2. Firestoreに保存 (並列処理)
         let successCount = 0;
 
-        for (const match of unsyncedMatches) {
-            try {
-                if (!match.matchId) continue;
-
+        // 並列処理でFirestoreにアップロードし、部分的な成功を追跡する
+        const uploadResults = await Promise.allSettled(
+            unsyncedMatches.map(match => {
+                if (!match.matchId) {
+                    // matchIdがない場合は失敗として扱う
+                    return Promise.reject(new Error("matchId is missing"));
+                }
                 // update only score and hansoku and isCompleted
-                await matchRepository.update(orgId, tournamentId, match.matchId, {
+                return matchRepository.update(orgId, tournamentId, match.matchId, {
                     players: match.players,
                     isCompleted: match.isCompleted,
                 });
+            })
+        );
 
-                // 3. ローカルDBのフラグを更新
-                await localMatchRepository.update(match.id!, { isSynced: true });
-                successCount++;
-            } catch (error) {
-                console.error(`[SyncService] Failed to upload match ${match.matchId}`, error);
-                // エラー時は何もしない（次回の同期で再試行）
+        // Firestoreへのアップロードが成功したものだけローカルDBのフラグを更新
+        for (let i = 0; i < uploadResults.length; i++) {
+            const result = uploadResults[i];
+            const match = unsyncedMatches[i];
+            if (result.status === "fulfilled") {
+                try {
+                    await localMatchRepository.update(match.id!, { isSynced: true });
+                    successCount++;
+                } catch (error) {
+                    console.error(`[SyncService] Failed to update local flag for match ${match.matchId}`, error);
+                }
+            } else {
+                console.error(`[SyncService] Failed to upload match ${match.matchId}`, result.reason);
             }
         }
 

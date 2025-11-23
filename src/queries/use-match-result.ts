@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { localMatchRepository } from "@/repositories/local/match-repository";
+import { LocalMatch } from "@/lib/db";
 
 export interface SaveMatchResultRequest {
     matchId: string;
@@ -33,7 +34,7 @@ export function useSaveMatchResult() {
             }
 
             // 更新データを作成
-            const updatedMatch = {
+            const updatedMatch: LocalMatch = {
                 ...currentMatch,
                 players: {
                     playerA: {

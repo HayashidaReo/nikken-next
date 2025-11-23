@@ -48,8 +48,8 @@ export class LocalMatchRepository {
     /**
      * 複数の試合を一括保存
      */
-    async bulkPut(matches: LocalMatch[]): Promise<number> {
-        return await db.matches.bulkPut(matches);
+    async bulkPut(matches: LocalMatch[]): Promise<void> {
+        await db.matches.bulkPut(matches);
     }
 
     /**
