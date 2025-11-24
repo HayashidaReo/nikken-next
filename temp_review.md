@@ -37,7 +37,7 @@ export const TEAM_MATCH_ROUNDS = ["先鋒", "次鋒", "中堅", "副将", "大�
 
 ## 優先度: 中 (Medium)
 
-### 3. DashboardPageのロジック分離 (Architecture)
+### 3. DashboardPageのロジック分離 (Architecture) - [Completed]
 **対象ファイル**:
 - `app/(auth)/dashboard/page.tsx`
 
@@ -47,13 +47,9 @@ export const TEAM_MATCH_ROUNDS = ["先鋒", "次鋒", "中堅", "副将", "大�
 **改善案**:
 これらのロジックをカスタムフック `useDashboardLogic` (または `useDashboard`) に切り出し、コンポーネントはUIの描画に専念させるべきです。
 
-```typescript
-// hooks/useDashboard.ts
-export function useDashboard() {
-  // ... useAuthContext, useMatches, handleDownload などのロジック
-  return { matches, tournament, isLoading, hasError, handleDownload, ... };
-}
-```
+**対応状況**:
+- `src/hooks/useDashboard.ts` を作成し、ロジックを移動しました。
+- `DashboardPage` は `useDashboard` フックを使用するようにリファクタリングされ、UIの責務に集中するようになりました。
 
 ### 4. エラーハンドリングの強化 (Robustness)
 **対象ファイル**:
