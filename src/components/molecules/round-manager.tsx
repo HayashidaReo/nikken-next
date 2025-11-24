@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
+import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
+import { useToast } from "@/components/providers/notification-provider";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedListItem } from "@/components/atoms/animated-list-item";
 
@@ -28,6 +30,7 @@ export function RoundManager({
     onChange,
     className,
 }: RoundManagerProps) {
+    const { showWarning } = useToast();
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -45,6 +48,10 @@ export function RoundManager({
     };
 
     const handleRoundNameChange = (index: number, name: string) => {
+        if (name.length > TEXT_LENGTH_LIMITS.ROUND_NAME_MAX) {
+            showWarning(`ラウンド名は${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`);
+            return;
+        }
         const newRounds = rounds.map((round, i) =>
             i === index ? { ...round, roundName: name } : round
         );
@@ -107,7 +114,7 @@ export function RoundManager({
                                     onChange={e => handleRoundNameChange(index, e.target.value)}
                                     placeholder="例: 1回戦, 決勝戦"
                                     className="w-full"
-                                    maxLength={20}
+                                    maxLength={TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}
                                 />
                             </div>
 

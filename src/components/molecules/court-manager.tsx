@@ -5,6 +5,7 @@ import { Plus, Trash2, GripVertical } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
 import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
+import { useToast } from "@/components/providers/notification-provider";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedListItem } from "@/components/atoms/animated-list-item";
 
@@ -29,6 +30,7 @@ export function CourtManager({
   onChange,
   className,
 }: CourtManagerProps) {
+  const { showWarning } = useToast();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -46,6 +48,10 @@ export function CourtManager({
   };
 
   const handleCourtNameChange = (index: number, name: string) => {
+    if (name.length > TEXT_LENGTH_LIMITS.COURT_NAME_MAX) {
+      showWarning(`コート名は${TEXT_LENGTH_LIMITS.COURT_NAME_MAX}文字以内で入力してください`);
+      return;
+    }
     const newCourts = courts.map((court, i) =>
       i === index ? { ...court, courtName: name } : court
     );

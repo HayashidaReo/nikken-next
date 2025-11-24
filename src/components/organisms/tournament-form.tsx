@@ -7,6 +7,7 @@ import { RoundManager } from "@/components/molecules/round-manager";
 import { FormField } from "@/components/molecules/form-field";
 import { FormHeader } from "@/components/molecules/form-header";
 import { SearchableSelect } from "@/components/molecules/searchable-select";
+import { useToast } from "@/components/providers/notification-provider";
 import {
   formatDateToInputValue,
   parseInputValueToDate,
@@ -44,6 +45,19 @@ export function TournamentForm({
   onCancel,
   className = "",
 }: TournamentFormProps) {
+  const { showWarning } = useToast();
+
+  const handleInputChange = (
+    field: keyof TournamentFormData,
+    value: string,
+    maxLength?: number
+  ) => {
+    if (maxLength && value.length > maxLength) {
+      showWarning(`${maxLength}文字以内で入力してください`);
+      return;
+    }
+    onFormChange(field, value);
+  };
   return (
     <div
       className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}
@@ -64,7 +78,7 @@ export function TournamentForm({
           <Input
             id="tournamentName"
             value={formData.tournamentName}
-            onChange={e => onFormChange("tournamentName", e.target.value)}
+            onChange={e => handleInputChange("tournamentName", e.target.value, TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX)}
             placeholder="大会名を入力してください"
             maxLength={TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}
           />
@@ -105,7 +119,7 @@ export function TournamentForm({
           <Textarea
             id="tournamentDetail"
             value={formData.tournamentDetail || ""}
-            onChange={e => onFormChange("tournamentDetail", e.target.value)}
+            onChange={e => handleInputChange("tournamentDetail", e.target.value, TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX)}
             placeholder="大会の詳細情報や説明を入力してください"
             rows={4}
             maxLength={TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX}
@@ -117,7 +131,7 @@ export function TournamentForm({
           <Input
             id="location"
             value={formData.location}
-            onChange={e => onFormChange("location", e.target.value)}
+            onChange={e => handleInputChange("location", e.target.value, TEXT_LENGTH_LIMITS.LOCATION_MAX)}
             placeholder="開催場所を入力してください"
             maxLength={TEXT_LENGTH_LIMITS.LOCATION_MAX}
           />
