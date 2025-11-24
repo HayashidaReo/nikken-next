@@ -10,7 +10,7 @@ export function useMonitorData() {
     matchId: "",
     tournamentName: "大会名未設定",
     courtName: "コート名未設定",
-    round: "ラウンド未設定",
+    roundName: "ラウンド未設定",
     playerA: {
       displayName: "選手A",
       teamName: "チーム名未設定",
