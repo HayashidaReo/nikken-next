@@ -2,9 +2,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import { Input } from "@/components/atoms/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/atoms/select";
-import { TableRow, TableCell } from "@/components/atoms/table";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
+import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
+import { TableCell } from "@/components/atoms/table";
+import { cn } from "@/lib/utils/utils";
 import type { Team } from "@/types/team.schema";
 import type { Court } from "@/types/tournament.schema";
 import type { MatchGroupSetupData } from "@/types/match-setup";
@@ -40,76 +41,80 @@ export function MatchGroupRow({
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        zIndex: isDragging ? 10 : 1,
-        opacity: isDragging ? 0.5 : 1,
     };
 
+    const courtOptions: SearchableSelectOption[] = courts.map(c => ({
+        value: c.courtId,
+        label: c.courtName,
+    }));
+
+    const roundOptions: SearchableSelectOption[] = [
+        { value: "予選1回戦", label: "予選1回戦" },
+        { value: "予選2回戦", label: "予選2回戦" },
+        { value: "予選3回戦", label: "予選3回戦" },
+        { value: "予選4回戦", label: "予選4回戦" },
+        { value: "決勝トーナメント1回戦", label: "決勝トーナメント1回戦" },
+        { value: "決勝トーナメント2回戦", label: "決勝トーナメント2回戦" },
+        { value: "準決勝", label: "準決勝" },
+        { value: "決勝", label: "決勝" },
+    ];
+
+    const teamOptions: SearchableSelectOption[] = teams.map(team => ({
+        value: team.teamId,
+        label: team.teamName,
+    }));
+
     return (
-        <TableRow ref={setNodeRef} style={style} className="group bg-white">
-            <TableCell className="w-10 text-center">
-                <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-2 flex justify-center">
-                    <GripVertical className="h-4 w-4 text-gray-400" />
+        <AnimatedTableRow
+            ref={setNodeRef}
+            style={style}
+            className={cn(
+                "bg-white",
+                isDragging && "opacity-50"
+            )}
+        >
+            <TableCell className="py-2 px-3 text-center cursor-grab active:cursor-grabbing">
+                <div {...attributes} {...listeners}>
+                    <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                 </div>
             </TableCell>
-            <TableCell>
-                <Select
+            <TableCell className="py-2 px-3 truncate" title={row.courtId}>
+                <SearchableSelect
                     value={row.courtId}
-                    onValueChange={(value) => onUpdate(index, "courtId", value)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="コート選択" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {courts.map((court) => (
-                            <SelectItem key={court.courtId} value={court.courtId}>
-                                {court.courtName}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </TableCell>
-            <TableCell>
-                <Input
-                    value={row.round}
-                    onChange={(e) => onUpdate(index, "round", e.target.value)}
-                    placeholder="回戦"
+                    onValueChange={value => onUpdate(index, "courtId", value)}
+                    options={courtOptions}
+                    placeholder="コート選択"
+                    searchPlaceholder="コート名で検索..."
                 />
             </TableCell>
-            <TableCell>
-                <Select
+            <TableCell className="py-2 px-3 truncate" title={row.round}>
+                <SearchableSelect
+                    value={row.round}
+                    onValueChange={value => onUpdate(index, "round", value)}
+                    options={roundOptions}
+                    placeholder="ラウンド選択"
+                    searchPlaceholder="ラウンド名で検索..."
+                />
+            </TableCell>
+            <TableCell className="py-2 px-3 truncate" title={row.teamAId}>
+                <SearchableSelect
                     value={row.teamAId}
-                    onValueChange={(value) => onUpdate(index, "teamAId", value)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="チームA選択" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {teams.map((team) => (
-                            <SelectItem key={team.teamId} value={team.teamId}>
-                                {team.teamName}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                    onValueChange={value => onUpdate(index, "teamAId", value)}
+                    options={teamOptions}
+                    placeholder="チームA選択"
+                    searchPlaceholder="チーム名で検索..."
+                />
             </TableCell>
-            <TableCell>
-                <Select
+            <TableCell className="py-2 px-3 truncate" title={row.teamBId}>
+                <SearchableSelect
                     value={row.teamBId}
-                    onValueChange={(value) => onUpdate(index, "teamBId", value)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="チームB選択" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {teams.map((team) => (
-                            <SelectItem key={team.teamId} value={team.teamId}>
-                                {team.teamName}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                    onValueChange={value => onUpdate(index, "teamBId", value)}
+                    options={teamOptions}
+                    placeholder="チームB選択"
+                    searchPlaceholder="チーム名で検索..."
+                />
             </TableCell>
-            <TableCell className="text-center">
+            <TableCell className="py-2 px-3 text-center">
                 <div className="flex items-center justify-center gap-2">
                     <Button
                         variant="ghost"
@@ -123,12 +128,12 @@ export function MatchGroupRow({
                         variant="ghost"
                         size="sm"
                         onClick={() => onRemove(index)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-500 hover:text-red-700 h-8"
                     >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5" />
                     </Button>
                 </div>
             </TableCell>
-        </TableRow>
+        </AnimatedTableRow>
     );
 }

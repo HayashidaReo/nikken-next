@@ -44,6 +44,34 @@ export const MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
     action: 6,        // 操作ボタン（変更・削除など）
 } as const;
 
+/**
+ * MatchGroupSetupTable の列幅の割合（%）
+ * - 団体戦組み合わせ設定画面用
+ * - 合計は 100% になるように設計
+ */
+export const MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS = {
+    drag: 3,           // ドラッグハンドル
+    courtName: 16,      // コート名
+    round: 20,         // ラウンド
+    teamA: 25,         // チームA
+    teamB: 25,         // チームB
+    action: 11,        // 操作ボタン
+} as const;
+
+/**
+ * TeamMatchSetupTable の列幅の割合（%）
+ * - 団体戦対戦カード内試合設定画面用
+ * - 合計は 100% になるように設計
+ */
+export const TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
+    drag: 3,           // ドラッグハンドル
+    courtName: 16,      // コート名
+    round: 15,         // ラウンド（ポジション）
+    playerA: 30,       // 選手A
+    playerB: 30,       // 選手B
+    action: 6,        // 操作ボタン
+} as const;
+
 const UI_CONSTANTS = {
     SCORE_COLORS,
     MATCH_TABLE_COLUMN_WIDTHS,

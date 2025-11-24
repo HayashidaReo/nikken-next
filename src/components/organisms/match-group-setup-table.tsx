@@ -16,6 +16,7 @@ import {
     verticalListSortingStrategy,
     arrayMove,
 } from "@dnd-kit/sortable";
+import { MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import { Button } from "@/components/atoms/button";
 import { Plus } from "lucide-react";
 import MatchTable from "@/components/organisms/match-table";
@@ -107,12 +108,12 @@ export function MatchGroupSetupTable({
     };
 
     const columns = [
-        { key: "drag", label: "", width: 40 },
-        { key: "court", label: "コート", width: 150 },
-        { key: "round", label: "回戦", width: 100 },
-        { key: "teamA", label: "チームA", width: 200 },
-        { key: "teamB", label: "チームB", width: 200 },
-        { key: "action", label: "操作", width: 150, className: "text-center" },
+        { key: "drag", label: "", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.drag },
+        { key: "court", label: "コート", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.courtName },
+        { key: "round", label: "ラウンド", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.round },
+        { key: "teamA", label: "チームA", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.teamA },
+        { key: "teamB", label: "チームB", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.teamB },
+        { key: "action", label: "操作", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
     ];
 
     return (
