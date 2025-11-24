@@ -16,7 +16,7 @@ export const courtSchema = z.object({
  * デフォルト大会作成時は空の値を許可
  */
 export const tournamentSchema = z.object({
-  tournamentId: z.string().optional(), // Firestoreで自動生成
+  tournamentId: z.string(), // Firestoreで自動生成
   tournamentName: z.string().trim()
     .max(TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX, `大会名は${TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}文字以内で入力してください`), // 空文字許可（デフォルト大会用）
   tournamentDate: z.coerce.date(), // 文字列からDateへ自動変換（JSON経由のAPI対応）
@@ -29,8 +29,8 @@ export const tournamentSchema = z.object({
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema), // 空配列許可（デフォルト大会用）
   tournamentType: z.enum(["individual", "team"]), // 大会形式
-  createdAt: z.coerce.date().optional(), // Firestoreで自動設定（文字列からDateへ自動変換）
-  updatedAt: z.coerce.date().optional(), // Firestoreで自動設定（文字列からDateへ自動変換）
+  createdAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
+  updatedAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
 });
 
 /**

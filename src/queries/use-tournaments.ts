@@ -115,6 +115,7 @@ export function useCreateTournament() {
                 location: string;
                 defaultMatchTime: number;
                 courts: { courtId: string; courtName: string }[];
+                tournamentType: "individual" | "team";
             };
         }) => {
             const response = await fetch(`/api/tournaments/${orgId}`, {
