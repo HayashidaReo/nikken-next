@@ -42,9 +42,7 @@ export class NikkenOfflineDB extends Dexie {
         super('NikkenOfflineDB');
         this.version(1).stores({
             matches: '++id, matchId, [organizationId+tournamentId], isSynced, courtId, round, [organizationId+tournamentId+courtId], [organizationId+tournamentId+round]',
-            tournaments: 'tournamentId, organizationId, [organizationId+tournamentId]'
-        });
-        this.version(2).stores({
+            tournaments: 'tournamentId, organizationId, [organizationId+tournamentId]',
             matchGroups: '++id, matchGroupId, [organizationId+tournamentId], isSynced, courtId, round',
             teamMatches: '++id, matchId, [organizationId+tournamentId+matchGroupId], isSynced, round'
         });
