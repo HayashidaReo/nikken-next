@@ -17,6 +17,13 @@ export const tournamentKeys = {
 
 /**
  * 組織内の大会一覧を取得するQuery (Local First)
+ *
+ * アーキテクチャ: Local First
+ * 1. まずローカルDB (Dexie) からデータを即座に取得して表示します (useLiveQuery)。
+ * 2. バックグラウンドでAPIから最新データを取得し (useQuery)、ローカルDBを更新します。
+ * 3. ローカルDBが更新されると、useLiveQuery が自動的に再描画をトリガーします。
+ *
+ * これにより、オフライン時でもデータが表示され、オンライン復帰時に自動的に同期されます。
  */
 export function useTournamentsByOrganization(orgId: string | null) {
     // 1. Local Data (Immediate)
