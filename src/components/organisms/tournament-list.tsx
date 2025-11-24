@@ -16,6 +16,7 @@ import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
 import { InfoDisplay } from "@/components/molecules/info-display";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 
 interface TournamentListProps {
   orgId: string | null;
@@ -41,10 +42,13 @@ export function TournamentList({
   // 削除管理専用フック
   const {
     deleteConfirm,
+    syncConfirm,
     isDeleting,
     handleDeleteClick,
     handleDeleteConfirm,
     handleDeleteCancel,
+    handleSyncConfirm,
+    handleSyncCancel,
   } = useTournamentListManagement();
 
   const onDeleteConfirm = () => {
@@ -167,6 +171,16 @@ export function TournamentList({
         tournament={deleteConfirm.tournament}
         onCancel={handleDeleteCancel}
         onConfirm={() => onDeleteConfirm()}
+      />
+
+      <ConfirmDialog
+        isOpen={syncConfirm.isOpen}
+        onCancel={handleSyncCancel}
+        onConfirm={handleSyncConfirm}
+        title="クラウド同期"
+        message="今の変更をネットワークを経由して全ての端末にも反映させますか？"
+        confirmText="はい"
+        cancelText="いいえ"
       />
     </div>
   );
