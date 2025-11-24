@@ -162,7 +162,6 @@
 | ----------------------------- | --------- | ----------------------------------------------------------------------------- |
 | `matchId`                     | String    | 試合ID                                                                        |
 | `matchGroupId`                | String    | 親となるチーム試合ID                                                          |
-| `courtId`                     | String    | コートID（tournamentsのcourts配列内のcourtIdと対応）                          |
 | `roundId`                     | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応）                        |
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |

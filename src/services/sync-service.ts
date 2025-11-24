@@ -176,6 +176,7 @@ export const syncService = {
             unsyncedMatchGroups.map(group => {
                 if (!group.matchGroupId) return Promise.reject(new Error("matchGroupId is missing"));
                 return matchGroupRepository.update(orgId, tournamentId, group.matchGroupId, {
+                    matchGroupId: group.matchGroupId,
                     courtId: group.courtId,
                     roundId: group.roundId,
                     sortOrder: group.sortOrder,

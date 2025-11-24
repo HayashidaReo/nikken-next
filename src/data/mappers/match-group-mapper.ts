@@ -59,6 +59,7 @@ export class MatchGroupMapper {
 
     static toFirestoreForUpdate(group: Partial<MatchGroup>): Partial<FirestoreMatchGroupDoc> {
         const data: Partial<FirestoreMatchGroupDoc> = {};
+        if (group.matchGroupId) data.matchGroupId = group.matchGroupId;
         if (group.courtId) data.courtId = group.courtId;
         if (group.roundId) {
             data.roundId = group.roundId;
