@@ -22,10 +22,13 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className={cn("space-y-2", className)}>
-      <Label className="text-sm font-medium">
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </Label>
+      <div className="flex items-center gap-2">
+        <div className="h-5 w-2 bg-blue-600 rounded-full" />
+        <Label className="text-base font-medium">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
+      </div>
       {children}
       {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
