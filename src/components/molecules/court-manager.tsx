@@ -82,17 +82,8 @@ export function CourtManager({
 
   return (
     <div className={className}>
-      <div className="flex justify-between items-center mb-3">
+      <div className="mb-3">
         <Label>会場のコート情報</Label>
-        <Button
-          type="button"
-          onClick={handleAddCourt}
-          variant="outline"
-          size="sm"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          コート追加
-        </Button>
       </div>
 
       <div className="space-y-3">
@@ -142,6 +133,20 @@ export function CourtManager({
             <p className="text-sm">コートを追加してください</p>
           </div>
         )}
+
+        {/* リストの最後尾にコート追加ボタンを配置 */}
+        <div className="mt-2">
+          <Button
+            type="button"
+            onClick={handleAddCourt}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            コート追加
+          </Button>
+        </div>
       </div>
     </div>
   );
