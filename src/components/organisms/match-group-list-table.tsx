@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { useRouter } from "next/navigation";
-import { TableRow } from "@/components/atoms/table";
+import { TableRow, TableCell } from "@/components/atoms/table";
 import { findCourtName } from "@/lib/utils/court-utils";
 import PlayerCell from "@/components/molecules/player-cell";
 import MatchTable from "@/components/organisms/match-table";
@@ -47,17 +47,21 @@ export function MatchGroupListTable({ matchGroups, teams, tournamentName, courts
                         <PlayerCell text={courtName} title={courtName} />
                         <PlayerCell text={group.round} title={group.round} />
                         <PlayerCell text={teamAName} title={teamAName} />
-                        <div className="flex items-center justify-center h-full text-gray-400 font-bold">vs</div>
+                        <TableCell className="p-0 text-center">
+                            <div className="flex items-center justify-center h-full text-gray-400 font-bold">vs</div>
+                        </TableCell>
                         <PlayerCell text={teamBName} title={teamBName} />
-                        <div className="flex items-center justify-center p-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => router.push(`?matchGroupId=${group.matchGroupId}`)}
-                            >
-                                <ArrowRight className="h-4 w-4" />
-                            </Button>
-                        </div>
+                        <TableCell className="p-2 text-center">
+                            <div className="flex items-center justify-center">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => router.push(`?matchGroupId=${group.matchGroupId}`)}
+                                >
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </TableCell>
                     </TableRow>
                 );
             })}

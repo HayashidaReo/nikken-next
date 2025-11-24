@@ -185,7 +185,7 @@ export function TeamMatchSetupTable({
                     ))}
                 </SortableContext>
                 <TableRow>
-                    <TableCell colSpan={7} className="text-center py-2">
+                    <TableCell colSpan={6} className="text-center py-2">
                         <Button variant="outline" size="sm" onClick={addRow}>
                             <Plus className="h-4 w-4 mr-2" />
                             試合追加
