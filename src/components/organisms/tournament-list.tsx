@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
   Card,
@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/atoms/card";
-import { Badge } from "@/components/atoms/badge";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { TournamentDeleteConfirmationDialog } from "@/components/molecules/tournament-delete-confirmation-dialog";
@@ -111,39 +110,47 @@ export function TournamentList({
               )}
               onClick={() => onTournamentSelect(tournament)}
             >
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
+              <CardHeader className="p-4 pb-2">
+                <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base font-medium truncate">
+                    <CardTitle className="text-base font-bold truncate leading-tight mb-2">
                       {tournament.tournamentName}
                     </CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {formatDateForDisplay(tournament.tournamentDate)}
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        {tournament.courts.length}コート
-                      </Badge>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <Calendar className="w-3 h-3 flex-shrink-0 text-gray-500" />
+                        <span className="truncate text-xs text-gray-500">
+                          {formatDateForDisplay(tournament.tournamentDate)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <MapPin className="w-3 h-3 flex-shrink-0 text-gray-500" />
+                        <span className="truncate text-xs text-gray-500">
+                          {tournament.location}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteClick(tournament);
                     }}
                     disabled={isDeleting}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-2"
+                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 -mr-2 -mt-2"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-sm text-gray-600 truncate">
-                  {tournament.location}
-                </p>
+              <CardContent className="p-4 pt-0 space-y-1">
+                {tournament.tournamentDetail && (
+                  <p className="text-xs text-gray-500 truncate">
+                    {tournament.tournamentDetail}
+                  </p>
+                )}
               </CardContent>
             </Card>
           ))
