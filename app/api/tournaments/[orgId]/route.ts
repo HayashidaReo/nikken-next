@@ -153,9 +153,14 @@ export async function POST(
       );
     }
 
-    // サーバー側で createdAt/updatedAt を生成
+    // サーバー側で createdAt/updatedAt を生成 (クライアントから送られてきた場合はそれを優先)
     const now = new Date();
+    const clientCreatedAt = body.createdAt ? new Date(body.createdAt) : undefined;
+    const clientUpdatedAt = body.updatedAt ? new Date(body.updatedAt) : undefined;
 
+    // 有効な日付かチェック
+    const createdAt = !isNaN(clientCreatedAt?.getTime() || NaN) ? clientCreatedAt! : now;
+    const updatedAt = !isNaN(clientUpdatedAt?.getTime() || NaN) ? clientUpdatedAt! : now;
 
     // UUIDを生成
     const tournamentId = uuidv4();
@@ -171,8 +176,8 @@ export async function POST(
       courts: Array.isArray(courts) ? courts : [],
       rounds: Array.isArray(rounds) ? rounds : [],
       tournamentType,
-      createdAt: now, // サーバー側で生成
-      updatedAt: now, // サーバー側で生成
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     };
 
     // 大会を作成
