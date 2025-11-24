@@ -133,10 +133,13 @@ export const syncService = {
         // 1. 未送信の試合データを取得 (Individual)
         const unsyncedMatches = await localMatchRepository.getUnsynced(orgId, tournamentId);
 
-        // 2. 未送信の団体戦試合データを取得 (Team)
+        // 2. 未送信の団体戦グループデータを取得 (Team)
+        const unsyncedMatchGroups = await localMatchGroupRepository.getUnsynced(orgId, tournamentId);
+
+        // 3. 未送信の団体戦試合データを取得 (Team)
         const unsyncedTeamMatches = await localTeamMatchRepository.getUnsynced(orgId, tournamentId);
 
-        if (unsyncedMatches.length === 0 && unsyncedTeamMatches.length === 0) {
+        if (unsyncedMatches.length === 0 && unsyncedMatchGroups.length === 0 && unsyncedTeamMatches.length === 0) {
             return 0;
         }
 
@@ -168,11 +171,43 @@ export const syncService = {
             }
         }
 
-        // 4. Firestoreに保存 (Team)
+        // 4. Firestoreに保存 (MatchGroups)
+        const uploadMatchGroupResults = await Promise.allSettled(
+            unsyncedMatchGroups.map(group => {
+                if (!group.matchGroupId) return Promise.reject(new Error("matchGroupId is missing"));
+                return matchGroupRepository.update(orgId, tournamentId, group.matchGroupId, {
+                    courtId: group.courtId,
+                    roundId: group.roundId,
+                    sortOrder: group.sortOrder,
+                    teamAId: group.teamAId,
+                    teamBId: group.teamBId,
+                });
+            })
+        );
+
+        for (let i = 0; i < uploadMatchGroupResults.length; i++) {
+            const result = uploadMatchGroupResults[i];
+            const group = unsyncedMatchGroups[i];
+            if (result.status === "fulfilled") {
+                try {
+                    await localMatchGroupRepository.update(group.matchGroupId!, { isSynced: true });
+                    successCount++;
+                } catch (error) {
+                    console.error(`[SyncService] Failed to update local flag for match group ${group.matchGroupId}`, error);
+                }
+            } else {
+                console.error(`[SyncService] Failed to upload match group ${group.matchGroupId}`, result.reason);
+            }
+        }
+
+        // 5. Firestoreに保存 (TeamMatches)
         const uploadTeamResults = await Promise.allSettled(
             unsyncedTeamMatches.map(match => {
                 if (!match.matchId || !match.matchGroupId) return Promise.reject(new Error("matchId or matchGroupId is missing"));
                 return teamMatchRepository.update(orgId, tournamentId, match.matchGroupId, match.matchId, {
+                    matchGroupId: match.matchGroupId,
+                    roundId: match.roundId,
+                    sortOrder: match.sortOrder,
                     players: match.players,
                     isCompleted: match.isCompleted,
                 });
@@ -202,8 +237,9 @@ export const syncService = {
      */
     async getUnsyncedCount(orgId: string, tournamentId: string): Promise<number> {
         const matchesCount = await localMatchRepository.countUnsynced(orgId, tournamentId);
+        const matchGroupsCount = await localMatchGroupRepository.countUnsynced(orgId, tournamentId);
         const teamMatchesCount = await localTeamMatchRepository.countUnsynced(orgId, tournamentId);
-        return matchesCount + teamMatchesCount;
+        return matchesCount + matchGroupsCount + teamMatchesCount;
     },
 
     /**

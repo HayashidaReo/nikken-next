@@ -44,7 +44,7 @@ export class TeamMatchMapper {
         };
 
         const result = teamMatchSchema.safeParse(data);
-        if (!result.success) throw new Error(`Invalid TeamMatch: ${result.error.message}`);
+        if (!result.success) throw new Error(`Invalid TeamMatch (${matchId}): ${result.error.message}`);
         return result.data;
     }
 
@@ -81,6 +81,9 @@ export class TeamMatchMapper {
 
     static toFirestoreForUpdate(match: Partial<TeamMatch>): Partial<FirestoreTeamMatchDoc> {
         const data: Partial<FirestoreTeamMatchDoc> = {};
+        if (match.matchGroupId) {
+            data.matchGroupId = match.matchGroupId;
+        }
         if (match.roundId) {
             data.roundId = match.roundId;
         }

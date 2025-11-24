@@ -13,7 +13,7 @@ import {
     CollectionReference,
     DocumentSnapshot,
     DocumentData,
-    serverTimestamp,
+    Timestamp,
 } from "firebase/firestore";
 import type { Unsubscribe } from "firebase/firestore";
 
@@ -72,14 +72,16 @@ export class FirestoreMatchRepository implements MatchRepository {
         const docRef = doc(collectionRef);
         const matchId = docRef.id;
 
+        const now = Timestamp.now();
+
         // ドキュメントIDをフィールドに含めて保存
         const firestoreDoc: FirestoreMatchCreateDoc =
             MatchMapper.toFirestoreForCreate({ ...match, id: matchId });
 
         await setDoc(docRef, {
             ...firestoreDoc,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
+            createdAt: now,
+            updatedAt: now,
         });
 
         const snap: DocumentSnapshot<DocumentData> = await getDoc(docRef);
@@ -98,13 +100,15 @@ export class FirestoreMatchRepository implements MatchRepository {
                 const docRef = doc(collectionRef);
                 const matchId = docRef.id;
 
+                const now = Timestamp.now();
+
                 const firestoreDoc: FirestoreMatchCreateDoc =
                     MatchMapper.toFirestoreForCreate({ ...match, id: matchId });
 
                 await setDoc(docRef, {
                     ...firestoreDoc,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
+                    createdAt: now,
+                    updatedAt: now,
                 });
 
                 const snap: DocumentSnapshot<DocumentData> = await getDoc(docRef);
@@ -153,7 +157,7 @@ export class FirestoreMatchRepository implements MatchRepository {
             const updateData = MatchMapper.toFirestoreForUpdate(mergedMatch);
             transaction.update(docRef, {
                 ...updateData as Partial<DocumentData>,
-                updatedAt: serverTimestamp(),
+                updatedAt: Timestamp.now(),
             });
         });
 

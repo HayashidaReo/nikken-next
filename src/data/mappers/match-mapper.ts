@@ -75,7 +75,7 @@ export class MatchMapper {
         const result = matchSchema.safeParse(matchData);
         if (!result.success) {
             throw new Error(
-                `Invalid match data from Firestore: ${result.error.message}`
+                `Invalid match data from Firestore (${matchId}): ${result.error.message}`
             );
         }
 
