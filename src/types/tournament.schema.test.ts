@@ -130,6 +130,7 @@ describe("Tournament Schema Validation", () => {
         { courtId: "court-001", courtName: "Aコート" },
         { courtId: "court-002", courtName: "Bコート" },
       ],
+      tournamentType: "individual",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -260,6 +261,7 @@ describe("Tournament Schema Validation", () => {
         location: "テスト会場",
         defaultMatchTime: 180,
         courts: [court],
+        tournamentType: "individual",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -280,6 +282,7 @@ describe("Tournament Schema Validation", () => {
         location: "あ".repeat(10), // LOCATION_MAX = 10
         defaultMatchTime: 180,
         courts: [],
+        tournamentType: "individual",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -298,6 +301,7 @@ describe("Tournament Schema Validation", () => {
         location: `テスト会場`, // 制限内
         defaultMatchTime: 180,
         courts: [],
+        tournamentType: "individual",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -314,6 +318,7 @@ describe("Tournament Schema Validation", () => {
         location: "テスト会場",
         defaultMatchTime: 86400, // 24時間
         courts: [],
+        tournamentType: "individual",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -331,6 +336,7 @@ describe("Tournament Schema Validation", () => {
         location: "テスト会場",
         defaultMatchTime: 180,
         courts: [],
+        tournamentType: "individual",
         createdAt: "2024-01-01T00:00:00.000Z",
         updatedAt: "2024-01-01T00:00:00.000Z",
       };

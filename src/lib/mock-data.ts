@@ -26,6 +26,7 @@ export const mockTournament: Tournament = {
     { courtId: "court-2", courtName: "Bコート" },
     { courtId: "court-3", courtName: "Cコート" },
   ],
+  tournamentType: "individual",
   createdAt: new Date("2024-01-15"),
   updatedAt: new Date("2024-01-15"),
 };

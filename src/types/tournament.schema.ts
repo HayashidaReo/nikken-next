@@ -28,6 +28,7 @@ export const tournamentSchema = z.object({
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema), // 空配列許可（デフォルト大会用）
+  tournamentType: z.enum(["individual", "team"]), // 大会形式
   createdAt: z.coerce.date().optional(), // Firestoreで自動設定（文字列からDateへ自動変換）
   updatedAt: z.coerce.date().optional(), // Firestoreで自動設定（文字列からDateへ自動変換）
 });
@@ -50,6 +51,7 @@ export const tournamentFormSchema = z.object({
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema).min(1, "最低1つのコートを設定してください"),
+  tournamentType: z.enum(["individual", "team"]), // 大会形式
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
 });

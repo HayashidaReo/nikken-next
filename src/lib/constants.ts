@@ -79,6 +79,9 @@ export const TEXT_LENGTH_LIMITS = {
   TOURNAMENT_DETAIL_MAX: 1000,
 } as const;
 
+// 団体戦ラウンド順 (Team match role names)
+export const TEAM_MATCH_ROUNDS = ["先鋒", "次鋒", "中堅", "副将", "大将", "代表戦"] as const;
+
 // 🥋 ペナルティ関連定数
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
@@ -127,6 +130,10 @@ export const FIRESTORE_COLLECTIONS = {
   MATCHES: "matches",
   /** ユーザーコレクション */
   USERS: "users",
+  /** 団体戦グループコレクション */
+  MATCH_GROUPS: "matchGroups",
+  /** 団体戦試合コレクション */
+  TEAM_MATCHES: "teamMatches",
 } as const;
 
 // 🌐 APIエンドポイント定数

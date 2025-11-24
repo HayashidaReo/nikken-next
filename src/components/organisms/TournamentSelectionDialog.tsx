@@ -55,8 +55,12 @@ export function TournamentSelectionDialog({
     if (selectedTournamentId && !isConfirming) {
       setIsConfirming(true);
 
+      // 選択された大会の情報を取得
+      const selectedTournament = tournaments.find(t => t.tournamentId === selectedTournamentId);
+      const tournamentType = selectedTournament?.tournamentType || "individual";
+
       // アクティブな大会を設定
-      setActiveTournament(selectedTournamentId);
+      setActiveTournament(selectedTournamentId, tournamentType);
 
       onClose?.();
 

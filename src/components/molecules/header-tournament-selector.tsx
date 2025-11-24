@@ -40,7 +40,11 @@ export function HeaderTournamentSelector({
       onManageClick?.();
       return;
     }
-    setActiveTournament(value);
+
+    const selectedTournament = tournaments.find(t => t.tournamentId === value);
+    const tournamentType = selectedTournament?.tournamentType || "individual";
+
+    setActiveTournament(value, tournamentType);
   };
 
   if (!user) {

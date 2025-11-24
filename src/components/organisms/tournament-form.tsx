@@ -6,6 +6,13 @@ import { FormField } from "@/components/molecules/form-field";
 import { FormHeader } from "@/components/molecules/form-header";
 import { FormActions } from "@/components/molecules/form-actions";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/atoms/select";
+import {
   formatDateToInputValue,
   parseInputValueToDate,
 } from "@/lib/utils/date-utils";
@@ -76,6 +83,22 @@ export function TournamentForm({
             }
             required
           />
+        </FormField>
+
+        {/* 大会形式 */}
+        <FormField label="大会形式" required>
+          <Select
+            value={formData.tournamentType || "individual"}
+            onValueChange={(value) => onFormChange("tournamentType", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="大会形式を選択" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="individual">個人戦</SelectItem>
+              <SelectItem value="team">団体戦</SelectItem>
+            </SelectContent>
+          </Select>
         </FormField>
 
         {/* 大会概要 */}

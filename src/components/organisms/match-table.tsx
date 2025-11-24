@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/car
 import { Table, TableHeader, TableRow, TableBody, TableHead } from "@/components/atoms/table";
 
 interface MatchTableProps {
-    title?: string;
+    title?: ReactNode;
     columns: ColumnDef[];
     children: ReactNode;
     className?: string;

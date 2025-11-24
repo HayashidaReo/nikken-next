@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Match } from "@/types/match.schema";
+import type { Match, TeamMatch } from "@/types/match.schema";
 import type { MonitorData } from "@/types/monitor.schema";
 import { SCORE_CONSTANTS, HANSOKU_CONSTANTS } from "@/lib/constants";
 import {
@@ -42,7 +42,7 @@ interface MonitorState {
 
   // アクション
   initializeMatch: (
-    match: Match,
+    match: Match | TeamMatch,
     tournamentName: string,
     courtName: string
   ) => void;
@@ -91,7 +91,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
   // アクション
   initializeMatch: (
-    match: Match,
+    match: Match | TeamMatch,
     tournamentName: string,
     courtName: string
   ) => {

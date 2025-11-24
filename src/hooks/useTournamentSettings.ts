@@ -152,7 +152,7 @@ export function useTournamentSettings() {
 
                             // 作成前に大会が0件だった場合のみ、新規作成した大会をアクティブに設定
                             if (wasEmpty && result.data.tournamentId) {
-                                setActiveTournament(result.data.tournamentId);
+                                setActiveTournament(result.data.tournamentId, result.data.tournamentType);
                             }
                         },
                         onError: error => {
