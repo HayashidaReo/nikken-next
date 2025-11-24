@@ -1,5 +1,17 @@
 # Firestore データベース設計
 
+## データ正規化の方針
+
+本システムでは、データの整合性とメンテナンス性を確保するため、以下の原則に従います：
+
+- **名前はIDで参照**: コート名、ラウンド名、チーム名、選手名などの表示用データは、すべてIDで参照し、マスターデータ（tournaments、teams）から取得して表示します。
+- **IDの保存場所**:
+  - `courtId`, `roundId`: tournamentsコレクションのcourts/rounds配列に定義
+  - `teamId`: teamsコレクションのドキュメントID
+  - `playerId`: teamsコレクション内のplayers配列に定義
+- **表示名の取得**: 画面表示時は、保存されたIDを基に対応するマスターデータから名前を取得します。
+- **データ同期**: チーム名や選手名が変更された場合、Cloud Functionで関連するmatchesコレクションのキャッシュデータ（displayName, teamName）を自動更新します。
+
 ## organizations コレクション
 
 大会運営を行う主催組織ごとに、tournaments コレクションの管理を行います。
@@ -89,16 +101,16 @@
 
 ### フィールド
 
-| フィールド名   | データ型  | 説明         |
-| -------------- | --------- | ------------ |
-| `matchGroupId` | String    | チーム試合ID |
-| `courtId`      | String    | コートID     |
-| `round`        | String    | ラウンド     |
-| `sortOrder`    | number    | 表示順序     |
-| `teamAId`      | String    | チームAのID  |
-| `teamBId`      | String    | チームBのID  |
-| `createdAt`    | Timestamp | 作成日時     |
-| `updatedAt`    | Timestamp | 最終編集日時 |
+| フィールド名   | データ型  | 説明                                                   |
+| -------------- | --------- | ------------------------------------------------------ |
+| `matchGroupId` | String    | チーム試合ID                                           |
+| `courtId`      | String    | コートID（tournamentsのcourts配列内のcourtIdと対応）   |
+| `roundId`      | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応） |
+| `sortOrder`    | number    | 表示順序                                               |
+| `teamAId`      | String    | チームAのID                                            |
+| `teamBId`      | String    | チームBのID                                            |
+| `createdAt`    | Timestamp | 作成日時                                               |
+| `updatedAt`    | Timestamp | 最終編集日時                                           |
 
 ## matches コレクション (個人戦用)
 
@@ -117,8 +129,8 @@
 | フィールド名                  | データ型  | 説明                                                                          |
 | ----------------------------- | --------- | ----------------------------------------------------------------------------- |
 | `matchId`                     | String    | 試合ID                                                                        |
-| `courtId`                     | String    | コートID                                                                      |
-| `round`                       | String    | ラウンド（例: "1回戦"）                                                       |
+| `courtId`                     | String    | コートID（tournamentsのcourts配列内のcourtIdと対応）                          |
+| `roundId`                     | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応）                        |
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
 | `players.playerA`             | Map       | 選手Aの情報                                                                   |
@@ -152,7 +164,8 @@
 | ----------------------------- | --------- | ----------------------------------------------------------------------------- |
 | `matchId`                     | String    | 試合ID                                                                        |
 | `matchGroupId`                | String    | 親となるチーム試合ID                                                          |
-| `courtId`                     | String    | コートID                                                                      |
+| `courtId`                     | String    | コートID（tournamentsのcourts配列内のcourtIdと対応）                          |
+| `roundId`                     | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応）                        |
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
 | `players.playerA`             | Map       | 選手Aの情報                                                                   |

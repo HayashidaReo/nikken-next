@@ -113,6 +113,12 @@ Presentation APIを利用して、操作画面とは別のモニターに得点�
 
 コート名｜回戦｜選手A所属｜選手A名｜選手B所属｜選手B名｜得点｜ステータス｜操作画面への遷移ボタン
 
+- **表示ロジック**: matchesコレクションに保存されている各IDを基に、対応する名前を取得して表示
+  - `courtId` → tournamentsのcourts配列から`courtName`を取得
+  - `roundId` → tournamentsのrounds配列から`roundName`を取得
+  - `teamId` → teamsコレクションから`teamName`を取得
+  - `playerId` → teamsのplayers配列から`displayName`を取得
+
 - **ステータス表示**:
   - 未実施
   - 完了（未送信）: ローカルには保存済みだが、サーバー未反映（アイコン等で強調表示）
@@ -127,8 +133,9 @@ Presentation APIを利用して、操作画面とは別のモニターに得点�
 #### 団体戦の場合の表示 **(新規追加)**
 
 - **チーム対戦一覧**:
-  - 初期表示では、チーム同士の対戦（MatchGroup）を一覧表示する。
-  - 表示項目: コート名｜回戦｜チームA名｜チームB名｜詳細ボタン（→）
+    - 初期表示では、チーム同士の対戦（MatchGroup）を一覧表示する。
+    - 表示項目: コート名｜回戦｜チームA名｜チームB名｜詳細ボタン（→）
+    - **表示ロジック**: matchGroupsの`courtId`/`roundId`/`teamAId`/`teamBId`から各名前を取得して表示
 - **詳細表示（ドリルダウン）**:
   - 詳細ボタン（→）または行をクリックすると、そのチーム対戦内の個人試合一覧を表示する（URLパラメータに `matchGroupId` を付与）。
   - この時の表示形式は、個人戦の試合一覧テーブルと同様。
@@ -296,6 +303,11 @@ Presentation APIを利用して、操作画面とは別のモニターに得点�
 表形式で以下の項目を入力・選択する（Excelのような見た目を想定）:
 コート名｜回戦｜選手A所属｜選手A表示名｜選手B所属｜選手B表示名
 
+- **コート名**: tournamentsのcourts配列から選択（courtIdで保存、表示はcourtName）
+- **回戦**: tournamentsのrounds配列から選択（roundIdで保存、表示はroundName）
+- **選手所属**: teamsコレクションから選択（teamIdで保存、表示はteamName）
+- **選手名**: 選択された所属のplayers配列から選択（playerIdで保存、表示はdisplayName）
+
 #### 選手選択
 
 - **所属**: 承認済みのチームをドロップダウンリストから選択する
@@ -311,6 +323,9 @@ Presentation APIを利用して、操作画面とは別のモニターに得点�
 1.  **チーム対戦設定（MatchGroup）**:
     - まず、対戦するチーム同士の組み合わせを設定する。
     - 入力項目: コート名｜回戦｜チームA｜チームB
+    - **コート名**: tournamentsのcourts配列から選択（courtIdで保存）
+    - **回戦**: tournamentsのrounds配列から選択（roundIdで保存）
+    - **チームA/B**: teamsコレクションから選択（teamIdで保存）
     - 保存すると `matchGroups` コレクションに保存される。
 
 2.  **個人試合設定（Matches）**:
