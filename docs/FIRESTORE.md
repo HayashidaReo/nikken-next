@@ -1,99 +1,99 @@
-Firestoreのオフライン機能はあくまで「一時的な電波断絶への保険（キャッシュ）」であり、**「長時間ガッツリ作業する場所」としては設計されていません。**
+# Local-First アーキテクチャ設計書
 
------
+## 1\. アーキテクチャ概要
 
-### 1\. 新しいアーキテクチャ： "Local-First"
+本システムは、試合運営の安定性とパフォーマンスを最優先するため、\*\*「Local-First（ローカルファースト）」\*\*アーキテクチャを採用する。
+UIは常にローカルDBを参照・操作し、バックグラウンドまたは手動操作でサーバー（Firestore）と同期を行う。
 
-(ローカルDB) でアプリを動かし、必要な時だけ API でサーバーと同期する」という構成にします。これが一番安定します。
+### 技術スタック
 
-**採用すべき技術スタック:**
+  * **ローカルDB (Client)**: **Dexie.js** (IndexedDB Wrapper)
+      * 役割: アプリケーションの信頼できる情報源（Single Source of Truth）。オフライン時のデータ保存先。
+  * **リモートDB (Server)**: **Firestore**
+      * 役割: データのマスター、バックアップ、他端末との共有。
 
-  * **ローカルDB:** **Dexie.js** (IndexedDBのラッパー。)
-  * **サーバーDB:** **Firestore** (あくまでデータのマスター/バックアップ先)
+## 2\. 運用フロー
 
-#### 運用の流れ（イメージ）
+1.  **準備（オンライン）**
+      * アプリ起動時や「データ取得」ボタン押下時。
+      * Firestoreから最新データをダウンロードし、Dexie.jsへ一括コピーする。
+2.  **本番運用（オフライン/機内モード推奨）**
+      * Firestoreへのアクセスは遮断し、**Dexie.js** のみを読み書きする。
+      * ネットワーク遅延の影響を受けず、リロードや再起動を行ってもデータは即座に表示される。
+3.  **同期（オンライン復帰後）**
+      * 「結果を送信」ボタン押下時。
+      * Dexie.js 内の「未送信データ」を抽出し、Firestoreへ上書き保存（同期）する。
 
-1.  **準備（オンライン）:**
-      * アプリ起動時や「データ取得」ボタンで、Firestoreから選手データをダウンロードし、**Dexie.js (ローカルDB) にコピー**する。
-2.  **本番（オフライン/機内モード）:**
-      * **Firestoreは一切見に行かない。**
-      * UIは全て **Dexie.js** のデータを表示・更新する。
-      * どれだけリロードしても、PCを再起動しても、ローカルDBなので一瞬で表示される。エラーも出ない。
-3.  **終了後（オンライン）:**
-      * 「結果を送信」ボタンで、Dexie.js のデータを Firestore に上書き保存する。
+## 3\. 導入メリット
 
-### 2\. なぜこれが正解なのか？
-
-| 特徴 | Firestore SDK (今の構成) | Dexie.js + Firestore (提案) |
+| 特徴 | 従来のFirestore SDK構成 | Local-First (Dexie.js) 構成 |
 | :--- | :--- | :--- |
-| **オフライン時の挙動** | 「接続できない」エラーを内部で握りつぶしながら、リトライを繰り返す（不安定）。 | **「正常動作」として動く。** ネットワーク処理がないので爆速。 |
-| **リロード時の挙動** | サーバーに繋ぎに行こうとして待機時間が発生したり、設定ミスで消えたりする。 | **瞬時に復元される。** ローカルファイルを読むだけだから。 |
-| **データ検索** | オフラインだと複雑な検索（`where`句の複合など）ができないことがある。 | **自由自在。** SQLのように自由にクエリが書ける。 |
-| **Flutterでの例え** | 常に `FutureBuilder` で `Firestore.instance` を見ている状態。 | **Drift/Hive** で動かして、最後に `sync()` する状態。 |
+| **オフライン動作** | エラーやリトライ処理が不安定 | **ネットワーク処理がないため高速・安定** |
+| **リロード時** | サーバー接続待機やキャッシュ消失のリスクあり | **ローカルDBから瞬時に復元** |
+| **データ検索** | オフライン時のクエリ制限あり | **柔軟なクエリが可能** |
+| **開発メンタルモデル** | 常にサーバー状態を意識する必要あり | **ローカル変数を扱う感覚でDB操作が可能** |
 
-### 3\. Dexie.js を使った実装イメージ
+## 4\. 実装詳細
 
-ReactでローカルDBを使うための標準ライブラリ `Dexie.js` を使います。
-コードの雰囲気を見てください。驚くほど直感的です。
+### Step 1: DB定義 (`src/lib/db.ts`)
 
-#### Step 1: DBの定義 (`src/db.ts`)
+同期状態を管理するためのフラグ（`isSynced`）をスキーマに含める。
 
 ```typescript
 import Dexie, { Table } from 'dexie';
 
-// テーブルの型定義
 export interface LocalMatch {
-  id: string; // UUIDなど
+  id: string;
   playerAName: string;
   playerBName: string;
   scoreA: number;
   scoreB: number;
-  isSynced: boolean; // 未同期かどうかのフラグ
+  // ...他フィールド
+  isSynced: boolean; // false: 未送信（変更あり）, true: 送信済み
+  updatedAt: Date;
 }
 
-class MyDatabase extends Dexie {
+class NikkenOfflineDB extends Dexie {
   matches!: Table<LocalMatch>; 
 
   constructor() {
     super('NikkenOfflineDB');
-    // スキーマ定義（検索に使うキーだけ書く）
+    // インデックス定義（検索に使用するフィールド）
     this.version(1).stores({
       matches: 'id, isSynced' 
     });
   }
 }
 
-export const db = new MyDatabase();
+export const db = new NikkenOfflineDB();
 ```
 
-#### Step 2: データの保存（フックの中身）
+### Step 2: データの保存 (`useSaveMatch.ts`)
 
-もう `useMutation` で Firestore と格闘する必要はありません。
+UIからの保存操作は、常にローカルDBに対して行う。ネットワーク状態による分岐は行わない。
 
 ```typescript
-// useSaveMatchResult.ts
-import { db } from '@/db';
+import { db } from '@/lib/db';
 
-export const saveMatchLocally = async (matchData) => {
-  // ローカルDBに保存（非同期だが一瞬）
+export const saveMatchLocally = async (matchData: any) => {
   await db.matches.put({
     ...matchData,
-    isSynced: false // 「まだサーバーに送ってないよ」という印
+    isSynced: false, // 変更があったため「未送信」とする
+    updatedAt: new Date()
   });
-  console.log("保存完了！");
 };
 ```
 
-#### Step 3: データの表示（コンポーネント）
+### Step 3: データの表示 (`components/MatchList.tsx`)
 
-`useLiveQuery` というフックを使うと、**DBが更新されると自動で画面も書き換わります**（FlutterのStreamBuilderと同じ感覚）。
+Dexieの `useLiveQuery` を使用し、ローカルDBの変更をリアルタイムにUIへ反映させる。
 
 ```tsx
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/db";
+import { db } from "@/lib/db";
 
 export const MatchList = () => {
-  // DBの中身をリアルタイム監視
+  // DBの変更を検知して自動再描画
   const matches = useLiveQuery(() => db.matches.toArray());
 
   if (!matches) return <div>Loading...</div>;
@@ -103,10 +103,56 @@ export const MatchList = () => {
       {matches.map(m => (
         <li key={m.id}>
            {m.playerAName} vs {m.playerBName} 
-           {m.isSynced ? "✅" : "📤未送信"}
+           {/* 同期ステータスの表示 */}
+           <span>{m.isSynced ? "✅ 送信済" : "📤 未送信"}</span>
         </li>
       ))}
     </ul>
   );
+};
+```
+
+### Step 4: 同期処理 (`src/features/sync/sync-service.ts`) 【追記】
+
+ローカルの未送信データをFirestoreへプッシュし、成功後にローカルの状態を更新する。
+
+```typescript
+import { db } from '@/lib/db';
+import { firestoreDb } from '@/lib/firebase/client';
+import { writeBatch, doc } from 'firebase/firestore';
+
+export const syncMatchesToFirestore = async () => {
+  // 1. ネットワーク接続確認
+  if (!navigator.onLine) {
+    throw new Error("オフラインのため同期できません");
+  }
+
+  // 2. 未送信データの抽出
+  const unsyncedMatches = await db.matches
+    .where('isSynced').equals(0) // false (0) を検索
+    .toArray();
+
+  if (unsyncedMatches.length === 0) {
+    return { count: 0, message: "送信するデータはありません" };
+  }
+
+  // 3. Firestoreへの一括書き込み (Batch)
+  const batch = writeBatch(firestoreDb);
+  
+  unsyncedMatches.forEach((match) => {
+    const ref = doc(firestoreDb, 'matches', match.id);
+    // Firestoreに不要なローカル管理フィールドを除外してセット
+    const { isSynced, ...dataToSave } = match; 
+    batch.set(ref, dataToSave, { merge: true });
+  });
+
+  await batch.commit();
+
+  // 4. ローカルDBのステータス更新 (成功時のみ)
+  // 送信したデータの isSynced を true に変更
+  const syncedMatches = unsyncedMatches.map(m => ({ ...m, isSynced: true }));
+  await db.matches.bulkPut(syncedMatches);
+
+  return { count: unsyncedMatches.length, message: "同期完了" };
 };
 ```
