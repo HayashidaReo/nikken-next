@@ -104,9 +104,31 @@ export function TeamMatchSetupTable({
 
     const columns = [
         { key: "drag", label: "", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.drag },
-        { key: "round", label: "回戦", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.round },
-        { key: "playerA", label: `${teamA.teamName} の選手`, width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerA },
-        { key: "playerB", label: `${teamB.teamName} の選手`, width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerB },
+        { key: "round", label: "ラウンド", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.round },
+        {
+            key: "playerA",
+            label: (
+                <span>
+                    <span className="font-bold">{teamA.teamName}</span> の選手
+                </span>
+            ),
+            width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerA
+        },
+        {
+            key: "vs",
+            label: "",
+            width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.vs,
+            className: "text-center"
+        },
+        {
+            key: "playerB",
+            label: (
+                <span>
+                    <span className="font-bold">{teamB.teamName}</span> の選手
+                </span>
+            ),
+            width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerB
+        },
         { key: "action", label: "操作", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
     ];
 
@@ -118,7 +140,13 @@ export function TeamMatchSetupTable({
             onDragEnd={handleDragEnd}
         >
             <MatchTable
-                title={`${teamA.teamName} vs ${teamB.teamName}`}
+                title={
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold">{teamA.teamName}</span>
+                        <span className="text-muted-foreground text-sm">vs</span>
+                        <span className="font-bold">{teamB.teamName}</span>
+                    </div>
+                }
                 headerRight={
                     <Button onClick={() => onSave(data)} disabled={isSaving}>
                         {isSaving ? "保存中..." : "保存"}
@@ -140,7 +168,7 @@ export function TeamMatchSetupTable({
                     ))}
                 </SortableContext>
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center py-2">
+                    <TableCell colSpan={7} className="text-center py-2">
                         <Button variant="outline" size="sm" onClick={addRow}>
                             <Plus className="h-4 w-4 mr-2" />
                             試合追加

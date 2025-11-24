@@ -65,10 +65,11 @@ export const MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS = {
  */
 export const TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
     drag: 3,           // ドラッグハンドル
-    round: 20,         // ラウンド（ポジション）
-    playerA: 34,       // 選手A
-    playerB: 34,       // 選手B
-    action: 6,        // 操作ボタン
+    round: 18,         // ラウンド（ポジション）
+    playerA: 33,       // 選手A
+    vs: 3,             // VS表示
+    playerB: 33,       // 選手B
+    action: 7,         // 操作ボタン
 } as const;
 
 /**

@@ -7,7 +7,6 @@ import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
 import { TableCell } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
 import type { Team } from "@/types/team.schema";
-import type { Court } from "@/types/tournament.schema";
 import type { TeamMatchSetupData } from "@/types/match-setup";
 
 interface TeamMatchRowProps {
@@ -91,6 +90,9 @@ export function TeamMatchRow({
                     placeholder="選手A選択"
                     searchPlaceholder="選手名で検索..."
                 />
+            </TableCell>
+            <TableCell className="py-2 px-3 text-center text-muted-foreground text-sm">
+                vs
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.playerBId}>
                 <SearchableSelect
