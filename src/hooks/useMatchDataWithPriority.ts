@@ -42,8 +42,8 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
         hasStoreData ? null : activeTournamentId
     );
 
-    const { data: matchGroups = [] } = useMatchGroups();
-    const { data: teams = [] } = useTeams();
+    const { data: matchGroups = [], isLoading: matchGroupsLoading } = useMatchGroups();
+    const { data: teams = [], isLoading: teamsLoading } = useTeams();
     const playerDirectory = useMemo(() => createPlayerDirectory(teams), [teams]);
 
     // どちらかのデータがあればOK
@@ -55,10 +55,11 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
     const isMatchLoading = !match && ((shouldFetchIndividual && individualLoading) || (shouldFetchTeam && teamLoading));
 
     // ストア優先のため、ストアデータがある場合は fetch 側の loading/error を無視する
-    const isLoading = authLoading || (!hasStoreData && (isMatchLoading || tournamentLoading));
+    // チーム情報やマッチグループ情報も必須なため、それらのロードも待つ
+    const isLoading = authLoading || (!hasStoreData && (isMatchLoading || tournamentLoading || matchGroupsLoading || teamsLoading));
 
     // エラー判定
-    const hasError = !hasStoreData && !match && !isMatchLoading && (
+    const hasError = !hasStoreData && !match && !isLoading && (
         (shouldFetchIndividual && individualError) ||
         (shouldFetchTeam && teamError) ||
         tournamentError ||
@@ -68,6 +69,9 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
     useEffect(() => {
         // ストアに既にデータがある場合は初期化不要
         if (hasStoreData) return;
+
+        // データがまだロード中の場合は初期化しない
+        if (isLoading) return;
 
         // Firebase から取得したデータで初期化（フォールバック）
         if (match && tournament) {
@@ -95,7 +99,7 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
                 roundName,
             });
         }
-    }, [hasStoreData, match, tournament, initializeMatch, matchGroups, playerDirectory]);
+    }, [hasStoreData, match, tournament, initializeMatch, matchGroups, playerDirectory, isLoading]);
 
     return {
         isLoading,
