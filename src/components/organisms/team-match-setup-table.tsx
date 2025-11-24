@@ -68,21 +68,38 @@ export function TeamMatchSetupTable({
     };
 
     const addRow = () => {
-        const maxSortOrder = data.length > 0 ? Math.max(...data.map((d) => d.sortOrder)) : -1;
-        setData((prev) => [
-            ...prev,
-            {
-                id: `match-${Date.now()}`,
-                round: "",
-                playerAId: "",
-                playerBId: "",
-                sortOrder: maxSortOrder + 1,
-            },
-        ]);
+        setData((prev) => {
+            const nextRound = defaultRounds[prev.length] || "";
+            const maxSortOrder = prev.length > 0 ? Math.max(...prev.map((d) => d.sortOrder)) : -1;
+
+            return [
+                ...prev,
+                {
+                    id: `match-${Date.now()}`,
+                    round: nextRound,
+                    playerAId: "",
+                    playerBId: "",
+                    sortOrder: maxSortOrder + 1,
+                },
+            ];
+        });
+    };    // デフォルトのラウンド順序
+    const defaultRounds = ["先鋒", "次鋒", "中堅", "副将", "大将", "代表戦"];
+
+    // ラウンド名を自動的に再割り当てする関数
+    const reassignRounds = (items: TeamMatchSetupData[]): TeamMatchSetupData[] => {
+        return items.map((item, index) => ({
+            ...item,
+            round: defaultRounds[index] || "", // 範囲外の場合は空文字（または既存の値を維持したい場合は item.round）
+            sortOrder: index
+        }));
     };
 
     const removeRow = (index: number) => {
-        setData((prev) => prev.filter((_, i) => i !== index));
+        setData((prev) => {
+            const filtered = prev.filter((_, i) => i !== index);
+            return reassignRounds(filtered);
+        });
     };
 
     const handleDragStart = (event: DragStartEvent) => {
@@ -96,7 +113,7 @@ export function TeamMatchSetupTable({
                 const oldIndex = items.findIndex((item) => item.id === active.id);
                 const newIndex = items.findIndex((item) => item.id === over.id);
                 const reorderedItems = arrayMove(items, oldIndex, newIndex);
-                return reorderedItems.map((item, idx) => ({ ...item, sortOrder: idx }));
+                return reassignRounds(reorderedItems);
             });
         }
         setActiveId(null);
