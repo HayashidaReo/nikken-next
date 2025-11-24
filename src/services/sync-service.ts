@@ -1,24 +1,29 @@
-import { db, LocalMatch, LocalTournament, LocalMatchGroup, LocalTeamMatch } from '@/lib/db';
+import { db, LocalMatch, LocalTournament, LocalMatchGroup, LocalTeamMatch, LocalTeam } from '@/lib/db';
 import { FirestoreMatchRepository } from '@/repositories/firestore/match-repository';
 import { FirestoreMatchGroupRepository } from '@/repositories/firestore/match-group-repository';
 import { FirestoreTeamMatchRepository } from '@/repositories/firestore/team-match-repository';
+import { FirestoreTeamRepository } from '@/repositories/firestore/team-repository';
 import { localMatchRepository } from '@/repositories/local/match-repository';
 import { localTournamentRepository } from '@/repositories/local/tournament-repository';
 import { localMatchGroupRepository } from '@/repositories/local/match-group-repository';
 import { localTeamMatchRepository } from '@/repositories/local/team-match-repository';
+import { localTeamRepository } from '@/repositories/local/team-repository';
 import { tournamentSchema } from '@/types/tournament.schema';
 import type { Match, MatchGroup, TeamMatch } from '@/types/match.schema';
 import type { Tournament } from '@/types/tournament.schema';
+import type { Team } from '@/types/team.schema';
 
 const matchRepository = new FirestoreMatchRepository();
 const matchGroupRepository = new FirestoreMatchGroupRepository();
 const teamMatchRepository = new FirestoreTeamMatchRepository();
+const teamRepository = new FirestoreTeamRepository();
 
 interface FetchedData {
     tournament: Tournament;
     matches: Match[];
     matchGroups: MatchGroup[];
     teamMatches: TeamMatch[];
+    teams: Team[];
 }
 
 async function fetchFromFirestore(orgId: string, tournamentId: string): Promise<FetchedData> {
@@ -35,6 +40,10 @@ async function fetchFromFirestore(orgId: string, tournamentId: string): Promise<
     let matches: Match[] = [];
     let matchGroups: MatchGroup[] = [];
     let teamMatches: TeamMatch[] = [];
+    let teams: Team[] = [];
+
+    // チームデータ (大会種別に関わらず、常に取得)
+    teams = await teamRepository.listAll(orgId, tournamentId);
 
     if (tournamentType === 'individual') {
         // Matches (Individual)
@@ -53,18 +62,19 @@ async function fetchFromFirestore(orgId: string, tournamentId: string): Promise<
         teamMatches = teamMatchesArrays.flat();
     }
 
-    return { tournament, matches, matchGroups, teamMatches };
+    return { tournament, matches, matchGroups, teamMatches, teams };
 }
 
 async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedData): Promise<void> {
-    const { tournament, matches, matchGroups, teamMatches } = data;
+    const { tournament, matches, matchGroups, teamMatches, teams } = data;
 
-    await db.transaction('rw', db.matches, db.tournaments, db.matchGroups, db.teamMatches, async () => {
+    await db.transaction('rw', [db.matches, db.tournaments, db.matchGroups, db.teamMatches, db.teams], async () => {
         // 既存のこの大会のデータを削除 (クリーンな状態で上書き)
         await localMatchRepository.deleteByTournament(orgId, tournamentId);
         await localTournamentRepository.delete(orgId, tournamentId);
         await localMatchGroupRepository.deleteByTournament(orgId, tournamentId);
         await localTeamMatchRepository.deleteByTournament(orgId, tournamentId);
+        await localTeamRepository.deleteByTournament(orgId, tournamentId);
 
         // 大会データを保存
         const localTournament: LocalTournament = {
@@ -103,6 +113,17 @@ async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedD
                 isSynced: true,
             }));
             await localTeamMatchRepository.bulkPut(localTeamMatches);
+        }
+
+        // チームデータを保存
+        if (teams.length > 0) {
+            const localTeams: LocalTeam[] = teams.map(t => ({
+                ...t,
+                organizationId: orgId,
+                tournamentId: tournamentId,
+                isSynced: true,
+            }));
+            await localTeamRepository.bulkPut(localTeams);
         }
     });
 }
@@ -251,11 +272,7 @@ export const syncService = {
         await db.matches.clear();
         await db.matchGroups.clear();
         await db.teamMatches.clear();
-
-        const teamsTable = db.tables.find(table => table.name === "teams");
-        if (teamsTable) {
-            await teamsTable.clear();
-        }
+        await db.teams.clear();
     }
 };
 

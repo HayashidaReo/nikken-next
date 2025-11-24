@@ -4,14 +4,14 @@ import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { ShareMenu } from "@/components/molecules/share-menu";
 import { TeamStatsSummary } from "@/components/molecules/team-stats-summary";
-import { useTeamsRealtime, useApproveTeam } from "@/queries/use-teams";
+import { useTeams, useApproveTeam } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 
 export default function TeamsPage() {
   const { needsTournamentSelection, isLoading: authLoading, orgId, activeTournamentId } = useAuthContext();
-  const { data: teams = [], isLoading: teamsLoading, error } = useTeamsRealtime();
+  const { data: teams = [], isLoading: teamsLoading, error } = useTeams();
   const approveTeamMutation = useApproveTeam();
 
   const handleApprovalChange = (teamId: string, isApproved: boolean) => {
