@@ -514,6 +514,7 @@ describe("TournamentMapper", () => {
     location: "テスト会場",
     defaultMatchTime: 180,
     courts: [mockCourt],
+    rounds: [{ roundId: "round-001", roundName: "1回戦" }],
     tournamentType: "individual",
     createdAt: mockTimestamp,
     updatedAt: mockTimestamp,
@@ -663,6 +664,7 @@ describe("TournamentMapper", () => {
         location: "新規会場",
         defaultMatchTime: 240,
         courts: [mockCourt],
+        rounds: [],
         tournamentType: "individual",
       } as Parameters<typeof TournamentMapper.toFirestoreCreate>[0];
 
@@ -684,6 +686,7 @@ describe("TournamentMapper", () => {
         location: "会場",
         defaultMatchTime: 180,
         courts: [],
+        rounds: [],
         tournamentType: "individual",
       } as Parameters<typeof TournamentMapper.toFirestoreCreate>[0];
 
@@ -705,6 +708,7 @@ describe("TournamentMapper", () => {
         location: "会場",
         defaultMatchTime: 180,
         courts: [],
+        rounds: [],
         tournamentType: "individual",
       } as Parameters<typeof TournamentMapper.toFirestoreCreate>[0];
 
@@ -725,6 +729,7 @@ describe("TournamentMapper", () => {
         location: "会場",
         defaultMatchTime: 180,
         courts,
+        rounds: [],
         tournamentType: "individual",
       } as Parameters<typeof TournamentMapper.toFirestoreCreate>[0];
 
