@@ -108,6 +108,7 @@ export function useTournamentSettings() {
                 | Date
                 | null
                 | { courtId: string; courtName: string }[]
+                | { roundId: string; roundName: string }[]
         ) => {
             setFormData(prev => ({ ...prev, [field]: value }));
         },
@@ -149,6 +150,7 @@ export function useTournamentSettings() {
                     organizationId: orgId,
                     tournamentDate: dataForCreate.tournamentDate as Date,
                     tournamentType: dataForCreate.tournamentType as "individual" | "team",
+                    rounds: dataForCreate.rounds || [],
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 };
@@ -185,6 +187,7 @@ export function useTournamentSettings() {
                     organizationId: orgId,
                     tournamentDate: dataForUpdate.tournamentDate as Date,
                     tournamentType: dataForUpdate.tournamentType as "individual" | "team",
+                    rounds: dataForUpdate.rounds || [],
                     createdAt: createdAt,
                     updatedAt: new Date(),
                 };
@@ -234,6 +237,7 @@ export function useTournamentSettings() {
                         ...dataForCreate,
                         tournamentDate: dataForCreate.tournamentDate as Date,
                         tournamentType: dataForCreate.tournamentType as "individual" | "team",
+                        rounds: dataForCreate.rounds || [],
                     },
                 },
                 {
@@ -288,6 +292,7 @@ export function useTournamentSettings() {
                         ...dataForUpdate,
                         tournamentDate: dataForUpdate.tournamentDate as Date,
                         tournamentType: dataForUpdate.tournamentType as "individual" | "team",
+                        rounds: dataForUpdate.rounds || [],
                     },
                 },
                 {

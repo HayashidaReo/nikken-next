@@ -3,6 +3,7 @@ import { Textarea } from "@/components/atoms/textarea";
 import { Button } from "@/components/atoms/button";
 import { TimePicker } from "@/components/molecules/time-picker";
 import { CourtManager } from "@/components/molecules/court-manager";
+import { RoundManager } from "@/components/molecules/round-manager";
 import { FormField } from "@/components/molecules/form-field";
 import { FormHeader } from "@/components/molecules/form-header";
 import { SearchableSelect } from "@/components/molecules/searchable-select";
@@ -24,6 +25,7 @@ interface TournamentFormProps {
       | Date
       | null
       | { courtId: string; courtName: string }[]
+      | { roundId: string; roundName: string }[]
   ) => void;
   onSave: () => void;
   onCancel?: () => void;
@@ -134,6 +136,14 @@ export function TournamentForm({
           <CourtManager
             courts={formData.courts}
             onChange={courts => onFormChange("courts", courts)}
+          />
+        </FormField>
+
+        {/* ラウンド管理 */}
+        <FormField label="ラウンド設定">
+          <RoundManager
+            rounds={formData.rounds}
+            onChange={rounds => onFormChange("rounds", rounds)}
           />
         </FormField>
       </div>

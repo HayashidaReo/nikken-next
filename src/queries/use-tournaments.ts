@@ -115,6 +115,7 @@ export function useCreateTournament() {
                 location: string;
                 defaultMatchTime: number;
                 courts: { courtId: string; courtName: string }[];
+                rounds: { roundId: string; roundName: string }[];
                 tournamentType: "individual" | "team";
             };
         }) => {

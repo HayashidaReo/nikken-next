@@ -128,6 +128,7 @@ export async function POST(
       location,
       defaultMatchTime,
       courts,
+      rounds,
       tournamentType,
     } = validatedData;
 
@@ -168,6 +169,7 @@ export async function POST(
       defaultMatchTime:
         typeof defaultMatchTime === "number" ? defaultMatchTime : 180,
       courts: Array.isArray(courts) ? courts : [],
+      rounds: Array.isArray(rounds) ? rounds : [],
       tournamentType,
       createdAt: now, // サーバー側で生成
       updatedAt: now, // サーバー側で生成
@@ -192,6 +194,7 @@ export async function POST(
           location: tournamentData.location,
           defaultMatchTime: tournamentData.defaultMatchTime,
           courts: tournamentData.courts,
+          rounds: tournamentData.rounds,
           tournamentType: tournamentData.tournamentType,
           createdAt: tournamentData.createdAt.toISOString(),
           updatedAt: tournamentData.updatedAt.toISOString(),

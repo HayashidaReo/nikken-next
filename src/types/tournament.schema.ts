@@ -12,6 +12,16 @@ export const courtSchema = z.object({
 });
 
 /**
+ * ラウンド（回戦）情報のZodスキーマ
+ */
+export const roundSchema = z.object({
+  roundId: z.string().min(1, "ラウンドIDは必須です"),
+  roundName: z.string()
+    .min(1, "ラウンド名は必須です")
+    .max(20, "ラウンド名は20文字以内で入力してください"), // 仮の制限
+});
+
+/**
  * 大会エンティティのZodスキーマ（データベース保存用）
  * デフォルト大会作成時は空の値を許可
  */
@@ -28,6 +38,7 @@ export const tournamentSchema = z.object({
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema), // 空配列許可（デフォルト大会用）
+  rounds: z.array(roundSchema), // 空配列許可（デフォルト大会用）
   tournamentType: z.enum(["individual", "team"]), // 大会形式
   createdAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
   updatedAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
@@ -51,6 +62,7 @@ export const tournamentFormSchema = z.object({
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema).min(1, "最低1つのコートを設定してください"),
+  rounds: z.array(roundSchema).min(1, "最低1つのラウンドを設定してください"),
   tournamentType: z.enum(["individual", "team"], {
     message: "大会形式を選択してください",
   }), // 大会形式
@@ -94,6 +106,7 @@ export const tournamentSettingsSchema = tournamentSchema
 
 // TypeScriptの型を自動導出
 export type Court = z.infer<typeof courtSchema>;
+export type Round = z.infer<typeof roundSchema>;
 export type Tournament = z.infer<typeof tournamentSchema>;
 export type TournamentForm = z.infer<typeof tournamentFormSchema>;
 export type TournamentCreate = z.infer<typeof tournamentCreateSchema>;

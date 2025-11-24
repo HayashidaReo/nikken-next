@@ -39,6 +39,9 @@
 | `courts`             | Array of Maps | 会場のコート情報                         |
 | `courts[].courtId`   | String        | コートID                                 |
 | `courts[].courtName` | String        | コート名                                 |
+| `rounds`             | Array of Maps | ラウンド（回戦）情報                     |
+| `rounds[].roundId`   | String        | ラウンドID                               |
+| `rounds[].roundName` | String        | ラウンド名                               |
 | `tournamentType`     | String        | 大会形式 ("individual" \| "team")        |
 | `createdAt`          | Timestamp     | データ作成日時                           |
 | `updatedAt`          | Timestamp     | 最終編集日時                             |
@@ -115,7 +118,7 @@
 | ----------------------------- | --------- | ----------------------------------------------------------------------------- |
 | `matchId`                     | String    | 試合ID                                                                        |
 | `courtId`                     | String    | コートID                                                                      |
-| `round`                       | String    | ラウンド（例: "1回戦"）                                                           |
+| `round`                       | String    | ラウンド（例: "1回戦"）                                                       |
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
 | `players.playerA`             | Map       | 選手Aの情報                                                                   |
@@ -148,7 +151,7 @@
 | フィールド名                  | データ型  | 説明                                                                          |
 | ----------------------------- | --------- | ----------------------------------------------------------------------------- |
 | `matchId`                     | String    | 試合ID                                                                        |
-| `matchGroupId`                | String    | 親となるチーム試合ID                                                            |
+| `matchGroupId`                | String    | 親となるチーム試合ID                                                          |
 | `courtId`                     | String    | コートID                                                                      |
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
