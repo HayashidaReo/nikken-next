@@ -23,14 +23,14 @@ export function TournamentSettingsLayout({
     rightPanelClassName = "flex-1",
 }: TournamentSettingsLayoutProps) {
     return (
-        <div className="mt-8 flex gap-8">
+        <div className="flex gap-8 items-start">
             {/* 左側: 大会一覧エリア */}
             <div className={leftPanelClassName}>
                 {leftPanel}
             </div>
 
             {/* 右側: 大会詳細フォーム */}
-            <div className={rightPanelClassName}>
+            <div className={`${rightPanelClassName} sticky top-8`}>
                 {rightPanel}
             </div>
         </div>

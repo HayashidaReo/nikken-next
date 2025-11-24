@@ -88,28 +88,30 @@ export default function TournamentSettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <Link href="/dashboard">
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              ダッシュボードに戻る
-            </Button>
-          </Link>
-        </div>
-
-        <AuthenticatedHeader
-          title="大会設定"
-          subtitle="大会の編集・新規追加・削除を行う管理画面"
-        />
-
         <TournamentSettingsLayout
           leftPanel={
-            <TournamentList
-              orgId={orgId}
-              selectedTournamentId={selectedTournamentId}
-              onTournamentSelect={handleSelectTournament}
-              onNewTournament={handleStartNew}
-            />
+            <div className="space-y-6">
+              <div>
+                <Link href="/dashboard">
+                  <Button variant="outline">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    ダッシュボードに戻る
+                  </Button>
+                </Link>
+              </div>
+
+              <AuthenticatedHeader
+                title="大会設定"
+                subtitle="大会の編集・新規追加・削除を行う管理画面"
+              />
+
+              <TournamentList
+                orgId={orgId}
+                selectedTournamentId={selectedTournamentId}
+                onTournamentSelect={handleSelectTournament}
+                onNewTournament={handleStartNew}
+              />
+            </div>
           }
           rightPanel={
             selectedTournament || isAddingNew ? (
