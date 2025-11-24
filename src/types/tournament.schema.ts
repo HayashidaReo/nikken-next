@@ -12,11 +12,35 @@ export const courtSchema = z.object({
 });
 
 /**
+ * コート入力用のZodスキーマ（IDはオプショナル）
+ */
+export const courtInputSchema = courtSchema.extend({
+  courtId: z.string().optional(),
+});
+
+/**
+ * ラウンド（回戦）情報のZodスキーマ
+ */
+export const roundSchema = z.object({
+  roundId: z.string().min(1, "ラウンドIDは必須です"),
+  roundName: z.string()
+    .min(1, "ラウンド名は必須です")
+    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンド名は${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+});
+
+/**
+ * ラウンド入力用のZodスキーマ（IDはオプショナル）
+ */
+export const roundInputSchema = roundSchema.extend({
+  roundId: z.string().optional(),
+});
+
+/**
  * 大会エンティティのZodスキーマ（データベース保存用）
  * デフォルト大会作成時は空の値を許可
  */
 export const tournamentSchema = z.object({
-  tournamentId: z.string().optional(), // Firestoreで自動生成
+  tournamentId: z.string(), // Firestoreで自動生成
   tournamentName: z.string().trim()
     .max(TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX, `大会名は${TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}文字以内で入力してください`), // 空文字許可（デフォルト大会用）
   tournamentDate: z.coerce.date(), // 文字列からDateへ自動変換（JSON経由のAPI対応）
@@ -28,9 +52,10 @@ export const tournamentSchema = z.object({
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema), // 空配列許可（デフォルト大会用）
+  rounds: z.array(roundSchema), // 空配列許可（デフォルト大会用）
   tournamentType: z.enum(["individual", "team"]), // 大会形式
-  createdAt: z.coerce.date().optional(), // Firestoreで自動設定（文字列からDateへ自動変換）
-  updatedAt: z.coerce.date().optional(), // Firestoreで自動設定（文字列からDateへ自動変換）
+  createdAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
+  updatedAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
 });
 
 /**
@@ -50,8 +75,11 @@ export const tournamentFormSchema = z.object({
   defaultMatchTime: z
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
-  courts: z.array(courtSchema).min(1, "最低1つのコートを設定してください"),
-  tournamentType: z.enum(["individual", "team"]), // 大会形式
+  courts: z.array(courtInputSchema).min(1, "最低1つのコートを設定してください"),
+  rounds: z.array(roundInputSchema).min(1, "最低1つのラウンドを設定してください"),
+  tournamentType: z.enum(["individual", "team"], {
+    message: "大会形式を選択してください",
+  }), // 大会形式
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
 });
@@ -59,9 +87,14 @@ export const tournamentFormSchema = z.object({
 /**
  * フォーム編集用の部分的なTournament型
  * tournamentDateをnullableにしてフォーム表示で空白を許可
+ * tournamentTypeをnullableにしてフォーム表示で未選択を許可
+ * createdAt, updatedAtをoptionalにして新規作成時に対応
  */
-export type TournamentFormData = Omit<Tournament, "tournamentDate"> & {
+export type TournamentFormData = Omit<Tournament, "tournamentDate" | "tournamentType" | "createdAt" | "updatedAt"> & {
   tournamentDate: Date | null;
+  tournamentType: Tournament["tournamentType"] | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 /**
@@ -87,6 +120,7 @@ export const tournamentSettingsSchema = tournamentSchema
 
 // TypeScriptの型を自動導出
 export type Court = z.infer<typeof courtSchema>;
+export type Round = z.infer<typeof roundSchema>;
 export type Tournament = z.infer<typeof tournamentSchema>;
 export type TournamentForm = z.infer<typeof tournamentFormSchema>;
 export type TournamentCreate = z.infer<typeof tournamentCreateSchema>;

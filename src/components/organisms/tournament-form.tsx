@@ -1,17 +1,13 @@
 import { Input } from "@/components/atoms/input";
 import { Textarea } from "@/components/atoms/textarea";
+import { Button } from "@/components/atoms/button";
 import { TimePicker } from "@/components/molecules/time-picker";
 import { CourtManager } from "@/components/molecules/court-manager";
+import { RoundManager } from "@/components/molecules/round-manager";
 import { FormField } from "@/components/molecules/form-field";
 import { FormHeader } from "@/components/molecules/form-header";
-import { FormActions } from "@/components/molecules/form-actions";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/atoms/select";
+import { SearchableSelect } from "@/components/molecules/searchable-select";
+import { useToast } from "@/components/providers/notification-provider";
 import {
   formatDateToInputValue,
   parseInputValueToDate,
@@ -30,6 +26,7 @@ interface TournamentFormProps {
       | Date
       | null
       | { courtId: string; courtName: string }[]
+      | { roundId: string; roundName: string }[]
   ) => void;
   onSave: () => void;
   onCancel?: () => void;
@@ -48,6 +45,19 @@ export function TournamentForm({
   onCancel,
   className = "",
 }: TournamentFormProps) {
+  const { showWarning } = useToast();
+
+  const handleInputChange = (
+    field: keyof TournamentFormData,
+    value: string,
+    maxLength?: number
+  ) => {
+    if (maxLength && value.length > maxLength) {
+      showWarning(`${maxLength}文字以内で入力してください`);
+      return;
+    }
+    onFormChange(field, value);
+  };
   return (
     <div
       className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}
@@ -55,6 +65,11 @@ export function TournamentForm({
       <FormHeader
         title={isAddingNew ? "新規大会作成" : "大会編集"}
         onCancel={onCancel}
+        actions={
+          <Button onClick={onSave} size="sm">
+            {isAddingNew ? "大会を作成" : "変更を保存"}
+          </Button>
+        }
       />
 
       <div className="space-y-6">
@@ -63,7 +78,7 @@ export function TournamentForm({
           <Input
             id="tournamentName"
             value={formData.tournamentName}
-            onChange={e => onFormChange("tournamentName", e.target.value)}
+            onChange={e => handleInputChange("tournamentName", e.target.value, TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX)}
             placeholder="大会名を入力してください"
             maxLength={TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}
           />
@@ -87,18 +102,16 @@ export function TournamentForm({
 
         {/* 大会形式 */}
         <FormField label="大会形式" required>
-          <Select
-            value={formData.tournamentType || "individual"}
+          <SearchableSelect
+            value={formData.tournamentType || ""}
             onValueChange={(value) => onFormChange("tournamentType", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="大会形式を選択" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="individual">個人戦</SelectItem>
-              <SelectItem value="team">団体戦</SelectItem>
-            </SelectContent>
-          </Select>
+            options={[
+              { value: "individual", label: "個人戦" },
+              { value: "team", label: "団体戦" },
+            ]}
+            placeholder="大会形式を選択"
+            className="h-10"
+          />
         </FormField>
 
         {/* 大会概要 */}
@@ -106,7 +119,7 @@ export function TournamentForm({
           <Textarea
             id="tournamentDetail"
             value={formData.tournamentDetail || ""}
-            onChange={e => onFormChange("tournamentDetail", e.target.value)}
+            onChange={e => handleInputChange("tournamentDetail", e.target.value, TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX)}
             placeholder="大会の詳細情報や説明を入力してください"
             rows={4}
             maxLength={TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX}
@@ -118,7 +131,7 @@ export function TournamentForm({
           <Input
             id="location"
             value={formData.location}
-            onChange={e => onFormChange("location", e.target.value)}
+            onChange={e => handleInputChange("location", e.target.value, TEXT_LENGTH_LIMITS.LOCATION_MAX)}
             placeholder="開催場所を入力してください"
             maxLength={TEXT_LENGTH_LIMITS.LOCATION_MAX}
           />
@@ -133,18 +146,20 @@ export function TournamentForm({
         </FormField>
 
         {/* コート管理 */}
-        <FormField label="コート設定">
+        <FormField label="コート選択リスト">
           <CourtManager
             courts={formData.courts}
             onChange={courts => onFormChange("courts", courts)}
           />
         </FormField>
 
-        {/* 保存ボタン */}
-        <FormActions
-          onSave={onSave}
-          saveButtonText={isAddingNew ? "大会を作成" : "変更を保存"}
-        />
+        {/* ラウンド管理 */}
+        <FormField label="ラウンド設定">
+          <RoundManager
+            rounds={formData.rounds}
+            onChange={rounds => onFormChange("rounds", rounds)}
+          />
+        </FormField>
       </div>
     </div>
   );

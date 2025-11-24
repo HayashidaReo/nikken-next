@@ -13,6 +13,7 @@ export interface FirestoreTournamentDoc {
   location: string;
   defaultMatchTime: number;
   courts: FirestoreCourtDoc[];
+  rounds: FirestoreRoundDoc[];
   tournamentType: "individual" | "team";
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -23,6 +24,11 @@ export type FirestoreTournamentCreateDoc = FirestoreTournamentDoc;
 export interface FirestoreCourtDoc {
   courtId: string;
   courtName: string;
+}
+
+export interface FirestoreRoundDoc {
+  roundId: string;
+  roundName: string;
 }
 
 /**
@@ -57,6 +63,10 @@ export class TournamentMapper {
         courtId: court.courtId,
         courtName: court.courtName,
       })),
+      rounds: (doc.rounds || []).map(round => ({
+        roundId: round.roundId,
+        roundName: round.roundName,
+      })),
       tournamentType: doc.tournamentType,
       createdAt: doc.createdAt.toDate(),
       updatedAt: doc.updatedAt.toDate(),
@@ -89,6 +99,10 @@ export class TournamentMapper {
       courts: tournament.courts.map(court => ({
         courtId: court.courtId,
         courtName: court.courtName,
+      })),
+      rounds: tournament.rounds.map(round => ({
+        roundId: round.roundId,
+        roundName: round.roundName,
       })),
       tournamentType: tournament.tournamentType,
       createdAt: now,
@@ -125,6 +139,12 @@ export class TournamentMapper {
       updateDoc.courts = tournament.courts.map(court => ({
         courtId: court.courtId,
         courtName: court.courtName,
+      }));
+    }
+    if (tournament.rounds !== undefined) {
+      updateDoc.rounds = tournament.rounds.map(round => ({
+        roundId: round.roundId,
+        roundName: round.roundName,
       }));
     }
     if (tournament.tournamentType !== undefined) {

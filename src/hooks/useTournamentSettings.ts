@@ -2,23 +2,25 @@ import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveTournament } from "@/store/use-active-tournament-store";
-import {
-    useTournamentsByOrganization,
-    useCreateTournament,
-    useUpdateTournamentByOrganization,
-} from "@/queries/use-tournaments";
+import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import type { Tournament, TournamentFormData } from "@/types/tournament.schema";
 import {
     createEmptyTournamentFormData,
     mapTournamentToFormData,
 } from "@/lib/utils/tournament-operations";
 import { validateTournamentForm } from "@/lib/utils/tournament-validation";
+import { useTournamentPersistence } from "./useTournamentPersistence";
+
+interface SyncConfirmState {
+    isOpen: boolean;
+    mode: "create" | "update";
+}
 
 /**
  * 大会設定ページの状態管理フック
  */
 export function useTournamentSettings() {
-    const { showSuccess, showError } = useToast();
+    const { showError } = useToast();
     const { user } = useAuth();
     const { activeTournamentId, setActiveTournament } = useActiveTournament();
     // ユーザーのUIDを組織IDとして使用
@@ -31,8 +33,7 @@ export function useTournamentSettings() {
         error,
     } = useTournamentsByOrganization(orgId);
 
-    const { mutate: createTournament } = useCreateTournament();
-    const { mutate: updateTournament } = useUpdateTournamentByOrganization();
+    const { saveToLocal, syncToCloud } = useTournamentPersistence();
 
     // 状態管理
     const [selectedTournamentId, setSelectedTournamentId] = useState<
@@ -41,6 +42,11 @@ export function useTournamentSettings() {
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [formData, setFormData] =
         useState<TournamentFormData>(createEmptyTournamentFormData());
+
+    const [syncConfirm, setSyncConfirm] = useState<SyncConfirmState>({
+        isOpen: false,
+        mode: "create",
+    });
 
     // 大会選択処理
     const handleSelectTournament = useCallback((tournament: Tournament) => {
@@ -95,13 +101,14 @@ export function useTournamentSettings() {
                 | Date
                 | null
                 | { courtId: string; courtName: string }[]
+                | { roundId: string; roundName: string }[]
         ) => {
             setFormData(prev => ({ ...prev, [field]: value }));
         },
         []
     );
 
-    // 大会保存処理
+    // 大会保存処理（ローカル保存 -> 同期確認）
     const handleSave = useCallback(async () => {
         if (!orgId) {
             showError("組織IDが設定されていません");
@@ -117,102 +124,68 @@ export function useTournamentSettings() {
         }
 
         try {
-            if (!selectedTournamentId) {
-                // 新規作成
-                // createdAt/updatedAt を除外してデータを作成
-                const {
-                    createdAt: _createdAt,
-                    updatedAt: _updatedAt,
-                    tournamentId: _id,
-                    ...dataForCreate
-                } = formData;
-                void _createdAt;
-                void _updatedAt;
-                void _id;
+            const result = await saveToLocal(formData, selectedTournamentId);
 
-                // 作成前の大会数を保存しておく（onSuccess 実行時にはキャッシュがまだ更新されていないため）
-                const wasEmpty = tournaments.length === 0;
+            if (result.success) {
+                // 新規作成/更新成功時は、編集モードに切り替える
+                setSelectedTournamentId(result.tournamentId);
+                setIsAddingNew(false);
+                // フォームデータのIDも更新しておく
+                setFormData(prev => ({ ...prev, tournamentId: result.tournamentId }));
 
-                createTournament(
-                    {
-                        orgId,
-                        tournamentData: {
-                            ...dataForCreate,
-                            tournamentDate: dataForCreate.tournamentDate as Date,
-                        },
-                    },
-                    {
-                        onSuccess: result => {
-                            showSuccess("大会を作成しました");
-                            setSelectedTournamentId(result.data.tournamentId);
-                            setFormData(prev => ({
-                                ...prev,
-                                ...result.data,
-                            }));
-
-                            // 作成前に大会が0件だった場合のみ、新規作成した大会をアクティブに設定
-                            if (wasEmpty && result.data.tournamentId) {
-                                setActiveTournament(result.data.tournamentId, result.data.tournamentType);
-                            }
-                        },
-                        onError: error => {
-                            showError(
-                                error instanceof Error
-                                    ? error.message
-                                    : "大会の作成に失敗しました"
-                            );
-                        },
-                    }
-                );
-            } else {
-                // 更新
-                const {
-                    createdAt: _createdAt,
-                    updatedAt: _updatedAt,
-                    tournamentId: _id,
-                    ...dataForUpdate
-                } = formData;
-                void _createdAt;
-                void _updatedAt;
-                void _id;
-
-                updateTournament(
-                    {
-                        orgId,
-                        tournamentId: selectedTournamentId,
-                        patch: {
-                            ...dataForUpdate,
-                            tournamentDate: dataForUpdate.tournamentDate as Date,
-                        },
-                    },
-                    {
-                        onSuccess: () => {
-                            showSuccess("大会設定を更新しました");
-                        },
-                        onError: error => {
-                            showError(
-                                error instanceof Error ? error.message : "保存に失敗しました"
-                            );
-                        },
-                    }
-                );
+                setSyncConfirm({
+                    isOpen: true,
+                    mode: result.mode,
+                });
             }
         } catch (error) {
-            showError(error instanceof Error ? error.message : "保存に失敗しました");
+            // エラーハンドリングはフック内で行われるため、ここでは何もしないか、必要に応じて追加処理を行う
+            console.error("保存に失敗", error);
         }
     }, [
         orgId,
         formData,
         selectedTournamentId,
-        createTournament,
-        updateTournament,
-        showSuccess,
         showError,
-        tournaments.length,
-        setActiveTournament,
+        saveToLocal,
     ]);
 
+    // クラウド同期実行
+    const handleSyncConfirm = useCallback(() => {
+        if (!orgId || !selectedTournamentId) return;
 
+        const wasEmpty = tournaments.length === 0;
+
+        syncToCloud(
+            formData,
+            selectedTournamentId,
+            syncConfirm.mode,
+            // onSuccess
+            (result) => {
+                // 新規作成の場合、activeTournamentを設定
+                if (syncConfirm.mode === "create" && wasEmpty && result.data.tournamentId) {
+                    setActiveTournament(result.data.tournamentId, result.data.tournamentType);
+                }
+                setSyncConfirm(prev => ({ ...prev, isOpen: false }));
+            },
+            // onError
+            () => {
+                setSyncConfirm(prev => ({ ...prev, isOpen: false }));
+            }
+        );
+    }, [
+        orgId,
+        syncConfirm,
+        formData,
+        selectedTournamentId,
+        tournaments.length,
+        setActiveTournament,
+        syncToCloud,
+    ]);
+
+    const handleSyncCancel = useCallback(() => {
+        setSyncConfirm(prev => ({ ...prev, isOpen: false }));
+    }, []);
 
     return {
         // 状態
@@ -223,11 +196,14 @@ export function useTournamentSettings() {
         selectedTournamentId,
         isAddingNew: isAddingNew || !selectedTournamentId, // 明示的な新規作成フラグまたはID未選択
         formData,
+        syncConfirm,
 
         // アクション
         handleSelectTournament,
         handleStartNew,
         handleFormChange,
         handleSave,
+        handleSyncConfirm,
+        handleSyncCancel,
     };
 }

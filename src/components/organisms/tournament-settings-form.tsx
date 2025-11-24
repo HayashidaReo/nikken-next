@@ -38,11 +38,19 @@ const tournamentSettingsSchema = z.object({
   courts: z
     .array(
       z.object({
-        courtId: z.string(),
+        courtId: z.string().optional(),
         courtName: z.string().min(1, "コート名は必須です"),
       })
     )
     .min(1, "最低1つのコートを設定してください"),
+  rounds: z
+    .array(
+      z.object({
+        roundId: z.string().optional(),
+        roundName: z.string().min(1, "ラウンド名は必須です"),
+      })
+    )
+    .min(1, "最低1つのラウンドを設定してください"),
 });
 
 type TournamentSettingsData = z.infer<typeof tournamentSettingsSchema>;
@@ -54,7 +62,8 @@ interface TournamentSettingsFormProps {
     tournamentDate: Date; // string から Date に変更
     location: string;
     defaultMatchTime: number;
-    courts: { courtId: string; courtName: string }[];
+    courts: { courtId?: string; courtName: string }[];
+    rounds: { roundId?: string; roundName: string }[];
   }) => Promise<void>;
   isNewTournament?: boolean;
   className?: string;
@@ -71,7 +80,8 @@ export function TournamentSettingsForm({
     tournamentDate: Date; // string から Date に変更
     location: string;
     defaultMatchTime: number;
-    courts: { courtId: string; courtName: string }[];
+    courts: { courtId?: string; courtName: string }[];
+    rounds: { roundId?: string; roundName: string }[];
   }>();
   const { showWarning } = useToast();
 
@@ -100,7 +110,7 @@ export function TournamentSettingsForm({
     ),
   });
 
-  const { fields, addItem, removeItem } = useArrayField(control, "courts", {
+  const { fields: courtFields, addItem: addCourtItem, removeItem: removeCourtItem } = useArrayField(control, "courts", {
     minItems: 1,
     defaultItem: () => ({
       courtId: `court-${Date.now()}`,
@@ -111,11 +121,28 @@ export function TournamentSettingsForm({
     },
   });
 
+  const { fields: roundFields, addItem: addRoundItem, removeItem: removeRoundItem } = useArrayField(control, "rounds", {
+    minItems: 1,
+    defaultItem: () => ({
+      roundId: `round-${Date.now()}`,
+      roundName: "",
+    }),
+    onMinItemsRequired: minItems => {
+      showWarning(`削除できません。最低${minItems}ラウンドが必要です。`);
+    },
+  });
+
   // コートを追加（共通hookを使用）
-  const addCourt = () => addItem();
+  const addCourt = () => addCourtItem();
 
   // コートを削除（共通hookを使用）
-  const removeCourt = (index: number) => removeItem(index);
+  const removeCourt = (index: number) => removeCourtItem(index);
+
+  // ラウンドを追加
+  const addRound = () => addRoundItem();
+
+  // ラウンドを削除
+  const removeRound = (index: number) => removeRoundItem(index);
 
   // フォーム送信
   const handleFormSubmit = async (data: TournamentSettingsData) => {
@@ -132,6 +159,7 @@ export function TournamentSettingsForm({
       location: data.location,
       defaultMatchTime: totalSeconds,
       courts: data.courts,
+      rounds: data.rounds,
     };
 
     await handleFormSubmission(onSave, tournamentData, {
@@ -249,7 +277,7 @@ export function TournamentSettingsForm({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {fields.map((field, index) => (
+              {courtFields.map((field, index) => (
                 <div key={field.id} className="flex items-center gap-3">
                   <div className="flex-1">
                     <Input
@@ -265,13 +293,51 @@ export function TournamentSettingsForm({
 
                   <RemoveButton
                     onClick={() => removeCourt(index)}
-                    disabled={fields.length === 1}
+                    disabled={courtFields.length === 1}
                   />
                 </div>
               ))}
 
               {errors.courts && typeof errors.courts.message === "string" && (
                 <p className="text-sm text-red-600">{errors.courts.message}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ラウンド設定 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>ラウンド設定</CardTitle>
+              <AddButton onClick={addRound}>ラウンドを追加</AddButton>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {roundFields.map((field, index) => (
+                <div key={field.id} className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <Input
+                      {...register(`rounds.${index}.roundName`)}
+                      placeholder={`ラウンド${index + 1}`}
+                    />
+                    {errors.rounds?.[index]?.roundName && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.rounds[index]?.roundName?.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <RemoveButton
+                    onClick={() => removeRound(index)}
+                    disabled={roundFields.length === 1}
+                  />
+                </div>
+              ))}
+
+              {errors.rounds && typeof errors.rounds.message === "string" && (
+                <p className="text-sm text-red-600">{errors.rounds.message}</p>
               )}
             </div>
           </CardContent>

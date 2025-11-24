@@ -19,7 +19,8 @@ export function createEmptyTournamentFormData(): TournamentFormData {
         tournamentDetail: "",
         defaultMatchTime: 180, // 3分 = 180秒
         courts: [],
-        tournamentType: "individual",
+        rounds: [],
+        tournamentType: null,
     };
 }
 
@@ -49,6 +50,7 @@ export function mapTournamentToFormData(
         tournamentDetail: tournament.tournamentDetail || "",
         defaultMatchTime: tournament.defaultMatchTime,
         courts: tournament.courts,
+        rounds: tournament.rounds,
         tournamentType: tournament.tournamentType,
         createdAt: tournament.createdAt,
         updatedAt: tournament.updatedAt,
@@ -115,7 +117,8 @@ export function hasTournamentFormDataChanged(
         original.tournamentDetail !== current.tournamentDetail ||
         original.defaultMatchTime !== current.defaultMatchTime ||
         original.tournamentType !== current.tournamentType ||
-        JSON.stringify(original.courts) !== JSON.stringify(current.courts)
+        JSON.stringify(original.courts) !== JSON.stringify(current.courts) ||
+        JSON.stringify(original.rounds) !== JSON.stringify(current.rounds)
     );
 }
 
@@ -137,6 +140,7 @@ export function mergeTournamentData(
         tournamentDetail: formData.tournamentDetail,
         defaultMatchTime: formData.defaultMatchTime,
         courts: formData.courts,
+        rounds: formData.rounds,
         tournamentType: formData.tournamentType,
         createdAt: serverData.createdAt,
         updatedAt: serverData.updatedAt,

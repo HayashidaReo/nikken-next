@@ -17,6 +17,13 @@ export const tournamentKeys = {
 
 /**
  * 組織内の大会一覧を取得するQuery (Local First)
+ *
+ * アーキテクチャ: Local First
+ * 1. まずローカルDB (Dexie) からデータを即座に取得して表示します (useLiveQuery)。
+ * 2. バックグラウンドでAPIから最新データを取得し (useQuery)、ローカルDBを更新します。
+ * 3. ローカルDBが更新されると、useLiveQuery が自動的に再描画をトリガーします。
+ *
+ * これにより、オフライン時でもデータが表示され、オンライン復帰時に自動的に同期されます。
  */
 export function useTournamentsByOrganization(orgId: string | null) {
     // 1. Local Data (Immediate)
@@ -105,9 +112,11 @@ export function useCreateTournament() {
     return useMutation({
         mutationFn: async ({
             orgId,
+            tournamentId,
             tournamentData,
         }: {
             orgId: string;
+            tournamentId: string;
             tournamentData: {
                 tournamentName: string;
                 tournamentDate: Date;
@@ -115,6 +124,8 @@ export function useCreateTournament() {
                 location: string;
                 defaultMatchTime: number;
                 courts: { courtId: string; courtName: string }[];
+                rounds: { roundId: string; roundName: string }[];
+                tournamentType: "individual" | "team";
             };
         }) => {
             const response = await fetch(`/api/tournaments/${orgId}`, {
@@ -122,7 +133,10 @@ export function useCreateTournament() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(tournamentData),
+                body: JSON.stringify({
+                    ...tournamentData,
+                    tournamentId, // クライアント生成IDを含める
+                }),
             });
 
             if (!response.ok) {

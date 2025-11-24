@@ -17,11 +17,19 @@ export const tournamentSettingsSchema = z.object({
   courts: z
     .array(
       z.object({
-        courtId: z.string(),
+        courtId: z.string().optional(),
         courtName: z.string().min(1, "コート名は必須です"),
       })
     )
     .min(1, "最低1つのコートを設定してください"),
+  rounds: z
+    .array(
+      z.object({
+        roundId: z.string().optional(),
+        roundName: z.string().min(1, "ラウンド名は必須です"),
+      })
+    )
+    .min(1, "最低1つのラウンドを設定してください"),
 });
 
 export type TournamentSettingsData = z.infer<typeof tournamentSettingsSchema>;
@@ -70,6 +78,7 @@ export function createDefaultTournamentSettingsValues(
     tournamentDate?: Date;
     location?: string;
     courts?: Array<{ courtId: string; courtName: string }>;
+    rounds?: Array<{ roundId: string; roundName: string }>;
   } | null,
   defaultMinutes: number = 5,
   defaultSeconds: number = 0
@@ -87,6 +96,10 @@ export function createDefaultTournamentSettingsValues(
       courtId: court.courtId,
       courtName: court.courtName,
     })) || [{ courtId: "court-1", courtName: "" }],
+    rounds: tournament?.rounds?.map(round => ({
+      roundId: round.roundId,
+      roundName: round.roundName,
+    })) || [{ roundId: "round-1", roundName: "" }],
   };
 }
 

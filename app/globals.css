@@ -135,3 +135,24 @@ body {
 .border-blue-200 {
   border-color: #bfdbfe !important;
 }
+
+/* カレンダー入力のスタイル改善 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 8px;
+  filter: invert(0.4);
+  transition: filter 0.2s;
+  width: 20px;
+  height: 20px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(0.2);
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+input[type="date"] {
+  min-height: 2.5rem;
+}
