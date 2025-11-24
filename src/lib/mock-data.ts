@@ -16,6 +16,7 @@ export const mockOrganization: Organization = {
 
 // モック大会データ
 export const mockTournament: Tournament = {
+  tournamentId: "mock-tournament-id",
   tournamentName: "第50回全国日本拳法大会",
   tournamentDate: new Date("2024-03-20"),
   tournamentDetail: "全国規模の日本拳法大会です",
@@ -25,6 +26,10 @@ export const mockTournament: Tournament = {
     { courtId: "court-1", courtName: "Aコート" },
     { courtId: "court-2", courtName: "Bコート" },
     { courtId: "court-3", courtName: "Cコート" },
+  ],
+  rounds: [
+    { roundId: "round-1", roundName: "1回戦" },
+    { roundId: "round-2", roundName: "2回戦" },
   ],
   tournamentType: "individual",
   createdAt: new Date("2024-01-15"),

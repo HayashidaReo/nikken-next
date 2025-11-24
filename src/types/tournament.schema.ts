@@ -12,13 +12,27 @@ export const courtSchema = z.object({
 });
 
 /**
+ * コート入力用のZodスキーマ（IDはオプショナル）
+ */
+export const courtInputSchema = courtSchema.extend({
+  courtId: z.string().optional(),
+});
+
+/**
  * ラウンド（回戦）情報のZodスキーマ
  */
 export const roundSchema = z.object({
   roundId: z.string().min(1, "ラウンドIDは必須です"),
   roundName: z.string()
     .min(1, "ラウンド名は必須です")
-    .max(20, "ラウンド名は20文字以内で入力してください"), // 仮の制限
+    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンド名は${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+});
+
+/**
+ * ラウンド入力用のZodスキーマ（IDはオプショナル）
+ */
+export const roundInputSchema = roundSchema.extend({
+  roundId: z.string().optional(),
 });
 
 /**
@@ -61,8 +75,8 @@ export const tournamentFormSchema = z.object({
   defaultMatchTime: z
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
-  courts: z.array(courtSchema).min(1, "最低1つのコートを設定してください"),
-  rounds: z.array(roundSchema).min(1, "最低1つのラウンドを設定してください"),
+  courts: z.array(courtInputSchema).min(1, "最低1つのコートを設定してください"),
+  rounds: z.array(roundInputSchema).min(1, "最低1つのラウンドを設定してください"),
   tournamentType: z.enum(["individual", "team"], {
     message: "大会形式を選択してください",
   }), // 大会形式
