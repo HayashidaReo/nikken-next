@@ -5,13 +5,7 @@ import { CourtManager } from "@/components/molecules/court-manager";
 import { FormField } from "@/components/molecules/form-field";
 import { FormHeader } from "@/components/molecules/form-header";
 import { FormActions } from "@/components/molecules/form-actions";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/atoms/select";
+import { SearchableSelect } from "@/components/molecules/searchable-select";
 import {
   formatDateToInputValue,
   parseInputValueToDate,
@@ -87,18 +81,16 @@ export function TournamentForm({
 
         {/* 大会形式 */}
         <FormField label="大会形式" required>
-          <Select
+          <SearchableSelect
             value={formData.tournamentType || "individual"}
             onValueChange={(value) => onFormChange("tournamentType", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="大会形式を選択" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="individual">個人戦</SelectItem>
-              <SelectItem value="team">団体戦</SelectItem>
-            </SelectContent>
-          </Select>
+            options={[
+              { value: "individual", label: "個人戦" },
+              { value: "team", label: "団体戦" },
+            ]}
+            placeholder="大会形式を選択"
+            className="h-10"
+          />
         </FormField>
 
         {/* 大会概要 */}

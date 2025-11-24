@@ -548,7 +548,7 @@ export function SearchableSelect({
 
     // トリガー（表示部分）の動的クラス
     const triggerClasses = [
-        'flex h-8 w-full items-center justify-between rounded-md border bg-white px-3 py-1 text-sm',
+        'flex w-full items-center justify-between rounded-md border bg-white px-3 text-sm',
         'cursor-pointer outline-none',
         // キーボードナビゲーション中はフォーカスリングを表示しない
         !isKeyboardNavigating && 'focus:ring-2 focus:ring-blue-500',
@@ -558,6 +558,8 @@ export function SearchableSelect({
                 ? 'border-red-500 hover:border-red-600'
                 : 'border-gray-300 hover:border-gray-400',
         !value ? 'text-gray-500' : 'text-gray-900',
+        // classNameから高さクラスを抽出（h-8, h-10, h-12など）
+        className?.match(/h-\d+/) ? className.match(/h-\d+/)![0] : 'h-8',
     ];
 
     return (
