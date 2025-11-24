@@ -7,7 +7,7 @@ import { FirestoreMatchPlayerDoc } from "./match-mapper";
 export interface FirestoreTeamMatchDoc {
     matchId: string;
     matchGroupId: string;
-    round: string;
+    roundId: string;
     sortOrder: number;
     players: {
         playerA: FirestoreMatchPlayerDoc;
@@ -32,7 +32,7 @@ export class TeamMatchMapper {
         const data: TeamMatch = {
             matchId,
             matchGroupId: doc.matchGroupId,
-            round: doc.round,
+            roundId: doc.roundId,
             sortOrder: doc.sortOrder,
             players: {
                 playerA: this.playerToDomain(doc.players.playerA),
@@ -66,12 +66,12 @@ export class TeamMatchMapper {
         const matchId = match.id || match.matchId;
         if (!matchId) throw new Error("ID required");
         if (!match.matchGroupId) throw new Error("MatchGroupId required");
-        if (!match.round || match.sortOrder === undefined || !match.players) throw new Error("Missing fields");
+        if (!match.roundId || match.sortOrder === undefined || !match.players) throw new Error("Missing fields");
 
         return {
             matchId,
             matchGroupId: match.matchGroupId,
-            round: match.round,
+            roundId: match.roundId,
             sortOrder: match.sortOrder,
             players: {
                 playerA: this.playerToFirestore(match.players.playerA),
@@ -83,7 +83,9 @@ export class TeamMatchMapper {
 
     static toFirestoreForUpdate(match: Partial<TeamMatch>): Partial<FirestoreTeamMatchDoc> {
         const data: Partial<FirestoreTeamMatchDoc> = {};
-        if (match.round) data.round = match.round;
+        if (match.roundId) {
+            data.roundId = match.roundId;
+        }
         if (match.sortOrder !== undefined) data.sortOrder = match.sortOrder;
         if (match.isCompleted !== undefined) data.isCompleted = match.isCompleted;
         if (match.players) {

@@ -53,6 +53,9 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
         // 既存のIDセット
         const currentIds = new Set(data.map(d => d.id).filter(id => !id.startsWith("group-")));
 
+        const resolveRoundId = (row: MatchGroupSetupData) =>
+            row.roundId || tournament.rounds.find(r => r.roundName === row.roundName)?.roundId || "";
+
         try {
             // 削除
             const toDelete = matchGroups.filter(g => g.matchGroupId && !currentIds.has(g.matchGroupId));
@@ -62,11 +65,16 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
 
             // 作成・更新
             for (const item of data) {
+                const roundId = resolveRoundId(item);
+                if (!roundId) {
+                    throw new Error("ラウンドが選択されていません");
+                }
+
                 if (item.id.startsWith("group-")) {
                     // 作成
                     const newGroup: MatchGroupCreate = {
                         courtId: item.courtId,
-                        round: item.round,
+                        roundId,
                         teamAId: item.teamAId,
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
@@ -76,7 +84,7 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                     // 更新
                     const patch: Partial<MatchGroupCreate> = {
                         courtId: item.courtId,
-                        round: item.round,
+                        roundId,
                         teamAId: item.teamAId,
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
@@ -103,6 +111,9 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
         try {
             const currentIds = new Set(data.map(d => d.id).filter(id => !id.startsWith("match-")));
 
+            const resolveRoundId = (row: TeamMatchSetupData) =>
+                row.roundId || tournament.rounds.find(r => r.roundName === row.roundName)?.roundId || "";
+
             // 削除
             const toDelete = teamMatches.filter(m => m.matchId && !currentIds.has(m.matchId));
             for (const match of toDelete) {
@@ -116,11 +127,16 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
 
                 if (!playerA || !playerB) continue; // 無効なデータはスキップ
 
+                const roundId = resolveRoundId(item);
+                if (!roundId) {
+                    throw new Error("ラウンドが選択されていません");
+                }
+
                 if (item.id.startsWith("match-")) {
                     // Create
                     const newMatch: TeamMatchCreate = {
                         matchGroupId: selectedMatchGroupId,
-                        round: item.round,
+                        roundId,
                         sortOrder: item.sortOrder,
                         players: {
                             playerA: { ...playerA, teamId: teamA.teamId, teamName: teamA.teamName, score: 0, hansoku: 0 },
@@ -134,7 +150,7 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                     // 更新時は既存の score / hansoku を保持する
                     const existingMatch = teamMatches.find(m => m.matchId === item.id);
                     const patch: Partial<TeamMatchCreate> = {
-                        round: item.round,
+                        roundId,
                         sortOrder: item.sortOrder,
                         players: {
                             playerA: { ...playerA, teamId: teamA.teamId, teamName: teamA.teamName, score: existingMatch?.players.playerA.score ?? 0, hansoku: existingMatch?.players.playerA.hansoku ?? 0 },
@@ -182,6 +198,7 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
             key={matchGroups.map(g => g.matchGroupId).join('-') + matchGroups.length}
             teams={teams}
             courts={tournament.courts}
+            rounds={tournament.rounds}
             matchGroups={matchGroups}
             onSave={handleSaveMatchGroups}
             onSelect={handleSelect}

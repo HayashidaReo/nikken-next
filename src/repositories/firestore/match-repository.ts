@@ -191,11 +191,11 @@ export class FirestoreMatchRepository implements MatchRepository {
         return matches;
     }
 
-    async listByRound(orgId: string, tournamentId: string, round: string): Promise<Match[]> {
+    async listByRoundId(orgId: string, tournamentId: string, roundId: string): Promise<Match[]> {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
         const q = query(
             collectionRef,
-            where("round", "==", round),
+            where("roundId", "==", roundId),
             orderBy("createdAt", "asc")
         );
         const snaps = await getDocs(q);

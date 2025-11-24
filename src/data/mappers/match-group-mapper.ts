@@ -5,7 +5,7 @@ import { matchGroupSchema } from "@/types/match.schema";
 export interface FirestoreMatchGroupDoc {
     matchGroupId: string;
     courtId: string;
-    round: string;
+    roundId: string;
     sortOrder: number;
     teamAId: string;
     teamBId: string;
@@ -27,7 +27,7 @@ export class MatchGroupMapper {
         const data: MatchGroup = {
             matchGroupId,
             courtId: doc.courtId,
-            round: doc.round,
+            roundId: doc.roundId,
             sortOrder: doc.sortOrder,
             teamAId: doc.teamAId,
             teamBId: doc.teamBId,
@@ -43,14 +43,14 @@ export class MatchGroupMapper {
     static toFirestoreForCreate(group: Partial<MatchGroup> & { id?: string }): FirestoreMatchGroupCreateDoc {
         const matchGroupId = group.id || group.matchGroupId;
         if (!matchGroupId) throw new Error("ID required");
-        if (!group.courtId || !group.round || group.sortOrder === undefined || !group.teamAId || !group.teamBId) {
+        if (!group.courtId || !group.roundId || group.sortOrder === undefined || !group.teamAId || !group.teamBId) {
             throw new Error("Missing required fields");
         }
 
         return {
             matchGroupId,
             courtId: group.courtId,
-            round: group.round,
+            roundId: group.roundId,
             sortOrder: group.sortOrder,
             teamAId: group.teamAId,
             teamBId: group.teamBId,
@@ -60,7 +60,9 @@ export class MatchGroupMapper {
     static toFirestoreForUpdate(group: Partial<MatchGroup>): Partial<FirestoreMatchGroupDoc> {
         const data: Partial<FirestoreMatchGroupDoc> = {};
         if (group.courtId) data.courtId = group.courtId;
-        if (group.round) data.round = group.round;
+        if (group.roundId) {
+            data.roundId = group.roundId;
+        }
         if (group.sortOrder !== undefined) data.sortOrder = group.sortOrder;
         if (group.teamAId) data.teamAId = group.teamAId;
         if (group.teamBId) data.teamBId = group.teamBId;

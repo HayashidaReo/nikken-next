@@ -7,6 +7,7 @@ import type { Team } from "@/types/team.schema";
 const sampleRow = {
     id: "m-1",
     courtId: "c1",
+    roundId: "round-1",
     round: "予選1回戦",
     playerATeamId: "t1",
     playerAId: "p1",
@@ -56,6 +57,7 @@ describe("MatchRow", () => {
                         index={0}
                         approvedTeams={teams as Team[]}
                         courts={[{ courtId: "c1", courtName: "Court 1" }]}
+                        rounds={[{ roundId: "round-1", roundName: "予選1回戦" }]}
                         getPlayersFromTeam={(teamId: string) =>
                             teams.find(t => t.teamId === teamId)?.players ?? []
                         }

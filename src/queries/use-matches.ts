@@ -25,7 +25,7 @@ export const matchKeys = {
     details: () => [...matchKeys.all, "detail"] as const,
     detail: (id: string) => [...matchKeys.details(), id] as const,
     courtMatches: (courtId: string) => [...matchKeys.all, "court", courtId] as const,
-    roundMatches: (round: string) => [...matchKeys.all, "round", round] as const,
+    roundMatchesById: (roundId: string) => [...matchKeys.all, "round", roundId] as const,
     playerMatches: (playerId: string) => [...matchKeys.all, "player", playerId] as const,
     teamMatches: (teamId: string) => [...matchKeys.all, "team", teamId] as const,
 };
@@ -89,15 +89,15 @@ export function useMatchesByCourtId(courtId: string | null | undefined) {
 }
 
 /**
- * 特定のラウンドの試合を取得するQuery (Local DB)
+ * 特定のラウンドIDの試合を取得するQuery (Local DB)
  */
-export function useMatchesByRound(round: string | null | undefined) {
+export function useMatchesByRoundId(roundId: string | null | undefined) {
     const { orgId, activeTournamentId } = useAuthContext();
 
     const matches = useLiveQuery(async () => {
-        if (!round || !orgId || !activeTournamentId) return [];
-        return await localMatchRepository.listByRound(orgId, activeTournamentId, round);
-    }, [round, orgId, activeTournamentId]);
+        if (!roundId || !orgId || !activeTournamentId) return [];
+        return await localMatchRepository.listByRoundId(orgId, activeTournamentId, roundId);
+    }, [roundId, orgId, activeTournamentId]);
 
     return {
         data: matches,
@@ -168,7 +168,7 @@ export function useCreateMatch() {
             );
             // 関連する条件検索のキャッシュも無効化
             queryClient.invalidateQueries({ queryKey: matchKeys.courtMatches(createdMatch.courtId) });
-            queryClient.invalidateQueries({ queryKey: matchKeys.roundMatches(createdMatch.round) });
+            queryClient.invalidateQueries({ queryKey: matchKeys.roundMatchesById(createdMatch.roundId) });
         },
     });
 }
@@ -197,14 +197,14 @@ export function useCreateMatches() {
 
             // 関連する条件検索のキャッシュも無効化
             const courtIds = [...new Set(createdMatches.map(m => m.courtId))];
-            const rounds = [...new Set(createdMatches.map(m => m.round))];
+            const roundIds = [...new Set(createdMatches.map(m => m.roundId))];
 
             courtIds.forEach(courtId => {
                 queryClient.invalidateQueries({ queryKey: matchKeys.courtMatches(courtId) });
             });
 
-            rounds.forEach(round => {
-                queryClient.invalidateQueries({ queryKey: matchKeys.roundMatches(round) });
+            roundIds.forEach(roundId => {
+                queryClient.invalidateQueries({ queryKey: matchKeys.roundMatchesById(roundId) });
             });
         },
     });
@@ -235,7 +235,7 @@ export function useUpdateMatch() {
             );
             // 関連する条件検索のキャッシュも無効化
             queryClient.invalidateQueries({ queryKey: matchKeys.courtMatches(updatedMatch.courtId) });
-            queryClient.invalidateQueries({ queryKey: matchKeys.roundMatches(updatedMatch.round) });
+            queryClient.invalidateQueries({ queryKey: matchKeys.roundMatchesById(updatedMatch.roundId) });
         },
     });
 }

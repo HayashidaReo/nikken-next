@@ -32,9 +32,9 @@ export class LocalMatchRepository {
     /**
      * ラウンドで試合を取得
      */
-    async listByRound(orgId: string, tournamentId: string, round: string): Promise<LocalMatch[]> {
+    async listByRoundId(orgId: string, tournamentId: string, roundId: string): Promise<LocalMatch[]> {
         return await db.matches
-            .where({ organizationId: orgId, tournamentId, round })
+            .where({ organizationId: orgId, tournamentId, roundId })
             .sortBy("sortOrder");
     }
 

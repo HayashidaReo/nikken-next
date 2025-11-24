@@ -126,7 +126,7 @@ export const mockMatches: Match[] = [
   {
     matchId: "match-1",
     courtId: "court-1",
-    round: "1回戦",
+    roundId: "1回戦",
     sortOrder: 0,
     players: {
       playerA: {
@@ -154,7 +154,7 @@ export const mockMatches: Match[] = [
   {
     matchId: "match-2",
     courtId: "court-2",
-    round: "1回戦",
+    roundId: "1回戦",
     sortOrder: 1,
     players: {
       playerA: {
@@ -181,7 +181,7 @@ export const mockMatches: Match[] = [
   {
     matchId: "match-3",
     courtId: "court-3",
-    round: "準決勝",
+    roundId: "準決勝",
     sortOrder: 2,
     players: {
       playerA: {

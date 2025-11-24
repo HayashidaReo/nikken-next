@@ -10,6 +10,7 @@ import type { Match } from "@/types/match.schema";
 const mockMatch: Match = {
   matchId: "test-match-001",
   courtId: "court-001",
+  roundId: "final",
   round: "決勝",
   players: {
     playerA: {

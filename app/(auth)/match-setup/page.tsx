@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { MatchSetupTable } from "@/components/organisms/match-setup-table";
 import { MatchSetupSaveConflictDialog } from "@/components/molecules/match-setup-save-conflict-dialog";
@@ -37,6 +37,23 @@ export default function MatchSetupPage() {
   const { data: teams = [], isLoading: teamsLoading, error: teamsError } = useTeams();
   const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatches(activeTournamentType === 'individual');
   const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(orgId, activeTournamentId);
+
+  const tournamentRounds = useMemo(() => tournament?.rounds ?? [], [tournament]);
+
+  const roundIdToName = useMemo(() => {
+    return new Map(tournamentRounds.map(round => [round.roundId, round.roundName]));
+  }, [tournamentRounds]);
+
+  const resolveRoundName = useCallback((roundId?: string, fallback?: string) => {
+    if (!roundId) return fallback ?? "";
+    return roundIdToName.get(roundId) ?? fallback ?? roundId;
+  }, [roundIdToName]);
+
+  const resolveRoundIdFromSetup = useCallback((row: MatchSetupData) => {
+    if (row.roundId) return row.roundId;
+    const derived = tournamentRounds.find(r => r.roundName === row.roundName)?.roundId;
+    return derived || row.roundName || "";
+  }, [tournamentRounds]);
 
   // リアルタイム購読（serverState） - 他端末の変更を常に監視
   const { data: realtimeMatches = [] } = useMatchesRealtime();
@@ -122,9 +139,19 @@ export default function MatchSetupPage() {
         matchChanges.courtId = { initial: initialMatch.courtId, server: serverMatch.courtId };
       }
 
-      // round のチェック
-      if (serverMatch.round !== initialMatch.round && rejected.round !== serverMatch.round) {
-        matchChanges.round = { initial: initialMatch.round, server: serverMatch.round };
+      // roundId のチェック（表示用に roundName を解決）
+      const initialRoundId = initialMatch.roundId;
+      const serverRoundId = serverMatch.roundId;
+      const rejectedRoundValue = rejected.round;
+      const isRoundRejected =
+        rejectedRoundValue === serverRoundId ||
+        (!!serverRoundId && rejectedRoundValue === resolveRoundName(serverRoundId));
+
+      if (serverRoundId !== initialRoundId && !isRoundRejected) {
+        matchChanges.round = {
+          initial: resolveRoundName(initialRoundId),
+          server: resolveRoundName(serverRoundId),
+        };
       }
 
       // 選手A のチェック
@@ -179,7 +206,7 @@ export default function MatchSetupPage() {
       addedMatches,
       deletedMatches,
     });
-  }, [initialMatches, realtimeMatches, rejectedChanges, justSaved, justRejected]);
+  }, [initialMatches, realtimeMatches, rejectedChanges, justSaved, justRejected, resolveRoundName]);
 
   const createMatchesMutation = useCreateMatches();
   const updateMatchMutation = useUpdateMatch();
@@ -214,6 +241,7 @@ export default function MatchSetupPage() {
       initialMatches,
       realtimeMatches,
       teams,
+      tournament?.rounds ?? [],
       rejectedChanges
     );
 
@@ -278,10 +306,15 @@ export default function MatchSetupPage() {
           throw new Error(`選手B (${setupData.playerBId}) の情報が見つかりません`);
         }
 
+        const resolvedRoundId = resolveRoundIdFromSetup(setupData) || latestMatch.roundId || "";
+        if (!resolvedRoundId) {
+          throw new Error("ラウンドが選択されていません");
+        }
+
         // Transaction ベースの更新で、最新の score/hansoku を保持
         const patch = {
           courtId: setupData.courtId,
-          round: setupData.round,
+          roundId: resolvedRoundId,
           sortOrder: setupData.sortOrder,
           players: {
             playerA: {
@@ -319,9 +352,14 @@ export default function MatchSetupPage() {
             throw new Error(`選手B (${setupData.playerBId}) の情報が見つかりません`);
           }
 
+          const resolvedRoundId = resolveRoundIdFromSetup(setupData);
+          if (!resolvedRoundId) {
+            throw new Error("ラウンドが選択されていません");
+          }
+
           return {
             courtId: setupData.courtId,
-            round: setupData.round,
+            roundId: resolvedRoundId,
             sortOrder: setupData.sortOrder,
             players: {
               playerA: {
@@ -402,7 +440,7 @@ export default function MatchSetupPage() {
           updatedMatch.courtId = serverMatch.courtId;
         }
         if (changes.round) {
-          updatedMatch.round = serverMatch.round;
+          updatedMatch.roundId = serverMatch.roundId;
         }
         if (changes.playerA) {
           updatedMatch = {
@@ -464,7 +502,12 @@ export default function MatchSetupPage() {
       }
 
       Object.entries(changes).forEach(([fieldName, change]) => {
-        newRejectedChanges[matchId][fieldName] = change.server;
+        if (fieldName === "round") {
+          const serverMatch = realtimeMatches.find(m => m.matchId === matchId);
+          newRejectedChanges[matchId][fieldName] = serverMatch?.roundId ?? change.server;
+        } else {
+          newRejectedChanges[matchId][fieldName] = change.server;
+        }
       });
     });
 
@@ -584,6 +627,7 @@ export default function MatchSetupPage() {
         <MatchSetupTable
           teams={teams}
           courts={tournament.courts}
+          rounds={tournament.rounds}
           matches={mergedMatches}
           onSave={handleSave}
           isSaving={isSaving}

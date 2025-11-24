@@ -20,7 +20,7 @@ export interface MatchRepository {
 
     // 条件検索
     listByCourtId(orgId: string, tournamentId: string, courtId: string): Promise<Match[]>;
-    listByRound(orgId: string, tournamentId: string, round: string): Promise<Match[]>;
+    listByRoundId(orgId: string, tournamentId: string, roundId: string): Promise<Match[]>;
     listByPlayerId(orgId: string, tournamentId: string, playerId: string): Promise<Match[]>;
     listByTeamId(orgId: string, tournamentId: string, teamId: string): Promise<Match[]>;
 

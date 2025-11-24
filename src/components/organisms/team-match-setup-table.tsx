@@ -54,7 +54,8 @@ export function TeamMatchSetupTable({
     const [data, setData] = useState<TeamMatchSetupData[]>(() =>
         matches.map((m) => ({
             id: m.matchId || "",
-            round: m.round,
+            roundId: m.roundId || "",
+            roundName: m.roundId || "",
             playerAId: m.players.playerA.playerId,
             playerBId: m.players.playerB.playerId,
             sortOrder: m.sortOrder,
@@ -66,7 +67,7 @@ export function TeamMatchSetupTable({
     const updateData = (index: number, field: keyof TeamMatchSetupData, value: string) => {
         setData((prev) => {
             const newData = [...prev];
-            newData[index] = { ...newData[index], [field]: value };
+            newData[index] = { ...newData[index], [field]: value } as TeamMatchSetupData;
             return newData;
         });
         // もしこのフィールドにエラーがあればクリアする
@@ -84,7 +85,7 @@ export function TeamMatchSetupTable({
 
         data.forEach(row => {
             const rowErrors: string[] = [];
-            if (!row.round) rowErrors.push("round");
+            if (!row.roundId) rowErrors.push("roundId");
             if (!row.playerAId) rowErrors.push("playerAId");
             if (!row.playerBId) rowErrors.push("playerBId");
 
@@ -113,7 +114,8 @@ export function TeamMatchSetupTable({
                 ...prev,
                 {
                     id: `match-${Date.now()}`,
-                    round: nextRound,
+                    roundId: nextRound,
+                    roundName: nextRound,
                     playerAId: "",
                     playerBId: "",
                     sortOrder: maxSortOrder + 1,
@@ -124,11 +126,15 @@ export function TeamMatchSetupTable({
 
     // ラウンド名を自動的に再割り当てする関数
     const reassignRounds = (items: TeamMatchSetupData[]): TeamMatchSetupData[] => {
-        return items.map((item, index) => ({
-            ...item,
-            round: TEAM_MATCH_ROUNDS[index] || "", // 範囲外の場合は空文字（または既存の値を維持したい場合は item.round）
-            sortOrder: index
-        }));
+        return items.map((item, index) => {
+            const nextRound = TEAM_MATCH_ROUNDS[index] || "";
+            return {
+                ...item,
+                roundId: nextRound,
+                roundName: nextRound,
+                sortOrder: index,
+            };
+        });
     };
 
     const removeRow = (index: number) => {

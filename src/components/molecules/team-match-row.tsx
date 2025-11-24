@@ -44,6 +44,12 @@ export function TeamMatchRow({
     };
 
     const roundOptions: SearchableSelectOption[] = TEAM_MATCH_ROUNDS.map((r) => ({ value: r, label: r }));
+    const selectedRoundValue = row.roundId || row.roundName;
+
+    const handleRoundChange = (value: string) => {
+        onUpdate(index, "roundId", value);
+        onUpdate(index, "roundName", value);
+    };
 
     const playerAOptions: SearchableSelectOption[] = teamA.players.map(player => ({
         value: player.playerId,
@@ -69,14 +75,14 @@ export function TeamMatchRow({
                     <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                 </div>
             </TableCell>
-            <TableCell className="py-2 px-3 truncate" title={row.round}>
+            <TableCell className="py-2 px-3 truncate" title={row.roundName}>
                 <SearchableSelect
-                    value={row.round}
-                    onValueChange={value => onUpdate(index, "round", value)}
+                    value={selectedRoundValue}
+                    onValueChange={handleRoundChange}
                     options={roundOptions}
                     placeholder="ポジション選択"
                     searchPlaceholder="ポジション名で検索..."
-                    hasError={errors.includes("round")}
+                    hasError={errors.includes("round") || errors.includes("roundId")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.playerAId}>

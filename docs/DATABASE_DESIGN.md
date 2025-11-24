@@ -134,10 +134,8 @@
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
 | `players.playerA`             | Map       | 選手Aの情報                                                                   |
-| `players.playerA.displayName` | String    | 表示名                                                                        |
 | `players.playerA.playerId`    | String    | 選手ID                                                                        |
 | `players.playerA.teamId`      | String    | チームID                                                                      |
-| `players.playerA.teamName`    | String    | チーム名                                                                      |
 | `players.playerA.score`       | Number    | 選手Aの得点（0, 1, 2）                                                        |
 | `players.playerA.hansoku`     | Number    | 選手Aの反則状態（0:"none", 1:"yellow", 2:"red", 3:"red_yellow", 4:"red_red"） |
 | `players.playerB`             | Map       | 選手Bの情報（playerAと同様の構造）                                            |
@@ -169,10 +167,8 @@
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
 | `players.playerA`             | Map       | 選手Aの情報                                                                   |
-| `players.playerA.displayName` | String    | 表示名                                                                        |
 | `players.playerA.playerId`    | String    | 選手ID                                                                        |
 | `players.playerA.teamId`      | String    | チームID                                                                      |
-| `players.playerA.teamName`    | String    | チーム名                                                                      |
 | `players.playerA.score`       | Number    | 選手Aの得点（0, 1, 2）                                                        |
 | `players.playerA.hansoku`     | Number    | 選手Aの反則状態（0:"none", 1:"yellow", 2:"red", 3:"red_yellow", 4:"red_red"） |
 | `players.playerB`             | Map       | 選手Bの情報（playerAと同様の構造）                                            |

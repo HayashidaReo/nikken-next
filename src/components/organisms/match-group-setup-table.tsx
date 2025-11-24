@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
     DndContext,
     closestCenter,
@@ -25,12 +25,13 @@ import { TableRow, TableCell } from "@/components/atoms/table";
 import { useToast } from "@/components/providers/notification-provider";
 import type { MatchGroup } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
-import type { Court } from "@/types/tournament.schema";
+import type { Court, Round } from "@/types/tournament.schema";
 import type { MatchGroupSetupData } from "@/types/match-setup";
 
 interface MatchGroupSetupTableProps {
     teams: Team[];
     courts: Court[];
+    rounds: Round[];
     matchGroups: MatchGroup[];
     onSave: (data: MatchGroupSetupData[]) => void;
     onSelect: (group: MatchGroupSetupData) => void;
@@ -40,6 +41,7 @@ interface MatchGroupSetupTableProps {
 export function MatchGroupSetupTable({
     teams,
     courts,
+    rounds,
     matchGroups,
     onSave,
     onSelect,
@@ -53,15 +55,21 @@ export function MatchGroupSetupTable({
         })
     );
 
+    const roundIdToName = useMemo(() => new Map(rounds.map(r => [r.roundId, r.roundName])), [rounds]);
+
     const [data, setData] = useState<MatchGroupSetupData[]>(() =>
-        matchGroups.map((g) => ({
-            id: g.matchGroupId || "",
-            courtId: g.courtId,
-            round: g.round,
-            teamAId: g.teamAId,
-            teamBId: g.teamBId,
-            sortOrder: g.sortOrder,
-        }))
+        matchGroups.map((g) => {
+            const derivedRoundId = g.roundId || "";
+            return {
+                id: g.matchGroupId || "",
+                courtId: g.courtId,
+                roundId: derivedRoundId,
+                roundName: roundIdToName.get(derivedRoundId) || derivedRoundId,
+                teamAId: g.teamAId,
+                teamBId: g.teamBId,
+                sortOrder: g.sortOrder,
+            };
+        })
     );
     const [activeId, setActiveId] = useState<string | null>(null);
     const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -88,7 +96,7 @@ export function MatchGroupSetupTable({
         data.forEach(row => {
             const rowErrors: string[] = [];
             if (!row.courtId) rowErrors.push("courtId");
-            if (!row.round) rowErrors.push("round");
+            if (!row.roundId) rowErrors.push("roundId");
             if (!row.teamAId) rowErrors.push("teamAId");
             if (!row.teamBId) rowErrors.push("teamBId");
 
@@ -115,7 +123,8 @@ export function MatchGroupSetupTable({
             {
                 id: `group-${Date.now()}`,
                 courtId: "",
-                round: "",
+                roundName: "",
+                roundId: "",
                 teamAId: "",
                 teamBId: "",
                 sortOrder: maxSortOrder + 1,
@@ -177,6 +186,7 @@ export function MatchGroupSetupTable({
                             index={index}
                             teams={teams}
                             courts={courts}
+                            rounds={rounds}
                             onUpdate={updateData}
                             onRemove={removeRow}
                             onSelect={onSelect}
@@ -207,6 +217,7 @@ export function MatchGroupSetupTable({
                                         index={activeIndex}
                                         teams={teams}
                                         courts={courts}
+                                        rounds={rounds}
                                         onUpdate={() => { }}
                                         onRemove={() => { }}
                                         onSelect={() => { }}

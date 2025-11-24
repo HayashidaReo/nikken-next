@@ -1,5 +1,6 @@
 import type { Match } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
+import type { Round } from "@/types/tournament.schema";
 
 /**
  * 試合設定画面で使用するデータ型
@@ -7,7 +8,8 @@ import type { Team } from "@/types/team.schema";
 export type MatchSetupData = {
     id: string;
     courtId: string;
-    round: string;
+    roundId: string;
+    roundName: string;
     playerATeamId: string;
     playerAId: string;
     playerBTeamId: string;
@@ -106,9 +108,13 @@ export function detectMatchConflicts(
     initialState: Match[],
     serverData: Match[],
     teams: Team[],
+    rounds: Round[],
     rejectedChanges: Record<string, Record<string, string>> = {}
 ): ConflictDetails[] {
     const conflicts: ConflictDetails[] = [];
+    const roundIdToName = new Map(rounds.map(round => [round.roundId, round.roundName]));
+    const resolveRoundName = (roundId?: string, fallback?: string) =>
+        (roundId ? roundIdToName.get(roundId) || roundId : fallback || "");
 
     draftData.forEach(draft => {
         // 新規作成（id が "match-" で始まる or 空）の場合はスキップ
@@ -163,15 +169,23 @@ export function detectMatchConflicts(
         }
 
         // === round のチェック ===
-        const userChangedRound = draft.round !== initialMatch.round;
-        const serverChangedRound = serverMatch.round !== initialMatch.round;
-        const isRoundRejected = rejectedForMatch.round === serverMatch.round;
+        const userChangedRound = draft.roundId !== initialMatch.roundId;
+        const serverChangedRound = serverMatch.roundId !== initialMatch.roundId;
+        const isRoundRejected =
+            rejectedForMatch.round === serverMatch.roundId ||
+            rejectedForMatch.round === resolveRoundName(serverMatch.roundId);
 
-        if (userChangedRound && serverChangedRound && draft.round !== serverMatch.round && !isRoundRejected) {
-            directConflicts.round = { draft: draft.round, server: serverMatch.round };
+        if (userChangedRound && serverChangedRound && draft.roundId !== serverMatch.roundId && !isRoundRejected) {
+            directConflicts.round = {
+                draft: draft.roundName,
+                server: resolveRoundName(serverMatch.roundId),
+            };
             hasAnyConflict = true;
         } else if (!userChangedRound && serverChangedRound && !isRoundRejected) {
-            serverOnlyChanges.round = { initial: initialMatch.round, server: serverMatch.round };
+            serverOnlyChanges.round = {
+                initial: resolveRoundName(initialMatch.roundId, draft.roundName),
+                server: resolveRoundName(serverMatch.roundId),
+            };
             hasAnyConflict = true;
         }
 

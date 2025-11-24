@@ -11,8 +11,10 @@ import { Plus } from "lucide-react";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { MATCH_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import type { Team, Player } from "@/types/team.schema";
+import type { Round } from "@/types/tournament.schema";
 import type { Match } from "@/types/match.schema";
 import type { DetectedChanges } from "@/lib/utils/match-conflict-detection";
+import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
 import {
   DndContext,
   closestCenter,
@@ -31,20 +33,10 @@ import {
 } from "@dnd-kit/sortable";
 import { arrayMove } from "@dnd-kit/sortable";
 
-interface MatchSetupData {
-  id: string;
-  courtId: string;
-  round: string;
-  playerATeamId: string;
-  playerAId: string;
-  playerBTeamId: string;
-  playerBId: string;
-  sortOrder: number;
-}
-
 interface MatchSetupTableProps {
   teams: Team[];
   courts: Array<{ courtId: string; courtName: string }>;
+  rounds: Round[];
   matches: Match[];
   onSave: (matches: MatchSetupData[]) => void;
   isSaving?: boolean;
@@ -60,6 +52,7 @@ const noop = () => { };
 export function MatchSetupTable({
   teams,
   courts,
+  rounds,
   matches,
   onSave,
   isSaving = false,
@@ -76,21 +69,28 @@ export function MatchSetupTable({
     })
   );
 
+  // ラウンドの検索用マップ
+  const roundIdToName = useMemo(() => new Map(rounds.map(r => [r.roundId, r.roundName])), [rounds]);
+
   // 承認済みのチームのみフィルター
   const approvedTeams = teams.filter(team => team.isApproved); // 初期データを作成
   const initialData = useMemo(() => {
-    return matches
-      .map(match => ({
-        id: match.matchId || "", // undefined の場合は空文字列
+    return matches.map(match => {
+      const roundId = match.roundId || "";
+      const roundName = roundIdToName.get(roundId) || roundId;
+      return {
+        id: match.matchId || "",
         courtId: match.courtId,
-        round: match.round,
+        roundId,
+        roundName,
         playerATeamId: match.players.playerA.teamId,
         playerAId: match.players.playerA.playerId,
         playerBTeamId: match.players.playerB.teamId,
         playerBId: match.players.playerB.playerId,
         sortOrder: match.sortOrder,
-      }))
-  }, [matches]);
+      };
+    });
+  }, [matches, roundIdToName]);
 
   // data の初期化と更新
   // ID構成のハッシュキーを計算（追加・削除の検知用）
@@ -143,7 +143,10 @@ export function MatchSetupTable({
         // 変更されたフィールドのみを更新（ユーザーの編集内容は保持）
         const updatedRow = { ...row };
         if (changes.courtId) updatedRow.courtId = newRow.courtId;
-        if (changes.round) updatedRow.round = newRow.round;
+        if (changes.round) {
+          updatedRow.roundName = newRow.roundName;
+          updatedRow.roundId = newRow.roundId;
+        }
         if (changes.playerA) {
           updatedRow.playerATeamId = newRow.playerATeamId;
           updatedRow.playerAId = newRow.playerAId;
@@ -176,7 +179,7 @@ export function MatchSetupTable({
     setData(prev =>
       prev.map((row, index) => {
         if (index === rowIndex) {
-          const newRow = { ...row, [field]: value };
+          const newRow = { ...row, [field]: value } as MatchSetupData;
 
           // チームが変更された場合は対応する選手もリセット
           if (field === "playerATeamId") {
@@ -197,7 +200,8 @@ export function MatchSetupTable({
     const newRow: MatchSetupData = {
       id: `match-${Date.now()}`,
       courtId: "",
-      round: "",
+      roundId: "",
+      roundName: "",
       playerATeamId: "",
       playerAId: "",
       playerBTeamId: "",
@@ -302,6 +306,7 @@ export function MatchSetupTable({
                   }}
                   isAdded={isAddedMatch}
                   isDeleted={isDeletedMatch}
+                  rounds={rounds}
                   getPlayersFromTeam={getPlayersFromTeam}
                   onUpdate={updateData}
                   onRemove={removeRow}
@@ -340,6 +345,7 @@ export function MatchSetupTable({
                     index={activeIndex}
                     approvedTeams={approvedTeams}
                     courts={courts}
+                    rounds={rounds}
                     detectedRowChanges={{
                       courtId: Boolean(rowChanges.courtId),
                       round: Boolean(rowChanges.round),

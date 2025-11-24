@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2 } from "lucide-react";
@@ -7,7 +8,7 @@ import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
 import { TableCell } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
 import type { Team } from "@/types/team.schema";
-import type { Court } from "@/types/tournament.schema";
+import type { Court, Round } from "@/types/tournament.schema";
 import type { MatchGroupSetupData } from "@/types/match-setup";
 
 interface MatchGroupRowProps {
@@ -15,6 +16,7 @@ interface MatchGroupRowProps {
     index: number;
     teams: Team[];
     courts: Court[];
+    rounds: Round[];
     onUpdate: (index: number, field: keyof MatchGroupSetupData, value: string) => void;
     onRemove: (index: number) => void;
     onSelect: (row: MatchGroupSetupData) => void;
@@ -26,6 +28,7 @@ export function MatchGroupRow({
     index,
     teams,
     courts,
+    rounds,
     onUpdate,
     onRemove,
     onSelect,
@@ -50,16 +53,30 @@ export function MatchGroupRow({
         label: c.courtName,
     }));
 
-    const roundOptions: SearchableSelectOption[] = [
-        { value: "予選1回戦", label: "予選1回戦" },
-        { value: "予選2回戦", label: "予選2回戦" },
-        { value: "予選3回戦", label: "予選3回戦" },
-        { value: "予選4回戦", label: "予選4回戦" },
-        { value: "決勝トーナメント1回戦", label: "決勝トーナメント1回戦" },
-        { value: "決勝トーナメント2回戦", label: "決勝トーナメント2回戦" },
-        { value: "準決勝", label: "準決勝" },
-        { value: "決勝", label: "決勝" },
-    ];
+    const roundOptions: SearchableSelectOption[] = useMemo(
+        () => rounds.map(round => ({ value: round.roundId, label: round.roundName })),
+        [rounds]
+    );
+    const selectedRoundValue = useMemo(() => {
+        if (row.roundId) return row.roundId;
+        const fallback = rounds.find(round => round.roundName === row.roundName);
+        if (fallback) return fallback.roundId;
+        return row.roundName || "";
+    }, [row.roundName, row.roundId, rounds]);
+
+    const roundOptionsWithFallback = useMemo(() => {
+        if (!row.roundName) return roundOptions;
+        const exists = rounds.some(round => round.roundId === row.roundId || round.roundName === row.roundName);
+        if (exists) return roundOptions;
+        const fallbackValue = row.roundId || row.roundName;
+        return [...roundOptions, { value: fallbackValue, label: `${row.roundName} (未登録)` }];
+    }, [roundOptions, row.roundName, row.roundId, rounds]);
+
+    const handleRoundChange = (value: string) => {
+        const roundName = rounds.find(round => round.roundId === value)?.roundName || value;
+        onUpdate(index, "roundId", value);
+        onUpdate(index, "roundName", roundName);
+    };
 
     const teamOptions: SearchableSelectOption[] = teams.map(team => ({
         value: team.teamId,
@@ -90,14 +107,14 @@ export function MatchGroupRow({
                     hasError={errors.includes("courtId")}
                 />
             </TableCell>
-            <TableCell className="py-2 px-3 truncate" title={row.round}>
+            <TableCell className="py-2 px-3 truncate" title={row.roundName}>
                 <SearchableSelect
-                    value={row.round}
-                    onValueChange={value => onUpdate(index, "round", value)}
-                    options={roundOptions}
+                    value={selectedRoundValue}
+                    onValueChange={handleRoundChange}
+                    options={roundOptionsWithFallback}
                     placeholder="ラウンド選択"
                     searchPlaceholder="ラウンド名で検索..."
-                    hasError={errors.includes("round")}
+                    hasError={errors.includes("round") || errors.includes("roundId")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.teamAId}>

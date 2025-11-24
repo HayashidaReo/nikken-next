@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 
 /**
  * 反則状態の列挙型
@@ -52,9 +51,7 @@ export const matchPlayerSchema = z.object({
 export const matchSchema = z.object({
   matchId: z.string().optional(), // Firestoreで自動生成
   courtId: z.string().min(1, "コートIDは必須です"),
-  round: z.string()
-    .min(1, "ラウンドは必須です")
-    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+  roundId: z.string().min(1, "ラウンドIDは必須です"),
   players: z.object({
     playerA: matchPlayerSchema,
     playerB: matchPlayerSchema,
@@ -126,9 +123,7 @@ export type MatchUpdateRequest = z.infer<typeof matchUpdateRequestSchema>;
 export const matchGroupSchema = z.object({
   matchGroupId: z.string().optional(), // Firestoreで自動生成
   courtId: z.string().min(1, "コートIDは必須です"),
-  round: z.string()
-    .min(1, "ラウンドは必須です")
-    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+  roundId: z.string().min(1, "ラウンドIDは必須です"),
   sortOrder: z.number().int().min(0),
   teamAId: z.string().min(1, "チームAは必須です"),
   teamBId: z.string().min(1, "チームBは必須です"),
@@ -143,9 +138,7 @@ export const matchGroupSchema = z.object({
 export const teamMatchSchema = z.object({
   matchId: z.string().optional(),
   matchGroupId: z.string().min(1, "チーム対戦IDは必須です"),
-  round: z.string()
-    .min(1, "ラウンドは必須です")
-    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+  roundId: z.string().min(1, "ラウンドIDは必須です"),
   players: z.object({
     playerA: matchPlayerSchema,
     playerB: matchPlayerSchema,
