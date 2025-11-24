@@ -71,7 +71,8 @@ async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedD
             ...tournament,
             organizationId: orgId,
         };
-        await localTournamentRepository.put(localTournament);        // 試合データを保存 (個人戦)
+        // 試合データを保存 (個人戦)
+        await localTournamentRepository.put(localTournament);
         if (matches.length > 0) {
             const localMatches: LocalMatch[] = matches.map(m => ({
                 ...m,
