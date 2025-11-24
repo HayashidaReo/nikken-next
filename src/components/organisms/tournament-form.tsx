@@ -87,7 +87,7 @@ export function TournamentForm({
         {/* 大会形式 */}
         <FormField label="大会形式" required>
           <SearchableSelect
-            value={formData.tournamentType || "individual"}
+            value={formData.tournamentType || ""}
             onValueChange={(value) => onFormChange("tournamentType", value)}
             options={[
               { value: "individual", label: "個人戦" },

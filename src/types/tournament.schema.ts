@@ -51,7 +51,9 @@ export const tournamentFormSchema = z.object({
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
   courts: z.array(courtSchema).min(1, "最低1つのコートを設定してください"),
-  tournamentType: z.enum(["individual", "team"]), // 大会形式
+  tournamentType: z.enum(["individual", "team"], {
+    message: "大会形式を選択してください",
+  }), // 大会形式
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
 });
@@ -59,9 +61,14 @@ export const tournamentFormSchema = z.object({
 /**
  * フォーム編集用の部分的なTournament型
  * tournamentDateをnullableにしてフォーム表示で空白を許可
+ * tournamentTypeをnullableにしてフォーム表示で未選択を許可
+ * createdAt, updatedAtをoptionalにして新規作成時に対応
  */
-export type TournamentFormData = Omit<Tournament, "tournamentDate"> & {
+export type TournamentFormData = Omit<Tournament, "tournamentDate" | "tournamentType" | "createdAt" | "updatedAt"> & {
   tournamentDate: Date | null;
+  tournamentType: Tournament["tournamentType"] | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 /**

@@ -128,6 +128,7 @@ export async function POST(
       location,
       defaultMatchTime,
       courts,
+      tournamentType,
     } = validatedData;
 
     // Firebase Admin DB の初期化チェック
@@ -167,6 +168,7 @@ export async function POST(
       defaultMatchTime:
         typeof defaultMatchTime === "number" ? defaultMatchTime : 180,
       courts: Array.isArray(courts) ? courts : [],
+      tournamentType,
       createdAt: now, // サーバー側で生成
       updatedAt: now, // サーバー側で生成
     };
@@ -190,6 +192,7 @@ export async function POST(
           location: tournamentData.location,
           defaultMatchTime: tournamentData.defaultMatchTime,
           courts: tournamentData.courts,
+          tournamentType: tournamentData.tournamentType,
           createdAt: tournamentData.createdAt.toISOString(),
           updatedAt: tournamentData.updatedAt.toISOString(),
         },

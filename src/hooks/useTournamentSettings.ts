@@ -148,6 +148,7 @@ export function useTournamentSettings() {
                     tournamentId: tempId,
                     organizationId: orgId,
                     tournamentDate: dataForCreate.tournamentDate as Date,
+                    tournamentType: dataForCreate.tournamentType as "individual" | "team",
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 };
@@ -183,6 +184,7 @@ export function useTournamentSettings() {
                     tournamentId: selectedTournamentId,
                     organizationId: orgId,
                     tournamentDate: dataForUpdate.tournamentDate as Date,
+                    tournamentType: dataForUpdate.tournamentType as "individual" | "team",
                     createdAt: createdAt,
                     updatedAt: new Date(),
                 };
@@ -231,6 +233,7 @@ export function useTournamentSettings() {
                     tournamentData: {
                         ...dataForCreate,
                         tournamentDate: dataForCreate.tournamentDate as Date,
+                        tournamentType: dataForCreate.tournamentType as "individual" | "team",
                     },
                 },
                 {
@@ -284,6 +287,7 @@ export function useTournamentSettings() {
                     patch: {
                         ...dataForUpdate,
                         tournamentDate: dataForUpdate.tournamentDate as Date,
+                        tournamentType: dataForUpdate.tournamentType as "individual" | "team",
                     },
                 },
                 {

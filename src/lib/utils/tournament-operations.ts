@@ -19,7 +19,7 @@ export function createEmptyTournamentFormData(): TournamentFormData {
         tournamentDetail: "",
         defaultMatchTime: 180, // 3分 = 180秒
         courts: [],
-        tournamentType: "individual",
+        tournamentType: null,
     };
 }
 
