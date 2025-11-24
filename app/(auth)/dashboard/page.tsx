@@ -54,7 +54,7 @@ export default function DashboardPage() {
               disabled={isUploading || isDownloading || isClearing}
             >
               <UploadCloud className="w-4 h-4 mr-2" />
-              {isUploading ? "送信中..." : "Firestoreへ送信"}
+              {isUploading ? "送信中..." : "クラウドへ送信"}
             </Button>
 
             <Button

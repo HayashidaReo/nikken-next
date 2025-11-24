@@ -56,13 +56,13 @@ export function useDashboard() {
     const handleUpload = async () => {
         if (!orgId || !activeTournamentId) return;
 
-        if (!confirm("ローカルの結果をFirestoreに送信しますか？")) return;
+        if (!confirm("ローカルの結果をクラウドに送信しますか？")) return;
 
         setIsUploading(true);
         try {
             const uploadedCount = await syncService.uploadResults(orgId, activeTournamentId);
             if (uploadedCount > 0) {
-                showSuccess(`${uploadedCount}件のデータをFirestoreに送信しました`);
+                showSuccess(`${uploadedCount}件のデータをクラウドに送信しました`);
             } else {
                 showSuccess("送信するデータはありませんでした");
             }
