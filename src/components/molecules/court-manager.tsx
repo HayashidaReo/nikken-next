@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Plus, Minus, GripVertical } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
-import { Label } from "@/components/atoms/label";
 import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 
 interface Court {
@@ -82,9 +81,6 @@ export function CourtManager({
 
   return (
     <div className={className}>
-      <div className="mb-3">
-        <Label>会場のコート情報</Label>
-      </div>
 
       <div className="space-y-3">
         {courts.map((court, index) => (
