@@ -90,7 +90,7 @@
 | -------------- | --------- | ------------ |
 | `matchGroupId` | String    | チーム試合ID |
 | `courtId`      | String    | コートID     |
-| `round`        | String    | 回戦         |
+| `round`        | String    | ラウンド     |
 | `sortOrder`    | number    | 表示順序     |
 | `teamAId`      | String    | チームAのID  |
 | `teamBId`      | String    | チームBのID  |
@@ -115,7 +115,7 @@
 | ----------------------------- | --------- | ----------------------------------------------------------------------------- |
 | `matchId`                     | String    | 試合ID                                                                        |
 | `courtId`                     | String    | コートID                                                                      |
-| `round`                       | String    | 回戦（例: "1回戦"）                                                           |
+| `round`                       | String    | ラウンド（例: "1回戦"）                                                           |
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
 | `players.playerA`             | Map       | 選手Aの情報                                                                   |
@@ -150,7 +150,6 @@
 | `matchId`                     | String    | 試合ID                                                                        |
 | `matchGroupId`                | String    | 親となるチーム試合ID                                                            |
 | `courtId`                     | String    | コートID                                                                      |
-| `round`                       | String    | 回戦（例: "1回戦"）                                                           |
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
 | `players.playerA`             | Map       | 選手Aの情報                                                                   |

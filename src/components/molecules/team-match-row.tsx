@@ -15,7 +15,6 @@ interface TeamMatchRowProps {
     index: number;
     teamA: Team;
     teamB: Team;
-    courts: Court[];
     onUpdate: (index: number, field: keyof TeamMatchSetupData, value: string) => void;
     onRemove: (index: number) => void;
 }
@@ -25,7 +24,6 @@ export function TeamMatchRow({
     index,
     teamA,
     teamB,
-    courts,
     onUpdate,
     onRemove,
 }: TeamMatchRowProps) {
@@ -42,11 +40,6 @@ export function TeamMatchRow({
         transform: CSS.Transform.toString(transform),
         transition,
     };
-
-    const courtOptions: SearchableSelectOption[] = courts.map(c => ({
-        value: c.courtId,
-        label: c.courtName,
-    }));
 
     const roundOptions: SearchableSelectOption[] = [
         { value: "先鋒", label: "先鋒" },
@@ -80,15 +73,6 @@ export function TeamMatchRow({
                 <div {...attributes} {...listeners}>
                     <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                 </div>
-            </TableCell>
-            <TableCell className="py-2 px-3 truncate" title={row.courtId}>
-                <SearchableSelect
-                    value={row.courtId}
-                    onValueChange={value => onUpdate(index, "courtId", value)}
-                    options={courtOptions}
-                    placeholder="コート選択"
-                    searchPlaceholder="コート名で検索..."
-                />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.round}>
                 <SearchableSelect

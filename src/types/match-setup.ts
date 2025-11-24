@@ -9,7 +9,6 @@ export interface MatchGroupSetupData {
 
 export interface TeamMatchSetupData {
     id: string;
-    courtId: string;
     round: string;
     playerAId: string;
     playerBId: string;

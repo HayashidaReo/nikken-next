@@ -140,8 +140,20 @@ export const matchGroupSchema = z.object({
  * 団体戦内の個人試合（TeamMatch）スキーマ
  * 基本的にMatchと同じだが、matchGroupIdを持つ
  */
-export const teamMatchSchema = matchSchema.extend({
+export const teamMatchSchema = z.object({
+  matchId: z.string().optional(),
   matchGroupId: z.string().min(1, "チーム対戦IDは必須です"),
+  round: z.string()
+    .min(1, "ラウンドは必須です")
+    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+  players: z.object({
+    playerA: matchPlayerSchema,
+    playerB: matchPlayerSchema,
+  }),
+  sortOrder: z.number().int().min(0),
+  isCompleted: z.boolean(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
 });
 
 /**

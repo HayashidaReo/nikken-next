@@ -4,6 +4,7 @@ import { useMatch } from "@/queries/use-matches";
 import { useTeamMatch } from "@/queries/use-team-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
+import { useMatchGroups } from "@/queries/use-match-groups";
 
 interface UseMatchDataWithPriorityResult {
     isLoading: boolean;
@@ -38,6 +39,8 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
         hasStoreData ? null : activeTournamentId
     );
 
+    const { data: matchGroups = [] } = useMatchGroups();
+
     // どちらかのデータがあればOK
     const match = individualMatch || teamMatch;
 
@@ -63,14 +66,24 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
 
         // Firebase から取得したデータで初期化（フォールバック）
         if (match && tournament) {
-            const court = tournament.courts.find(
-                (c: { courtId: string; courtName: string }) => c.courtId === match.courtId
-            );
-            const courtName = court ? court.courtName : match.courtId;
+            let courtId = "";
+            if ("courtId" in match) {
+                courtId = match.courtId;
+            } else if ("matchGroupId" in match) {
+                const group = matchGroups.find(g => g.matchGroupId === match.matchGroupId);
+                courtId = group?.courtId || "";
+            }
 
-            initializeMatch(match, tournament.tournamentName, courtName);
+            const court = tournament.courts.find(
+                (c: { courtId: string; courtName: string }) => c.courtId === courtId
+            );
+            const courtName = court ? court.courtName : courtId;
+
+            // TeamMatchの場合、courtIdを補完してMatch型として扱う
+            const matchWithCourt = { ...match, courtId };
+            initializeMatch(matchWithCourt, tournament.tournamentName, courtName);
         }
-    }, [hasStoreData, match, tournament, initializeMatch]);
+    }, [hasStoreData, match, tournament, initializeMatch, matchGroups]);
 
     return {
         isLoading,

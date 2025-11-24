@@ -51,10 +51,10 @@ export const MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
  */
 export const MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS = {
     drag: 3,           // ドラッグハンドル
-    courtName: 16,      // コート名
-    round: 20,         // ラウンド
-    teamA: 25,         // チームA
-    teamB: 25,         // チームB
+    courtName: 20,      // コート名
+    round: 18,         // ラウンド
+    teamA: 24,         // チームA
+    teamB: 24,         // チームB
     action: 11,        // 操作ボタン
 } as const;
 
@@ -65,11 +65,25 @@ export const MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS = {
  */
 export const TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
     drag: 3,           // ドラッグハンドル
-    courtName: 16,      // コート名
-    round: 15,         // ラウンド（ポジション）
-    playerA: 30,       // 選手A
-    playerB: 30,       // 選手B
+    round: 20,         // ラウンド（ポジション）
+    playerA: 34,       // 選手A
+    playerB: 34,       // 選手B
     action: 6,        // 操作ボタン
+} as const;
+
+/**
+ * TeamMatchListTable の列幅の割合（%）
+ * - 団体戦試合一覧（ダッシュボード等）用
+ * - コート名なし
+ */
+export const TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS = {
+    round: 12,
+    playerATeam: 15,
+    playerAName: 15,
+    score: 15,
+    playerBTeam: 15,
+    playerBName: 15,
+    action: 10,
 } as const;
 
 const UI_CONSTANTS = {

@@ -1,4 +1,5 @@
 import { MatchListTableMemo } from "@/components/organisms/match-list-table";
+import { TeamMatchListTableMemo } from "@/components/organisms/team-match-list-table";
 import { MatchGroupListTableMemo } from "@/components/organisms/match-group-list-table";
 import { Button } from "@/components/atoms/button";
 import { ArrowLeft } from "lucide-react";
@@ -44,10 +45,9 @@ export function DashboardContent({
                             一覧に戻る
                         </Button>
                     </div>
-                    <MatchListTableMemo
+                    <TeamMatchListTableMemo
                         matches={teamMatches}
                         tournamentName={title}
-                        courts={courts}
                     />
                 </>
             );

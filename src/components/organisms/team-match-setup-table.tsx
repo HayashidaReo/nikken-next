@@ -24,13 +24,11 @@ import { TeamMatchRow } from "@/components/molecules/team-match-row";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import type { TeamMatch } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
-import type { Court } from "@/types/tournament.schema";
 import type { TeamMatchSetupData } from "@/types/match-setup";
 
 interface TeamMatchSetupTableProps {
     teamA: Team;
     teamB: Team;
-    courts: Court[];
     matches: TeamMatch[];
     onSave: (data: TeamMatchSetupData[]) => void;
     isSaving: boolean;
@@ -39,7 +37,6 @@ interface TeamMatchSetupTableProps {
 export function TeamMatchSetupTable({
     teamA,
     teamB,
-    courts,
     matches,
     onSave,
     isSaving,
@@ -54,7 +51,6 @@ export function TeamMatchSetupTable({
     const [data, setData] = useState<TeamMatchSetupData[]>(() =>
         matches.map((m) => ({
             id: m.matchId || "",
-            courtId: m.courtId,
             round: m.round,
             playerAId: m.players.playerA.playerId,
             playerBId: m.players.playerB.playerId,
@@ -77,7 +73,6 @@ export function TeamMatchSetupTable({
             ...prev,
             {
                 id: `match-${Date.now()}`,
-                courtId: "",
                 round: "",
                 playerAId: "",
                 playerBId: "",
@@ -109,10 +104,9 @@ export function TeamMatchSetupTable({
 
     const columns = [
         { key: "drag", label: "", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.drag },
-        { key: "court", label: "コート", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.courtName },
         { key: "round", label: "回戦", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.round },
-        { key: "playerA", label: "選手A", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerA },
-        { key: "playerB", label: "選手B", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerB },
+        { key: "playerA", label: `${teamA.teamName} の選手`, width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerA },
+        { key: "playerB", label: `${teamB.teamName} の選手`, width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.playerB },
         { key: "action", label: "操作", width: TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
     ];
 
@@ -140,7 +134,6 @@ export function TeamMatchSetupTable({
                             index={index}
                             teamA={teamA}
                             teamB={teamB}
-                            courts={courts}
                             onUpdate={updateData}
                             onRemove={removeRow}
                         />
@@ -169,7 +162,6 @@ export function TeamMatchSetupTable({
                                         index={activeIndex}
                                         teamA={teamA}
                                         teamB={teamB}
-                                        courts={courts}
                                         onUpdate={() => { }}
                                         onRemove={() => { }}
                                     />

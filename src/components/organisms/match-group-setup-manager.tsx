@@ -112,7 +112,6 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                 // Create
                 const newMatch: TeamMatchCreate = {
                     matchGroupId: selectedMatchGroupId,
-                    courtId: item.courtId,
                     round: item.round,
                     sortOrder: item.sortOrder,
                     players: {
@@ -127,7 +126,6 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                 // Note: We need to preserve existing score/hansoku if updating
                 const existingMatch = teamMatches.find(m => m.matchId === item.id);
                 const patch: Partial<TeamMatchCreate> = {
-                    courtId: item.courtId,
                     round: item.round,
                     sortOrder: item.sortOrder,
                     players: {
@@ -159,7 +157,6 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                     key={teamMatches.map(m => m.matchId).join('-') + teamMatches.length}
                     teamA={teamA}
                     teamB={teamB}
-                    courts={tournament.courts}
                     matches={teamMatches}
                     onSave={handleSaveTeamMatches}
                     isSaving={createTeamMatch.isPending || updateTeamMatch.isPending || deleteTeamMatch.isPending}

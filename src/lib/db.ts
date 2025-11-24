@@ -46,7 +46,7 @@ export class NikkenOfflineDB extends Dexie {
         });
         this.version(2).stores({
             matchGroups: '++id, matchGroupId, [organizationId+tournamentId], isSynced, courtId, round',
-            teamMatches: '++id, matchId, [organizationId+tournamentId+matchGroupId], isSynced, courtId, round'
+            teamMatches: '++id, matchId, [organizationId+tournamentId+matchGroupId], isSynced, round'
         });
     }
 }

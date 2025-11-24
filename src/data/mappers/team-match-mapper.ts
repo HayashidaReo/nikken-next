@@ -1,10 +1,21 @@
+import { Timestamp } from "firebase/firestore";
 import type { TeamMatch, MatchPlayer } from "@/types/match.schema";
 import { teamMatchSchema, matchPlayerSchema } from "@/types/match.schema";
-import { FirestoreMatchDoc, FirestoreMatchPlayerDoc } from "./match-mapper";
+import { FirestoreMatchPlayerDoc } from "./match-mapper";
 
-// TeamMatchはMatchとほぼ同じだが、matchGroupIdを持つ
-export interface FirestoreTeamMatchDoc extends FirestoreMatchDoc {
+// TeamMatch用のFirestoreドキュメント型定義
+export interface FirestoreTeamMatchDoc {
+    matchId: string;
     matchGroupId: string;
+    round: string;
+    sortOrder: number;
+    players: {
+        playerA: FirestoreMatchPlayerDoc;
+        playerB: FirestoreMatchPlayerDoc;
+    };
+    isCompleted: boolean;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 }
 
 export type FirestoreTeamMatchCreateDoc = Omit<
@@ -21,7 +32,6 @@ export class TeamMatchMapper {
         const data: TeamMatch = {
             matchId,
             matchGroupId: doc.matchGroupId,
-            courtId: doc.courtId,
             round: doc.round,
             sortOrder: doc.sortOrder,
             players: {
@@ -56,12 +66,11 @@ export class TeamMatchMapper {
         const matchId = match.id || match.matchId;
         if (!matchId) throw new Error("ID required");
         if (!match.matchGroupId) throw new Error("MatchGroupId required");
-        if (!match.courtId || !match.round || match.sortOrder === undefined || !match.players) throw new Error("Missing fields");
+        if (!match.round || match.sortOrder === undefined || !match.players) throw new Error("Missing fields");
 
         return {
             matchId,
             matchGroupId: match.matchGroupId,
-            courtId: match.courtId,
             round: match.round,
             sortOrder: match.sortOrder,
             players: {
@@ -74,7 +83,6 @@ export class TeamMatchMapper {
 
     static toFirestoreForUpdate(match: Partial<TeamMatch>): Partial<FirestoreTeamMatchDoc> {
         const data: Partial<FirestoreTeamMatchDoc> = {};
-        if (match.courtId) data.courtId = match.courtId;
         if (match.round) data.round = match.round;
         if (match.sortOrder !== undefined) data.sortOrder = match.sortOrder;
         if (match.isCompleted !== undefined) data.isCompleted = match.isCompleted;
