@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
@@ -8,6 +7,8 @@ import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 import { useToast } from "@/components/providers/notification-provider";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedListItem } from "@/components/atoms/animated-list-item";
+import { useDraggableList } from "@/hooks/useDraggableList";
+import { generateShortId } from "@/lib/utils/id-generator";
 
 interface Court {
   courtId: string;
@@ -20,23 +21,25 @@ interface CourtManagerProps {
   className?: string;
 }
 
-// 5桁のランダムUID生成
-function generateCourtId(): string {
-  return Math.random().toString(36).substr(2, 5).toUpperCase();
-}
-
 export function CourtManager({
   courts,
   onChange,
   className,
 }: CourtManagerProps) {
   const { showWarning } = useToast();
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const {
+    draggedIndex,
+    dragOverIndex,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDragLeave,
+  } = useDraggableList(courts, onChange);
 
   const handleAddCourt = () => {
     const newCourt: Court = {
-      courtId: generateCourtId(),
+      courtId: generateShortId(),
       courtName: "",
     };
     onChange([...courts, newCourt]);
@@ -56,35 +59,6 @@ export function CourtManager({
       i === index ? { ...court, courtName: name } : court
     );
     onChange(newCourts);
-  };
-
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    setDragOverIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    if (
-      draggedIndex !== null &&
-      dragOverIndex !== null &&
-      draggedIndex !== dragOverIndex
-    ) {
-      const newCourts = Array.from(courts);
-      const [draggedItem] = newCourts.splice(draggedIndex, 1);
-      newCourts.splice(dragOverIndex, 0, draggedItem);
-      onChange(newCourts);
-    }
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
   };
 
   return (

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
@@ -8,6 +7,8 @@ import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 import { useToast } from "@/components/providers/notification-provider";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedListItem } from "@/components/atoms/animated-list-item";
+import { useDraggableList } from "@/hooks/useDraggableList";
+import { generateShortId } from "@/lib/utils/id-generator";
 
 interface Round {
     roundId: string;
@@ -20,23 +21,25 @@ interface RoundManagerProps {
     className?: string;
 }
 
-// 5桁のランダムUID生成
-function generateRoundId(): string {
-    return Math.random().toString(36).substr(2, 5).toUpperCase();
-}
-
 export function RoundManager({
     rounds,
     onChange,
     className,
 }: RoundManagerProps) {
     const { showWarning } = useToast();
-    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+    const {
+        draggedIndex,
+        dragOverIndex,
+        handleDragStart,
+        handleDragOver,
+        handleDragEnd,
+        handleDragLeave,
+    } = useDraggableList(rounds, onChange);
 
     const handleAddRound = () => {
         const newRound: Round = {
-            roundId: generateRoundId(),
+            roundId: generateShortId(),
             roundName: "",
         };
         onChange([...rounds, newRound]);
@@ -56,35 +59,6 @@ export function RoundManager({
             i === index ? { ...round, roundName: name } : round
         );
         onChange(newRounds);
-    };
-
-    const handleDragStart = (e: React.DragEvent, index: number) => {
-        setDraggedIndex(index);
-        e.dataTransfer.effectAllowed = "move";
-    };
-
-    const handleDragOver = (e: React.DragEvent, index: number) => {
-        e.preventDefault();
-        setDragOverIndex(index);
-    };
-
-    const handleDragEnd = () => {
-        if (
-            draggedIndex !== null &&
-            dragOverIndex !== null &&
-            draggedIndex !== dragOverIndex
-        ) {
-            const newRounds = Array.from(rounds);
-            const [draggedItem] = newRounds.splice(draggedIndex, 1);
-            newRounds.splice(dragOverIndex, 0, draggedItem);
-            onChange(newRounds);
-        }
-        setDraggedIndex(null);
-        setDragOverIndex(null);
-    };
-
-    const handleDragLeave = () => {
-        setDragOverIndex(null);
     };
 
     return (
