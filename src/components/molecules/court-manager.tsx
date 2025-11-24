@@ -127,13 +127,6 @@ export function CourtManager({
           ))}
         </AnimatePresence>
 
-        {courts.length === 0 && (
-          <div className="text-center text-gray-500 py-8 border-2 border-dashed border-gray-300 rounded-lg">
-            <p>コートが登録されていません</p>
-            <p className="text-sm">コートを追加してください</p>
-          </div>
-        )}
-
         {/* リストの最後尾にコート追加ボタンを配置 */}
         <div className="mt-2">
           <Button
