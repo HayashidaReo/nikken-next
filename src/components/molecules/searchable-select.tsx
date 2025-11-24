@@ -25,6 +25,7 @@ interface SearchableSelectProps {
     className?: string;
     searchPlaceholder?: string;
     'data-field-key'?: string;
+    hasError?: boolean;
 }
 
 export function SearchableSelect({
@@ -36,6 +37,7 @@ export function SearchableSelect({
     className,
     searchPlaceholder = '検索...',
     'data-field-key': dataFieldKey,
+    hasError = false,
 }: SearchableSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -546,13 +548,15 @@ export function SearchableSelect({
 
     // トリガー（表示部分）の動的クラス
     const triggerClasses = [
-        'flex h-8 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-1 text-sm',
+        'flex h-8 w-full items-center justify-between rounded-md border bg-white px-3 py-1 text-sm',
         'cursor-pointer outline-none',
         // キーボードナビゲーション中はフォーカスリングを表示しない
         !isKeyboardNavigating && 'focus:ring-2 focus:ring-blue-500',
         disabled
-            ? 'bg-gray-50 cursor-not-allowed opacity-50'
-            : 'border-gray-300 hover:border-gray-400',
+            ? 'bg-gray-50 cursor-not-allowed opacity-50 border-gray-300'
+            : hasError
+                ? 'border-red-500 hover:border-red-600'
+                : 'border-gray-300 hover:border-gray-400',
         !value ? 'text-gray-500' : 'text-gray-900',
     ];
 

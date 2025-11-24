@@ -17,6 +17,7 @@ interface TeamMatchRowProps {
     teamB: Team;
     onUpdate: (index: number, field: keyof TeamMatchSetupData, value: string) => void;
     onRemove: (index: number) => void;
+    errors?: string[];
 }
 
 export function TeamMatchRow({
@@ -26,6 +27,7 @@ export function TeamMatchRow({
     teamB,
     onUpdate,
     onRemove,
+    errors = [],
 }: TeamMatchRowProps) {
     const {
         attributes,
@@ -74,6 +76,7 @@ export function TeamMatchRow({
                     options={roundOptions}
                     placeholder="ポジション選択"
                     searchPlaceholder="ポジション名で検索..."
+                    hasError={errors.includes("round")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.playerAId}>
@@ -83,6 +86,7 @@ export function TeamMatchRow({
                     options={playerAOptions}
                     placeholder="選手A選択"
                     searchPlaceholder="選手名で検索..."
+                    hasError={errors.includes("playerAId")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 text-center text-muted-foreground text-sm">
@@ -95,6 +99,7 @@ export function TeamMatchRow({
                     options={playerBOptions}
                     placeholder="選手B選択"
                     searchPlaceholder="選手名で検索..."
+                    hasError={errors.includes("playerBId")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 text-center">

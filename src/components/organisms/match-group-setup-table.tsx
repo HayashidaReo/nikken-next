@@ -22,6 +22,7 @@ import { Plus } from "lucide-react";
 import MatchTable from "@/components/organisms/match-table";
 import { MatchGroupRow } from "@/components/molecules/match-group-row";
 import { TableRow, TableCell } from "@/components/atoms/table";
+import { useToast } from "@/components/providers/notification-provider";
 import type { MatchGroup } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
 import type { Court } from "@/types/tournament.schema";
@@ -44,6 +45,7 @@ export function MatchGroupSetupTable({
     onSelect,
     isSaving,
 }: MatchGroupSetupTableProps) {
+    const { showError } = useToast();
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -62,6 +64,7 @@ export function MatchGroupSetupTable({
         }))
     );
     const [activeId, setActiveId] = useState<string | null>(null);
+    const [errors, setErrors] = useState<Record<string, string[]>>({});
 
     const updateData = (index: number, field: keyof MatchGroupSetupData, value: string) => {
         setData((prev) => {
@@ -69,6 +72,40 @@ export function MatchGroupSetupTable({
             newData[index] = { ...newData[index], [field]: value };
             return newData;
         });
+        // もしこのフィールドにエラーがあればクリアする
+        if (errors[data[index].id]?.includes(field as string)) {
+            setErrors(prev => ({
+                ...prev,
+                [data[index].id]: prev[data[index].id].filter(f => f !== field)
+            }));
+        }
+    };
+
+    const handleSave = () => {
+        const newErrors: Record<string, string[]> = {};
+        let hasError = false;
+
+        data.forEach(row => {
+            const rowErrors: string[] = [];
+            if (!row.courtId) rowErrors.push("courtId");
+            if (!row.round) rowErrors.push("round");
+            if (!row.teamAId) rowErrors.push("teamAId");
+            if (!row.teamBId) rowErrors.push("teamBId");
+
+            if (rowErrors.length > 0) {
+                newErrors[row.id] = rowErrors;
+                hasError = true;
+            }
+        });
+
+        setErrors(newErrors);
+
+        if (hasError) {
+            showError("すべての項目を入力してください");
+            return;
+        }
+
+        onSave(data);
     };
 
     const addRow = () => {
@@ -126,7 +163,7 @@ export function MatchGroupSetupTable({
             <MatchTable
                 title="チーム対戦設定"
                 headerRight={
-                    <Button onClick={() => onSave(data)} disabled={isSaving}>
+                    <Button onClick={handleSave} disabled={isSaving}>
                         {isSaving ? "保存中..." : "保存"}
                     </Button>
                 }
@@ -143,6 +180,7 @@ export function MatchGroupSetupTable({
                             onUpdate={updateData}
                             onRemove={removeRow}
                             onSelect={onSelect}
+                            errors={errors[row.id]}
                         />
                     ))}
                 </SortableContext>

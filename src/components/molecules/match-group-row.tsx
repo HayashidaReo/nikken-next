@@ -18,6 +18,7 @@ interface MatchGroupRowProps {
     onUpdate: (index: number, field: keyof MatchGroupSetupData, value: string) => void;
     onRemove: (index: number) => void;
     onSelect: (row: MatchGroupSetupData) => void;
+    errors?: string[];
 }
 
 export function MatchGroupRow({
@@ -28,6 +29,7 @@ export function MatchGroupRow({
     onUpdate,
     onRemove,
     onSelect,
+    errors = [],
 }: MatchGroupRowProps) {
     const {
         attributes,
@@ -85,6 +87,7 @@ export function MatchGroupRow({
                     options={courtOptions}
                     placeholder="コート選択"
                     searchPlaceholder="コート名で検索..."
+                    hasError={errors.includes("courtId")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.round}>
@@ -94,6 +97,7 @@ export function MatchGroupRow({
                     options={roundOptions}
                     placeholder="ラウンド選択"
                     searchPlaceholder="ラウンド名で検索..."
+                    hasError={errors.includes("round")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.teamAId}>
@@ -103,6 +107,7 @@ export function MatchGroupRow({
                     options={teamOptions}
                     placeholder="チームA選択"
                     searchPlaceholder="チーム名で検索..."
+                    hasError={errors.includes("teamAId")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.teamBId}>
@@ -112,6 +117,7 @@ export function MatchGroupRow({
                     options={teamOptions}
                     placeholder="チームB選択"
                     searchPlaceholder="チーム名で検索..."
+                    hasError={errors.includes("teamBId")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 text-center">
