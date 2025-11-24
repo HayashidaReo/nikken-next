@@ -6,7 +6,7 @@ import { SearchableSelect, type SearchableSelectOption } from "@/components/mole
 import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
 import { TableCell } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
-import { TEAM_MATCH_ROUNDS } from "@/lib/constants";
+import { TEAM_MATCH_ROUND_OPTIONS, getTeamMatchRoundLabelById } from "@/lib/constants";
 import type { Team } from "@/types/team.schema";
 import type { TeamMatchSetupData } from "@/types/match-setup";
 
@@ -43,12 +43,9 @@ export function TeamMatchRow({
         transition,
     };
 
-    const roundOptions: SearchableSelectOption[] = TEAM_MATCH_ROUNDS.map((r) => ({ value: r, label: r }));
-    const selectedRoundValue = row.roundId || row.roundName;
-
     const handleRoundChange = (value: string) => {
         onUpdate(index, "roundId", value);
-        onUpdate(index, "roundName", value);
+        onUpdate(index, "roundName", getTeamMatchRoundLabelById(value));
     };
 
     const playerAOptions: SearchableSelectOption[] = teamA.players.map(player => ({
@@ -77,9 +74,9 @@ export function TeamMatchRow({
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.roundName}>
                 <SearchableSelect
-                    value={selectedRoundValue}
+                    value={row.roundId}
                     onValueChange={handleRoundChange}
-                    options={roundOptions}
+                    options={TEAM_MATCH_ROUND_OPTIONS}
                     placeholder="ポジション選択"
                     searchPlaceholder="ポジション名で検索..."
                     hasError={errors.includes("round") || errors.includes("roundId")}

@@ -23,6 +23,7 @@ import MatchTable from "@/components/organisms/match-table";
 import { MatchGroupRow } from "@/components/molecules/match-group-row";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { useToast } from "@/components/providers/notification-provider";
+import { TEAM_MATCH_ROUND_SUMMARIES, getTeamMatchRoundLabelById } from "@/lib/constants";
 import type { MatchGroup } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
 import type { Court, Round } from "@/types/tournament.schema";
@@ -55,16 +56,19 @@ export function MatchGroupSetupTable({
         })
     );
 
-    const roundIdToName = useMemo(() => new Map(rounds.map(r => [r.roundId, r.roundName])), [rounds]);
+    const roundSource = rounds?.length ? rounds : TEAM_MATCH_ROUND_SUMMARIES;
+    const roundIdToName = useMemo(
+        () => new Map(roundSource.map((r: { roundId: string; roundName: string }) => [r.roundId, r.roundName])),
+        [roundSource]
+    );
 
     const [data, setData] = useState<MatchGroupSetupData[]>(() =>
         matchGroups.map((g) => {
-            const derivedRoundId = g.roundId || "";
             return {
                 id: g.matchGroupId || "",
                 courtId: g.courtId,
-                roundId: derivedRoundId,
-                roundName: roundIdToName.get(derivedRoundId) || derivedRoundId,
+                roundId: g.roundId,
+                roundName: roundIdToName.get(g.roundId) || getTeamMatchRoundLabelById(g.roundId) || "",
                 teamAId: g.teamAId,
                 teamBId: g.teamBId,
                 sortOrder: g.sortOrder,

@@ -19,7 +19,7 @@ export const monitorDataSchema = z.object({
     matchId: z.string(),
     tournamentName: z.string(),
     courtName: z.string(),
-    round: z.string(),
+    roundName: z.string(),
     playerA: monitorPlayerSchema,
     playerB: monitorPlayerSchema,
     timeRemaining: z.number(),

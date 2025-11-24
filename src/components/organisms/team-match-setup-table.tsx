@@ -21,7 +21,7 @@ import { Button } from "@/components/atoms/button";
 import { Plus } from "lucide-react";
 import MatchTable from "@/components/organisms/match-table";
 import { TeamMatchRow } from "@/components/molecules/team-match-row";
-import { TEAM_MATCH_ROUNDS } from "@/lib/constants";
+import { getTeamMatchRoundIdByIndex, getTeamMatchRoundLabelById } from "@/lib/constants";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { useToast } from "@/components/providers/notification-provider";
 import type { TeamMatch } from "@/types/match.schema";
@@ -52,14 +52,16 @@ export function TeamMatchSetupTable({
     );
 
     const [data, setData] = useState<TeamMatchSetupData[]>(() =>
-        matches.map((m) => ({
-            id: m.matchId || "",
-            roundId: m.roundId || "",
-            roundName: m.roundId || "",
-            playerAId: m.players.playerA.playerId,
-            playerBId: m.players.playerB.playerId,
-            sortOrder: m.sortOrder,
-        }))
+        matches.map((m) => {
+            return {
+                id: m.matchId || "",
+                roundId: m.roundId,
+                roundName: getTeamMatchRoundLabelById(m.roundId),
+                playerAId: m.players.playerA.playerId,
+                playerBId: m.players.playerB.playerId,
+                sortOrder: m.sortOrder,
+            };
+        })
     );
     const [activeId, setActiveId] = useState<string | null>(null);
     const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -107,15 +109,16 @@ export function TeamMatchSetupTable({
 
     const addRow = () => {
         setData((prev) => {
-            const nextRound = TEAM_MATCH_ROUNDS[prev.length] || "";
+            const nextRoundId = getTeamMatchRoundIdByIndex(prev.length);
+            const nextRoundName = getTeamMatchRoundLabelById(nextRoundId) || "";
             const maxSortOrder = prev.length > 0 ? Math.max(...prev.map((d) => d.sortOrder)) : -1;
 
             return [
                 ...prev,
                 {
                     id: `match-${Date.now()}`,
-                    roundId: nextRound,
-                    roundName: nextRound,
+                    roundId: nextRoundId,
+                    roundName: nextRoundName,
                     playerAId: "",
                     playerBId: "",
                     sortOrder: maxSortOrder + 1,
@@ -125,17 +128,18 @@ export function TeamMatchSetupTable({
     };
 
     // ラウンド名を自動的に再割り当てする関数
-    const reassignRounds = (items: TeamMatchSetupData[]): TeamMatchSetupData[] => {
-        return items.map((item, index) => {
-            const nextRound = TEAM_MATCH_ROUNDS[index] || "";
+    const reassignRounds = (items: TeamMatchSetupData[]): TeamMatchSetupData[] => (
+        items.map((item, index) => {
+            const nextRoundId = getTeamMatchRoundIdByIndex(index);
+            const nextRoundName = getTeamMatchRoundLabelById(nextRoundId) || item.roundName;
             return {
                 ...item,
-                roundId: nextRound,
-                roundName: nextRound,
+                roundId: nextRoundId || item.roundId,
+                roundName: nextRoundName,
                 sortOrder: index,
             };
-        });
-    };
+        })
+    );
 
     const removeRow = (index: number) => {
         setData((prev) => {

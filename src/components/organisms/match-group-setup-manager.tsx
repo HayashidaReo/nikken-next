@@ -53,8 +53,7 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
         // 既存のIDセット
         const currentIds = new Set(data.map(d => d.id).filter(id => !id.startsWith("group-")));
 
-        const resolveRoundId = (row: MatchGroupSetupData) =>
-            row.roundId || tournament.rounds.find(r => r.roundName === row.roundName)?.roundId || "";
+        const resolveRoundId = (row: MatchGroupSetupData) => row.roundId;
 
         try {
             // 削除
@@ -111,8 +110,7 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
         try {
             const currentIds = new Set(data.map(d => d.id).filter(id => !id.startsWith("match-")));
 
-            const resolveRoundId = (row: TeamMatchSetupData) =>
-                row.roundId || tournament.rounds.find(r => r.roundName === row.roundName)?.roundId || "";
+            const resolveRoundId = (row: TeamMatchSetupData) => row.roundId;
 
             // 削除
             const toDelete = teamMatches.filter(m => m.matchId && !currentIds.has(m.matchId));

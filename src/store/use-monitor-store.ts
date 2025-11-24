@@ -13,7 +13,7 @@ interface MonitorState {
   // 試合の基本情報（初期データから設定）
   matchId: string | null;
   courtName: string;
-  round: string;
+  roundName: string;
   tournamentName: string;
 
   // 選手情報
@@ -74,7 +74,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   // 初期状態
   matchId: null,
   courtName: "",
-  round: "",
+  roundName: "",
   tournamentName: "",
 
   playerA: {
@@ -125,7 +125,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     set({
       matchId: match.matchId,
       courtName,
-      round: roundName || match.roundId,
+      roundName,
       tournamentName,
       playerA: {
         displayName: playerAData.displayName,
@@ -270,7 +270,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       matchId: s.matchId || "",
       tournamentName: s.tournamentName,
       courtName: s.courtName,
-      round: s.round,
+      roundName: s.roundName,
       playerA: s.playerA,
       playerB: s.playerB,
       timeRemaining: s.timeRemaining,

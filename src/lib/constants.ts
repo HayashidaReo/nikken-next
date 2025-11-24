@@ -80,7 +80,38 @@ export const TEXT_LENGTH_LIMITS = {
 } as const;
 
 // 団体戦ラウンド順 (Team match role names)
-export const TEAM_MATCH_ROUNDS = ["先鋒", "次鋒", "中堅", "副将", "大将", "代表戦"] as const;
+export const TEAM_MATCH_ROUNDS = [
+  { id: "1", label: "先鋒" },
+  { id: "2", label: "次鋒" },
+  { id: "3", label: "中堅" },
+  { id: "4", label: "副将" },
+  { id: "5", label: "大将" },
+  { id: "6", label: "代表戦" },
+] as const;
+
+export const TEAM_MATCH_ROUND_ID_TO_LABEL: Record<string, string> = TEAM_MATCH_ROUNDS.reduce((acc, round) => {
+  acc[round.id] = round.label;
+  return acc;
+}, {} as Record<string, string>);
+
+export const TEAM_MATCH_ROUND_OPTIONS = TEAM_MATCH_ROUNDS.map(round => ({
+  value: round.id,
+  label: round.label,
+}));
+
+export const TEAM_MATCH_ROUND_SUMMARIES = TEAM_MATCH_ROUNDS.map(round => ({
+  roundId: round.id,
+  roundName: round.label,
+}));
+
+export function getTeamMatchRoundLabelById(roundId?: string | null): string {
+  if (!roundId) return "";
+  return TEAM_MATCH_ROUND_ID_TO_LABEL[roundId] ?? "";
+}
+
+export function getTeamMatchRoundIdByIndex(index: number): string {
+  return TEAM_MATCH_ROUNDS[index]?.id ?? "";
+}
 
 // 🥋 ペナルティ関連定数
 export const PENALTY_CONSTANTS = {

@@ -13,7 +13,7 @@ import type { Team } from "@/types/team.schema";
 import type { Round } from "@/types/tournament.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
-import { findRoundName } from "@/lib/utils/round-utils";
+import { getTeamMatchRoundLabelById } from "@/lib/constants";
 
 interface TeamMatchListTableProps {
     matches: TeamMatch[];
@@ -23,7 +23,7 @@ interface TeamMatchListTableProps {
     className?: string;
 }
 
-export function TeamMatchListTable({ matches, tournamentName, rounds, teams, className }: TeamMatchListTableProps) {
+export function TeamMatchListTable({ matches, tournamentName, teams, className }: TeamMatchListTableProps) {
     const router = useRouter();
     const playerDirectory = useMemo(() => createPlayerDirectory(teams), [teams]);
 
@@ -55,7 +55,7 @@ export function TeamMatchListTable({ matches, tournamentName, rounds, teams, cla
                 const playerB = resolveMatchPlayer(match.players.playerB, playerDirectory);
                 const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted);
                 const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted);
-                const roundName = findRoundName(match.roundId, rounds);
+                const roundName = getTeamMatchRoundLabelById(match.roundId);
 
                 return (
                     <TableRow key={match.matchId}>

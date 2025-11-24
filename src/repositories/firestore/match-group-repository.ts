@@ -101,7 +101,7 @@ export class FirestoreMatchGroupRepository implements MatchGroupRepository {
                 createdAt: currentData.createdAt || now,
                 updatedAt: now,
             };
-            
+
             await setDoc(docRef, mergedData);
         }
 

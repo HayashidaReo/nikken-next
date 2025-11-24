@@ -58,7 +58,7 @@ beforeEach(() => {
   useMonitorStore.setState({
     matchId: null,
     courtName: "",
-    round: "",
+    roundName: "",
     tournamentName: "",
     playerA: {
       displayName: "",
@@ -89,7 +89,7 @@ describe("useMonitorStore", () => {
 
       expect(result.current.matchId).toBeNull();
       expect(result.current.courtName).toBe("");
-      expect(result.current.round).toBe("");
+      expect(result.current.roundName).toBe("");
       expect(result.current.tournamentName).toBe("");
       expect(result.current.playerA).toEqual({
         displayName: "",
@@ -119,7 +119,7 @@ describe("useMonitorStore", () => {
 
       expect(result.current.matchId).toBe("test-match-001");
       expect(result.current.courtName).toBe("Aコート");
-      expect(result.current.round).toBe("決勝");
+      expect(result.current.roundName).toBe("決勝");
       expect(result.current.tournamentName).toBe("テスト大会");
       expect(result.current.playerA).toEqual({
         displayName: "山田",
