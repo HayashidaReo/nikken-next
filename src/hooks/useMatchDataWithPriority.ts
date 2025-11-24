@@ -79,9 +79,7 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
             );
             const courtName = court ? court.courtName : courtId;
 
-            // TeamMatchの場合、courtIdを補完してMatch型として扱う
-            const matchWithCourt = { ...match, courtId };
-            initializeMatch(matchWithCourt, tournament.tournamentName, courtName);
+            initializeMatch(match, tournament.tournamentName, courtName);
         }
     }, [hasStoreData, match, tournament, initializeMatch, matchGroups]);
 
