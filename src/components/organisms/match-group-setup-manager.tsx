@@ -152,12 +152,12 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
 
     if (selectedMatchGroupId) {
         const selectedGroup = matchGroups.find(g => g.matchGroupId === selectedMatchGroupId);
-        if (!selectedGroup) return <div>Error: Group not found</div>;
+        if (!selectedGroup) return <div>エラー: 対戦グループが見つかりません</div>;
 
         const teamA = teams.find(t => t.teamId === selectedGroup.teamAId);
         const teamB = teams.find(t => t.teamId === selectedGroup.teamBId);
 
-        if (!teamA || !teamB) return <div>Error: Teams not found</div>;
+        if (!teamA || !teamB) return <div>エラー: チームが見つかりません</div>;
 
         return (
             <div className="space-y-4">
