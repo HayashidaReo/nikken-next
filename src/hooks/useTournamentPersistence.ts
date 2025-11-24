@@ -12,7 +12,7 @@ import type { Tournament, TournamentFormData } from "@/types/tournament.schema";
 interface SaveResult {
     success: boolean;
     mode: "create" | "update";
-    tempId?: string;
+    tournamentId: string;
 }
 
 export function useTournamentPersistence() {
@@ -34,10 +34,10 @@ export function useTournamentPersistence() {
 
         try {
             if (!selectedTournamentId) {
-                // 新規作成: 一時IDを生成してローカル保存
-                const tempId = crypto.randomUUID();
+                // 新規作成: クライアント側でIDを生成
+                const tournamentId = crypto.randomUUID();
 
-                // createdAt, updatedAt, tournamentId は新規作成時に自動生成されるため除外
+                // createdAt, updatedAt は新規作成時に自動生成されるため除外
                 const dataForCreate = { ...formData };
                 delete dataForCreate.createdAt;
                 delete dataForCreate.updatedAt;
@@ -45,7 +45,7 @@ export function useTournamentPersistence() {
 
                 const newTournament: LocalTournament = {
                     ...dataForCreate,
-                    tournamentId: tempId,
+                    tournamentId,
                     organizationId: orgId,
                     tournamentDate: dataForCreate.tournamentDate as Date,
                     tournamentType: dataForCreate.tournamentType as "individual" | "team",
@@ -57,7 +57,7 @@ export function useTournamentPersistence() {
                 await localTournamentRepository.put(newTournament);
                 showSuccess("端末に保存しました");
 
-                return { success: true, mode: "create", tempId };
+                return { success: true, mode: "create", tournamentId };
             } else {
                 // 更新: 既存IDでローカル保存
                 const dataForUpdate = { ...formData };
@@ -83,7 +83,7 @@ export function useTournamentPersistence() {
                 await localTournamentRepository.put(updatedTournament);
                 showSuccess("端末に保存しました");
 
-                return { success: true, mode: "update" };
+                return { success: true, mode: "update", tournamentId: selectedTournamentId };
             }
         } catch (error) {
             showError(error instanceof Error ? error.message : "保存に失敗しました");
@@ -96,7 +96,6 @@ export function useTournamentPersistence() {
         formData: TournamentFormData,
         selectedTournamentId: string | null,
         mode: "create" | "update",
-        tempId?: string,
         onSuccess?: (result: { data: Tournament }) => void,
         onError?: (error: unknown) => void
     ) => {
@@ -104,7 +103,9 @@ export function useTournamentPersistence() {
 
         if (mode === "create") {
             // 新規作成の同期
-            // createdAt, updatedAt, tournamentId はサーバー側で生成されるため除外
+            if (!selectedTournamentId) return;
+
+            // createdAt, updatedAt はサーバー側で再生成される可能性があるため除外
             const dataForCreate = { ...formData };
             delete dataForCreate.createdAt;
             delete dataForCreate.updatedAt;
@@ -113,6 +114,7 @@ export function useTournamentPersistence() {
             createTournament(
                 {
                     orgId,
+                    tournamentId: selectedTournamentId, // クライアント生成IDを渡す
                     tournamentData: {
                         ...dataForCreate,
                         tournamentDate: dataForCreate.tournamentDate as Date,
@@ -123,12 +125,6 @@ export function useTournamentPersistence() {
                 {
                     onSuccess: async (result) => {
                         showSuccess("クラウドに同期しました");
-
-                        // 一時IDのデータを削除（サーバーから正規IDのデータが来るため）
-                        if (tempId) {
-                            await localTournamentRepository.delete(orgId, tempId);
-                        }
-
                         if (onSuccess) onSuccess(result);
                     },
                     onError: error => {

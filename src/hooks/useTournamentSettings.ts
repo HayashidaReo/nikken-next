@@ -14,7 +14,6 @@ import { useTournamentPersistence } from "./useTournamentPersistence";
 interface SyncConfirmState {
     isOpen: boolean;
     mode: "create" | "update";
-    tempId?: string; // 新規作成時の一時ID
 }
 
 /**
@@ -128,10 +127,15 @@ export function useTournamentSettings() {
             const result = await saveToLocal(formData, selectedTournamentId);
 
             if (result.success) {
+                // 新規作成/更新成功時は、編集モードに切り替える
+                setSelectedTournamentId(result.tournamentId);
+                setIsAddingNew(false);
+                // フォームデータのIDも更新しておく
+                setFormData(prev => ({ ...prev, tournamentId: result.tournamentId }));
+
                 setSyncConfirm({
                     isOpen: true,
                     mode: result.mode,
-                    tempId: result.tempId,
                 });
             }
         } catch (error) {
@@ -148,7 +152,7 @@ export function useTournamentSettings() {
 
     // クラウド同期実行
     const handleSyncConfirm = useCallback(() => {
-        if (!orgId) return;
+        if (!orgId || !selectedTournamentId) return;
 
         const wasEmpty = tournaments.length === 0;
 
@@ -156,19 +160,11 @@ export function useTournamentSettings() {
             formData,
             selectedTournamentId,
             syncConfirm.mode,
-            syncConfirm.tempId,
             // onSuccess
             (result) => {
-                if (syncConfirm.mode === "create") {
-                    setSelectedTournamentId(result.data.tournamentId);
-                    setFormData(prev => ({
-                        ...prev,
-                        ...result.data,
-                    }));
-
-                    if (wasEmpty && result.data.tournamentId) {
-                        setActiveTournament(result.data.tournamentId, result.data.tournamentType);
-                    }
+                // 新規作成の場合、activeTournamentを設定
+                if (syncConfirm.mode === "create" && wasEmpty && result.data.tournamentId) {
+                    setActiveTournament(result.data.tournamentId, result.data.tournamentType);
                 }
                 setSyncConfirm(prev => ({ ...prev, isOpen: false }));
             },

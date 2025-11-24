@@ -112,9 +112,11 @@ export function useCreateTournament() {
     return useMutation({
         mutationFn: async ({
             orgId,
+            tournamentId,
             tournamentData,
         }: {
             orgId: string;
+            tournamentId: string;
             tournamentData: {
                 tournamentName: string;
                 tournamentDate: Date;
@@ -131,7 +133,10 @@ export function useCreateTournament() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(tournamentData),
+                body: JSON.stringify({
+                    ...tournamentData,
+                    tournamentId, // クライアント生成IDを含める
+                }),
             });
 
             if (!response.ok) {

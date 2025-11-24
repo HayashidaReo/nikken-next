@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 import { adminDb } from "@/lib/firebase-admin/server";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 import { tournamentCreateSchema } from "@/types/tournament.schema";
@@ -162,8 +161,8 @@ export async function POST(
     const createdAt = !isNaN(clientCreatedAt?.getTime() || NaN) ? clientCreatedAt! : now;
     const updatedAt = !isNaN(clientUpdatedAt?.getTime() || NaN) ? clientUpdatedAt! : now;
 
-    // UUIDを生成
-    const tournamentId = uuidv4();
+    // クライアント側から送られてきたtournamentIdを使用
+    const tournamentId = body.tournamentId;
 
     const tournamentData = {
       tournamentId,
