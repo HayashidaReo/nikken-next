@@ -130,7 +130,7 @@ export function TournamentForm({
         </FormField>
 
         {/* コート管理 */}
-        <FormField label="コート設定">
+        <FormField label="コート選択リスト">
           <CourtManager
             courts={formData.courts}
             onChange={courts => onFormChange("courts", courts)}
