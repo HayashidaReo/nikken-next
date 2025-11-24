@@ -8,6 +8,7 @@ import { useMatchGroups } from "@/queries/use-match-groups";
 import { useTeams } from "@/queries/use-teams";
 import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
 import { findRoundName } from "@/lib/utils/round-utils";
+import { getTeamMatchRoundLabelById } from "@/lib/constants";
 
 interface UseMatchDataWithPriorityResult {
     isLoading: boolean;
@@ -92,14 +93,23 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
                 playerA: resolveMatchPlayer(match.players.playerA, playerDirectory),
                 playerB: resolveMatchPlayer(match.players.playerB, playerDirectory),
             };
-            const roundName = findRoundName(match.roundId, tournament.rounds);
+
+            // 大会種別に応じてラウンド名を解決
+            let roundName: string;
+            if (activeTournamentType === "team" || teamMatch) {
+                // 団体戦の場合はconstantsから取得
+                roundName = getTeamMatchRoundLabelById(match.roundId) || match.roundId;
+            } else {
+                // 個人戦の場合はtournament.roundsから取得
+                roundName = findRoundName(match.roundId, tournament.rounds);
+            }
 
             initializeMatch(match, tournament.tournamentName, courtName, {
                 resolvedPlayers,
                 roundName,
             });
         }
-    }, [hasStoreData, match, tournament, initializeMatch, matchGroups, playerDirectory, isLoading]);
+    }, [hasStoreData, match, tournament, initializeMatch, matchGroups, playerDirectory, isLoading, activeTournamentType, teamMatch]);
 
     return {
         isLoading,
