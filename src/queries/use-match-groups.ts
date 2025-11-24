@@ -1,11 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLiveQuery } from "dexie-react-hooks";
-import { FirestoreMatchGroupRepository } from "@/repositories/firestore/match-group-repository";
 import { localMatchGroupRepository } from "@/repositories/local/match-group-repository";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import type { MatchGroupCreate } from "@/types/match.schema";
-
-const matchGroupRepository = new FirestoreMatchGroupRepository();
 
 export const matchGroupKeys = {
     all: ["matchGroups"] as const,
@@ -35,7 +32,7 @@ export function useCreateMatchGroup() {
     return useMutation({
         mutationFn: (newMatchGroup: MatchGroupCreate) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
-            return matchGroupRepository.create(orgId, activeTournamentId, newMatchGroup);
+            return localMatchGroupRepository.create(orgId, activeTournamentId, newMatchGroup);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: matchGroupKeys.lists() });
@@ -50,7 +47,7 @@ export function useUpdateMatchGroup() {
     return useMutation({
         mutationFn: ({ matchGroupId, patch }: { matchGroupId: string; patch: Partial<MatchGroupCreate> }) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
-            return matchGroupRepository.update(orgId, activeTournamentId, matchGroupId, patch);
+            return localMatchGroupRepository.update(matchGroupId, patch);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: matchGroupKeys.lists() });
@@ -65,7 +62,7 @@ export function useDeleteMatchGroup() {
     return useMutation({
         mutationFn: (matchGroupId: string) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
-            return matchGroupRepository.delete(orgId, activeTournamentId, matchGroupId);
+            return localMatchGroupRepository.delete(matchGroupId);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: matchGroupKeys.lists() });

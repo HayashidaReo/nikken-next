@@ -1,11 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLiveQuery } from "dexie-react-hooks";
-import { FirestoreTeamMatchRepository } from "@/repositories/firestore/team-match-repository";
 import { localTeamMatchRepository } from "@/repositories/local/team-match-repository";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import type { TeamMatchCreate } from "@/types/match.schema";
-
-const teamMatchRepository = new FirestoreTeamMatchRepository();
 
 export const teamMatchKeys = {
     all: ["teamMatches"] as const,
@@ -35,7 +32,7 @@ export function useCreateTeamMatch() {
     return useMutation({
         mutationFn: ({ matchGroupId, match }: { matchGroupId: string; match: TeamMatchCreate }) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
-            return teamMatchRepository.create(orgId, activeTournamentId, matchGroupId, match);
+            return localTeamMatchRepository.create(orgId, activeTournamentId, matchGroupId, match);
         },
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });
@@ -50,7 +47,7 @@ export function useUpdateTeamMatch() {
     return useMutation({
         mutationFn: ({ matchGroupId, matchId, patch }: { matchGroupId: string; matchId: string; patch: Partial<TeamMatchCreate> }) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
-            return teamMatchRepository.update(orgId, activeTournamentId, matchGroupId, matchId, patch);
+            return localTeamMatchRepository.updateByMatchId(matchId, patch);
         },
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });
@@ -65,7 +62,7 @@ export function useDeleteTeamMatch() {
     return useMutation({
         mutationFn: ({ matchGroupId, matchId }: { matchGroupId: string; matchId: string }) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
-            return teamMatchRepository.delete(orgId, activeTournamentId, matchGroupId, matchId);
+            return localTeamMatchRepository.deleteByMatchId(matchId);
         },
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });

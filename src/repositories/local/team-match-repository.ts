@@ -44,6 +44,38 @@ export class LocalTeamMatchRepository {
     async update(id: number, changes: Partial<LocalTeamMatch>): Promise<number> {
         return await db.teamMatches.update(id, changes);
     }
+
+    async create(orgId: string, tournamentId: string, matchGroupId: string, match: Omit<LocalTeamMatch, "matchId" | "matchGroupId" | "organizationId" | "tournamentId" | "isSynced" | "createdAt" | "updatedAt">): Promise<LocalTeamMatch> {
+        const id = crypto.randomUUID();
+        const now = new Date();
+        const newMatch: LocalTeamMatch = {
+            ...match,
+            matchId: id,
+            matchGroupId,
+            organizationId: orgId,
+            tournamentId,
+            isSynced: false,
+            createdAt: now,
+            updatedAt: now,
+        };
+        await db.teamMatches.put(newMatch);
+        return newMatch;
+    }
+
+    async updateByMatchId(matchId: string, changes: Partial<LocalTeamMatch>): Promise<void> {
+        const match = await db.teamMatches.where({ matchId }).first();
+        if (match && match.id) {
+            await db.teamMatches.update(match.id, {
+                ...changes,
+                isSynced: false,
+                updatedAt: new Date(),
+            });
+        }
+    }
+
+    async deleteByMatchId(matchId: string): Promise<void> {
+        await db.teamMatches.where({ matchId }).delete();
+    }
 }
 
 export const localTeamMatchRepository = new LocalTeamMatchRepository();
