@@ -204,6 +204,21 @@ export const syncService = {
         const matchesCount = await localMatchRepository.countUnsynced(orgId, tournamentId);
         const teamMatchesCount = await localTeamMatchRepository.countUnsynced(orgId, tournamentId);
         return matchesCount + teamMatchesCount;
+    },
+
+    /**
+     * ローカルDBのキャッシュを削除する
+     * matches / matchGroups / teamMatches (+ teams が存在する場合) をクリア
+     */
+    async clearLocalData(): Promise<void> {
+        await db.matches.clear();
+        await db.matchGroups.clear();
+        await db.teamMatches.clear();
+
+        const teamsTable = db.tables.find(table => table.name === "teams");
+        if (teamsTable) {
+            await teamsTable.clear();
+        }
     }
 };
 

@@ -15,6 +15,8 @@ export function useDashboard() {
     const { activeTournamentId, activeTournamentType } = useActiveTournament();
     const { showSuccess, showError } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isClearing, setIsClearing] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
     const matchGroupId = searchParams.get("matchGroupId");
@@ -51,6 +53,40 @@ export function useDashboard() {
         }
     };
 
+    const handleUpload = async () => {
+        if (!orgId || !activeTournamentId) return;
+
+        if (!confirm("ローカルの結果をFirestoreに送信しますか？")) return;
+
+        setIsUploading(true);
+        try {
+            const uploadedCount = await syncService.uploadResults(orgId, activeTournamentId);
+            if (uploadedCount > 0) {
+                showSuccess(`${uploadedCount}件のデータをFirestoreに送信しました`);
+            } else {
+                showSuccess("送信するデータはありませんでした");
+            }
+        } catch (error) {
+            showError(error instanceof Error ? error.message : "データ送信に失敗しました");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleClearLocal = async () => {
+        if (!confirm("ローカルDBの matches / matchGroups / teams / teamMatches をすべて削除します。よろしいですか？")) return;
+
+        setIsClearing(true);
+        try {
+            await syncService.clearLocalData();
+            showSuccess("ローカルDBを削除しました");
+        } catch (error) {
+            showError(error instanceof Error ? error.message : "ローカルDBの削除に失敗しました");
+        } finally {
+            setIsClearing(false);
+        }
+    };
+
     const handleBack = () => router.push("/dashboard");
 
     return {
@@ -58,6 +94,8 @@ export function useDashboard() {
         orgId,
         activeTournamentId,
         isDownloading,
+        isUploading,
+        isClearing,
         isLoading,
         hasError,
         matchGroupId,
@@ -68,6 +106,8 @@ export function useDashboard() {
         teams,
         courts: tournament?.courts ?? [],
         handleDownload,
+        handleUpload,
+        handleClearLocal,
         handleBack,
     };
 }
