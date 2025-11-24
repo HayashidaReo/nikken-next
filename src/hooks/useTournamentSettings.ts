@@ -2,19 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveTournament } from "@/store/use-active-tournament-store";
-import {
-    useTournamentsByOrganization,
-    useCreateTournament,
-    useUpdateTournamentByOrganization,
-} from "@/queries/use-tournaments";
-import { localTournamentRepository } from "@/repositories/local/tournament-repository";
-import type { LocalTournament } from "@/lib/db";
+import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import type { Tournament, TournamentFormData } from "@/types/tournament.schema";
 import {
     createEmptyTournamentFormData,
     mapTournamentToFormData,
 } from "@/lib/utils/tournament-operations";
 import { validateTournamentForm } from "@/lib/utils/tournament-validation";
+import { useTournamentPersistence } from "./useTournamentPersistence";
 
 interface SyncConfirmState {
     isOpen: boolean;
@@ -26,7 +21,7 @@ interface SyncConfirmState {
  * 大会設定ページの状態管理フック
  */
 export function useTournamentSettings() {
-    const { showSuccess, showError } = useToast();
+    const { showError } = useToast();
     const { user } = useAuth();
     const { activeTournamentId, setActiveTournament } = useActiveTournament();
     // ユーザーのUIDを組織IDとして使用
@@ -39,8 +34,7 @@ export function useTournamentSettings() {
         error,
     } = useTournamentsByOrganization(orgId);
 
-    const { mutate: createTournament } = useCreateTournament();
-    const { mutate: updateTournament } = useUpdateTournamentByOrganization();
+    const { saveToLocal, syncToCloud } = useTournamentPersistence();
 
     // 状態管理
     const [selectedTournamentId, setSelectedTournamentId] = useState<
@@ -131,195 +125,66 @@ export function useTournamentSettings() {
         }
 
         try {
-            if (!selectedTournamentId) {
-                // 新規作成: 一時IDを生成してローカル保存
-                const tempId = crypto.randomUUID();
-                const {
-                    createdAt: _createdAt,
-                    updatedAt: _updatedAt,
-                    tournamentId: _id,
-                    ...dataForCreate
-                } = formData;
-                void _createdAt;
-                void _updatedAt;
-                void _id;
+            const result = await saveToLocal(formData, selectedTournamentId);
 
-                const newTournament: LocalTournament = {
-                    ...dataForCreate,
-                    tournamentId: tempId,
-                    organizationId: orgId,
-                    tournamentDate: dataForCreate.tournamentDate as Date,
-                    tournamentType: dataForCreate.tournamentType as "individual" | "team",
-                    rounds: dataForCreate.rounds || [],
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                };
-
-                await localTournamentRepository.put(newTournament);
-                showSuccess("端末に保存しました");
-
-                // 同期確認ダイアログを表示
+            if (result.success) {
                 setSyncConfirm({
                     isOpen: true,
-                    mode: "create",
-                    tempId: tempId,
-                });
-
-            } else {
-                // 更新: 既存IDでローカル保存
-                const {
-                    createdAt: _createdAt,
-                    updatedAt: _updatedAt,
-                    tournamentId: _id,
-                    ...dataForUpdate
-                } = formData;
-                void _createdAt;
-                void _updatedAt;
-                void _id;
-
-                // 既存データのcreatedAtを保持するために取得
-                const existing = await localTournamentRepository.getById(orgId, selectedTournamentId);
-                const createdAt = existing?.createdAt || new Date();
-
-                const updatedTournament: LocalTournament = {
-                    ...dataForUpdate,
-                    tournamentId: selectedTournamentId,
-                    organizationId: orgId,
-                    tournamentDate: dataForUpdate.tournamentDate as Date,
-                    tournamentType: dataForUpdate.tournamentType as "individual" | "team",
-                    rounds: dataForUpdate.rounds || [],
-                    createdAt: createdAt,
-                    updatedAt: new Date(),
-                };
-
-                await localTournamentRepository.put(updatedTournament);
-                showSuccess("端末に保存しました");
-
-                // 同期確認ダイアログを表示
-                setSyncConfirm({
-                    isOpen: true,
-                    mode: "update",
+                    mode: result.mode,
+                    tempId: result.tempId,
                 });
             }
         } catch (error) {
-            showError(error instanceof Error ? error.message : "保存に失敗しました");
+            // エラーハンドリングはフック内で行われるため、ここでは何もしないか、必要に応じて追加処理を行う
+            console.error("保存に失敗", error);
         }
     }, [
         orgId,
         formData,
         selectedTournamentId,
-        showSuccess,
         showError,
+        saveToLocal,
     ]);
 
     // クラウド同期実行
     const handleSyncConfirm = useCallback(() => {
         if (!orgId) return;
 
-        if (syncConfirm.mode === "create") {
-            // 新規作成の同期
-            const {
-                createdAt: _createdAt,
-                updatedAt: _updatedAt,
-                tournamentId: _id,
-                ...dataForCreate
-            } = formData;
-            void _createdAt;
-            void _updatedAt;
-            void _id;
+        const wasEmpty = tournaments.length === 0;
 
-            const wasEmpty = tournaments.length === 0;
+        syncToCloud(
+            formData,
+            selectedTournamentId,
+            syncConfirm.mode,
+            syncConfirm.tempId,
+            // onSuccess
+            (result) => {
+                if (syncConfirm.mode === "create") {
+                    setSelectedTournamentId(result.data.tournamentId);
+                    setFormData(prev => ({
+                        ...prev,
+                        ...result.data,
+                    }));
 
-            createTournament(
-                {
-                    orgId,
-                    tournamentData: {
-                        ...dataForCreate,
-                        tournamentDate: dataForCreate.tournamentDate as Date,
-                        tournamentType: dataForCreate.tournamentType as "individual" | "team",
-                        rounds: dataForCreate.rounds || [],
-                    },
-                },
-                {
-                    onSuccess: async (result) => {
-                        showSuccess("クラウドに同期しました");
-
-                        // 一時IDのデータを削除（サーバーから正規IDのデータが来るため）
-                        if (syncConfirm.tempId) {
-                            await localTournamentRepository.delete(orgId, syncConfirm.tempId);
-                        }
-
-                        setSelectedTournamentId(result.data.tournamentId);
-                        setFormData(prev => ({
-                            ...prev,
-                            ...result.data,
-                        }));
-
-                        if (wasEmpty && result.data.tournamentId) {
-                            setActiveTournament(result.data.tournamentId, result.data.tournamentType);
-                        }
-                        setSyncConfirm({ isOpen: false, mode: "create" });
-                    },
-                    onError: error => {
-                        showError(
-                            error instanceof Error
-                                ? error.message
-                                : "クラウド同期に失敗しました"
-                        );
-                        setSyncConfirm({ isOpen: false, mode: "create" });
-                    },
+                    if (wasEmpty && result.data.tournamentId) {
+                        setActiveTournament(result.data.tournamentId, result.data.tournamentType);
+                    }
                 }
-            );
-        } else {
-            // 更新の同期
-            if (!selectedTournamentId) return;
-
-            const {
-                createdAt: _createdAt,
-                updatedAt: _updatedAt,
-                tournamentId: _id,
-                ...dataForUpdate
-            } = formData;
-            void _createdAt;
-            void _updatedAt;
-            void _id;
-
-            updateTournament(
-                {
-                    orgId,
-                    tournamentId: selectedTournamentId,
-                    patch: {
-                        ...dataForUpdate,
-                        tournamentDate: dataForUpdate.tournamentDate as Date,
-                        tournamentType: dataForUpdate.tournamentType as "individual" | "team",
-                        rounds: dataForUpdate.rounds || [],
-                    },
-                },
-                {
-                    onSuccess: () => {
-                        showSuccess("クラウドに同期しました");
-                        setSyncConfirm({ isOpen: false, mode: "update" });
-                    },
-                    onError: error => {
-                        showError(
-                            error instanceof Error ? error.message : "クラウド同期に失敗しました"
-                        );
-                        setSyncConfirm({ isOpen: false, mode: "update" });
-                    },
-                }
-            );
-        }
+                setSyncConfirm(prev => ({ ...prev, isOpen: false }));
+            },
+            // onError
+            () => {
+                setSyncConfirm(prev => ({ ...prev, isOpen: false }));
+            }
+        );
     }, [
         orgId,
         syncConfirm,
         formData,
         selectedTournamentId,
         tournaments.length,
-        createTournament,
-        updateTournament,
         setActiveTournament,
-        showSuccess,
-        showError
+        syncToCloud,
     ]);
 
     const handleSyncCancel = useCallback(() => {
