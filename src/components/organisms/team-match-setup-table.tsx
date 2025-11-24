@@ -21,6 +21,7 @@ import { Button } from "@/components/atoms/button";
 import { Plus } from "lucide-react";
 import MatchTable from "@/components/organisms/match-table";
 import { TeamMatchRow } from "@/components/molecules/team-match-row";
+import { TEAM_MATCH_ROUNDS } from "@/lib/constants";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import type { TeamMatch } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
@@ -69,7 +70,7 @@ export function TeamMatchSetupTable({
 
     const addRow = () => {
         setData((prev) => {
-            const nextRound = defaultRounds[prev.length] || "";
+            const nextRound = TEAM_MATCH_ROUNDS[prev.length] || "";
             const maxSortOrder = prev.length > 0 ? Math.max(...prev.map((d) => d.sortOrder)) : -1;
 
             return [
@@ -83,14 +84,13 @@ export function TeamMatchSetupTable({
                 },
             ];
         });
-    };    // デフォルトのラウンド順序
-    const defaultRounds = ["先鋒", "次鋒", "中堅", "副将", "大将", "代表戦"];
+    };
 
     // ラウンド名を自動的に再割り当てする関数
     const reassignRounds = (items: TeamMatchSetupData[]): TeamMatchSetupData[] => {
         return items.map((item, index) => ({
             ...item,
-            round: defaultRounds[index] || "", // 範囲外の場合は空文字（または既存の値を維持したい場合は item.round）
+            round: TEAM_MATCH_ROUNDS[index] || "", // 範囲外の場合は空文字（または既存の値を維持したい場合は item.round）
             sortOrder: index
         }));
     };

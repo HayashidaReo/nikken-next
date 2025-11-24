@@ -6,6 +6,7 @@ import { SearchableSelect, type SearchableSelectOption } from "@/components/mole
 import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
 import { TableCell } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
+import { TEAM_MATCH_ROUNDS } from "@/lib/constants";
 import type { Team } from "@/types/team.schema";
 import type { TeamMatchSetupData } from "@/types/match-setup";
 
@@ -40,14 +41,7 @@ export function TeamMatchRow({
         transition,
     };
 
-    const roundOptions: SearchableSelectOption[] = [
-        { value: "先鋒", label: "先鋒" },
-        { value: "次鋒", label: "次鋒" },
-        { value: "中堅", label: "中堅" },
-        { value: "副将", label: "副将" },
-        { value: "大将", label: "大将" },
-        { value: "代表戦", label: "代表戦" },
-    ];
+    const roundOptions: SearchableSelectOption[] = TEAM_MATCH_ROUNDS.map((r) => ({ value: r, label: r }));
 
     const playerAOptions: SearchableSelectOption[] = teamA.players.map(player => ({
         value: player.playerId,
