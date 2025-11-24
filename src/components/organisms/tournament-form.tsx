@@ -1,10 +1,10 @@
 import { Input } from "@/components/atoms/input";
 import { Textarea } from "@/components/atoms/textarea";
+import { Button } from "@/components/atoms/button";
 import { TimePicker } from "@/components/molecules/time-picker";
 import { CourtManager } from "@/components/molecules/court-manager";
 import { FormField } from "@/components/molecules/form-field";
 import { FormHeader } from "@/components/molecules/form-header";
-import { FormActions } from "@/components/molecules/form-actions";
 import { SearchableSelect } from "@/components/molecules/searchable-select";
 import {
   formatDateToInputValue,
@@ -49,6 +49,11 @@ export function TournamentForm({
       <FormHeader
         title={isAddingNew ? "新規大会作成" : "大会編集"}
         onCancel={onCancel}
+        actions={
+          <Button onClick={onSave} size="sm">
+            {isAddingNew ? "大会を作成" : "変更を保存"}
+          </Button>
+        }
       />
 
       <div className="space-y-6">
@@ -131,12 +136,6 @@ export function TournamentForm({
             onChange={courts => onFormChange("courts", courts)}
           />
         </FormField>
-
-        {/* 保存ボタン */}
-        <FormActions
-          onSave={onSave}
-          saveButtonText={isAddingNew ? "大会を作成" : "変更を保存"}
-        />
       </div>
     </div>
   );

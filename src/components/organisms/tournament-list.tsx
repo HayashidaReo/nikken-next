@@ -86,10 +86,6 @@ export function TournamentList({
     <div className={cn("space-y-4", className)}>
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">大会一覧</h2>
-        <Button onClick={onNewTournament} size="sm">
-          <Plus className="w-4 h-4 mr-2" />
-          新しい大会を追加
-        </Button>
       </div>
 
       <div className="space-y-3">
@@ -153,6 +149,11 @@ export function TournamentList({
           ))
         )}
       </div>
+
+      <Button onClick={onNewTournament} className="w-full">
+        <Plus className="w-4 h-4 mr-2" />
+        新しい大会を追加
+      </Button>
 
       <TournamentDeleteConfirmationDialog
         isOpen={deleteConfirm.isOpen}
