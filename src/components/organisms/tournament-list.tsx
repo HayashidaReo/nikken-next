@@ -49,7 +49,7 @@ export function TournamentList({
     handleDeleteCancel,
     handleSyncConfirm,
     handleSyncCancel,
-  } = useTournamentListManagement();
+  } = useTournamentListManagement(tournaments);
 
   const onDeleteConfirm = () => {
     if (orgId) {

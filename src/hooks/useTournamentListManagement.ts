@@ -8,6 +8,7 @@ import { useToast } from "@/components/providers/notification-provider";
 import { useDeleteTournament } from "@/queries/use-tournaments";
 import { localTournamentRepository } from "@/repositories/local/tournament-repository";
 import type { Tournament } from "@/types/tournament.schema";
+import { useActiveTournament } from "@/store/use-active-tournament-store";
 
 interface DeleteConfirmState {
     isOpen: boolean;
@@ -36,12 +37,12 @@ interface UseTournamentListManagementResult {
 
 /**
  * 大会一覧の操作（削除など）を管理
- * TournamentListコンポーネント内での複雑な削除ロジックを抽出
  */
-export function useTournamentListManagement(): UseTournamentListManagementResult {
+export function useTournamentListManagement(tournaments: Tournament[] = []): UseTournamentListManagementResult {
     const { showSuccess, showError } = useToast();
     const { mutate: deleteTournament, isPending: isDeleting } =
         useDeleteTournament();
+    const { activeTournamentId, setActiveTournament, clearActiveTournament } = useActiveTournament();
 
     const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
         isOpen: false,
@@ -76,6 +77,29 @@ export function useTournamentListManagement(): UseTournamentListManagementResult
                 // 1. ローカルから削除
                 await localTournamentRepository.delete(orgId, tournamentId);
 
+                // 削除対象がアクティブな大会だった場合、次の大会を選択する
+                if (activeTournamentId === tournamentId) {
+                    const currentIndex = tournaments.findIndex(t => t.tournamentId === tournamentId);
+                    let nextTournament: Tournament | undefined;
+
+                    if (currentIndex >= 0) {
+                        // 次の要素があるか確認
+                        if (currentIndex + 1 < tournaments.length) {
+                            nextTournament = tournaments[currentIndex + 1];
+                        }
+                        // なければ前の要素を確認
+                        else if (currentIndex - 1 >= 0) {
+                            nextTournament = tournaments[currentIndex - 1];
+                        }
+                    }
+
+                    if (nextTournament && nextTournament.tournamentId) {
+                        setActiveTournament(nextTournament.tournamentId, nextTournament.tournamentType);
+                    } else {
+                        clearActiveTournament();
+                    }
+                }
+
                 // 2. 成功したらダイアログを閉じて、同期確認ダイアログを開く
                 setDeleteConfirm({ isOpen: false, tournament: null });
                 setSyncConfirm({
@@ -90,7 +114,15 @@ export function useTournamentListManagement(): UseTournamentListManagementResult
                 showError(`削除に失敗しました: ${error}`);
             }
         },
-        [deleteConfirm.tournament, showSuccess, showError]
+        [
+            deleteConfirm.tournament,
+            showSuccess,
+            showError,
+            activeTournamentId,
+            tournaments,
+            setActiveTournament,
+            clearActiveTournament,
+        ]
     );
 
     /**
