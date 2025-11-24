@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMatches } from "@/queries/use-matches";
 import { useMatchGroups } from "@/queries/use-match-groups";
@@ -35,13 +35,6 @@ export function useDashboard() {
     const isLoading = tournamentLoading || (activeTournamentType === 'individual' ? matchesLoading : false);
     const hasError = tournamentError || (activeTournamentType === 'individual' ? matchesError : null);
 
-    // matches リストをメモ化して不要な再レンダリングを防止
-    const memoizedMatches = useMemo(() => matches, [matches]);
-
-    // tournament データをメモ化
-    const memoizedTournament = useMemo(() => tournament, [tournament]);
-    const memoizedCourts = useMemo(() => tournament?.courts ?? [], [tournament?.courts]);
-
     const handleDownload = async () => {
         if (!orgId || !activeTournamentId) return;
 
@@ -68,12 +61,12 @@ export function useDashboard() {
         isLoading,
         hasError,
         matchGroupId,
-        tournament: memoizedTournament,
-        matches: memoizedMatches,
+        tournament,
+        matches,
         matchGroups,
         teamMatches,
         teams,
-        courts: memoizedCourts,
+        courts: tournament?.courts ?? [],
         handleDownload,
         handleBack,
     };
