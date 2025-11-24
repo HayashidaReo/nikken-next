@@ -2,22 +2,25 @@ import { memo } from "react";
 import { useRouter } from "next/navigation";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { findCourtName } from "@/lib/utils/court-utils";
+import { findRoundName } from "@/lib/utils/round-utils";
 import PlayerCell from "@/components/molecules/player-cell";
 import MatchTable from "@/components/organisms/match-table";
 import { Button } from "@/components/atoms/button";
 import { ArrowRight } from "lucide-react";
 import type { MatchGroup } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
+import type { Round } from "@/types/tournament.schema";
 
 interface MatchGroupListTableProps {
     matchGroups: MatchGroup[];
     teams: Team[];
     tournamentName: string;
     courts?: Array<{ courtId: string; courtName: string }>;
+    rounds?: Round[];
     className?: string;
 }
 
-export function MatchGroupListTable({ matchGroups, teams, tournamentName, courts, className }: MatchGroupListTableProps) {
+export function MatchGroupListTable({ matchGroups, teams, tournamentName, courts, rounds, className }: MatchGroupListTableProps) {
     const router = useRouter();
 
     const getTeamName = (teamId: string) => {
@@ -39,13 +42,14 @@ export function MatchGroupListTable({ matchGroups, teams, tournamentName, courts
         >
             {matchGroups.map((group) => {
                 const courtName = findCourtName(group.courtId, courts);
+                const roundName = findRoundName(group.roundId, rounds);
                 const teamAName = getTeamName(group.teamAId);
                 const teamBName = getTeamName(group.teamBId);
 
                 return (
                     <TableRow key={group.matchGroupId}>
                         <PlayerCell text={courtName} title={courtName} />
-                        <PlayerCell text={group.round} title={group.round} />
+                        <PlayerCell text={roundName} title={roundName} />
                         <PlayerCell text={teamAName} title={teamAName} />
                         <TableCell className="p-0 text-center">
                             <div className="flex items-center justify-center h-full text-gray-400 font-bold">vs</div>

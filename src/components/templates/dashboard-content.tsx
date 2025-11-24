@@ -5,7 +5,7 @@ import { Button } from "@/components/atoms/button";
 import { ArrowLeft } from "lucide-react";
 import type { Match, MatchGroup, TeamMatch } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
-import type { Court } from "@/types/tournament.schema";
+import type { Court, Round } from "@/types/tournament.schema";
 
 interface DashboardContentProps {
     tournamentType: "individual" | "team";
@@ -16,6 +16,7 @@ interface DashboardContentProps {
     teams: Team[];
     tournamentName: string;
     courts: Court[];
+    rounds?: Round[];
     onBack: () => void;
 }
 
@@ -28,6 +29,7 @@ export function DashboardContent({
     teams,
     tournamentName,
     courts,
+    rounds,
     onBack,
 }: DashboardContentProps) {
     if (tournamentType === "team") {
@@ -48,6 +50,8 @@ export function DashboardContent({
                     <TeamMatchListTableMemo
                         matches={teamMatches}
                         tournamentName={title}
+                        rounds={rounds}
+                        teams={teams}
                     />
                 </>
             );
@@ -59,6 +63,7 @@ export function DashboardContent({
                 teams={teams}
                 tournamentName={tournamentName}
                 courts={courts}
+                rounds={rounds}
             />
         );
     }
@@ -68,6 +73,8 @@ export function DashboardContent({
             matches={matches}
             tournamentName={tournamentName}
             courts={courts}
+            rounds={rounds}
+            teams={teams}
         />
     );
 }

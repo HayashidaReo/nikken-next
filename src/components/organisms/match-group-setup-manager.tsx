@@ -139,8 +139,8 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                         roundId,
                         sortOrder: item.sortOrder,
                         players: {
-                            playerA: { ...playerA, teamId: teamA.teamId, teamName: teamA.teamName, score: 0, hansoku: 0 },
-                            playerB: { ...playerB, teamId: teamB.teamId, teamName: teamB.teamName, score: 0, hansoku: 0 },
+                            playerA: { ...playerA, teamId: teamA.teamId, score: 0, hansoku: 0 },
+                            playerB: { ...playerB, teamId: teamB.teamId, score: 0, hansoku: 0 },
                         },
                         isCompleted: false,
                     };
@@ -153,8 +153,8 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                         roundId,
                         sortOrder: item.sortOrder,
                         players: {
-                            playerA: { ...playerA, teamId: teamA.teamId, teamName: teamA.teamName, score: existingMatch?.players.playerA.score ?? 0, hansoku: existingMatch?.players.playerA.hansoku ?? 0 },
-                            playerB: { ...playerB, teamId: teamB.teamId, teamName: teamB.teamName, score: existingMatch?.players.playerB.score ?? 0, hansoku: existingMatch?.players.playerB.hansoku ?? 0 },
+                            playerA: { ...playerA, teamId: teamA.teamId, score: existingMatch?.players.playerA.score ?? 0, hansoku: existingMatch?.players.playerA.hansoku ?? 0 },
+                            playerB: { ...playerB, teamId: teamB.teamId, score: existingMatch?.players.playerB.score ?? 0, hansoku: existingMatch?.players.playerB.hansoku ?? 0 },
                         },
                     };
                     await updateTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: item.id, patch });

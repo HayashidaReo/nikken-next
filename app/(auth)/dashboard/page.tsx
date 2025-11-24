@@ -112,6 +112,7 @@ export default function DashboardPage() {
             teams={teams}
             tournamentName={tournament.tournamentName}
             courts={courts}
+            rounds={tournament.rounds}
             onBack={handleBack}
           />
         )}

@@ -196,12 +196,18 @@ export function detectMatchConflicts(
 
         if (userChangedPlayerA && serverChangedPlayerA && draft.playerAId !== serverMatch.players.playerA.playerId && !isPlayerARejected) {
             const draftPlayerAName = findPlayerInfo(draft.playerATeamId, draft.playerAId, teams)?.displayName || "";
-            const serverPlayerAName = serverMatch.players.playerA.displayName;
+            const serverPlayerAName =
+                findPlayerInfo(serverMatch.players.playerA.teamId, serverMatch.players.playerA.playerId, teams)?.displayName ||
+                serverMatch.players.playerA.playerId;
             directConflicts.playerA = { draft: draftPlayerAName, server: serverPlayerAName };
             hasAnyConflict = true;
         } else if (!userChangedPlayerA && serverChangedPlayerA && !isPlayerARejected) {
-            const initialPlayerAName = initialMatch.players.playerA.displayName;
-            const serverPlayerAName = serverMatch.players.playerA.displayName;
+            const initialPlayerAName =
+                findPlayerInfo(initialMatch.players.playerA.teamId, initialMatch.players.playerA.playerId, teams)?.displayName ||
+                initialMatch.players.playerA.playerId;
+            const serverPlayerAName =
+                findPlayerInfo(serverMatch.players.playerA.teamId, serverMatch.players.playerA.playerId, teams)?.displayName ||
+                serverMatch.players.playerA.playerId;
             serverOnlyChanges.playerA = { initial: initialPlayerAName, server: serverPlayerAName };
             hasAnyConflict = true;
         }
@@ -213,12 +219,18 @@ export function detectMatchConflicts(
 
         if (userChangedPlayerB && serverChangedPlayerB && draft.playerBId !== serverMatch.players.playerB.playerId && !isPlayerBRejected) {
             const draftPlayerBName = findPlayerInfo(draft.playerBTeamId, draft.playerBId, teams)?.displayName || "";
-            const serverPlayerBName = serverMatch.players.playerB.displayName;
+            const serverPlayerBName =
+                findPlayerInfo(serverMatch.players.playerB.teamId, serverMatch.players.playerB.playerId, teams)?.displayName ||
+                serverMatch.players.playerB.playerId;
             directConflicts.playerB = { draft: draftPlayerBName, server: serverPlayerBName };
             hasAnyConflict = true;
         } else if (!userChangedPlayerB && serverChangedPlayerB && !isPlayerBRejected) {
-            const initialPlayerBName = initialMatch.players.playerB.displayName;
-            const serverPlayerBName = serverMatch.players.playerB.displayName;
+            const initialPlayerBName =
+                findPlayerInfo(initialMatch.players.playerB.teamId, initialMatch.players.playerB.playerId, teams)?.displayName ||
+                initialMatch.players.playerB.playerId;
+            const serverPlayerBName =
+                findPlayerInfo(serverMatch.players.playerB.teamId, serverMatch.players.playerB.playerId, teams)?.displayName ||
+                serverMatch.players.playerB.playerId;
             serverOnlyChanges.playerB = { initial: initialPlayerBName, server: serverPlayerBName };
             hasAnyConflict = true;
         }

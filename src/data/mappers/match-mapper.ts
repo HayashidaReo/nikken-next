@@ -25,10 +25,8 @@ export type FirestoreMatchCreateDoc = Omit<
 >;
 
 export interface FirestoreMatchPlayerDoc {
-    displayName: string;
     playerId: string;
     teamId: string;
-    teamName: string;
     score: number;
     hansoku: number;
 }
@@ -91,10 +89,8 @@ export class MatchMapper {
         player: FirestoreMatchPlayerDoc
     ): MatchPlayer {
         const playerData: MatchPlayer = {
-            displayName: player.displayName,
             playerId: player.playerId,
             teamId: player.teamId,
-            teamName: player.teamName,
             score: player.score,
             hansoku: player.hansoku,
         };
@@ -181,10 +177,8 @@ export class MatchMapper {
         player: MatchPlayer
     ): FirestoreMatchPlayerDoc {
         return {
-            displayName: player.displayName,
             playerId: player.playerId,
             teamId: player.teamId,
-            teamName: player.teamName,
             score: player.score,
             hansoku: player.hansoku,
         };

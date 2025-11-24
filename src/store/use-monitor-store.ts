@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Match, TeamMatch } from "@/types/match.schema";
+import type { ResolvedMatchPlayer } from "@/lib/utils/player-directory";
 import type { MonitorData } from "@/types/monitor.schema";
 import { SCORE_CONSTANTS, HANSOKU_CONSTANTS } from "@/lib/constants";
 import {
@@ -44,7 +45,14 @@ interface MonitorState {
   initializeMatch: (
     match: Match | TeamMatch,
     tournamentName: string,
-    courtName: string
+    courtName: string,
+    options?: {
+      resolvedPlayers?: {
+        playerA: ResolvedMatchPlayer;
+        playerB: ResolvedMatchPlayer;
+      };
+      roundName?: string;
+    }
   ) => void;
   setPlayerScore: (player: "A" | "B", score: number) => void;
   setPlayerHansoku: (player: "A" | "B", hansoku: number) => void;
@@ -93,24 +101,43 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   initializeMatch: (
     match: Match | TeamMatch,
     tournamentName: string,
-    courtName: string
+    courtName: string,
+    options?: {
+      resolvedPlayers?: {
+        playerA: ResolvedMatchPlayer;
+        playerB: ResolvedMatchPlayer;
+      };
+      roundName?: string;
+    }
   ) => {
+    const { resolvedPlayers, roundName } = options || {};
+    const fallbackPlayer = (
+      player: Match["players"]["playerA"] | TeamMatch["players"]["playerA"]
+    ): ResolvedMatchPlayer => ({
+      ...player,
+      displayName: player.playerId,
+      teamName: player.teamId,
+    });
+
+    const playerAData = resolvedPlayers?.playerA || fallbackPlayer(match.players.playerA);
+    const playerBData = resolvedPlayers?.playerB || fallbackPlayer(match.players.playerB);
+
     set({
       matchId: match.matchId,
       courtName,
-      round: match.round,
+      round: roundName || match.roundId,
       tournamentName,
       playerA: {
-        displayName: match.players.playerA.displayName,
-        teamName: match.players.playerA.teamName,
-        score: match.players.playerA.score,
-        hansoku: match.players.playerA.hansoku,
+        displayName: playerAData.displayName,
+        teamName: playerAData.teamName,
+        score: playerAData.score,
+        hansoku: playerAData.hansoku,
       },
       playerB: {
-        displayName: match.players.playerB.displayName,
-        teamName: match.players.playerB.teamName,
-        score: match.players.playerB.score,
-        hansoku: match.players.playerB.hansoku,
+        displayName: playerBData.displayName,
+        teamName: playerBData.teamName,
+        score: playerBData.score,
+        hansoku: playerBData.hansoku,
       },
     });
   },

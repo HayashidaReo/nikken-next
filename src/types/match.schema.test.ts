@@ -7,10 +7,8 @@ import {
 
 describe("Match Schema Validation", () => {
   const validMatchPlayer: MatchPlayer = {
-    displayName: "山田",
     playerId: "player-001",
     teamId: "team-001",
-    teamName: "テストチーム",
     score: 0,
     hansoku: 0,
   };
@@ -25,7 +23,6 @@ describe("Match Schema Validation", () => {
       playerB: {
         ...validMatchPlayer,
         playerId: "player-002",
-        displayName: "鈴木",
       },
     },
     isCompleted: false,

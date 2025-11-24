@@ -1,10 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { useMatch } from "@/queries/use-matches";
 import { useTeamMatch } from "@/queries/use-team-matches";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useMatchGroups } from "@/queries/use-match-groups";
+import { useTeams } from "@/queries/use-teams";
+import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
+import { findRoundName } from "@/lib/utils/round-utils";
 
 interface UseMatchDataWithPriorityResult {
     isLoading: boolean;
@@ -40,6 +43,8 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
     );
 
     const { data: matchGroups = [] } = useMatchGroups();
+    const { data: teams = [] } = useTeams();
+    const playerDirectory = useMemo(() => createPlayerDirectory(teams), [teams]);
 
     // どちらかのデータがあればOK
     const match = individualMatch || teamMatch;
@@ -79,9 +84,18 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
             );
             const courtName = court ? court.courtName : courtId;
 
-            initializeMatch(match, tournament.tournamentName, courtName);
+            const resolvedPlayers = {
+                playerA: resolveMatchPlayer(match.players.playerA, playerDirectory),
+                playerB: resolveMatchPlayer(match.players.playerB, playerDirectory),
+            };
+            const roundName = findRoundName(match.roundId, tournament.rounds);
+
+            initializeMatch(match, tournament.tournamentName, courtName, {
+                resolvedPlayers,
+                roundName,
+            });
         }
-    }, [hasStoreData, match, tournament, initializeMatch, matchGroups]);
+    }, [hasStoreData, match, tournament, initializeMatch, matchGroups, playerDirectory]);
 
     return {
         isLoading,

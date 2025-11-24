@@ -36,10 +36,8 @@ export const numberToHansokuState = {
  * データベース設計の players.playerA/playerB に対応
  */
 export const matchPlayerSchema = z.object({
-  displayName: z.string().min(1, "表示名は必須です"),
   playerId: z.string().min(1, "選手IDは必須です"),
   teamId: z.string().min(1, "チームIDは必須です"),
-  teamName: z.string().min(1, "チーム名は必須です"),
   score: z.number().min(0).max(2).default(0), // 0, 1, 2点
   hansoku: z.number().min(0).max(4).default(0), // 0-4の反則状態
 });

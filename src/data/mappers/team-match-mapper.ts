@@ -50,10 +50,8 @@ export class TeamMatchMapper {
 
     private static playerToDomain(player: FirestoreMatchPlayerDoc): MatchPlayer {
         const data: MatchPlayer = {
-            displayName: player.displayName,
             playerId: player.playerId,
             teamId: player.teamId,
-            teamName: player.teamName,
             score: player.score,
             hansoku: player.hansoku,
         };
@@ -99,10 +97,8 @@ export class TeamMatchMapper {
 
     private static playerToFirestore(player: MatchPlayer): FirestoreMatchPlayerDoc {
         return {
-            displayName: player.displayName,
             playerId: player.playerId,
             teamId: player.teamId,
-            teamName: player.teamName,
             score: player.score,
             hansoku: player.hansoku,
         };

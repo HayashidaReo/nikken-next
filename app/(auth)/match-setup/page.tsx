@@ -3,8 +3,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { MatchSetupTable } from "@/components/organisms/match-setup-table";
-import { MatchSetupSaveConflictDialog } from "@/components/molecules/match-setup-save-conflict-dialog";
-import { MatchSetupUpdateDialog } from "@/components/molecules/match-setup-update-dialog";
 import { MatchGroupSetupManager } from "@/components/organisms/match-group-setup-manager";
 import { useTeams } from "@/queries/use-teams";
 import {
@@ -23,9 +21,7 @@ import type { MatchCreate, Match } from "@/types/match.schema";
 import {
   detectMatchConflicts,
   findPlayerInfo,
-  convertDetectedChangesToConflicts,
   type MatchSetupData,
-  type ConflictDetails,
   type DetectedChanges,
 } from "@/lib/utils/match-conflict-detection";
 
@@ -158,9 +154,11 @@ export default function MatchSetupPage() {
       const initialPlayerAId = initialMatch.players.playerA.playerId;
       const serverPlayerAId = serverMatch.players.playerA.playerId;
       if (serverPlayerAId !== initialPlayerAId && rejected.playerA !== serverPlayerAId) {
+        const initialPlayerInfo = findPlayerInfo(initialMatch.players.playerA.teamId, initialPlayerAId, teams);
+        const serverPlayerInfo = findPlayerInfo(serverMatch.players.playerA.teamId, serverPlayerAId, teams);
         matchChanges.playerA = {
-          initial: initialMatch.players.playerA.displayName,
-          server: serverMatch.players.playerA.displayName,
+          initial: initialPlayerInfo?.displayName || initialPlayerAId,
+          server: serverPlayerInfo?.displayName || serverPlayerAId,
         };
       }
 
@@ -168,9 +166,11 @@ export default function MatchSetupPage() {
       const initialPlayerBId = initialMatch.players.playerB.playerId;
       const serverPlayerBId = serverMatch.players.playerB.playerId;
       if (serverPlayerBId !== initialPlayerBId && rejected.playerB !== serverPlayerBId) {
+        const initialPlayerInfo = findPlayerInfo(initialMatch.players.playerB.teamId, initialPlayerBId, teams);
+        const serverPlayerInfo = findPlayerInfo(serverMatch.players.playerB.teamId, serverPlayerBId, teams);
         matchChanges.playerB = {
-          initial: initialMatch.players.playerB.displayName,
-          server: serverMatch.players.playerB.displayName,
+          initial: initialPlayerInfo?.displayName || initialPlayerBId,
+          server: serverPlayerInfo?.displayName || serverPlayerBId,
         };
       }
 
@@ -206,25 +206,11 @@ export default function MatchSetupPage() {
       addedMatches,
       deletedMatches,
     });
-  }, [initialMatches, realtimeMatches, rejectedChanges, justSaved, justRejected, resolveRoundName]);
+  }, [initialMatches, realtimeMatches, rejectedChanges, justSaved, justRejected, resolveRoundName, teams]);
 
   const createMatchesMutation = useCreateMatches();
   const updateMatchMutation = useUpdateMatch();
   const deleteMatchesMutation = useDeleteMatches();
-
-  // 競合ダイアログの状態
-  const [conflictDialog, setConflictDialog] = useState<{
-    open: boolean;
-    conflicts: ConflictDetails[];
-    pendingSaveData: MatchSetupData[] | null;
-  }>({
-    open: false,
-    conflicts: [],
-    pendingSaveData: null,
-  });
-
-  // 更新確認ダイアログの開閉状態
-  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
 
   const handleSave = async (matchSetupData: MatchSetupData[]) => {
     // 保存開始時点でフラグを立て、差分検出を一時停止
@@ -246,12 +232,15 @@ export default function MatchSetupPage() {
     );
 
     if (conflicts.length > 0) {
-      setConflictDialog({
-        open: true,
-        conflicts,
-        pendingSaveData: matchSetupData,
-      });
-      return;
+      const shouldOverwrite = window.confirm(
+        `他の端末で ${conflicts.length} 件の変更が検出されました。\nこのまま上書き保存しますか？`
+      );
+
+      if (!shouldOverwrite) {
+        setJustSaved(false);
+        showError("保存をキャンセルしました");
+        return;
+      }
     }
 
     await executeSave(matchSetupData);
@@ -318,18 +307,14 @@ export default function MatchSetupPage() {
           sortOrder: setupData.sortOrder,
           players: {
             playerA: {
-              displayName: playerA.displayName,
               playerId: playerA.playerId,
               teamId: playerA.teamId,
-              teamName: playerA.teamName,
               score: latestMatch.players.playerA.score,
               hansoku: latestMatch.players.playerA.hansoku,
             },
             playerB: {
-              displayName: playerB.displayName,
               playerId: playerB.playerId,
               teamId: playerB.teamId,
-              teamName: playerB.teamName,
               score: latestMatch.players.playerB.score,
               hansoku: latestMatch.players.playerB.hansoku,
             },
@@ -363,18 +348,14 @@ export default function MatchSetupPage() {
             sortOrder: setupData.sortOrder,
             players: {
               playerA: {
-                displayName: playerA.displayName,
                 playerId: playerA.playerId,
                 teamId: playerA.teamId,
-                teamName: playerA.teamName,
                 score: 0,
                 hansoku: 0,
               },
               playerB: {
-                displayName: playerB.displayName,
                 playerId: playerB.playerId,
                 teamId: playerB.teamId,
-                teamName: playerB.teamName,
                 score: 0,
                 hansoku: 0,
               },
@@ -389,8 +370,6 @@ export default function MatchSetupPage() {
 
       const totalCount = matchesToUpdate.length + matchesToCreate.length;
       showSuccess(`${totalCount}件の試合を設定しました`);
-
-      setConflictDialog({ open: false, conflicts: [], pendingSaveData: null });
     } catch (error) {
       console.error("試合設定の保存に失敗:", error);
       showError(
@@ -401,23 +380,21 @@ export default function MatchSetupPage() {
     }
   };
 
-  const handleConflictConfirm = async () => {
-    if (!conflictDialog.pendingSaveData) return;
-    await executeSave(conflictDialog.pendingSaveData);
-  };
-
-  const handleConflictCancel = () => {
-    setJustSaved(false);
-    setConflictDialog({ open: false, conflicts: [], pendingSaveData: null });
-  };
-
   const handleUpdateClick = () => {
-    setUpdateDialogOpen(true);
-  };
+    if (detectedCount === 0) {
+      showSuccess("最新の変更は見つかりません");
+      return;
+    }
 
-  const handleUpdateDialogCancel = () => {
-    // ×ボタンで閉じた場合は、ダイアログを閉じるだけ（却下はしない）
-    setUpdateDialogOpen(false);
+    const shouldMerge = window.confirm(
+      "他端末での変更が検出されました。\nOK: 変更を反映 / キャンセル: 変更を却下"
+    );
+
+    if (shouldMerge) {
+      handleFieldMerge();
+    } else {
+      handleFieldReject();
+    }
   };
 
   const handleFieldMerge = () => {
@@ -485,7 +462,6 @@ export default function MatchSetupPage() {
       addedMatches: [],
       deletedMatches: [],
     });
-    setUpdateDialogOpen(false);
   };
 
   const handleFieldReject = () => {
@@ -532,7 +508,6 @@ export default function MatchSetupPage() {
       addedMatches: [],
       deletedMatches: [],
     });
-    setUpdateDialogOpen(false);
 
     // フラグ解除は少し遅らせる（確実にクリアが完了してから）
     setTimeout(() => {
@@ -559,12 +534,6 @@ export default function MatchSetupPage() {
     // （保存後やマージ後に更新される）
     return initialMatches;
   }, [initialMatches, matches]);
-
-  // detectedChanges を conflicts 形式に変換（更新ダイアログ用）
-  const updateConflicts = useMemo(
-    () => convertDetectedChangesToConflicts(detectedChanges),
-    [detectedChanges]
-  );
 
   // 大会が選択されていない場合
   if (needsTournamentSelection) {
@@ -636,26 +605,6 @@ export default function MatchSetupPage() {
           onOpenUpdateDialog={handleUpdateClick}
         />
 
-        {/* 競合確認ダイアログ（保存時） */}
-        <MatchSetupSaveConflictDialog
-          open={conflictDialog.open}
-          conflicts={conflictDialog.conflicts}
-          addedMatches={detectedChanges.addedMatches}
-          deletedMatches={detectedChanges.deletedMatches}
-          onConfirm={handleConflictConfirm}
-          onCancel={handleConflictCancel}
-        />
-
-        {/* 更新確認ダイアログ（更新ボタンクリック時） */}
-        <MatchSetupUpdateDialog
-          open={updateDialogOpen}
-          conflicts={updateConflicts}
-          addedMatches={detectedChanges.addedMatches}
-          deletedMatches={detectedChanges.deletedMatches}
-          onConfirm={handleFieldMerge}
-          onReject={handleFieldReject}
-          onCancel={handleUpdateDialogCancel}
-        />
       </div>
     </MainLayout>
   );

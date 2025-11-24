@@ -1,28 +1,35 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { TableRow } from "@/components/atoms/table";
 import { findCourtName } from "@/lib/utils/court-utils";
+import { findRoundName } from "@/lib/utils/round-utils";
 import ScoreCell from "@/components/molecules/score-cell";
 import PlayerCell from "@/components/molecules/player-cell";
 import ActionCell from "@/components/molecules/action-cell";
 import { SCORE_COLORS, MATCH_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import MatchTable from "@/components/organisms/match-table";
 import type { Match } from "@/types/match.schema";
+import type { Team } from "@/types/team.schema";
+import type { Round } from "@/types/tournament.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
+import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
 
 interface MatchListTableProps {
   matches: Match[];
   tournamentName: string;
   courts?: Array<{ courtId: string; courtName: string }>;
+  rounds?: Round[];
+  teams: Team[];
   className?: string;
 }
 
-export function MatchListTable({ matches, tournamentName, courts, className, }: MatchListTableProps) {
+export function MatchListTable({ matches, tournamentName, courts, rounds, teams, className, }: MatchListTableProps) {
   const router = useRouter();
   const initializeMatch = useMonitorStore((s) => s.initializeMatch);
+  const playerDirectory = useMemo(() => createPlayerDirectory(teams), [teams]);
 
   const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean) => {
     if (playerScore === 0 && opponentScore === 0) {
@@ -49,8 +56,10 @@ export function MatchListTable({ matches, tournamentName, courts, className, }: 
       className={className}
     >
       {matches.map((match) => {
-        const { playerA, playerB } = match.players;
+        const playerA = resolveMatchPlayer(match.players.playerA, playerDirectory);
+        const playerB = resolveMatchPlayer(match.players.playerB, playerDirectory);
         const courtName = findCourtName(match.courtId, courts);
+        const roundName = findRoundName(match.roundId, rounds);
         const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted);
         const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted);
 
@@ -58,7 +67,7 @@ export function MatchListTable({ matches, tournamentName, courts, className, }: 
         return (
           <TableRow key={match.matchId}>
             <PlayerCell text={courtName} title={courtName} />
-            <PlayerCell text={match.round} title={match.round} />
+            <PlayerCell text={roundName} title={roundName} />
             <PlayerCell text={playerA.teamName} title={playerA.teamName} colorClass={playerAColor} />
             <PlayerCell text={playerA.displayName} title={playerA.displayName} colorClass={playerAColor} />
             <ScoreCell
@@ -77,7 +86,13 @@ export function MatchListTable({ matches, tournamentName, courts, className, }: 
             <ActionCell
               onMonitor={() => {
                 const courtNameForInit = findCourtName(match.courtId, courts);
-                initializeMatch(match, tournamentName, courtNameForInit);
+                initializeMatch(match, tournamentName, courtNameForInit, {
+                  resolvedPlayers: {
+                    playerA,
+                    playerB,
+                  },
+                  roundName,
+                });
                 router.push(`/monitor-control/${match.matchId}`);
               }}
             />
