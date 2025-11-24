@@ -13,6 +13,7 @@ export interface FirestoreTournamentDoc {
   location: string;
   defaultMatchTime: number;
   courts: FirestoreCourtDoc[];
+  tournamentType: "individual" | "team";
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -56,6 +57,7 @@ export class TournamentMapper {
         courtId: court.courtId,
         courtName: court.courtName,
       })),
+      tournamentType: doc.tournamentType,
       createdAt: doc.createdAt.toDate(),
       updatedAt: doc.updatedAt.toDate(),
     };
@@ -88,6 +90,7 @@ export class TournamentMapper {
         courtId: court.courtId,
         courtName: court.courtName,
       })),
+      tournamentType: tournament.tournamentType,
       createdAt: now,
       updatedAt: now,
     };
@@ -123,6 +126,9 @@ export class TournamentMapper {
         courtId: court.courtId,
         courtName: court.courtName,
       }));
+    }
+    if (tournament.tournamentType !== undefined) {
+      updateDoc.tournamentType = tournament.tournamentType;
     }
 
     return updateDoc;
