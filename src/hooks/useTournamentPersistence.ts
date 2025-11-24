@@ -36,15 +36,12 @@ export function useTournamentPersistence() {
             if (!selectedTournamentId) {
                 // 新規作成: 一時IDを生成してローカル保存
                 const tempId = crypto.randomUUID();
-                const {
-                    createdAt: _createdAt,
-                    updatedAt: _updatedAt,
-                    tournamentId: _id,
-                    ...dataForCreate
-                } = formData;
-                void _createdAt;
-                void _updatedAt;
-                void _id;
+
+                // createdAt, updatedAt, tournamentId は新規作成時に自動生成されるため除外
+                const dataForCreate = { ...formData };
+                delete dataForCreate.createdAt;
+                delete dataForCreate.updatedAt;
+                delete (dataForCreate as Partial<TournamentFormData>).tournamentId;
 
                 const newTournament: LocalTournament = {
                     ...dataForCreate,
@@ -63,15 +60,10 @@ export function useTournamentPersistence() {
                 return { success: true, mode: "create", tempId };
             } else {
                 // 更新: 既存IDでローカル保存
-                const {
-                    createdAt: _createdAt,
-                    updatedAt: _updatedAt,
-                    tournamentId: _id,
-                    ...dataForUpdate
-                } = formData;
-                void _createdAt;
-                void _updatedAt;
-                void _id;
+                const dataForUpdate = { ...formData };
+                delete dataForUpdate.createdAt;
+                delete dataForUpdate.updatedAt;
+                delete (dataForUpdate as Partial<TournamentFormData>).tournamentId;
 
                 // 既存データのcreatedAtを保持するために取得
                 const existing = await localTournamentRepository.getById(orgId, selectedTournamentId);
@@ -112,15 +104,11 @@ export function useTournamentPersistence() {
 
         if (mode === "create") {
             // 新規作成の同期
-            const {
-                createdAt: _createdAt,
-                updatedAt: _updatedAt,
-                tournamentId: _id,
-                ...dataForCreate
-            } = formData;
-            void _createdAt;
-            void _updatedAt;
-            void _id;
+            // createdAt, updatedAt, tournamentId はサーバー側で生成されるため除外
+            const dataForCreate = { ...formData };
+            delete dataForCreate.createdAt;
+            delete dataForCreate.updatedAt;
+            delete (dataForCreate as Partial<TournamentFormData>).tournamentId;
 
             createTournament(
                 {
@@ -157,15 +145,10 @@ export function useTournamentPersistence() {
             // 更新の同期
             if (!selectedTournamentId) return;
 
-            const {
-                createdAt: _createdAt,
-                updatedAt: _updatedAt,
-                tournamentId: _id,
-                ...dataForUpdate
-            } = formData;
-            void _createdAt;
-            void _updatedAt;
-            void _id;
+            const dataForUpdate = { ...formData };
+            delete dataForUpdate.createdAt;
+            delete dataForUpdate.updatedAt;
+            delete (dataForUpdate as Partial<TournamentFormData>).tournamentId;
 
             updateTournament(
                 {
