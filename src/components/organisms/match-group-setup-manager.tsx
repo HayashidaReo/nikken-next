@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { MatchGroupSetupTable } from "@/components/organisms/match-group-setup-table";
 import { TeamMatchSetupTable } from "@/components/organisms/team-match-setup-table";
 import { Button } from "@/components/atoms/button";
@@ -16,7 +16,10 @@ interface MatchGroupSetupManagerProps {
 }
 
 export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupManagerProps) {
-    const [selectedMatchGroupId, setSelectedMatchGroupId] = useState<string | null>(null);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const selectedMatchGroupId = searchParams.get("matchGroupId");
 
     // Match Groups
     const { data: matchGroups = [] } = useMatchGroups();
@@ -29,6 +32,20 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
     const createTeamMatch = useCreateTeamMatch();
     const updateTeamMatch = useUpdateTeamMatch();
     const deleteTeamMatch = useDeleteTeamMatch();
+
+    const handleBack = () => {
+        const params = new URLSearchParams(searchParams);
+        params.delete("matchGroupId");
+        router.push(`${pathname}?${params.toString()}`);
+    };
+
+    const handleSelect = (group: MatchGroupSetupData) => {
+        const params = new URLSearchParams(searchParams);
+        if (group.id) {
+            params.set("matchGroupId", group.id);
+            router.push(`${pathname}?${params.toString()}`);
+        }
+    };
 
     const handleSaveMatchGroups = async (data: MatchGroupSetupData[]) => {
         // 既存のIDセット
@@ -134,7 +151,7 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
 
         return (
             <div className="space-y-4">
-                <Button variant="outline" onClick={() => setSelectedMatchGroupId(null)}>
+                <Button variant="outline" onClick={handleBack}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     チーム対戦一覧に戻る
                 </Button>
@@ -158,7 +175,7 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
             courts={tournament.courts}
             matchGroups={matchGroups}
             onSave={handleSaveMatchGroups}
-            onSelect={(group) => setSelectedMatchGroupId(group.id)}
+            onSelect={handleSelect}
             isSaving={createMatchGroup.isPending || updateMatchGroup.isPending || deleteMatchGroup.isPending}
         />
     );
