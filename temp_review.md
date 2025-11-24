@@ -20,7 +20,7 @@
 export const TEAM_MATCH_ROUNDS = ["先鋒", "次鋒", "中堅", "副将", "大将", "代表戦"] as const;
 ```
 
-### 2. SyncServiceの責務分割 (Complexity)
+### 2. SyncServiceの責務分割 (Complexity) - [Completed]
 **対象ファイル**:
 - `src/services/sync-service.ts`
 
@@ -31,6 +31,9 @@ export const TEAM_MATCH_ROUNDS = ["先鋒", "次鋒", "中堅", "副将", "大�
 以下のプライベートメソッドに分割することを推奨します。
 - `fetchFromFirestore(orgId, tournamentId)`: Firestoreからのデータ取得ロジック
 - `saveToLocalDB(data)`: ローカルDBへの保存ロジック
+
+**対応状況**:
+- `fetchFromFirestore` と `saveToLocalDB` ヘルパー関数を作成し、`downloadTournamentData` から呼び出すようにリファクタリングしました。
 
 ## 優先度: 中 (Medium)
 
