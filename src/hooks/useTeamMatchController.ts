@@ -5,6 +5,7 @@ import { TeamMatch } from "@/types/match.schema";
 import { Team } from "@/types/team.schema";
 import { Tournament } from "@/types/tournament.schema";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
+import { resolvePlayerInfo, analyzeTeamMatchStatus } from "@/domains/match/team-match-logic";
 import { TEAM_MATCH_CONSTANTS } from "@/lib/constants";
 
 /**
@@ -84,6 +85,9 @@ export function useTeamMatchController({
     const tournamentName = useMonitorStore((s) => s.tournamentName);
     const courtName = useMonitorStore((s) => s.courtName);
     const viewMode = useMonitorStore((s) => s.viewMode);
+    // 判定のために現在のスコアを取得
+    const playerA = useMonitorStore((s) => s.playerA);
+    const playerB = useMonitorStore((s) => s.playerB);
 
 
 
@@ -94,12 +98,7 @@ export function useTeamMatchController({
      * @returns 解決された選手情報（表示名とチーム名）
      */
     const resolvePlayer = useCallback((playerId: string, teamId: string) => {
-        const team = teams?.find((t) => t.teamId === teamId);
-        const player = team?.players.find((p) => p.playerId === playerId);
-        return {
-            displayName: player?.displayName || playerId,
-            teamName: team?.teamName || teamId,
-        };
+        return resolvePlayerInfo(teams, playerId, teamId);
     }, [teams]);
 
     // 全試合終了判定と代表戦の必要性判定
@@ -107,65 +106,14 @@ export function useTeamMatchController({
     let needsRepMatch = false; // 代表戦が必要かどうか
 
     if (activeTournamentType === "team" && teamMatches) {
-        // 現在の試合が代表戦で完了している場合は必ず終了
-        const currentMatch = teamMatches.find((m) => m.matchId === matchId);
-        if (currentMatch?.roundId === TEAM_MATCH_CONSTANTS.REP_MATCH_ROUND_ID) {
-            // 代表戦が完了したら全試合終了
-            isAllFinished = true;
-        } else {
-            // 現在の試合より後の試合があるかチェック
-            const nextMatch = teamMatches
-                .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
-                .sort((a, b) => a.sortOrder - b.sortOrder)[0];
-
-            // 完了した通常試合を抽出
-            const completedRegularMatches = teamMatches.filter(
-                (m) => m.sortOrder <= TEAM_MATCH_CONSTANTS.LAST_REGULAR_MATCH_ORDER && (m.isCompleted || m.matchId === matchId)
-            );
-
-            // 勝敗数を集計
-            // 5試合目の時
-            if (currentMatch?.roundId === TEAM_MATCH_CONSTANTS.LAST_REGULAR_MATCH_ROUND_ID) {
-                let winsA = 0;
-                let winsB = 0;
-
-                completedRegularMatches.forEach((m) => {
-                    // 現在の試合については、ストアの最新状態（保存直後）を使用する
-                    let scoreA = m.players.playerA.score;
-                    let scoreB = m.players.playerB.score;
-
-                    if (m.matchId === matchId) {
-                        const snapshot = useMonitorStore.getState().getMonitorSnapshot();
-                        scoreA = snapshot.playerA.score;
-                        scoreB = snapshot.playerB.score;
-                    }
-
-                    if (scoreA > scoreB) winsA++;
-                    else if (scoreB > scoreA) winsB++;
-                });
-
-                // 同点の場合
-                if (winsA === winsB) {
-                    // 代表戦が既に設定されているかチェック
-                    const hasRepMatch = teamMatches.some((m) => m.roundId === TEAM_MATCH_CONSTANTS.REP_MATCH_ROUND_ID);
-
-                    if (hasRepMatch) {
-                        // 代表戦が既に設定されている場合は通常フロー（次の試合へ）
-                        isAllFinished = false;
-                    } else {
-                        // 代表戦が未設定の場合、設定が必要
-                        needsRepMatch = true;
-                        isAllFinished = false;
-                    }
-                } else {
-                    // 勝敗がついている場合は終了
-                    isAllFinished = true;
-                }
-            } else if (!nextMatch) {
-                // 次の試合がなく、5試合も完了していない場合は終了
-                isAllFinished = true;
-            }
-        }
+        const status = analyzeTeamMatchStatus(
+            teamMatches,
+            matchId,
+            currentSortOrder,
+            { playerA, playerB }
+        );
+        isAllFinished = status.isAllFinished;
+        needsRepMatch = status.needsRepMatch;
     }
 
     const handleShowTeamResult = useCallback(() => {
