@@ -7,9 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/atoms/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/atoms/tooltip";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { TimeAdjuster } from "./time-adjuster";
-import { Play, Pause, RotateCcw, Timer, Clock } from "lucide-react";
+import { Play, Pause, RotateCcw, Timer, Clock, ArrowLeftRight } from "lucide-react";
 
 interface TimerControlProps {
   timeRemaining: number;
@@ -38,7 +44,19 @@ export function TimerControl({
     <Card className={className}>
       <CardHeader className="p-4 pb-0">
         <div className="flex items-center gap-2">
-          <CardTitle>タイマー制御</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            {timerMode === "countdown" ? (
+              <>
+                <Timer className="w-5 h-5" />
+                カウントダウンタイマー
+              </>
+            ) : (
+              <>
+                <Clock className="w-5 h-5" />
+                ストップウォッチ
+              </>
+            )}
+          </CardTitle>
           <ShortcutBadge shortcut="Double Space" className="text-xs" />
         </div>
       </CardHeader>
@@ -46,30 +64,30 @@ export function TimerControl({
         <div className="grid grid-cols-3 items-center">
           {/* 左: モード切り替えボタン */}
           <div className="flex justify-start">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const newMode = timerMode === "countdown" ? "stopwatch" : "countdown";
-                onTimerModeChange(newMode);
-                // カウントダウンに切り替える時はデフォルト値、ストップウォッチは0秒
-                onTimeChange(newMode === "countdown" ? defaultMatchTime : 0);
-              }}
-              disabled={isTimerRunning}
-              className="gap-2"
-            >
-              {timerMode === "countdown" ? (
-                <>
-                  <Clock className="w-4 h-4" />
-                  ストップウォッチ
-                </>
-              ) : (
-                <>
-                  <Timer className="w-4 h-4" />
-                  カウントダウン
-                </>
-              )}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newMode = timerMode === "countdown" ? "stopwatch" : "countdown";
+                      onTimerModeChange(newMode);
+                      // カウントダウンに切り替える時はデフォルト値、ストップウォッチは0秒
+                      onTimeChange(newMode === "countdown" ? defaultMatchTime : 0);
+                    }}
+                    disabled={isTimerRunning}
+                    className="gap-2"
+                  >
+                    <ArrowLeftRight className="w-4 h-4" />
+                    モード切替
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>カウントダウンタイマーとストップウォッチを切り替えます</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* 中央: タイマー */}
