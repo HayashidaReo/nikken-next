@@ -86,6 +86,9 @@ export function useTeamMatchController({
 
     // 団体戦の通常試合（代表戦を除く）の最終試合順序
     const LAST_REGULAR_MATCH_ORDER = 5;
+    const LAST_REGULAR_MATCH_ROUND_ID = '5';
+    const REP_MATCH_ROUND_ID = '6';
+
 
     /**
      * チームと選手IDから選手情報を解決する
@@ -109,7 +112,7 @@ export function useTeamMatchController({
     if (activeTournamentType === "team" && teamMatches) {
         // 現在の試合が代表戦で完了している場合は必ず終了
         const currentMatch = teamMatches.find((m) => m.matchId === matchId);
-        if (currentMatch?.roundId === '6') {
+        if (currentMatch?.roundId === REP_MATCH_ROUND_ID) {
             // 代表戦が完了したら全試合終了
             isAllFinished = true;
         } else {
@@ -123,8 +126,9 @@ export function useTeamMatchController({
                 (m) => m.sortOrder <= LAST_REGULAR_MATCH_ORDER && (m.isCompleted || m.matchId === matchId)
             );
 
-            // 5試合全て完了している場合のみ、勝敗数を集計
-            if (completedRegularMatches.length === LAST_REGULAR_MATCH_ORDER) {
+            // 勝敗数を集計
+            // 5試合目の時
+            if (currentMatch?.roundId === LAST_REGULAR_MATCH_ROUND_ID) {
                 let winsA = 0;
                 let winsB = 0;
 
