@@ -21,6 +21,7 @@ import { useTeams } from "@/queries/use-teams";
 import { TeamMatch } from "@/types/match.schema";
 import { useState, useCallback } from "react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -392,28 +393,33 @@ export default function MonitorControlPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <SwitchLabel
-              id="public-toggle-header"
-              checked={isPublic}
-              onChange={(v) => {
-                if (v !== isPublic) togglePublic();
-              }}
-              onLabel={"公開中"}
-              offLabel={"非公開"}
-              className="flex items-center gap-3"
-            />
+            <div className="flex items-center gap-2">
+              <SwitchLabel
+                id="public-toggle-header"
+                checked={isPublic}
+                onChange={(v) => {
+                  if (v !== isPublic) togglePublic();
+                }}
+                onLabel={"公開中"}
+                offLabel={"非公開"}
+                className="flex items-center gap-3"
+              />
+              <ShortcutBadge shortcut="PP" />
+            </div>
 
             <div className="flex items-center gap-3">
               {activeTournamentType === "team" && viewMode === "scoreboard" && (
-                <Button onClick={handleConfirmMatchClick} variant="default" className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleConfirmMatchClick} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
                   試合確定
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  <ShortcutBadge shortcut="Enter" className="bg-blue-700 text-blue-100 border-blue-500" />
+                  <ChevronRight className="w-4 h-4" />
                 </Button>
               )}
               {activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished && (
-                <Button onClick={handleNextMatch} variant="default" className="bg-green-600 hover:bg-green-700">
+                <Button onClick={handleNextMatch} variant="default" className="bg-green-600 hover:bg-green-700 gap-2">
                   次の試合へ
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  <ShortcutBadge shortcut="Enter" className="bg-green-700 text-green-100 border-green-500" />
+                  <ChevronRight className="w-4 h-4" />
                 </Button>
               )}
               {activeTournamentType === "team" && viewMode === "match_result" && isAllFinished && (

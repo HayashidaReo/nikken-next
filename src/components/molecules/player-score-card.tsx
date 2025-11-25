@@ -128,7 +128,7 @@ export function PlayerScoreCard({
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Label className="text-sm font-medium">得点</Label>
-            <ShortcutBadge shortcut="Double S" className="text-xs" />
+            <ShortcutBadge shortcut="SS" className="text-xs" />
           </div>
           <div className="flex gap-2">
             {[0, 1, 2].map(score => (
@@ -150,7 +150,7 @@ export function PlayerScoreCard({
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Label className="text-sm font-medium">反則</Label>
-            <ShortcutBadge shortcut="Double Z" className="text-xs" />
+            <ShortcutBadge shortcut="ZZ" className="text-xs" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             {/* 1行目: なし を2列分使う */}
