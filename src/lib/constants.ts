@@ -89,24 +89,15 @@ export const TEAM_MATCH_ROUNDS = [
   { id: "6", label: "代表戦" },
 ] as const;
 
-export const TEAM_MATCH_ROUND_ID_TO_LABEL: Record<string, string> = TEAM_MATCH_ROUNDS.reduce((acc, round) => {
-  acc[round.id] = round.label;
-  return acc;
-}, {} as Record<string, string>);
-
 export const TEAM_MATCH_ROUND_OPTIONS = TEAM_MATCH_ROUNDS.map(round => ({
   value: round.id,
   label: round.label,
 }));
 
-export const TEAM_MATCH_ROUND_SUMMARIES = TEAM_MATCH_ROUNDS.map(round => ({
-  roundId: round.id,
-  roundName: round.label,
-}));
-
 export function getTeamMatchRoundLabelById(roundId?: string | null): string {
   if (!roundId) return "";
-  return TEAM_MATCH_ROUND_ID_TO_LABEL[roundId] ?? "";
+  const round = TEAM_MATCH_ROUNDS.find(r => r.id === roundId);
+  return round ? round.label : "";
 }
 
 export function getTeamMatchRoundIdByIndex(index: number): string {
