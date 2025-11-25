@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { TableRow } from "@/components/atoms/table";
 import ScoreCell from "@/components/molecules/score-cell";
@@ -16,7 +16,7 @@ import { useMasterData } from "@/components/providers/master-data-provider";
 
 interface TeamMatchListTableProps {
     matches: TeamMatch[];
-    tournamentName: string;
+    tournamentName: ReactNode;
     className?: string;
 }
 

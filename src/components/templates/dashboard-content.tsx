@@ -7,6 +7,8 @@ import type { Match, MatchGroup, TeamMatch } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
 import type { Court, Round } from "@/types/tournament.schema";
 import { MasterDataProvider } from "@/components/providers/master-data-provider";
+import { SCORE_COLORS } from "@/lib/ui-constants";
+import { cn } from "@/lib/utils/utils";
 
 interface DashboardContentProps {
     tournamentType: "individual" | "team";
@@ -39,7 +41,51 @@ export function DashboardContent({
                 const group = matchGroups.find((g) => g.matchGroupId === matchGroupId);
                 const teamA = teams.find((t) => t.teamId === group?.teamAId)?.teamName || "";
                 const teamB = teams.find((t) => t.teamId === group?.teamBId)?.teamName || "";
-                const title = `${tournamentName} (${teamA} vs ${teamB})`;
+
+                // 勝利数の集計
+                let winsA = 0;
+                let winsB = 0;
+                teamMatches.forEach((m) => {
+                    if (m.players.playerA.score > m.players.playerB.score) winsA++;
+                    else if (m.players.playerB.score > m.players.playerA.score) winsB++;
+                });
+
+                // 色の決定ロジック
+                const getTeamColor = (myWins: number, opponentWins: number) => {
+                    if (myWins > opponentWins) return SCORE_COLORS.win;
+                    if (myWins < opponentWins) return SCORE_COLORS.loss;
+                    return SCORE_COLORS.draw;
+                };
+
+                const colorA = getTeamColor(winsA, winsB);
+                const colorB = getTeamColor(winsB, winsA);
+
+                const titleContent = (
+                    <div className="flex flex-col gap-2 w-full">
+                        <div className="flex items-center justify-center gap-4 text-2xl font-bold mt-2">
+                            {/* Team A (Right Aligned) */}
+                            <div className={cn("flex-1 text-right", colorA)}>
+                                {teamA}
+                            </div>
+
+                            {/* Score & VS (Center) */}
+                            <div className="flex items-center gap-4 px-4 shrink-0">
+                                <span className={cn("text-4xl font-black", colorA)}>
+                                    {winsA}
+                                </span>
+                                <span className="text-gray-400 text-sm italic font-normal">VS</span>
+                                <span className={cn("text-4xl font-black", colorB)}>
+                                    {winsB}
+                                </span>
+                            </div>
+
+                            {/* Team B (Left Aligned) */}
+                            <div className={cn("flex-1 text-left", colorB)}>
+                                {teamB}
+                            </div>
+                        </div>
+                    </div>
+                );
 
                 return (
                     <>
@@ -49,9 +95,10 @@ export function DashboardContent({
                                 一覧に戻る
                             </Button>
                         </div>
+
                         <TeamMatchListTableMemo
                             matches={teamMatches}
-                            tournamentName={title}
+                            tournamentName={titleContent}
                         />
                     </>
                 );
