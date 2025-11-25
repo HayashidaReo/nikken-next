@@ -130,7 +130,7 @@ export function usePresentation(presentationUrl: string) {
     };
 
     connection.addEventListener("connect", handleConnect);
-    
+
     // 送信側でも、受信側からスナップショット要求が来たら応答するリスナーを追加
     const handleMessage = (ev: MessageEvent) => {
       try {
