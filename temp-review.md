@@ -1,54 +1,62 @@
-# コードレビュー結果: feature/next-monitor
+# コードレビュー報告書
 
-お疲れ様です。実装を確認しました。
-全体的に `CODING_RULES.md` に従い、Atomic Design や Zustand を活用した設計がなされており、品質は高いです。特に `useMonitorStore` での状態管理の分離や、`ScoreboardOperator` のコンポーネント分割は適切に行われています。
+**対象:** `develop` ブランチと `feature/next-monitor` ブランチの差分
+**レビュアー:** システムエンジニア（ベテラン）
 
-しかし、ベテランの視点から見ると、**「Pageコンポーネントへの責務の集中」**と**「ドメインロジックの散在」**が懸念点として挙げられます。これらは将来的な保守性やテスト容易性を下げる要因となるため、リファクタリングを強く推奨します。
+## 1. 全体総評
 
-以下に詳細なレビュー内容と、優先度順のリファクタリング項目をまとめました。
+今回の変更は、モニター操作画面の堅牢性を高めるための重要なアーキテクチャ変更を含んでいます。特に、タイマー処理をメインスレッドから Web Worker に移行し、状態同期をグローバルな Provider に移動した判断は、ブラウザの制約（タブ非アクティブ時のスロットリングなど）や画面遷移時の状態保持という課題に対して、非常に適切かつモダンなアプローチです。
 
-## 🔍 レビュー詳細
+コード品質は全体的に高く、TypeScript の型安全性、コンポーネントの責務分離、定数の管理などが徹底されています。
 
-### 1. Pageコンポーネントの肥大化 (`app/(auth)/monitor-control/[matchId]/page.tsx`)
-- **現状**: 500行を超えており、データ取得、画面遷移、保存処理、勝敗判定ロジック、UI描画が混在しています。
-- **問題点**: 「God Component」化しており、可読性が低く、ロジックの単体テストが困難です。
-- **改善案**: カスタムフックへのロジック抽出と、UI部品のコンポーネント化が必要です。
+## 2. アーキテクチャ・設計の評価
 
-### 2. ドメインロジックの散在
-- **現状**: `handleShowTeamResult` 内で、勝敗判定や引き分けのロジックが直接記述されています。
-- **問題点**: 同じロジックが `match-result-view.tsx` など他の場所でも必要になる可能性があり、仕様変更時に修正漏れが発生します。
-- **改善案**: `src/domains/match/match-logic.ts` に `determineWinner` などの関数として集約すべきです。
+### 良い点
+*   **Web Worker の導入 (`public/timer-worker.js`, `src/lib/timer-controller.ts`)**:
+    *   `setInterval` をメインスレッドから分離したことで、UI の負荷やブラウザのバックグラウンド抑制の影響を受けずに正確な時間を刻めるようになりました。
+    *   `TimerController` をシングルトンとして実装し、Store と Worker のブリッジ役とした設計は、React コンポーネントの再レンダリングからタイマーロジックを保護する良いパターンです。
+*   **グローバル同期プロバイダー (`MonitorSyncProvider`)**:
+    *   `useMonitorSync` を個別の画面 (`ScoreboardOperator`) から `app/(auth)/layout.tsx` に移動したことで、「操作画面を離れても同期を継続したい」という要件を完璧に満たしています。
+*   **Zustand Store の改修**:
+    *   Store から `setInterval` のロジックを排除し、外部（Worker）からの `tick` イベントを受け取る受動的な設計に変更したことで、Store が純粋な状態保持に専念できています。
 
-### 3. タイマーロジックの分離 (`ScoreboardOperator`)
-- **現状**: `useEffect` 内で `setInterval` を直接管理しています。
-- **問題点**: コンポーネントの再レンダリングとタイマーの精度が密結合しています。
-- **改善案**: `useGameTimer` のようなカスタムフックに切り出すことで、ロジックを純粋にし、テストしやすくします。
+### 懸念点・改善の余地
+*   **Worker ファイルの配置**: `public/timer-worker.js` に配置されていますが、将来的にベースパス（`basePath`）が設定された環境にデプロイする場合、パス解決（`/timer-worker.js`）が失敗する可能性があります。
+*   **Store の肥大化**: `useMonitorStore` が、タイマー状態、試合情報、選手情報、UI状態（モーダルなど）をすべて抱え込んでいます。現時点では許容範囲ですが、これ以上機能が増える場合は Slice パターンによる分割を検討すべきです。
 
-### 4. 同期サービスの型安全性 (`src/services/sync-service.ts`)
-- **現状**: `saveToLocalDB` で `@ts-expect-error` が使用されています。
-- **問題点**: 型安全性が損なわれています。
-- **改善案**: 適切な型定義を行うか、Dexieのトランザクション処理をラップするヘルパー関数を作成して型を保証すべきです。
+## 3. ファイル別詳細レビュー
 
----
+### `src/store/use-monitor-store.ts`
+*   **評価**: 適切
+*   **コメント**: `handleTick` アクションの追加により、外部からの状態更新が明確になりました。`timerController` との連携もスムーズです。
 
-## 🛠 リファクタリング項目 (優先度順)
+### `src/lib/timer-controller.ts`
+*   **評価**: 優秀
+*   **コメント**: Worker との通信をカプセル化し、型安全なインターフェースを提供しています。シングルトンパターンの適用も適切です。
 
-### 1. Pageコンポーネントのロジック抽出 (High)
-`MonitorControlPage` から、以下のロジックをカスタムフック `useMonitorController` (または `useTeamMatchController`) に抽出してください。
-- 団体戦の勝敗計算ロジック (`handleShowTeamResult`)
-- 次の試合への遷移ロジック (`handleNextMatch`)
-- 保存処理 (`handleSave`)
+### `app/(auth)/layout.tsx` & `src/components/providers/monitor-sync-provider.tsx`
+*   **評価**: 適切
+*   **コメント**: 認証済みルート全体で同期を保証する配置は正解です。これにより、ダッシュボードや設定画面に移動しても、裏でモニター同期が継続されます。
 
-### 2. ドメインロジックの集約 (High)
-`src/domains/match/match-logic.ts` に以下の関数を追加し、Pageコンポーネントから呼び出すように変更してください。
-- `determineWinner(playerAScore, playerBScore, isCompleted): Winner`
-- `calculateTeamMatchResult(matches): TeamWinner`
+### `src/hooks/useTeamMatchController.ts`
+*   **評価**: 良好だがリファクタリング余地あり
+*   **コメント**: `handleNextMatch` や `handleCreateRepMatch` がやや長大です。特に `resolvePlayer` のようなロジックは、他の箇所でも使われている可能性があるため、`src/lib/utils` やドメインヘルパーへの切り出しを推奨します。
 
-### 3. Header UIのコンポーネント化 (Medium)
-`MonitorControlPage` のヘッダー部分（戻るボタン、接続ステータス、各種操作ボタン）を `MonitorControlHeader` コンポーネントとして `components/organisms` に切り出してください。これによりPageコンポーネントの見通しが良くなります。
+### `src/components/molecules/timer-control.tsx`
+*   **評価**: 良好
+*   **コメント**: モード切替時のデフォルト時間設定ロジックが UI 側にありますが、UX の観点からは許容範囲です。
 
-### 4. タイマーロジックのカスタムフック化 (Low)
-`ScoreboardOperator` 内の `setInterval` 処理を `src/hooks/useGameTimer.ts` に抽出してください。
+## 4. リファクタリング提案（優先度順）
 
-### 5. 不要なコードの削除 (Low)
-`src/components/organisms/scoreboard-operator.tsx` の `useEffect` で `useMonitorSender` を呼んでいますが、これは `useMonitorStore` のミドルウェア的アプローチか、専用のフック (`useMonitorSync`など) にまとめる方が綺麗かもしれません。現状は許容範囲ですが、検討してください。
+1.  **Worker パスの堅牢化 (低リスク・中効果)**
+    *   `new Worker("/timer-worker.js")` を、環境変数や設定ファイルからベースパスを参照できる形にするか、ユーティリティ関数を通すようにする。
+2.  **Store の Slice 分割 (中リスク・高効果)**
+    *   `useMonitorStore` を `createTimerSlice`, `createMatchSlice`, `createUISlice` のように分割し、メンテナンス性を向上させる。
+3.  **ドメインロジックの抽出 (低リスク・中効果)**
+    *   `useTeamMatchController.ts` 内の選手解決ロジックなどを純粋関数として切り出す。
+
+## 5. 結論
+
+実装は要件を十分に満たしており、品質も高いレベルにあります。上記の「リファクタリング提案」は、将来の保守性を高めるためのプラスアルファの提案であり、現在のマージをブロックするものではありません。
+
+**承認 (Approve)** とします。
