@@ -68,7 +68,8 @@ async function fetchFromFirestore(orgId: string, tournamentId: string): Promise<
 async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedData): Promise<void> {
     const { tournament, matches, matchGroups, teamMatches, teams } = data;
 
-    await db.transaction('rw', [db.matches, db.tournaments, db.matchGroups, db.teamMatches, db.teams], async () => {
+    // @ts-expect-error: Dexieの型定義制限により引数過多のエラーが出ますが、実行時は可変長引数で動作します
+    await db.transaction('rw', db.matches, db.tournaments, db.matchGroups, db.teamMatches, db.teams, async () => {
         // 既存のこの大会のデータを削除 (クリーンな状態で上書き)
         await localMatchRepository.deleteByTournament(orgId, tournamentId);
         await localTournamentRepository.delete(orgId, tournamentId);
