@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
     DndContext,
     closestCenter,
@@ -25,7 +25,6 @@ import MatchTable from "@/components/organisms/match-table";
 import { MatchGroupRow } from "@/components/molecules/match-group-row";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { useToast } from "@/components/providers/notification-provider";
-import { TEAM_MATCH_ROUND_SUMMARIES, getTeamMatchRoundLabelById } from "@/lib/constants";
 import type { MatchGroup } from "@/types/match.schema";
 import type { MatchGroupSetupData } from "@/types/match-setup";
 import { useMasterData } from "@/components/providers/master-data-provider";
@@ -52,28 +51,13 @@ export function MatchGroupSetupTable({
         })
     );
 
-    // rounds が空の場合は定数を使用するが、useMasterData から来る rounds は Map なので、
-    // Map が空かどうかで判断するか、あるいは rounds Map を優先する。
-    // ここでは rounds Map を配列に変換して使用する。
-    const roundsArray = useMemo(() => Array.from(rounds.values()), [rounds]);
-    const roundSource = roundsArray.length ? roundsArray : TEAM_MATCH_ROUND_SUMMARIES;
-
-    // roundIdToName は Map から直接引けるので不要になるかもしれないが、
-    // TEAM_MATCH_ROUND_SUMMARIES を使う場合のフォールバックとして残すか、
-    // あるいは useMasterData の rounds を使う前提にする。
-    // ここでは既存ロジックを踏襲しつつ Map を作成。
-    const roundIdToName = useMemo(
-        () => new Map(roundSource.map((r: { roundId: string; roundName: string }) => [r.roundId, r.roundName])),
-        [roundSource]
-    );
-
     const [data, setData] = useState<MatchGroupSetupData[]>(() =>
         matchGroups.map((g) => {
             return {
                 id: g.matchGroupId || "",
                 courtId: g.courtId,
                 roundId: g.roundId,
-                roundName: roundIdToName.get(g.roundId) || getTeamMatchRoundLabelById(g.roundId) || "",
+                roundName: rounds.get(g.roundId)?.roundName || g.roundId || "",
                 teamAId: g.teamAId,
                 teamBId: g.teamBId,
                 sortOrder: g.sortOrder,

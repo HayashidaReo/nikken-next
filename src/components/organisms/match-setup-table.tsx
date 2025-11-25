@@ -158,11 +158,7 @@ export function MatchSetupTable({
   // チームから選手を取得する関数
   const getPlayersFromTeam = (teamId: string): Player[] => {
     const team = teams.get(teamId);
-    // 承認済みチームのみから取得する場合は approvedTeams を使うべきだが、
-    // ここではID指定なので teams Map から直接引く方が高速かつ確実
-    // ただし、承認済みチェックが必要なら approvedTeams.find を使うか、Map に isApproved フラグを含める
-    // ここでは既存ロジックに合わせて approvedTeams から探すか、Map から引いて isApproved を確認する
-    return team && team.isApproved ? team.players : [];
+    return team ? team.players : [];
   };
 
   // データを更新する関数
