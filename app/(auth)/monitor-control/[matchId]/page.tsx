@@ -113,9 +113,7 @@ export default function MonitorControlPage() {
     // 2. 結果表示モードへ
     const snapshot = useMonitorStore.getState().getMonitorSnapshot();
     let winner: "playerA" | "playerB" | "draw" | "none" = "none";
-    if (snapshot.playerA.score >= 2) winner = "playerA";
-    else if (snapshot.playerB.score >= 2) winner = "playerB";
-    else if (snapshot.playerA.score > snapshot.playerB.score) winner = "playerA";
+    if (snapshot.playerA.score > snapshot.playerB.score) winner = "playerA";
     else if (snapshot.playerB.score > snapshot.playerA.score) winner = "playerB";
     else winner = "draw";
 
@@ -134,9 +132,7 @@ export default function MonitorControlPage() {
 
       // 現在の試合の勝者判定（再計算）
       let winner: "playerA" | "playerB" | "draw" | "none" = "none";
-      if (snapshot.playerA.score >= 2) winner = "playerA";
-      else if (snapshot.playerB.score >= 2) winner = "playerB";
-      else if (snapshot.playerA.score > snapshot.playerB.score) winner = "playerA";
+      if (snapshot.playerA.score > snapshot.playerB.score) winner = "playerA";
       else if (snapshot.playerB.score > snapshot.playerA.score) winner = "playerB";
       else winner = "draw";
 
@@ -155,9 +151,7 @@ export default function MonitorControlPage() {
         const pB = resolvePlayer(m.players.playerB.playerId, m.players.playerB.teamId);
 
         let w: "playerA" | "playerB" | "draw" | "none" = "none";
-        if (m.players.playerA.score >= 2) w = "playerA";
-        else if (m.players.playerB.score >= 2) w = "playerB";
-        else if (m.players.playerA.score > m.players.playerB.score) w = "playerA";
+        if (m.players.playerA.score > m.players.playerB.score) w = "playerA";
         else if (m.players.playerB.score > m.players.playerA.score) w = "playerB";
         else if (m.isCompleted) w = "draw"; // 完了していて同点なら引き分け
 
