@@ -18,7 +18,7 @@ import { useMonitorController } from "@/hooks/useMonitorController";
 import { useTeamMatches } from "@/queries/use-team-matches";
 import { useTeams } from "@/queries/use-teams";
 import { useTournament } from "@/queries/use-tournaments";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
@@ -163,6 +163,23 @@ export default function MonitorControlPage() {
     setShowRepMatchDialog(false);
   }, []);
 
+  // teamMatchesから正しいチーム順序を取得
+  const orderedTeams = useMemo(() => {
+    if (!teamMatches || teamMatches.length === 0 || !teams) return null;
+
+    // 表示用のチーム順序（teamA/teamB）を決定するために先頭要素を利用する。
+    const firstMatch = teamMatches[0];
+    const teamAId = firstMatch.players.playerA.teamId;
+    const teamBId = firstMatch.players.playerB.teamId;
+
+    const teamA = teams.find(t => t.teamId === teamAId);
+    const teamB = teams.find(t => t.teamId === teamBId);
+
+    if (!teamA || !teamB) return null;
+
+    return { teamA, teamB };
+  }, [teamMatches, teams]);
+
   // キーボードショートカット
   const handleEnterKey = useCallback(() => {
     teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute);
@@ -296,11 +313,11 @@ export default function MonitorControlPage() {
           confirmShortcut="Enter"
         />
         {/* 代表戦設定ダイアログ */}
-        {teams && teams.length >= 2 && (
+        {orderedTeams && (
           <RepMatchSetupDialog
             isOpen={showRepMatchDialog}
-            teamA={teams[0]}
-            teamB={teams[1]}
+            teamA={orderedTeams.teamA}
+            teamB={orderedTeams.teamB}
             onConfirm={handleRepMatchConfirm}
             onCancel={handleRepMatchCancel}
           />
