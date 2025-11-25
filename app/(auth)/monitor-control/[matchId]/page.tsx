@@ -13,11 +13,13 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { FallbackMonitorDialog } from "@/components/molecules";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMatchDataWithPriority } from "@/hooks/useMatchDataWithPriority";
 import { useMonitorController } from "@/hooks/useMonitorController";
 import { useTeamMatches } from "@/queries/use-team-matches";
 import { useTeams } from "@/queries/use-teams";
 import { TeamMatch } from "@/types/match.schema";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -34,6 +36,7 @@ export default function MonitorControlPage() {
 
   const { orgId, activeTournamentId, activeTournamentType } = useAuthContext();
   const { showSuccess, showError } = useToast();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // データ取得ロジック（ストア優先）
   const { isLoading, hasError, matchFound } = useMatchDataWithPriority(matchId);
@@ -67,7 +70,7 @@ export default function MonitorControlPage() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     try {
       const store = useMonitorStore.getState();
       const matchId = store.matchId;
@@ -104,9 +107,14 @@ export default function MonitorControlPage() {
       console.error(err);
       showError("試合結果の保存に失敗しました");
     }
-  };
+  }, [orgId, activeTournamentId, activeTournamentType, saveTeamMatchResultMutation, saveIndividualMatchResultMutation, showSuccess, showError]);
 
-  const handleConfirmMatch = async () => {
+  const handleConfirmMatchClick = useCallback(() => {
+    setShowConfirmDialog(true);
+  }, []);
+
+  const handleConfirmMatchExecute = useCallback(async () => {
+    setShowConfirmDialog(false);
     // 1. 保存
     await handleSave();
 
@@ -124,7 +132,7 @@ export default function MonitorControlPage() {
       winner,
     });
     setViewMode("match_result");
-  };
+  }, [handleSave, setMatchResult, setViewMode]);
 
   const handleShowTeamResult = () => {
     if (activeTournamentType === "team" && teamMatches && teams) {
@@ -190,7 +198,7 @@ export default function MonitorControlPage() {
     }
   };
 
-  const handleNextMatch = async () => {
+  const handleNextMatch = useCallback(async () => {
     // 3. 次の試合へ
     if (activeTournamentType === "team" && teamMatches && teams) {
       const nextMatch = teamMatches
@@ -236,7 +244,7 @@ export default function MonitorControlPage() {
         router.push(`/monitor-control/${nextMatch.matchId}`);
       }
     }
-  };
+  }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, setPublic, router]);
 
   const isSaving = saveIndividualMatchResultMutation.isPending || saveTeamMatchResultMutation.isPending;
 
@@ -251,6 +259,76 @@ export default function MonitorControlPage() {
       isAllFinished = true;
     }
   }
+
+  // キーボードショートカット
+  const lastPTapTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.isContentEditable ||
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT"
+      ) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+
+      // Enterキーの処理
+      if (key === "enter") {
+        event.preventDefault();
+
+        // ダイアログが開いている場合 -> 確定実行
+        if (showConfirmDialog) {
+          handleConfirmMatchExecute();
+          return;
+        }
+
+        // 試合確定ボタンが表示されている場合 -> ダイアログを開く
+        if (activeTournamentType === "team" && viewMode === "scoreboard") {
+          handleConfirmMatchClick();
+          return;
+        }
+
+        // 次の試合へボタンが表示されている場合 -> 次の試合へ
+        if (activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished) {
+          handleNextMatch();
+          return;
+        }
+      }
+
+      // Pキーの処理（ダブルタップで公開切り替え）
+      if (key === "p") {
+        const now = Date.now();
+        const lastTap = lastPTapTimeRef.current;
+        const DOUBLE_TAP_INTERVAL = 300; // ms
+
+        if (now - lastTap < DOUBLE_TAP_INTERVAL) {
+          togglePublic();
+          lastPTapTimeRef.current = 0;
+        } else {
+          lastPTapTimeRef.current = now;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    showConfirmDialog,
+    activeTournamentType,
+    viewMode,
+    isAllFinished,
+    handleConfirmMatchExecute,
+    handleNextMatch,
+    handleConfirmMatchClick, // 依存配列に追加
+    togglePublic,
+  ]);
 
   // ローディング状態
   if (isLoading) {
@@ -365,7 +443,7 @@ export default function MonitorControlPage() {
 
             <div className="flex items-center gap-3">
               {activeTournamentType === "team" && viewMode === "scoreboard" && (
-                <Button onClick={handleConfirmMatch} variant="default" className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleConfirmMatchClick} variant="default" className="bg-blue-600 hover:bg-blue-700">
                   試合確定
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -421,6 +499,15 @@ export default function MonitorControlPage() {
           isOpen={showFallbackDialog}
           onConfirm={handleFallbackConfirm}
           onCancel={handleFallbackCancel}
+        />
+        <ConfirmDialog
+          isOpen={showConfirmDialog}
+          title="試合結果の確定"
+          message="現在のスコアで試合を確定し、結果を保存しますか？"
+          onConfirm={handleConfirmMatchExecute}
+          onCancel={() => setShowConfirmDialog(false)}
+          confirmText="確定する"
+          cancelText="キャンセル"
         />
       </div>
     </div>
