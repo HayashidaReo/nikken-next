@@ -147,43 +147,49 @@ export default function MonitorControlPage() {
       else winner = "draw";
 
       // 全試合終了 -> 団体戦結果表示
-      const results = teamMatches.map((m) => {
-        // 選手名解決
-        const resolvePlayer = (playerId: string, teamId: string) => {
-          const team = teams.find((t) => t.teamId === teamId);
-          const player = team?.players.find((p) => p.playerId === playerId);
-          return {
-            displayName: player?.displayName || playerId,
-            teamName: team?.teamName || teamId,
+      const results = teamMatches
+        .filter((m) => {
+          // 完了した試合のみを対象とする
+          // 現在の試合は保存されたばかりなので含める
+          return m.isCompleted || m.matchId === matchId;
+        })
+        .map((m) => {
+          // 選手名解決
+          const resolvePlayer = (playerId: string, teamId: string) => {
+            const team = teams.find((t) => t.teamId === teamId);
+            const player = team?.players.find((p) => p.playerId === playerId);
+            return {
+              displayName: player?.displayName || playerId,
+              teamName: team?.teamName || teamId,
+            };
           };
-        };
-        const pA = resolvePlayer(m.players.playerA.playerId, m.players.playerA.teamId);
-        const pB = resolvePlayer(m.players.playerB.playerId, m.players.playerB.teamId);
+          const pA = resolvePlayer(m.players.playerA.playerId, m.players.playerA.teamId);
+          const pB = resolvePlayer(m.players.playerB.playerId, m.players.playerB.teamId);
 
-        let w: "playerA" | "playerB" | "draw" | "none" = "none";
-        if (m.players.playerA.score > m.players.playerB.score) w = "playerA";
-        else if (m.players.playerB.score > m.players.playerA.score) w = "playerB";
-        else if (m.isCompleted) w = "draw"; // 完了していて同点なら引き分け
+          let w: "playerA" | "playerB" | "draw" | "none" = "none";
+          if (m.players.playerA.score > m.players.playerB.score) w = "playerA";
+          else if (m.players.playerB.score > m.players.playerA.score) w = "playerB";
+          else if (m.isCompleted || m.matchId === matchId) w = "draw"; // 完了していて同点なら引き分け
 
-        return {
-          matchId: m.matchId || "",
-          sortOrder: m.sortOrder,
-          roundId: m.roundId,
-          playerA: {
-            displayName: pA.displayName,
-            teamName: pA.teamName,
-            score: m.players.playerA.score,
-            hansoku: m.players.playerA.hansoku,
-          },
-          playerB: {
-            displayName: pB.displayName,
-            teamName: pB.teamName,
-            score: m.players.playerB.score,
-            hansoku: m.players.playerB.hansoku,
-          },
-          winner: w,
-        };
-      });
+          return {
+            matchId: m.matchId || "",
+            sortOrder: m.sortOrder,
+            roundId: m.roundId,
+            playerA: {
+              displayName: pA.displayName,
+              teamName: pA.teamName,
+              score: m.players.playerA.score,
+              hansoku: m.players.playerA.hansoku,
+            },
+            playerB: {
+              displayName: pB.displayName,
+              teamName: pB.teamName,
+              score: m.players.playerB.score,
+              hansoku: m.players.playerB.hansoku,
+            },
+            winner: w,
+          };
+        });
 
       // 現在の試合（まだ teamMatches に反映されていない可能性があるため、ストアの値で上書き）
       const currentMatchIndex = results.findIndex(r => r.matchId === matchId);
@@ -468,7 +474,7 @@ export default function MonitorControlPage() {
                 </Button>
               )}
               {activeTournamentType === "team" && viewMode === "team_result" && (
-                <Button onClick={() => router.back()} variant="outline">
+                <Button onClick={() => handleBack()} variant="outline">
                   一覧へ戻る
                 </Button>
               )}
