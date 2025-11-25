@@ -67,6 +67,7 @@ export default function MonitorControlPage() {
     handleShowTeamResult,
     handleNextMatch,
     handleBackToDashboard,
+    handleEnterKey: teamMatchEnterHandler,
   } = useTeamMatchController({
     matchId,
     activeTournamentType,
@@ -138,39 +139,8 @@ export default function MonitorControlPage() {
 
   // キーボードショートカット
   const handleEnterKey = useCallback(() => {
-    // ダイアログが開いている場合 -> 確定実行
-    if (showConfirmDialog) {
-      handleConfirmMatchExecute();
-      return;
-    }
-
-    // 試合確定ボタンが表示されている場合 -> ダイアログを開く
-    if (activeTournamentType === "team" && viewMode === "scoreboard") {
-      handleConfirmMatchClick();
-      return;
-    }
-
-    // 次の試合へボタンが表示されている場合 -> 次の試合へ
-    if (activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished) {
-      handleNextMatch();
-      return;
-    }
-
-    // 最終結果を表示ボタンが表示されている場合 -> 最終結果を表示
-    if (activeTournamentType === "team" && viewMode === "match_result" && isAllFinished) {
-      handleShowTeamResult();
-      return;
-    }
-  }, [
-    showConfirmDialog,
-    activeTournamentType,
-    viewMode,
-    isAllFinished,
-    handleConfirmMatchExecute,
-    handleNextMatch,
-    handleConfirmMatchClick,
-    handleShowTeamResult,
-  ]);
+    teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute);
+  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute]);
 
   useKeyboardShortcuts({ onEnter: handleEnterKey });
 

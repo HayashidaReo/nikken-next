@@ -76,6 +76,7 @@ export function useTeamMatchController({
     const roundName = useMonitorStore((s) => s.roundName);
     const tournamentName = useMonitorStore((s) => s.tournamentName);
     const courtName = useMonitorStore((s) => s.courtName);
+    const viewMode = useMonitorStore((s) => s.viewMode);
 
     // 団体戦の通常試合（代表戦を除く）の最終試合順序
     const LAST_REGULAR_MATCH_ORDER = 5;
@@ -245,10 +246,54 @@ export function useTeamMatchController({
         }
     }, [activeTournamentType, matchGroupId, router]);
 
+    /**
+     * Enterキー押下時のハンドラー
+     * 団体戦の進行状態に応じて適切なアクションを実行する
+     * 
+     * @param showConfirmDialog - 確認ダイアログの表示状態
+     * @param onConfirmMatch - 試合確定時のコールバック
+     * @param onConfirmExecute - 確定実行時のコールバック
+     */
+    const handleEnterKey = useCallback((
+        showConfirmDialog: boolean,
+        onConfirmMatch: () => void,
+        onConfirmExecute: () => void
+    ) => {
+        // ダイアログが開いている場合 -> 確定実行
+        if (showConfirmDialog) {
+            onConfirmExecute();
+            return;
+        }
+
+        // 団体戦以外の場合は何もしない
+        if (activeTournamentType !== "team") {
+            return;
+        }
+
+        // 試合確定ボタンが表示されている場合 -> ダイアログを開く
+        if (viewMode === "scoreboard") {
+            onConfirmMatch();
+            return;
+        }
+
+        // 次の試合へボタンが表示されている場合 -> 次の試合へ
+        if (viewMode === "match_result" && !isAllFinished) {
+            handleNextMatch();
+            return;
+        }
+
+        // 最終結果を表示ボタンが表示されている場合 -> 最終結果を表示
+        if (viewMode === "match_result" && isAllFinished) {
+            handleShowTeamResult();
+            return;
+        }
+    }, [activeTournamentType, viewMode, isAllFinished, handleNextMatch, handleShowTeamResult]);
+
     return {
         isAllFinished,
         handleShowTeamResult,
         handleNextMatch,
         handleBackToDashboard,
+        handleEnterKey,
     };
 }
