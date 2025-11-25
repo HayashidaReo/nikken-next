@@ -26,6 +26,8 @@ export function useMonitorData() {
     timeRemaining: 300,
     isTimerRunning: false,
     isPublic: false,
+    timerMode: "countdown",
+    viewMode: "scoreboard",
   });
 
   const [isConnected, setIsConnected] = useState(false);
