@@ -57,7 +57,6 @@ export function TimerControl({
               </>
             )}
           </CardTitle>
-          <ShortcutBadge shortcut="Double Space" className="text-xs" />
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0">
@@ -110,18 +109,20 @@ export function TimerControl({
               variant={isTimerRunning ? "destructive" : "default"}
               onClick={isTimerRunning ? onStopTimer : onStartTimer}
               size="lg"
+              className="gap-2"
             >
               {isTimerRunning ? (
                 <>
-                  <Pause className="w-4 h-4 mr-2" />
+                  <Pause className="w-4 h-4" />
                   停止
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 mr-2" />
+                  <Play className="w-4 h-4" />
                   開始
                 </>
               )}
+              <ShortcutBadge shortcut="Double Space" className="!bg-white/20 !text-white !border-white/30" />
             </Button>
 
             <Button

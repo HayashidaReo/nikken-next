@@ -420,21 +420,21 @@ export default function MonitorControlPage() {
               {activeTournamentType === "team" && viewMode === "scoreboard" && (
                 <Button onClick={handleConfirmMatchClick} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
                   試合確定
-                  <ShortcutBadge shortcut="Enter" className="bg-blue-700 text-blue-100 border-blue-500" />
+                  <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               )}
               {activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished && (
                 <Button onClick={handleNextMatch} variant="default" className="bg-green-600 hover:bg-green-700 gap-2">
                   次の試合へ
-                  <ShortcutBadge shortcut="Enter" className="bg-green-700 text-green-100 border-green-500" />
+                  <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               )}
               {activeTournamentType === "team" && viewMode === "match_result" && isAllFinished && (
                 <Button onClick={handleShowTeamResult} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
                   最終結果を表示
-                  <ShortcutBadge shortcut="Enter" className="bg-purple-700 text-purple-100 border-purple-500" />
+                  <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               )}
