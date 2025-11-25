@@ -5,7 +5,7 @@ import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useMatchGroups } from "@/queries/use-match-groups";
 import { useTeams } from "@/queries/use-teams";
-import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
+import { resolveMatchPlayer, resolveMatchPlayerFromTeams } from "@/lib/utils/player-directory";
 import { findRoundName } from "@/lib/utils/round-utils";
 import { getTeamMatchRoundLabelById } from "@/lib/constants";
 import type { Match, TeamMatch } from "@/types/match.schema";
@@ -41,7 +41,6 @@ export function useResolvedMatchData(matchId: string): ResolvedMatchData {
 
     const { data: matchGroups = [], isLoading: matchGroupsLoading } = useMatchGroups();
     const { data: teams = [], isLoading: teamsLoading } = useTeams();
-    const playerDirectory = useMemo(() => createPlayerDirectory(teams), [teams]);
 
     // どちらかのデータがあればOK
     const match = individualMatch || teamMatch;
@@ -84,8 +83,8 @@ export function useResolvedMatchData(matchId: string): ResolvedMatchData {
         const courtName = court ? court.courtName : courtId;
 
         const resolvedPlayers = {
-            playerA: resolveMatchPlayer(match.players.playerA, playerDirectory),
-            playerB: resolveMatchPlayer(match.players.playerB, playerDirectory),
+            playerA: resolveMatchPlayerFromTeams(match.players.playerA, teams),
+            playerB: resolveMatchPlayerFromTeams(match.players.playerB, teams),
         };
 
         // 大会種別に応じてラウンド名を解決
@@ -103,7 +102,7 @@ export function useResolvedMatchData(matchId: string): ResolvedMatchData {
             roundName,
             resolvedPlayers,
         };
-    }, [match, tournament, matchGroups, playerDirectory, activeTournamentType, teamMatch]);
+    }, [match, tournament, matchGroups, teams, activeTournamentType, teamMatch]);
 
     return {
         match,

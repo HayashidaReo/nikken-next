@@ -69,3 +69,48 @@ export function resolveMatchPlayer(
         teamName: info.teamName,
     };
 }
+
+export function resolvePlayerFromTeams(
+    teams: Team[],
+    teamId: string,
+    playerId: string
+): PlayerDirectoryEntry {
+    const team = teams.find(t => t.teamId === teamId);
+    if (!team) {
+        return {
+            playerId,
+            teamId,
+            displayName: playerId || "選手未登録",
+            teamName: "所属未登録",
+        };
+    }
+
+    const player = team.players.find(p => p.playerId === playerId);
+    if (!player) {
+        return {
+            playerId,
+            teamId,
+            displayName: playerId || "選手未登録",
+            teamName: team.teamName,
+        };
+    }
+
+    return {
+        playerId,
+        teamId,
+        displayName: player.displayName,
+        teamName: team.teamName,
+    };
+}
+
+export function resolveMatchPlayerFromTeams(
+    player: MatchPlayer,
+    teams: Team[]
+): ResolvedMatchPlayer {
+    const info = resolvePlayerFromTeams(teams, player.teamId, player.playerId);
+    return {
+        ...player,
+        displayName: info.displayName,
+        teamName: info.teamName,
+    };
+}
