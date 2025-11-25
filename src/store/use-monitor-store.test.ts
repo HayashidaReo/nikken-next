@@ -389,6 +389,10 @@ describe("useMonitorStore", () => {
         timeRemaining: 180,
         isTimerRunning: false,
         isPublic: true,
+        matchResult: undefined,
+        teamMatchResults: undefined,
+        timerMode: "countdown",
+        viewMode: "scoreboard",
       });
     });
   });
