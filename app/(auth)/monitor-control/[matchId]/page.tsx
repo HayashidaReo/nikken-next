@@ -19,7 +19,8 @@ import { useMonitorController } from "@/hooks/useMonitorController";
 import { useTeamMatches } from "@/queries/use-team-matches";
 import { useTeams } from "@/queries/use-teams";
 import { TeamMatch } from "@/types/match.schema";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -261,64 +262,24 @@ export default function MonitorControlPage() {
   }
 
   // キーボードショートカット
-  const lastPTapTimeRef = useRef<number>(0);
+  const handleEnterKey = useCallback(() => {
+    // ダイアログが開いている場合 -> 確定実行
+    if (showConfirmDialog) {
+      handleConfirmMatchExecute();
+      return;
+    }
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-      if (
-        target.isContentEditable ||
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.tagName === "SELECT"
-      ) {
-        return;
-      }
+    // 試合確定ボタンが表示されている場合 -> ダイアログを開く
+    if (activeTournamentType === "team" && viewMode === "scoreboard") {
+      handleConfirmMatchClick();
+      return;
+    }
 
-      const key = event.key.toLowerCase();
-
-      // Enterキーの処理
-      if (key === "enter") {
-        event.preventDefault();
-
-        // ダイアログが開いている場合 -> 確定実行
-        if (showConfirmDialog) {
-          handleConfirmMatchExecute();
-          return;
-        }
-
-        // 試合確定ボタンが表示されている場合 -> ダイアログを開く
-        if (activeTournamentType === "team" && viewMode === "scoreboard") {
-          handleConfirmMatchClick();
-          return;
-        }
-
-        // 次の試合へボタンが表示されている場合 -> 次の試合へ
-        if (activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished) {
-          handleNextMatch();
-          return;
-        }
-      }
-
-      // Pキーの処理（ダブルタップで公開切り替え）
-      if (key === "p") {
-        const now = Date.now();
-        const lastTap = lastPTapTimeRef.current;
-        const DOUBLE_TAP_INTERVAL = 300; // ms
-
-        if (now - lastTap < DOUBLE_TAP_INTERVAL) {
-          togglePublic();
-          lastPTapTimeRef.current = 0;
-        } else {
-          lastPTapTimeRef.current = now;
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    // 次の試合へボタンが表示されている場合 -> 次の試合へ
+    if (activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished) {
+      handleNextMatch();
+      return;
+    }
   }, [
     showConfirmDialog,
     activeTournamentType,
@@ -326,9 +287,10 @@ export default function MonitorControlPage() {
     isAllFinished,
     handleConfirmMatchExecute,
     handleNextMatch,
-    handleConfirmMatchClick, // 依存配列に追加
-    togglePublic,
+    handleConfirmMatchClick,
   ]);
+
+  useKeyboardShortcuts({ onEnter: handleEnterKey });
 
   // ローディング状態
   if (isLoading) {
