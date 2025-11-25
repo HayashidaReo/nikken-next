@@ -28,9 +28,8 @@ export function useResolvedMatchData(matchId: string): ResolvedMatchData {
     const { orgId, activeTournamentId, activeTournamentType, isLoading: authLoading } = useAuthContext();
 
     // 大会種別に基づいて取得するデータを制御
-    // typeが未設定の場合は両方取得を試みる（互換性のため）
-    const shouldFetchIndividual = activeTournamentType === "individual" || !activeTournamentType;
-    const shouldFetchTeam = activeTournamentType === "team" || !activeTournamentType;
+    const shouldFetchIndividual = activeTournamentType === "individual";
+    const shouldFetchTeam = activeTournamentType === "team";
 
     // 個人戦データを取得
     const { data: individualMatch, isLoading: individualLoading, error: individualError } = useMatch(shouldFetchIndividual ? matchId : null);
