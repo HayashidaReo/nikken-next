@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import {
@@ -9,19 +8,19 @@ import {
   TimerControl,
 } from "@/components/molecules";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { useMonitorSender } from "@/hooks/useMonitorSender";
 
 interface ScoreboardOperatorProps {
   organizationId: string;
   tournamentId: string;
+  defaultMatchTime?: number;
   className?: string;
 }
 
 export function ScoreboardOperator({
+  defaultMatchTime = 180,
   className
 }: ScoreboardOperatorProps) {
   const {
-    matchId,
     courtName,
     roundName,
     tournamentName,
@@ -29,61 +28,18 @@ export function ScoreboardOperator({
     playerB,
     timeRemaining,
     isTimerRunning,
-    isPublic,
+    timerMode,
     setPlayerScore,
     setPlayerHansoku,
     setTimeRemaining,
     startTimer,
     stopTimer,
+    setTimerMode,
     selectedPlayer,
   } = useMonitorStore();
 
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const { sendMessage } = useMonitorSender();
-
   // キーボードショートカットの有効化
   useKeyboardShortcuts();
-
-  // タイマー処理
-  useEffect(() => {
-    if (isTimerRunning) {
-      timerIntervalRef.current = setInterval(() => {
-        const currentTime = useMonitorStore.getState().timeRemaining;
-        if (currentTime > 0) {
-          useMonitorStore.getState().setTimeRemaining(currentTime - 1);
-        } else {
-          useMonitorStore.getState().stopTimer();
-        }
-      }, 1000);
-    } else if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-    };
-  }, [isTimerRunning]);
-
-
-  useEffect(() => {
-    // データを送信
-    const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-    sendMessage("data", monitorData);
-  }, [
-    matchId,
-    tournamentName,
-    courtName,
-    roundName,
-    playerA,
-    playerB,
-    timeRemaining,
-    isTimerRunning,
-    isPublic,
-    sendMessage,
-  ]);
 
   return (
     <div className={cn("w-full mx-auto space-y-4", className)}>
@@ -145,9 +101,12 @@ export function ScoreboardOperator({
         <TimerControl
           timeRemaining={timeRemaining}
           isTimerRunning={isTimerRunning}
+          timerMode={timerMode}
           onTimeChange={setTimeRemaining}
           onStartTimer={startTimer}
           onStopTimer={stopTimer}
+          onTimerModeChange={setTimerMode}
+          defaultMatchTime={defaultMatchTime}
         />
       </div>
     </div>

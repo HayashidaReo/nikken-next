@@ -266,7 +266,11 @@ export const syncService = {
             async (teamMatch, id) => {
                 if (!teamMatch.matchGroupId) throw new Error("Missing matchGroupId");
                 await teamMatchRepository.update(orgId, tournamentId, teamMatch.matchGroupId, id, {
+                    matchId: id,
+                    matchGroupId: teamMatch.matchGroupId,
+                    roundId: teamMatch.roundId,
                     players: teamMatch.players,
+                    sortOrder: teamMatch.sortOrder,
                     isCompleted: teamMatch.isCompleted,
                 });
             },

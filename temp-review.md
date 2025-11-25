@@ -1,49 +1,62 @@
-# コードレビュー結果
+# コードレビュー報告書
 
-## 概要
-コミット `e40f75b` から `099a553` への変更を確認しました。
-主な変更点は、ローカルDB（Dexie）における論理削除（`_deleted`）の導入と、それに伴う同期サービス（`sync-service.ts`）の大幅な改修です。
-オフラインファーストなアーキテクチャへの移行として、方向性は非常に適切です。
+**対象:** `develop` ブランチと `feature/next-monitor` ブランチの差分
+**レビュアー:** システムエンジニア（ベテラン）
 
-## 評価
+## 1. 全体総評
+
+今回の変更は、モニター操作画面の堅牢性を高めるための重要なアーキテクチャ変更を含んでいます。特に、タイマー処理をメインスレッドから Web Worker に移行し、状態同期をグローバルな Provider に移動した判断は、ブラウザの制約（タブ非アクティブ時のスロットリングなど）や画面遷移時の状態保持という課題に対して、非常に適切かつモダンなアプローチです。
+
+コード品質は全体的に高く、TypeScript の型安全性、コンポーネントの責務分離、定数の管理などが徹底されています。
+
+## 2. アーキテクチャ・設計の評価
 
 ### 良い点
-1.  **論理削除の導入**: ローカルでの削除操作を物理削除から論理削除（`_deleted`フラグ）に変更したことで、削除操作もクラウドへ同期可能になりました。これはオフライン対応において必須のパターンです。
-2.  **ID生成の柔軟性**: `FirestoreMatchRepository` で、外部から `matchId` を指定して作成できるように変更されました。これにより、ローカルで生成したIDをそのままクラウドで使用でき、IDの整合性が保たれます。
-3.  **同期ロジックの堅牢化**: `Promise.allSettled` による並列処理から、ループによる順次処理に変更され、エラーハンドリングが個別のアイテムごとに行われるようになりました。これにより、一部の同期失敗が全体を止めることを防いでいます。
+*   **Web Worker の導入 (`public/timer-worker.js`, `src/lib/timer-controller.ts`)**:
+    *   `setInterval` をメインスレッドから分離したことで、UI の負荷やブラウザのバックグラウンド抑制の影響を受けずに正確な時間を刻めるようになりました。
+    *   `TimerController` をシングルトンとして実装し、Store と Worker のブリッジ役とした設計は、React コンポーネントの再レンダリングからタイマーロジックを保護する良いパターンです。
+*   **グローバル同期プロバイダー (`MonitorSyncProvider`)**:
+    *   `useMonitorSync` を個別の画面 (`ScoreboardOperator`) から `app/(auth)/layout.tsx` に移動したことで、「操作画面を離れても同期を継続したい」という要件を完璧に満たしています。
+*   **Zustand Store の改修**:
+    *   Store から `setInterval` のロジックを排除し、外部（Worker）からの `tick` イベントを受け取る受動的な設計に変更したことで、Store が純粋な状態保持に専念できています。
 
-### 懸念点・改善が必要な点
-1.  **N+1問題 (Performance)**:
-    `sync-service.ts` の個人戦同期ループ内で、`matchRepository.getById` を毎回呼び出しています。未同期の試合が100件あれば100回のFirestore読み取りが発生し、パフォーマンスとコストの両面で課題があります。
-2.  **リポジトリ実装の不統一 (Consistency)**:
-    `FirestoreMatchGroupRepository.update` は「存在しなければ作成（Upsert）」を行いますが、`FirestoreMatchRepository.update` は「存在しなければエラー」を返します。この挙動の違いにより、`sync-service.ts` 側の実装が複雑化しています。
-3.  **型定義の曖昧さ (Type Safety)**:
-    `match as MatchCreate & { matchId?: string }` というキャストが散見されます。`MatchCreate` 型自体を見直すか、ID付き作成用の型を定義すべきです。
+### 懸念点・改善の余地
+*   **Worker ファイルの配置**: `public/timer-worker.js` に配置されていますが、将来的にベースパス（`basePath`）が設定された環境にデプロイする場合、パス解決（`/timer-worker.js`）が失敗する可能性があります。
+*   **Store の肥大化**: `useMonitorStore` が、タイマー状態、試合情報、選手情報、UI状態（モーダルなど）をすべて抱え込んでいます。現時点では許容範囲ですが、これ以上機能が増える場合は Slice パターンによる分割を検討すべきです。
 
----
+## 3. ファイル別詳細レビュー
 
-## リファクタリング項目
+### `src/store/use-monitor-store.ts`
+*   **評価**: 適切
+*   **コメント**: `handleTick` アクションの追加により、外部からの状態更新が明確になりました。`timerController` との連携もスムーズです。
 
-重要度順に記載します。
+### `src/lib/timer-controller.ts`
+*   **評価**: 優秀
+*   **コメント**: Worker との通信をカプセル化し、型安全なインターフェースを提供しています。シングルトンパターンの適用も適切です。
 
-1.  **[High] SyncServiceにおけるN+1問題の解消**
-    *   **現状**: ループ内で `await matchRepository.getById(...)` を実行している。
-    *   **対策**:
-        *   案A: 同期対象のIDリストを使って、`where('matchId', 'in', ids)` で一括取得する（10件制限に注意）。
-        *   案B: `FirestoreMatchRepository.update` を改修し、Upsert（存在しなければ作成）モードをサポートさせることで、事前の存在チェックを不要にする。
+### `app/(auth)/layout.tsx` & `src/components/providers/monitor-sync-provider.tsx`
+*   **評価**: 適切
+*   **コメント**: 認証済みルート全体で同期を保証する配置は正解です。これにより、ダッシュボードや設定画面に移動しても、裏でモニター同期が継続されます。
 
-2.  **[Medium] リポジトリのUpdateメソッドの挙動統一**
-    *   **現状**: `MatchGroupRepository` はUpsert対応だが、`MatchRepository` は非対応（Transaction使用のため）。
-    *   **対策**: `MatchRepository` にも `set(..., { merge: true })` 相当のメソッド（例: `save` や `upsert`）を追加し、同期処理ではそれを利用するようにする。トランザクション更新は「画面からの同時編集」用として残し、同期用と使い分けるのが望ましい。
+### `src/hooks/useTeamMatchController.ts`
+*   **評価**: 良好だがリファクタリング余地あり
+*   **コメント**: `handleNextMatch` や `handleCreateRepMatch` がやや長大です。特に `resolvePlayer` のようなロジックは、他の箇所でも使われている可能性があるため、`src/lib/utils` やドメインヘルパーへの切り出しを推奨します。
 
-3.  **[Low] 型定義の厳格化**
-    *   **現状**: `matchId` の扱いがキャスト頼みになっている。
-    *   **対策**: `MatchCreate` 型に `matchId?: string` を追加するか、`MatchCreateWithId` 型を定義してキャストを排除する。
+### `src/components/molecules/timer-control.tsx`
+*   **評価**: 良好
+*   **コメント**: モード切替時のデフォルト時間設定ロジックが UI 側にありますが、UX の観点からは許容範囲です。
 
-4.  **[Low] 共通処理の切り出し**
-    *   **現状**: `sync-service.ts` 内で、Match, MatchGroup, TeamMatch それぞれに似たような同期ループ（削除 or 更新/作成）が書かれている。
-    *   **対策**: ジェネリクスを用いて同期ロジック（削除チェック → クラウド反映 → ローカルフラグ更新）を共通関数化できる可能性がある。
+## 4. リファクタリング提案（優先度順）
 
-5.  **[Low] テストの追加**
-    *   **現状**: 今回の変更（論理削除や同期ロジックの変更）に対するテストコードの追加が確認できませんでした。
-    *   **対策**: 特に `sync-service.ts` の複雑な分岐（削除、新規、更新）をカバーする単体テストを追加することを推奨します。
+1.  **Worker パスの堅牢化 (低リスク・中効果)**
+    *   `new Worker("/timer-worker.js")` を、環境変数や設定ファイルからベースパスを参照できる形にするか、ユーティリティ関数を通すようにする。
+2.  **Store の Slice 分割 (中リスク・高効果)**
+    *   `useMonitorStore` を `createTimerSlice`, `createMatchSlice`, `createUISlice` のように分割し、メンテナンス性を向上させる。
+3.  **ドメインロジックの抽出 (低リスク・中効果)**
+    *   `useTeamMatchController.ts` 内の選手解決ロジックなどを純粋関数として切り出す。
+
+## 5. 結論
+
+実装は要件を十分に満たしており、品質も高いレベルにあります。上記の「リファクタリング提案」は、将来の保守性を高めるためのプラスアルファの提案であり、現在のマージをブロックするものではありません。
+
+**承認 (Approve)** とします。

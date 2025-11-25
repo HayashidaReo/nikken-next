@@ -76,3 +76,24 @@ export function hasMatchEnded(
 ): boolean {
     return isMatchEnded(playerAHansoku, playerAScore) || isMatchEnded(playerBHansoku, playerBScore);
 }
+
+export type Winner = "playerA" | "playerB" | "draw" | "none";
+
+/**
+ * スコアから勝者を判定
+ *
+ * @param playerAScore - 選手Aのスコア
+ * @param playerBScore - 選手Bのスコア
+ * @param isCompleted - 試合が完了しているかどうか（完了していて同点なら引き分け）
+ * @returns 勝者
+ */
+export function determineWinner(
+    playerAScore: number,
+    playerBScore: number,
+    isCompleted: boolean = true
+): Winner {
+    if (playerAScore > playerBScore) return "playerA";
+    if (playerBScore > playerAScore) return "playerB";
+    if (isCompleted) return "draw";
+    return "none";
+}

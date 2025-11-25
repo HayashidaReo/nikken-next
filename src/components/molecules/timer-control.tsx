@@ -7,39 +7,88 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/atoms/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/atoms/tooltip";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { TimeAdjuster } from "./time-adjuster";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Play, Pause, RotateCcw, Timer, Clock, ArrowLeftRight } from "lucide-react";
 
 interface TimerControlProps {
   timeRemaining: number;
   isTimerRunning: boolean;
+  timerMode: "countdown" | "stopwatch";
   onTimeChange: (newTime: number) => void;
   onStartTimer: () => void;
   onStopTimer: () => void;
+  onTimerModeChange: (mode: "countdown" | "stopwatch") => void;
+  defaultMatchTime?: number;
   className?: string;
 }
 
 export function TimerControl({
   timeRemaining,
   isTimerRunning,
+  timerMode,
   onTimeChange,
   onStartTimer,
   onStopTimer,
+  onTimerModeChange,
+  defaultMatchTime = 180,
   className,
 }: TimerControlProps) {
   return (
     <Card className={className}>
       <CardHeader className="p-4 pb-0">
         <div className="flex items-center gap-2">
-          <CardTitle>タイマー制御</CardTitle>
-          <ShortcutBadge shortcut="Double Space" className="text-xs" />
+          <CardTitle className="flex items-center gap-2">
+            {timerMode === "countdown" ? (
+              <>
+                <Timer className="w-5 h-5" />
+                カウントダウンタイマー
+              </>
+            ) : (
+              <>
+                <Clock className="w-5 h-5" />
+                ストップウォッチ
+              </>
+            )}
+          </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="grid grid-cols-3 items-center">
-          {/* 左: 空白 */}
-          <div />
+          {/* 左: モード切り替えボタン */}
+          <div className="flex justify-start">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    aria-label="タイマーモード切り替え"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newMode = timerMode === "countdown" ? "stopwatch" : "countdown";
+                      onTimerModeChange(newMode);
+                      // カウントダウンに切り替える時はデフォルト値、ストップウォッチは0秒
+                      onTimeChange(newMode === "countdown" ? defaultMatchTime : 0);
+                    }}
+                    disabled={isTimerRunning}
+                    className="gap-2"
+                  >
+                    <ArrowLeftRight className="w-4 h-4" />
+                    モード切替
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>カウントダウンタイマーとストップウォッチを切り替えます</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
 
           {/* 中央: タイマー */}
           <div className="flex justify-center">
@@ -61,23 +110,25 @@ export function TimerControl({
               variant={isTimerRunning ? "destructive" : "default"}
               onClick={isTimerRunning ? onStopTimer : onStartTimer}
               size="lg"
+              className="gap-2"
             >
               {isTimerRunning ? (
                 <>
-                  <Pause className="w-4 h-4 mr-2" />
+                  <Pause className="w-4 h-4" />
                   停止
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 mr-2" />
+                  <Play className="w-4 h-4" />
                   開始
                 </>
               )}
+              <ShortcutBadge shortcut="Double Space" className="!bg-white/20 !text-white !border-white/30" />
             </Button>
 
             <Button
               variant="outline"
-              onClick={() => onTimeChange(180)}
+              onClick={() => onTimeChange(timerMode === "countdown" ? defaultMatchTime : 0)}
               disabled={isTimerRunning}
             >
               <RotateCcw className="w-4 h-4 mr-2" />

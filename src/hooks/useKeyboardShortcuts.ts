@@ -2,12 +2,17 @@ import { useEffect, useRef } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { DOUBLE_TAP_INTERVAL_MS, KEY_MAP } from "@/lib/constants/keyboard";
 
-export const useKeyboardShortcuts = () => {
+interface UseKeyboardShortcutsProps {
+    onEnter?: () => void;
+}
+
+export const useKeyboardShortcuts = ({ onEnter }: UseKeyboardShortcutsProps = {}) => {
     const {
         toggleTimer,
         toggleSelectedPlayer,
         incrementScoreForSelectedPlayer,
         incrementFoulForSelectedPlayer,
+        togglePublic,
     } = useMonitorStore();
 
     const lastTapTimeRef = useRef<Record<string, number>>({});
@@ -31,6 +36,15 @@ export const useKeyboardShortcuts = () => {
             const now = Date.now();
             const lastTap = lastTapTimeRef.current[key] || 0;
 
+            // Enterキーの処理（シングルタップ）
+            if (action === "enter") {
+                if (onEnter) {
+                    event.preventDefault();
+                    onEnter();
+                }
+                return;
+            }
+
             // toggleA/toggleB は常にシングルタップで処理する（選択のトグルが即時に行われる）
             if (action === "toggleA") {
                 toggleSelectedPlayer("playerA");
@@ -43,7 +57,7 @@ export const useKeyboardShortcuts = () => {
                 return;
             }
 
-            // ダブルタップ判定（timer / incScore / incFoul）
+            // ダブルタップ判定（timer / incScore / incFoul / togglePublic）
             if (now - lastTap < DOUBLE_TAP_INTERVAL_MS) {
                 switch (action) {
                     case "toggleTimer": {
@@ -60,6 +74,9 @@ export const useKeyboardShortcuts = () => {
                         break;
                     case "incFoul":
                         incrementFoulForSelectedPlayer();
+                        break;
+                    case "togglePublic":
+                        togglePublic();
                         break;
                     default:
                         break;
@@ -85,5 +102,7 @@ export const useKeyboardShortcuts = () => {
         toggleSelectedPlayer,
         incrementScoreForSelectedPlayer,
         incrementFoulForSelectedPlayer,
+        togglePublic,
+        onEnter,
     ]);
 };
