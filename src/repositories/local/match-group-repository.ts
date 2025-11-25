@@ -49,6 +49,10 @@ export class LocalMatchGroupRepository {
         return newGroup;
     }
 
+    async updateById(id: number, changes: Partial<LocalMatchGroup>): Promise<number> {
+        return await db.matchGroups.update(id, changes);
+    }
+
     async update(matchGroupId: string, changes: Partial<LocalMatchGroup>): Promise<void> {
         await db.matchGroups.where({ matchGroupId }).modify({
             ...changes,
