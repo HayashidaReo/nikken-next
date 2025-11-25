@@ -123,6 +123,7 @@ export function MatchGroupRow({
                     placeholder="チームA選択"
                     searchPlaceholder="チーム名で検索..."
                     hasError={errors.includes("teamAId")}
+                    hint="ここにチームが表示されない場合は、参加承認されていない場合があります"
                 />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.teamBId}>
@@ -133,6 +134,7 @@ export function MatchGroupRow({
                     placeholder="チームB選択"
                     searchPlaceholder="チーム名で検索..."
                     hasError={errors.includes("teamBId")}
+                    hint="ここにチームが表示されない場合は、参加承認されていない場合があります"
                 />
             </TableCell>
             <TableCell className="py-2 px-3 text-center">
