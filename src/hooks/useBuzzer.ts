@@ -3,8 +3,9 @@ import { useEffect, useRef, useCallback } from 'react';
 /**
  * タイマーが0になったときにブザーを鳴らすフック
  * @param timeRemaining 残り時間（秒）
+ * @param timerMode タイマーモード（カウントダウン or ストップウォッチ）
  */
-export const useBuzzer = (timeRemaining: number) => {
+export const useBuzzer = (timeRemaining: number, timerMode: "countdown" | "stopwatch" = "countdown") => {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const prevTimeRef = useRef(timeRemaining);
 
@@ -25,12 +26,12 @@ export const useBuzzer = (timeRemaining: number) => {
     }, []);
 
     useEffect(() => {
-        // 残り時間が 0 より大きい状態から 0 になった瞬間に再生
-        if (prevTimeRef.current > 0 && timeRemaining === 0) {
+        // カウントダウンモードの時のみ、残り時間が 0 より大きい状態から 0 になった瞬間に再生
+        if (timerMode === "countdown" && prevTimeRef.current > 0 && timeRemaining === 0) {
             playBuzzer();
         }
         prevTimeRef.current = timeRemaining;
-    }, [timeRemaining, playBuzzer]);
+    }, [timeRemaining, timerMode, playBuzzer]);
 
     return { playBuzzer };
 };

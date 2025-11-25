@@ -24,6 +24,7 @@ export const monitorDataSchema = z.object({
     playerB: monitorPlayerSchema,
     timeRemaining: z.number(),
     isTimerRunning: z.boolean(),
+    timerMode: z.enum(["countdown", "stopwatch"]).default("countdown"),
     isPublic: z.boolean(),
     viewMode: z.enum(["scoreboard", "match_result", "team_result"]).default("scoreboard"),
     matchResult: z.object({

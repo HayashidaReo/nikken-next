@@ -17,8 +17,8 @@ export function MonitorDisplayContainer({
   const { data } = useMonitorData();
   const [scale, setScale] = useState(1);
 
-  // タイマーが0になったらブザーを鳴らす
-  useBuzzer(data.timeRemaining);
+  // タイマーが0になったらブザーを鳴らす（カウントダウンモードのみ）
+  useBuzzer(data.timeRemaining, data.timerMode);
 
   useEffect(() => {
     const handleResize = () => {

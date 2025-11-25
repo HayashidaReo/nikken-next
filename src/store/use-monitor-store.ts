@@ -327,6 +327,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       playerB: s.playerB,
       timeRemaining: s.timeRemaining,
       isTimerRunning: s.isTimerRunning,
+      timerMode: s.timerMode,
       isPublic: s.isPublic,
       viewMode: s.viewMode,
       matchResult: s.matchResult,
