@@ -44,6 +44,7 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
             initializeMatch(match, tournament.tournamentName, courtName, {
                 resolvedPlayers,
                 roundName,
+                defaultMatchTime: tournament.defaultMatchTime,
             });
         }
     }, [hasStoreData, match, tournament, initializeMatch, courtName, roundName, resolvedPlayers, isLoading]);

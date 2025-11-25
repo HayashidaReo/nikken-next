@@ -18,6 +18,7 @@ import { useMatchDataWithPriority } from "@/hooks/useMatchDataWithPriority";
 import { useMonitorController } from "@/hooks/useMonitorController";
 import { useTeamMatches } from "@/queries/use-team-matches";
 import { useTeams } from "@/queries/use-teams";
+import { useTournament } from "@/queries/use-tournaments";
 import { TeamMatch } from "@/types/match.schema";
 import { useState, useCallback } from "react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -54,6 +55,7 @@ export default function MonitorControlPage() {
   const initializeMatch = useMonitorStore((s) => s.initializeMatch);
   const { data: teamMatches } = useTeamMatches(matchGroupId || null);
   const { data: teams } = useTeams();
+  const { data: tournament } = useTournament(orgId, activeTournamentId);
 
   // モニター制御ロジック
   const {
@@ -236,6 +238,7 @@ export default function MonitorControlPage() {
             },
           },
           roundName: useMonitorStore.getState().roundName, // 回戦名は変わらない前提
+          defaultMatchTime: tournament?.defaultMatchTime,
         });
 
         // 非公開にする
@@ -245,7 +248,7 @@ export default function MonitorControlPage() {
         router.push(`/monitor-control/${nextMatch.matchId}`);
       }
     }
-  }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, setPublic, router]);
+  }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, setPublic, router, tournament]);
 
   const isSaving = saveIndividualMatchResultMutation.isPending || saveTeamMatchResultMutation.isPending;
 

@@ -62,6 +62,7 @@ interface MonitorState {
         playerB: ResolvedMatchPlayer;
       };
       roundName?: string;
+      defaultMatchTime?: number;
     }
   ) => void;
   setPlayerScore: (player: "A" | "B", score: number) => void;
@@ -123,9 +124,10 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
         playerB: ResolvedMatchPlayer;
       };
       roundName?: string;
+      defaultMatchTime?: number;
     }
   ) => {
-    const { resolvedPlayers, roundName } = options || {};
+    const { resolvedPlayers, roundName, defaultMatchTime = 180 } = options || {};
     const fallbackPlayer = (
       player: Match["players"]["playerA"] | TeamMatch["players"]["playerA"]
     ): ResolvedMatchPlayer => ({
@@ -162,6 +164,9 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       // 試合切り替え時にモードをリセット
       viewMode: "scoreboard",
       matchResult: undefined,
+      // タイマーをリセット（大会設定値を使用）
+      timeRemaining: defaultMatchTime,
+      isTimerRunning: false,
     });
   },
 
