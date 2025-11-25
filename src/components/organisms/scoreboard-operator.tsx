@@ -8,8 +8,6 @@ import {
   TimerControl,
 } from "@/components/molecules";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { useGameTimer } from "@/hooks/useGameTimer";
-import { useMonitorSync } from "@/hooks/useMonitorSync";
 
 interface ScoreboardOperatorProps {
   organizationId: string;
@@ -42,12 +40,6 @@ export function ScoreboardOperator({
 
   // キーボードショートカットの有効化
   useKeyboardShortcuts();
-
-  // タイマー処理
-  useGameTimer();
-
-  // モニター同期処理
-  useMonitorSync();
 
   return (
     <div className={cn("w-full mx-auto space-y-4", className)}>

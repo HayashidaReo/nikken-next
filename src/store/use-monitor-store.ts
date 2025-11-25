@@ -8,6 +8,7 @@ import {
   updateOpponentScore,
   isMatchEnded,
 } from "@/domains/match/match-logic";
+import { timerController } from "@/lib/timer-controller";
 
 export type ViewMode = "scoreboard" | "match_result" | "team_result";
 
@@ -87,6 +88,7 @@ interface MonitorState {
   incrementScoreForSelectedPlayer: () => void;
   incrementFoulForSelectedPlayer: () => void;
   getMonitorSnapshot: () => MonitorData;
+  handleTick: () => void;
 }
 
 export const useMonitorStore = create<MonitorState>((set, get) => ({
@@ -147,6 +149,9 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     const matchGroupId = "matchGroupId" in match ? match.matchGroupId : undefined;
     const sortOrder = match.sortOrder;
 
+    // タイマー停止
+    timerController.stop();
+
     set({
       matchId: match.matchId,
       matchGroupId,
@@ -190,7 +195,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
     // 2点先取で自動停止
     if (score >= SCORE_CONSTANTS.MAX_SCORE) {
-      set({ isTimerRunning: false });
+      get().stopTimer();
     }
   },
 
@@ -222,7 +227,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
     // 試合終了判定
     if (isMatchEnded(hansoku, newOpponentScore)) {
-      set({ isTimerRunning: false });
+      get().stopTimer();
     }
   },
 
@@ -232,19 +237,26 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
   startTimer: () => {
     set({ isTimerRunning: true });
+    timerController.start();
   },
 
   stopTimer: () => {
     set({ isTimerRunning: false });
+    timerController.stop();
   },
 
   toggleTimer: () => {
-    const { isTimerRunning } = get();
-    set({ isTimerRunning: !isTimerRunning });
+    const { isTimerRunning, startTimer, stopTimer } = get();
+    if (isTimerRunning) {
+      stopTimer();
+    } else {
+      startTimer();
+    }
   },
 
   setTimerMode: (mode: "countdown" | "stopwatch") => {
-    set({ timerMode: mode, isTimerRunning: false });
+    set({ timerMode: mode });
+    get().stopTimer();
   },
 
   togglePublic: () => {
@@ -336,4 +348,22 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       teamMatchResults: s.teamMatchResults,
     };
   },
+
+  handleTick: () => {
+    const { timeRemaining, timerMode, stopTimer, setTimeRemaining } = get();
+    if (timerMode === "countdown") {
+      if (timeRemaining > 0) {
+        setTimeRemaining(timeRemaining - 1);
+      } else {
+        stopTimer();
+      }
+    } else {
+      setTimeRemaining(timeRemaining + 1);
+    }
+  },
 }));
+
+// タイマーコントローラーにハンドラーを登録
+timerController.setTickHandler(() => {
+  useMonitorStore.getState().handleTick();
+});

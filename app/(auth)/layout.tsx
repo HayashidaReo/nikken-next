@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
+import { MonitorSyncProvider } from "@/components/providers/monitor-sync-provider";
 
 export default function AuthLayout({
     children,
@@ -47,5 +48,9 @@ export default function AuthLayout({
     }
 
     // 認証済みの場合のみ子コンポーネントを表示
-    return <>{children}</>;
+    return (
+        <MonitorSyncProvider>
+            {children}
+        </MonitorSyncProvider>
+    );
 }

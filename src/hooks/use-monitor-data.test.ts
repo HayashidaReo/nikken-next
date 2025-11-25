@@ -85,6 +85,8 @@ describe("useMonitorData", () => {
         timeRemaining: 300,
         isTimerRunning: false,
         isPublic: false,
+        timerMode: "countdown",
+        viewMode: "scoreboard",
       });
 
       expect(result.current.isConnected).toBe(false);
