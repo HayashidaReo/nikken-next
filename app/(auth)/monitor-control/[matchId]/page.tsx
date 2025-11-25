@@ -59,6 +59,14 @@ export default function MonitorControlPage() {
     handleFallbackCancel,
   } = useMonitorController();
 
+  const handleBack = () => {
+    if (activeTournamentType === "team" && matchGroupId) {
+      router.push(`/dashboard?matchGroupId=${matchGroupId}`);
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
   const handleSave = async () => {
     try {
       const store = useMonitorStore.getState();
@@ -257,7 +265,7 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => router.back()}>
+              <Button variant="outline" onClick={handleBack}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 戻る
               </Button>
@@ -284,7 +292,7 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => router.back()}>
+              <Button variant="outline" onClick={handleBack}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 戻る
               </Button>
@@ -313,7 +321,7 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => router.back()}>
+              <Button variant="outline" onClick={handleBack}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 戻る
               </Button>
@@ -338,14 +346,13 @@ export default function MonitorControlPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
+        {/* ヘッダー */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => router.back()}>
+            <Button variant="outline" onClick={handleBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               戻る
-            </Button>
-
-            <div className="ml-2">
+            </Button>            <div className="ml-2">
               <ConnectionStatus mode={monitorStatusMode} error={null} />
             </div>
           </div>
