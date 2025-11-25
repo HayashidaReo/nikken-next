@@ -284,11 +284,13 @@ export function useTeamMatchController({
      * @param showConfirmDialog - 確認ダイアログの表示状態
      * @param onConfirmMatch - 試合確定時のコールバック
      * @param onConfirmExecute - 確定実行時のコールバック
+     * @param onNextMatch - 次の試合へのコールバック（代表戦判定を含む）
      */
     const handleEnterKey = useCallback((
         showConfirmDialog: boolean,
         onConfirmMatch: () => void,
-        onConfirmExecute: () => void
+        onConfirmExecute: () => void,
+        onNextMatch: () => void
     ) => {
         // ダイアログが開いている場合 -> 確定実行
         if (showConfirmDialog) {
@@ -307,9 +309,9 @@ export function useTeamMatchController({
             return;
         }
 
-        // 次の試合へボタンが表示されている場合 -> 次の試合へ
+        // 次の試合へボタンが表示されている場合 -> 次の試合へ（代表戦判定含む）
         if (viewMode === "match_result" && !isAllFinished) {
-            handleNextMatch();
+            onNextMatch();
             return;
         }
 
@@ -318,7 +320,7 @@ export function useTeamMatchController({
             handleShowTeamResult();
             return;
         }
-    }, [activeTournamentType, viewMode, isAllFinished, handleNextMatch, handleShowTeamResult]);
+    }, [activeTournamentType, viewMode, isAllFinished, handleShowTeamResult]);
 
     /**
      * 代表戦を作成して開始する

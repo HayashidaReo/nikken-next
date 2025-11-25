@@ -182,8 +182,8 @@ export default function MonitorControlPage() {
 
   // キーボードショートカット
   const handleEnterKey = useCallback(() => {
-    teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute);
-  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute]);
+    teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick);
+  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick]);
 
   useKeyboardShortcuts({ onEnter: handleEnterKey });
 
