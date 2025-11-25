@@ -10,6 +10,7 @@ export interface LocalMatch extends Match {
     isSynced: boolean;
     organizationId: string; // クエリ用に追加
     tournamentId: string;   // クエリ用に追加
+    _deleted?: boolean;     // 論理削除フラグ
 }
 
 // ローカルDBに保存するMatchGroup型
@@ -18,6 +19,7 @@ export interface LocalMatchGroup extends MatchGroup {
     isSynced: boolean;
     organizationId: string;
     tournamentId: string;
+    _deleted?: boolean;     // 論理削除フラグ
 }
 
 // ローカルDBに保存するTeamMatch型
@@ -26,6 +28,7 @@ export interface LocalTeamMatch extends TeamMatch {
     isSynced: boolean;
     organizationId: string;
     tournamentId: string;
+    _deleted?: boolean;     // 論理削除フラグ
 }
 
 // ローカルDBに保存するTournament型

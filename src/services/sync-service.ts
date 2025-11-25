@@ -175,85 +175,101 @@ export const syncService = {
             }
 
             try {
-                // Firestoreに存在するかチェック
-                const existingMatch = await matchRepository.getById(orgId, tournamentId, match.matchId);
-
-                if (existingMatch) {
-                    // 既存試合を更新（結果のみ）
-                    await matchRepository.update(orgId, tournamentId, match.matchId, {
-                        players: match.players,
-                        isCompleted: match.isCompleted,
-                    });
+                if (match._deleted) {
+                    // 削除された試合をFirestoreから削除
+                    await matchRepository.delete(orgId, tournamentId, match.matchId);
+                    // ローカルDBからも物理削除
+                    await localMatchRepository.hardDelete(match.matchId);
+                    successCount++;
                 } else {
-                    // 新規試合を作成（全フィールド）
-                    const { organizationId: _organizationId, tournamentId: _, isSynced: _isSynced, id: _id, ...matchData } = match;
-                    await matchRepository.create(orgId, tournamentId, matchData);
-                }
+                    // Firestoreに存在するかチェック
+                    const existingMatch = await matchRepository.getById(orgId, tournamentId, match.matchId);
 
-                // ローカルDBの同期フラグを更新
-                await localMatchRepository.update(match.id!, { isSynced: true });
-                successCount++;
+                    if (existingMatch) {
+                        // 既存試合を更新（結果のみ）
+                        await matchRepository.update(orgId, tournamentId, match.matchId, {
+                            players: match.players,
+                            isCompleted: match.isCompleted,
+                        });
+                    } else {
+                        // 新規試合を作成（全フィールド）
+                        const { organizationId: _organizationId, tournamentId: _, isSynced: _isSynced, id: _id, _deleted: _del, ...matchData } = match;
+                        await matchRepository.create(orgId, tournamentId, matchData);
+                    }
+
+                    // ローカルDBの同期フラグを更新
+                    await localMatchRepository.update(match.id!, { isSynced: true });
+                    successCount++;
+                }
             } catch (error) {
                 console.error(`[SyncService] Failed to sync match ${match.matchId}`, error);
             }
         }
 
-        // 4. Firestoreに保存 (MatchGroups)
-        const uploadMatchGroupResults = await Promise.allSettled(
-            unsyncedMatchGroups.map(group => {
-                if (!group.matchGroupId) return Promise.reject(new Error("matchGroupId is missing"));
-                return matchGroupRepository.update(orgId, tournamentId, group.matchGroupId, {
-                    matchGroupId: group.matchGroupId,
-                    courtId: group.courtId,
-                    roundId: group.roundId,
-                    sortOrder: group.sortOrder,
-                    teamAId: group.teamAId,
-                    teamBId: group.teamBId,
-                });
-            })
-        );
+        // 団体戦グループの同期（新規作成 or 更新 or 削除）
+        for (const group of unsyncedMatchGroups) {
+            if (!group.matchGroupId) {
+                console.error("[SyncService] Match group has no matchGroupId, skipping", group);
+                continue;
+            }
 
-        for (let i = 0; i < uploadMatchGroupResults.length; i++) {
-            const result = uploadMatchGroupResults[i];
-            const group = unsyncedMatchGroups[i];
-            if (result.status === "fulfilled") {
-                try {
-                    await localMatchGroupRepository.update(group.matchGroupId!, { isSynced: true });
+            try {
+                if (group._deleted) {
+                    // 削除されたグループをFirestoreから削除
+                    await matchGroupRepository.delete(orgId, tournamentId, group.matchGroupId);
+                    // ローカルDBからも物理削除
+                    await localMatchGroupRepository.hardDelete(group.matchGroupId);
                     successCount++;
-                } catch (error) {
-                    console.error(`[SyncService] Failed to update local flag for match group ${group.matchGroupId}`, error);
+                } else {
+                    // 既存グループを更新
+                    await matchGroupRepository.update(orgId, tournamentId, group.matchGroupId, {
+                        matchGroupId: group.matchGroupId,
+                        courtId: group.courtId,
+                        roundId: group.roundId,
+                        sortOrder: group.sortOrder,
+                        teamAId: group.teamAId,
+                        teamBId: group.teamBId,
+                    });
+
+                    // ローカルDBの同期フラグを更新
+                    await localMatchGroupRepository.update(group.matchGroupId, { isSynced: true });
+                    successCount++;
                 }
-            } else {
-                console.error(`[SyncService] Failed to upload match group ${group.matchGroupId}`, result.reason);
+            } catch (error) {
+                console.error(`[SyncService] Failed to sync match group ${group.matchGroupId}`, error);
             }
         }
 
-        // 5. Firestoreに保存 (TeamMatches)
-        const uploadTeamResults = await Promise.allSettled(
-            unsyncedTeamMatches.map(match => {
-                if (!match.matchId || !match.matchGroupId) return Promise.reject(new Error("matchId or matchGroupId is missing"));
-                return teamMatchRepository.update(orgId, tournamentId, match.matchGroupId, match.matchId, {
-                    matchGroupId: match.matchGroupId,
-                    roundId: match.roundId,
-                    sortOrder: match.sortOrder,
-                    players: match.players,
-                    isCompleted: match.isCompleted,
-                });
-            })
-        );
+        // 団体戦試合の同期（新規作成 or 更新 or 削除）
+        for (const teamMatch of unsyncedTeamMatches) {
+            if (!teamMatch.matchId || !teamMatch.matchGroupId) {
+                console.error("[SyncService] Team match missing required IDs, skipping", teamMatch);
+                continue;
+            }
 
-        for (let i = 0; i < uploadTeamResults.length; i++) {
-            const result = uploadTeamResults[i];
-            const match = unsyncedTeamMatches[i];
-            if (result.status === "fulfilled") {
-                try {
-                    await localTeamMatchRepository.update(match.id!, { isSynced: true });
+            try {
+                if (teamMatch._deleted) {
+                    // 削除された試合をFirestoreから削除
+                    await teamMatchRepository.delete(orgId, tournamentId, teamMatch.matchGroupId, teamMatch.matchId);
+                    // ローカルDBからも物理削除
+                    await localTeamMatchRepository.hardDelete(teamMatch.matchId);
                     successCount++;
-                } catch (error) {
-                    console.error(`[SyncService] Failed to update local flag for team match ${match.matchId}`, error);
+                } else {
+                    // 既存試合を更新
+                    await teamMatchRepository.update(orgId, tournamentId, teamMatch.matchGroupId, teamMatch.matchId, {
+                        players: teamMatch.players,
+                        isCompleted: teamMatch.isCompleted,
+                    });
+
+                    // ローカルDBの同期フラグを更新
+                    const localMatch = await localTeamMatchRepository.getById(teamMatch.matchId);
+                    if (localMatch && localMatch.id) {
+                        await localTeamMatchRepository.update(localMatch.id, { isSynced: true });
+                    }
+                    successCount++;
                 }
-            } else {
-                console.error(`[SyncService] Failed to upload team match ${match.matchId}`, result.reason);
+            } catch (error) {
+                console.error(`[SyncService] Failed to sync team match ${teamMatch.matchId}`, error);
             }
         }
 

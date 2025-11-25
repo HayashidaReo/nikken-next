@@ -5,9 +5,12 @@ export class LocalMatchRepository {
      * 全ての試合を取得
      */
     async listAll(orgId: string, tournamentId: string): Promise<LocalMatch[]> {
-        return await db.matches
+        const allMatches = await db.matches
             .where({ organizationId: orgId, tournamentId })
             .sortBy("sortOrder");
+
+        // 論理削除されていない試合のみ返す
+        return allMatches.filter(m => !m._deleted);
     }
 
     /**
@@ -97,22 +100,32 @@ export class LocalMatchRepository {
     }
 
     /**
-     * matchIdで試合を削除
+     * matchIdで試合を削除（論理削除）
      */
     async delete(matchId: string): Promise<void> {
         await db.matches
             .where("matchId")
             .equals(matchId)
-            .delete();
+            .modify({ _deleted: true, isSynced: false });
     }
 
     /**
-     * 複数の試合を一括削除
+     * 複数の試合を一括削除（論理削除）
      */
     async deleteMultiple(matchIds: string[]): Promise<void> {
         await db.matches
             .where("matchId")
             .anyOf(matchIds)
+            .modify({ _deleted: true, isSynced: false });
+    }
+
+    /**
+     * matchIdで試合を物理削除
+     */
+    async hardDelete(matchId: string): Promise<void> {
+        await db.matches
+            .where("matchId")
+            .equals(matchId)
             .delete();
     }
 }
