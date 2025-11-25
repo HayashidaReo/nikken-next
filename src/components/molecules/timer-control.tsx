@@ -9,23 +9,29 @@ import {
 } from "@/components/atoms/card";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { TimeAdjuster } from "./time-adjuster";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Play, Pause, RotateCcw, Timer, Clock } from "lucide-react";
 
 interface TimerControlProps {
   timeRemaining: number;
   isTimerRunning: boolean;
+  timerMode: "countdown" | "stopwatch";
   onTimeChange: (newTime: number) => void;
   onStartTimer: () => void;
   onStopTimer: () => void;
+  onTimerModeChange: (mode: "countdown" | "stopwatch") => void;
+  defaultMatchTime?: number;
   className?: string;
 }
 
 export function TimerControl({
   timeRemaining,
   isTimerRunning,
+  timerMode,
   onTimeChange,
   onStartTimer,
   onStopTimer,
+  onTimerModeChange,
+  defaultMatchTime = 180,
   className,
 }: TimerControlProps) {
   return (
@@ -38,8 +44,28 @@ export function TimerControl({
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="grid grid-cols-3 items-center">
-          {/* 左: 空白 */}
-          <div />
+          {/* 左: モード切り替えボタン */}
+          <div className="flex justify-start">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onTimerModeChange(timerMode === "countdown" ? "stopwatch" : "countdown")}
+              disabled={isTimerRunning}
+              className="gap-2"
+            >
+              {timerMode === "countdown" ? (
+                <>
+                  <Clock className="w-4 h-4" />
+                  ストップウォッチ
+                </>
+              ) : (
+                <>
+                  <Timer className="w-4 h-4" />
+                  カウントダウン
+                </>
+              )}
+            </Button>
+          </div>
 
           {/* 中央: タイマー */}
           <div className="flex justify-center">
@@ -77,7 +103,7 @@ export function TimerControl({
 
             <Button
               variant="outline"
-              onClick={() => onTimeChange(180)}
+              onClick={() => onTimeChange(timerMode === "countdown" ? defaultMatchTime : 0)}
               disabled={isTimerRunning}
             >
               <RotateCcw className="w-4 h-4 mr-2" />

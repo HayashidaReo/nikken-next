@@ -14,10 +14,12 @@ import { useMonitorSender } from "@/hooks/useMonitorSender";
 interface ScoreboardOperatorProps {
   organizationId: string;
   tournamentId: string;
+  defaultMatchTime?: number;
   className?: string;
 }
 
 export function ScoreboardOperator({
+  defaultMatchTime = 180,
   className
 }: ScoreboardOperatorProps) {
   const {
@@ -29,6 +31,7 @@ export function ScoreboardOperator({
     playerB,
     timeRemaining,
     isTimerRunning,
+    timerMode,
     isPublic,
     viewMode,
     matchResult,
@@ -38,6 +41,7 @@ export function ScoreboardOperator({
     setTimeRemaining,
     startTimer,
     stopTimer,
+    setTimerMode,
     selectedPlayer,
   } = useMonitorStore();
 
@@ -51,11 +55,20 @@ export function ScoreboardOperator({
   useEffect(() => {
     if (isTimerRunning) {
       timerIntervalRef.current = setInterval(() => {
-        const currentTime = useMonitorStore.getState().timeRemaining;
-        if (currentTime > 0) {
-          useMonitorStore.getState().setTimeRemaining(currentTime - 1);
+        const state = useMonitorStore.getState();
+        const currentTime = state.timeRemaining;
+        const mode = state.timerMode;
+
+        if (mode === "countdown") {
+          // カウントダウンモード: 時間を減らす
+          if (currentTime > 0) {
+            state.setTimeRemaining(currentTime - 1);
+          } else {
+            state.stopTimer();
+          }
         } else {
-          useMonitorStore.getState().stopTimer();
+          // ストップウォッチモード: 時間を増やす
+          state.setTimeRemaining(currentTime + 1);
         }
       }, 1000);
     } else if (timerIntervalRef.current) {
@@ -151,9 +164,12 @@ export function ScoreboardOperator({
         <TimerControl
           timeRemaining={timeRemaining}
           isTimerRunning={isTimerRunning}
+          timerMode={timerMode}
           onTimeChange={setTimeRemaining}
           onStartTimer={startTimer}
           onStopTimer={stopTimer}
+          onTimerModeChange={setTimerMode}
+          defaultMatchTime={defaultMatchTime}
         />
       </div>
     </div>

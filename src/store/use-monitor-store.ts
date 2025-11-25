@@ -35,6 +35,7 @@ interface MonitorState {
   // タイマー関連
   timeRemaining: number; // 秒
   isTimerRunning: boolean;
+  timerMode: "countdown" | "stopwatch"; // カウントダウン or ストップウォッチ
 
   // 表示制御
   isPublic: boolean; // 公開/非公開
@@ -71,6 +72,7 @@ interface MonitorState {
   startTimer: () => void;
   stopTimer: () => void;
   toggleTimer: () => void;
+  setTimerMode: (mode: "countdown" | "stopwatch") => void;
   togglePublic: () => void;
   setPublic: (isPublic: boolean) => void;
   setViewMode: (mode: "scoreboard" | "match_result" | "team_result") => void;
@@ -107,6 +109,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
   timeRemaining: 180, // デフォルト3分
   isTimerRunning: false,
+  timerMode: "countdown", // デフォルトはカウントダウン
   isPublic: false,
   viewMode: "scoreboard",
   presentationConnected: false,
@@ -167,6 +170,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       // タイマーをリセット（大会設定値を使用）
       timeRemaining: defaultMatchTime,
       isTimerRunning: false,
+      timerMode: "countdown", // カウントダウンモードに戻す
     });
   },
 
@@ -235,6 +239,10 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   toggleTimer: () => {
     const { isTimerRunning } = get();
     set({ isTimerRunning: !isTimerRunning });
+  },
+
+  setTimerMode: (mode: "countdown" | "stopwatch") => {
+    set({ timerMode: mode, timeRemaining: 0, isTimerRunning: false });
   },
 
   togglePublic: () => {

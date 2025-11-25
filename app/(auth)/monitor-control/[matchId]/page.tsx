@@ -472,6 +472,7 @@ export default function MonitorControlPage() {
         <ScoreboardOperator
           organizationId={orgId || ""}
           tournamentId={activeTournamentId || ""}
+          defaultMatchTime={tournament?.defaultMatchTime}
         />
         <FallbackMonitorDialog
           isOpen={showFallbackDialog}
