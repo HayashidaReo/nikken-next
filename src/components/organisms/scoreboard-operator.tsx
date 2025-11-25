@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/components/molecules";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useMonitorSender } from "@/hooks/useMonitorSender";
+import { useGameTimer } from "@/hooks/useGameTimer";
 
 interface ScoreboardOperatorProps {
   organizationId: string;
@@ -45,44 +46,13 @@ export function ScoreboardOperator({
     selectedPlayer,
   } = useMonitorStore();
 
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { sendMessage } = useMonitorSender();
 
   // キーボードショートカットの有効化
   useKeyboardShortcuts();
 
   // タイマー処理
-  useEffect(() => {
-    if (isTimerRunning) {
-      timerIntervalRef.current = setInterval(() => {
-        const state = useMonitorStore.getState();
-        const currentTime = state.timeRemaining;
-        const mode = state.timerMode;
-
-        if (mode === "countdown") {
-          // カウントダウンモード: 時間を減らす
-          if (currentTime > 0) {
-            state.setTimeRemaining(currentTime - 1);
-          } else {
-            state.stopTimer();
-          }
-        } else {
-          // ストップウォッチモード: 時間を増やす
-          state.setTimeRemaining(currentTime + 1);
-        }
-      }, 1000);
-    } else if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-    };
-  }, [isTimerRunning]);
-
+  useGameTimer();
 
   useEffect(() => {
     // データを送信
