@@ -30,6 +30,9 @@ export function ScoreboardOperator({
     timeRemaining,
     isTimerRunning,
     isPublic,
+    viewMode,
+    matchResult,
+    teamMatchResults,
     setPlayerScore,
     setPlayerHansoku,
     setTimeRemaining,
@@ -82,6 +85,9 @@ export function ScoreboardOperator({
     timeRemaining,
     isTimerRunning,
     isPublic,
+    viewMode,
+    matchResult,
+    teamMatchResults,
     sendMessage,
   ]);
 

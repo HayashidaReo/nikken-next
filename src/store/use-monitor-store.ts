@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Match, TeamMatch } from "@/types/match.schema";
 import type { ResolvedMatchPlayer } from "@/lib/utils/player-directory";
-import type { MonitorData } from "@/types/monitor.schema";
+import type { MonitorData, MonitorPlayer } from "@/types/monitor.schema";
 import { SCORE_CONSTANTS, HANSOKU_CONSTANTS } from "@/lib/constants";
 import {
   calculateOpponentScoreChange,
@@ -12,6 +12,8 @@ import {
 interface MonitorState {
   // 試合の基本情報（初期データから設定）
   matchId: string | null;
+  matchGroupId?: string;
+  sortOrder?: number;
   courtName: string;
   roundName: string;
   tournamentName: string;
@@ -36,6 +38,14 @@ interface MonitorState {
 
   // 表示制御
   isPublic: boolean; // 公開/非公開
+  viewMode: "scoreboard" | "match_result" | "team_result";
+  matchResult?: {
+    playerA: MonitorPlayer;
+    playerB: MonitorPlayer;
+    winner: "playerA" | "playerB" | "draw" | "none";
+  };
+  teamMatchResults?: MonitorData["teamMatchResults"];
+
   presentationConnected: boolean;
   presentationConnection?: PresentationConnection | null;
   fallbackOpen: boolean;
@@ -61,6 +71,10 @@ interface MonitorState {
   stopTimer: () => void;
   toggleTimer: () => void;
   togglePublic: () => void;
+  setPublic: (isPublic: boolean) => void;
+  setViewMode: (mode: "scoreboard" | "match_result" | "team_result") => void;
+  setMatchResult: (result: MonitorState["matchResult"]) => void;
+  setTeamMatchResults: (results: MonitorData["teamMatchResults"]) => void;
   setPresentationConnected: (connected: boolean) => void;
   setPresentationConnection: (conn: PresentationConnection | null) => void;
   setFallbackOpen: (open: boolean) => void;
@@ -93,6 +107,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   timeRemaining: 180, // デフォルト3分
   isTimerRunning: false,
   isPublic: false,
+  viewMode: "scoreboard",
   presentationConnected: false,
   fallbackOpen: false,
   selectedPlayer: null,
@@ -122,8 +137,13 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     const playerAData = resolvedPlayers?.playerA || fallbackPlayer(match.players.playerA);
     const playerBData = resolvedPlayers?.playerB || fallbackPlayer(match.players.playerB);
 
+    const matchGroupId = "matchGroupId" in match ? match.matchGroupId : undefined;
+    const sortOrder = match.sortOrder;
+
     set({
       matchId: match.matchId,
+      matchGroupId,
+      sortOrder,
       courtName,
       roundName,
       tournamentName,
@@ -139,6 +159,9 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
         score: playerBData.score,
         hansoku: playerBData.hansoku,
       },
+      // 試合切り替え時にモードをリセット
+      viewMode: "scoreboard",
+      matchResult: undefined,
     });
   },
 
@@ -214,6 +237,22 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     set({ isPublic: !currentState.isPublic });
   },
 
+  setPublic: (isPublic: boolean) => {
+    set({ isPublic });
+  },
+
+  setViewMode: (mode) => {
+    set({ viewMode: mode });
+  },
+
+  setMatchResult: (result) => {
+    set({ matchResult: result });
+  },
+
+  setTeamMatchResults: (results) => {
+    set({ teamMatchResults: results });
+  },
+
   setPresentationConnected: (connected: boolean) => {
     set({ presentationConnected: connected });
   },
@@ -276,6 +315,9 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       timeRemaining: s.timeRemaining,
       isTimerRunning: s.isTimerRunning,
       isPublic: s.isPublic,
+      viewMode: s.viewMode,
+      matchResult: s.matchResult,
+      teamMatchResults: s.teamMatchResults,
     };
   },
 }));

@@ -25,6 +25,19 @@ export const monitorDataSchema = z.object({
     timeRemaining: z.number(),
     isTimerRunning: z.boolean(),
     isPublic: z.boolean(),
+    viewMode: z.enum(["scoreboard", "match_result", "team_result"]).default("scoreboard"),
+    matchResult: z.object({
+        playerA: monitorPlayerSchema,
+        playerB: monitorPlayerSchema,
+        winner: z.enum(["playerA", "playerB", "draw", "none"]),
+    }).optional(),
+    teamMatchResults: z.array(z.object({
+        matchId: z.string(),
+        sortOrder: z.number(),
+        playerA: monitorPlayerSchema,
+        playerB: monitorPlayerSchema,
+        winner: z.enum(["playerA", "playerB", "draw", "none"]),
+    })).optional(),
 });
 
 /**
