@@ -476,6 +476,7 @@ export default function MonitorControlPage() {
           onCancel={() => setShowConfirmDialog(false)}
           confirmText="確定する"
           cancelText="キャンセル"
+          confirmShortcut="Enter"
         />
       </div>
     </div>

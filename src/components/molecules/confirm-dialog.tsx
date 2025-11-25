@@ -9,6 +9,7 @@ import {
 } from "@/components/atoms/card";
 import { AlertCircle } from "lucide-react";
 import { DialogOverlay } from "./dialog-overlay";
+import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   variant?: "default" | "destructive";
+  confirmShortcut?: string;
 }
 
 export function ConfirmDialog({
@@ -30,6 +32,7 @@ export function ConfirmDialog({
   confirmText = "OK",
   cancelText = "キャンセル",
   variant = "default",
+  confirmShortcut,
 }: ConfirmDialogProps) {
   return (
     <DialogOverlay isOpen={isOpen} onClose={onCancel}>
@@ -37,14 +40,12 @@ export function ConfirmDialog({
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div
-              className={`p-3 rounded-full ${
-                variant === "destructive" ? "bg-red-100" : "bg-blue-100"
-              }`}
+              className={`p-3 rounded-full ${variant === "destructive" ? "bg-red-100" : "bg-blue-100"
+                }`}
             >
               <AlertCircle
-                className={`h-8 w-8 ${
-                  variant === "destructive" ? "text-red-600" : "text-blue-600"
-                }`}
+                className={`h-8 w-8 ${variant === "destructive" ? "text-red-600" : "text-blue-600"
+                  }`}
               />
             </div>
           </div>
@@ -61,10 +62,20 @@ export function ConfirmDialog({
             </Button>
             <Button
               onClick={onConfirm}
-              className="flex-1"
+              className="flex-1 gap-2"
               variant={variant === "destructive" ? "destructive" : "default"}
             >
               {confirmText}
+              {confirmShortcut && (
+                <ShortcutBadge
+                  shortcut={confirmShortcut}
+                  className={
+                    variant === "destructive"
+                      ? "bg-red-700 text-red-100 border-red-500"
+                      : "bg-blue-700 text-blue-100 border-blue-500"
+                  }
+                />
+              )}
             </Button>
           </div>
         </CardContent>
