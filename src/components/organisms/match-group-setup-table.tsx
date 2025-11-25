@@ -114,7 +114,7 @@ export function MatchGroupSetupTable({
         setData((prev) => [
             ...prev,
             {
-                id: `group - ${Date.now()} `,
+                id: `group-${Date.now()} `,
                 courtId: "",
                 roundName: "",
                 roundId: "",
