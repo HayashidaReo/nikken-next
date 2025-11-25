@@ -171,6 +171,53 @@ export class FirestoreMatchRepository implements MatchRepository {
         return MatchMapper.toDomain({ ...finalData, id: finalSnap.id });
     }
 
+    /**
+     * 同期処理用の上書き保存（Upsert）
+     * 存在すれば更新、なければ作成。Transactionは使用しない。
+     */
+    async save(orgId: string, tournamentId: string, match: Match): Promise<Match> {
+        const collectionRef = this.getCollectionRef(orgId, tournamentId);
+        const docRef = doc(collectionRef, match.matchId);
+
+        const now = Timestamp.now();
+
+        // Firestore形式に変換
+        // 作成・更新どちらの場合も、渡されたデータを正として保存する
+        // ただし、createdAt は既存があれば維持したいが、setDoc(merge: true) で
+        // 渡さないフィールドは維持されるため、createdAt を明示的に渡さなければよい。
+        // しかし、新規作成の場合は createdAt が必要。
+        // ここでは、match オブジェクトに createdAt があればそれを使い、なければ現在時刻を使う。
+        
+        const firestoreDoc = MatchMapper.toFirestoreForCreate(match);
+        
+        // createdAt の処理
+        // match.createdAt が Date オブジェクトなら Timestamp に変換
+        let createdAtTimestamp = now;
+        if (match.createdAt) {
+            createdAtTimestamp = Timestamp.fromDate(match.createdAt);
+        }
+
+        const dataToSave = {
+            ...firestoreDoc,
+            updatedAt: now,
+        };
+
+        // createdAt は merge: true の場合、既存があれば上書きされる。
+        // 新規作成時は必須。
+        // ここでは、同期元（ローカル）の createdAt を正とするため、常に上書きで問題ないはず。
+        // もしローカルの createdAt が信頼できない場合は、serverTimestamp 等の検討が必要だが、
+        // オフラインファーストではローカルの作成日時を尊重するのが一般的。
+        
+        await setDoc(docRef, {
+            ...dataToSave,
+            createdAt: createdAtTimestamp,
+        }, { merge: true });
+
+        const snap = await getDoc(docRef);
+        const data = snap.data() as FirestoreMatchDoc;
+        return MatchMapper.toDomain({ ...data, id: snap.id });
+    }
+
     async delete(orgId: string, tournamentId: string, matchId: string): Promise<void> {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
         const docRef = doc(collectionRef, matchId);

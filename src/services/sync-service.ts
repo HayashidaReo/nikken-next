@@ -182,20 +182,14 @@ export const syncService = {
                     await localMatchRepository.hardDelete(match.matchId);
                     successCount++;
                 } else {
-                    // Firestoreに存在するかチェック
-                    const existingMatch = await matchRepository.getById(orgId, tournamentId, match.matchId);
-
-                    if (existingMatch) {
-                        // 既存試合を更新（結果のみ）
-                        await matchRepository.update(orgId, tournamentId, match.matchId, {
-                            players: match.players,
-                            isCompleted: match.isCompleted,
-                        });
-                    } else {
-                        // 新規試合を作成（全フィールド）
-                        const { organizationId: _organizationId, tournamentId: _, isSynced: _isSynced, id: _id, _deleted: _del, ...matchData } = match;
-                        await matchRepository.create(orgId, tournamentId, matchData);
-                    }
+                    // Upsert (存在すれば更新、なければ作成)
+                    // ローカルDBのデータを正として保存する
+                    // 不要なローカルフィールドを除外
+                    const { organizationId: _organizationId, tournamentId: _, isSynced: _isSynced, id: _id, _deleted: _del, ...matchData } = match;
+                    
+                    // matchData は LocalMatch から継承した Match 型のプロパティを持つ
+                    // save メソッドに渡す
+                    await matchRepository.save(orgId, tournamentId, matchData);
 
                     // ローカルDBの同期フラグを更新
                     await localMatchRepository.update(match.id!, { isSynced: true });

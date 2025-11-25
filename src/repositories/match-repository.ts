@@ -15,6 +15,11 @@ export interface MatchRepository {
      * 最新データを読み取り、差分をマージしてから書き込む
      */
     update(orgId: string, tournamentId: string, matchId: string, patch: Partial<Match>): Promise<Match>;
+    /**
+     * 同期処理用の上書き保存（Upsert）
+     * 存在すれば更新、なければ作成。Transactionは使用しない。
+     */
+    save(orgId: string, tournamentId: string, match: Match): Promise<Match>;
     delete(orgId: string, tournamentId: string, matchId: string): Promise<void>;
     deleteMultiple(orgId: string, tournamentId: string, matchIds: string[]): Promise<void>;
 
