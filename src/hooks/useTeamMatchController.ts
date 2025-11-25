@@ -32,6 +32,9 @@ export function useTeamMatchController({
     const tournamentName = useMonitorStore((s) => s.tournamentName);
     const courtName = useMonitorStore((s) => s.courtName);
 
+    // 団体戦の通常試合（代表戦を除く）の最終試合順序
+    const LAST_REGULAR_MATCH_ORDER = 5;
+
     // 全試合終了判定
     let isAllFinished = false;
     if (activeTournamentType === "team" && teamMatches) {
@@ -49,7 +52,7 @@ export function useTeamMatchController({
             let winsB = 0;
 
             teamMatches.forEach((m) => {
-                if (m.sortOrder <= 5) {
+                if (m.sortOrder <= LAST_REGULAR_MATCH_ORDER) {
                     // 現在の試合については、ストアの最新状態（保存直後）を使用する
                     let scoreA = m.players.playerA.score;
                     let scoreB = m.players.playerB.score;
