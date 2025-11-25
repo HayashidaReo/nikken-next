@@ -35,6 +35,21 @@ export function useTeamMatchController({
     // 団体戦の通常試合（代表戦を除く）の最終試合順序
     const LAST_REGULAR_MATCH_ORDER = 5;
 
+    /**
+     * チームと選手IDから選手情報を解決する
+     * @param playerId - 選手ID
+     * @param teamId - チームID
+     * @returns 解決された選手情報（表示名とチーム名）
+     */
+    const resolvePlayer = useCallback((playerId: string, teamId: string) => {
+        const team = teams?.find((t) => t.teamId === teamId);
+        const player = team?.players.find((p) => p.playerId === playerId);
+        return {
+            displayName: player?.displayName || playerId,
+            teamName: team?.teamName || teamId,
+        };
+    }, [teams]);
+
     // 全試合終了判定
     let isAllFinished = false;
     if (activeTournamentType === "team" && teamMatches) {
@@ -91,14 +106,6 @@ export function useTeamMatchController({
                 })
                 .map((m) => {
                     // 選手名解決
-                    const resolvePlayer = (playerId: string, teamId: string) => {
-                        const team = teams.find((t) => t.teamId === teamId);
-                        const player = team?.players.find((p) => p.playerId === playerId);
-                        return {
-                            displayName: player?.displayName || playerId,
-                            teamName: team?.teamName || teamId,
-                        };
-                    };
                     const pA = resolvePlayer(m.players.playerA.playerId, m.players.playerA.teamId);
                     const pB = resolvePlayer(m.players.playerB.playerId, m.players.playerB.teamId);
 
@@ -142,7 +149,7 @@ export function useTeamMatchController({
             setTeamMatchResults(results);
             setViewMode("team_result");
         }
-    }, [activeTournamentType, teamMatches, teams, matchId, setTeamMatchResults, setViewMode]);
+    }, [activeTournamentType, teamMatches, teams, matchId, setTeamMatchResults, setViewMode, resolvePlayer]);
 
     const handleNextMatch = useCallback(async () => {
         // 3. 次の試合へ
@@ -154,14 +161,6 @@ export function useTeamMatchController({
             if (nextMatch) {
                 // 次の試合データを構築
                 // 選手名解決
-                const resolvePlayer = (playerId: string, teamId: string) => {
-                    const team = teams.find((t) => t.teamId === teamId);
-                    const player = team?.players.find((p) => p.playerId === playerId);
-                    return {
-                        displayName: player?.displayName || playerId,
-                        teamName: team?.teamName || teamId,
-                    };
-                };
 
                 const playerAInfo = resolvePlayer(nextMatch.players.playerA.playerId, nextMatch.players.playerA.teamId);
                 const playerBInfo = resolvePlayer(nextMatch.players.playerB.playerId, nextMatch.players.playerB.teamId);
@@ -191,7 +190,7 @@ export function useTeamMatchController({
                 router.push(`/monitor-control/${nextMatch.matchId}`);
             }
         }
-    }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, setPublic, router, tournament, tournamentName, courtName, roundName]);
+    }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, setPublic, router, tournament, tournamentName, courtName, roundName, resolvePlayer]);
 
     const handleBackToDashboard = useCallback(() => {
         if (activeTournamentType === "team" && matchGroupId) {
