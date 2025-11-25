@@ -187,9 +187,9 @@ export class FirestoreMatchRepository implements MatchRepository {
         // 渡さないフィールドは維持されるため、createdAt を明示的に渡さなければよい。
         // しかし、新規作成の場合は createdAt が必要。
         // ここでは、match オブジェクトに createdAt があればそれを使い、なければ現在時刻を使う。
-        
+
         const firestoreDoc = MatchMapper.toFirestoreForCreate(match);
-        
+
         // createdAt の処理
         // match.createdAt が Date オブジェクトなら Timestamp に変換
         let createdAtTimestamp = now;
@@ -207,7 +207,7 @@ export class FirestoreMatchRepository implements MatchRepository {
         // ここでは、同期元（ローカル）の createdAt を正とするため、常に上書きで問題ないはず。
         // もしローカルの createdAt が信頼できない場合は、serverTimestamp 等の検討が必要だが、
         // オフラインファーストではローカルの作成日時を尊重するのが一般的。
-        
+
         await setDoc(docRef, {
             ...dataToSave,
             createdAt: createdAtTimestamp,

@@ -186,7 +186,7 @@ export const syncService = {
                     // ローカルDBのデータを正として保存する
                     // 不要なローカルフィールドを除外
                     const { organizationId: _organizationId, tournamentId: _, isSynced: _isSynced, id: _id, _deleted: _del, ...matchData } = match;
-                    
+
                     // matchData は LocalMatch から継承した Match 型のプロパティを持つ
                     // save メソッドに渡す
                     await matchRepository.save(orgId, tournamentId, matchData);
