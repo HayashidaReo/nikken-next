@@ -6,11 +6,56 @@ import { Team } from "@/types/team.schema";
 import { Tournament } from "@/types/tournament.schema";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
 
+/**
+ * 団体戦の試合進行を制御するカスタムフック
+ * 
+ * @description
+ * このフックは、団体戦における試合の進行ロジックを管理します。
+ * 全試合終了判定、結果表示、次試合への遷移、ダッシュボードへの戻りなどの機能を提供します。
+ * 
+ * **主な機能:**
+ * - 全試合終了判定（代表戦の要否判定を含む）
+ * - 団体戦結果の集計と表示
+ * - 次の試合への自動遷移
+ * - ダッシュボードへの戻り処理
+ * - 選手情報の解決（ID → 表示名への変換）
+ * 
+ * **使用方法:**
+ * ```tsx
+ * const {
+ *   isAllFinished,
+ *   handleShowTeamResult,
+ *   handleNextMatch,
+ *   handleBackToDashboard,
+ * } = useTeamMatchController({
+ *   matchId,
+ *   activeTournamentType,
+ *   teamMatches,
+ *   teams,
+ *   tournament,
+ * });
+ * ```
+ * 
+ * **注意事項:**
+ * - このフックは団体戦（`activeTournamentType === "team"`）でのみ有効です
+ * - `teamMatches` と `teams` が未定義の場合、一部の機能が動作しません
+ * - 代表戦の要否判定は、5試合終了時点での勝敗数で自動判定されます
+ * 
+ * @param props - フックのプロパティ
+ * @returns 団体戦制御用の関数群と状態
+ * 
+ * @see {@link useMonitorStore} - 試合状態を管理するストア
+ */
 interface UseTeamMatchControllerProps {
+    /** 現在の試合ID */
     matchId: string;
+    /** 大会種別（"team" | "individual" | null） */
     activeTournamentType: string | null | undefined;
+    /** 団体戦の全試合データ */
     teamMatches: TeamMatch[] | undefined;
+    /** チーム情報の配列 */
     teams: Team[] | undefined;
+    /** 大会情報 */
     tournament: Tournament | undefined;
 }
 

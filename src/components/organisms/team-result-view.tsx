@@ -2,6 +2,34 @@ import { MonitorData } from "@/types/monitor.schema";
 import { cn } from "@/lib/utils/utils";
 import { getTeamMatchRoundLabelById } from "@/lib/constants";
 
+/**
+ * 団体戦の最終結果を表示するコンポーネント
+ * 
+ * @description
+ * このコンポーネントは、団体戦の全試合が終了した後に、最終結果を大画面で表示します。
+ * モニター表示画面（1920x1080）に最適化されており、以下の情報を視覚的に表示します。
+ * 
+ * **表示内容:**
+ * - 両チームの勝利数と勝者の強調表示
+ * - 各試合の詳細（選手名、スコア、勝敗）
+ * - 試合順序と回戦名（先鋒、次鋒、中堅、副将、大将、代表戦）
+ * 
+ * **デザイン特徴:**
+ * - 勝利チームは赤色（Team A）または青色（Team B）で強調
+ * - 敗北した試合は半透明で表示
+ * - 引き分けの試合は「引き分け」と表示
+ * - WINNERバッジで勝利チームを明示
+ * 
+ * **注意事項:**
+ * - `data.teamMatchResults` が空の場合は何も表示しません
+ * - 1920x1080の固定サイズで設計されています
+ * - モニター表示画面でのみ使用してください
+ * 
+ * @param props - コンポーネントのプロパティ
+ * @param props.data - モニターデータ（団体戦結果を含む）
+ * 
+ * @see {@link MonitorData} - モニターデータの型定義
+ */
 interface TeamResultViewProps {
     data: MonitorData;
 }

@@ -2,6 +2,36 @@ import { MonitorData } from "@/types/monitor.schema";
 import { cn } from "@/lib/utils/utils";
 import { getPenaltyCards, HansokuLevel } from "@/lib/utils/penalty-utils";
 
+/**
+ * 個人試合の結果を表示するコンポーネント
+ * 
+ * @description
+ * このコンポーネントは、個人試合終了後に結果を大画面で表示します。
+ * モニター表示画面（1920x1080）に最適化されており、以下の情報を視覚的に表示します。
+ * 
+ * **表示内容:**
+ * - 両選手の名前、チーム名、スコア
+ * - 勝者の強調表示（WINNERバッジとアニメーション）
+ * - 反則カード（イエローカード、レッドカード）の表示
+ * - 引き分けの場合は「引き分け」の表示
+ * 
+ * **デザイン特徴:**
+ * - 勝者は拡大表示（scale-105）とグロー効果で強調
+ * - 敗者は縮小表示（scale-95）と透明度で控えめに表示
+ * - 勝者のWINNERバッジはバウンスアニメーション
+ * - 選手Aは赤色、選手Bは青色で色分け
+ * 
+ * **注意事項:**
+ * - `data.matchResult` が未定義の場合は何も表示しません
+ * - 1920x1080の固定サイズで設計されています
+ * - モニター表示画面でのみ使用してください
+ * 
+ * @param props - コンポーネントのプロパティ
+ * @param props.data - モニターデータ（試合結果を含む）
+ * 
+ * @see {@link MonitorData} - モニターデータの型定義
+ * @see {@link getPenaltyCards} - 反則カード情報を取得するユーティリティ
+ */
 interface MatchResultViewProps {
     data: MonitorData;
 }
