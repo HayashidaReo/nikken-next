@@ -1,28 +1,24 @@
+"use client";
+
 import { memo } from "react";
 import { useRouter } from "next/navigation";
 import { TableRow, TableCell } from "@/components/atoms/table";
-import { findCourtName } from "@/lib/utils/court-utils";
 import PlayerCell from "@/components/molecules/player-cell";
 import MatchTable from "@/components/organisms/match-table";
 import { Button } from "@/components/atoms/button";
 import { ArrowRight } from "lucide-react";
 import type { MatchGroup } from "@/types/match.schema";
-import type { Team } from "@/types/team.schema";
+import { useMasterData } from "@/components/providers/master-data-provider";
 
 interface MatchGroupListTableProps {
     matchGroups: MatchGroup[];
-    teams: Team[];
     tournamentName: string;
-    courts?: Array<{ courtId: string; courtName: string }>;
     className?: string;
 }
 
-export function MatchGroupListTable({ matchGroups, teams, tournamentName, courts, className }: MatchGroupListTableProps) {
+export function MatchGroupListTable({ matchGroups, tournamentName, className }: MatchGroupListTableProps) {
     const router = useRouter();
-
-    const getTeamName = (teamId: string) => {
-        return teams.find(t => t.teamId === teamId)?.teamName || "不明なチーム";
-    };
+    const { teams, courts, rounds } = useMasterData();
 
     return (
         <MatchTable
@@ -38,14 +34,15 @@ export function MatchGroupListTable({ matchGroups, teams, tournamentName, courts
             className={className}
         >
             {matchGroups.map((group) => {
-                const courtName = findCourtName(group.courtId, courts);
-                const teamAName = getTeamName(group.teamAId);
-                const teamBName = getTeamName(group.teamBId);
+                const courtName = courts.get(group.courtId)?.courtName || "";
+                const roundName = rounds.get(group.roundId)?.roundName || "";
+                const teamAName = teams.get(group.teamAId)?.teamName || "不明なチーム";
+                const teamBName = teams.get(group.teamBId)?.teamName || "不明なチーム";
 
                 return (
                     <TableRow key={group.matchGroupId}>
                         <PlayerCell text={courtName} title={courtName} />
-                        <PlayerCell text={group.round} title={group.round} />
+                        <PlayerCell text={roundName} title={roundName} />
                         <PlayerCell text={teamAName} title={teamAName} />
                         <TableCell className="p-0 text-center">
                             <div className="flex items-center justify-center h-full text-gray-400 font-bold">vs</div>

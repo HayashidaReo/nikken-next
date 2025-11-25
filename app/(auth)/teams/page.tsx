@@ -1,21 +1,58 @@
 "use client";
 
+import { useState } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { ShareMenu } from "@/components/molecules/share-menu";
 import { TeamStatsSummary } from "@/components/molecules/team-stats-summary";
-import { useTeamsRealtime, useApproveTeam } from "@/queries/use-teams";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+import { useTeams } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
+import { useTeamPersistence } from "@/hooks/useTeamPersistence";
+import type { Team } from "@/types/team.schema";
 
 export default function TeamsPage() {
   const { needsTournamentSelection, isLoading: authLoading, orgId, activeTournamentId } = useAuthContext();
-  const { data: teams = [], isLoading: teamsLoading, error } = useTeamsRealtime();
-  const approveTeamMutation = useApproveTeam();
+  const { data: teams = [], isLoading: teamsLoading, error } = useTeams();
+  const { saveToLocal, syncToCloud } = useTeamPersistence();
 
-  const handleApprovalChange = (teamId: string, isApproved: boolean) => {
-    approveTeamMutation.mutate(teamId, isApproved);
+  const [syncConfirm, setSyncConfirm] = useState<{
+    isOpen: boolean;
+    team: Team | null;
+  }>({ isOpen: false, team: null });
+
+  const handleApprovalChange = async (teamId: string, isApproved: boolean) => {
+    const team = teams.find(t => t.teamId === teamId);
+    if (!team) return;
+
+    const updatedTeam = { ...team, isApproved };
+
+    try {
+      await saveToLocal(updatedTeam);
+      setSyncConfirm({ isOpen: true, team: updatedTeam });
+    } catch (error) {
+      console.error("Failed to save team locally:", error);
+    }
+  };
+
+  const handleSyncConfirm = () => {
+    if (!syncConfirm.team) return;
+
+    syncToCloud(
+      syncConfirm.team,
+      () => {
+        setSyncConfirm({ isOpen: false, team: null });
+      },
+      () => {
+        setSyncConfirm({ isOpen: false, team: null });
+      }
+    );
+  };
+
+  const handleSyncCancel = () => {
+    setSyncConfirm({ isOpen: false, team: null });
   };
 
   const isLoading = authLoading || teamsLoading;
@@ -74,6 +111,16 @@ export default function TeamsPage() {
           onApprovalChange={handleApprovalChange}
         />
       </div>
+
+      <ConfirmDialog
+        isOpen={syncConfirm.isOpen}
+        onCancel={handleSyncCancel}
+        onConfirm={handleSyncConfirm}
+        title="クラウド同期"
+        message="今の変更をネットワークを経由して全ての端末にも反映させますか？"
+        confirmText="はい"
+        cancelText="いいえ"
+      />
     </MainLayout>
   );
 }

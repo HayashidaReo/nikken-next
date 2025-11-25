@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { TableRow } from "@/components/atoms/table";
 import ScoreCell from "@/components/molecules/score-cell";
@@ -10,6 +10,9 @@ import { SCORE_COLORS, TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS } from "@/lib/ui-cons
 import MatchTable from "@/components/organisms/match-table";
 import type { TeamMatch } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
+import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
+import { getTeamMatchRoundLabelById } from "@/lib/constants";
+import { useMasterData } from "@/components/providers/master-data-provider";
 
 interface TeamMatchListTableProps {
     matches: TeamMatch[];
@@ -19,6 +22,10 @@ interface TeamMatchListTableProps {
 
 export function TeamMatchListTable({ matches, tournamentName, className }: TeamMatchListTableProps) {
     const router = useRouter();
+    const { teams } = useMasterData();
+
+    const teamsArray = useMemo(() => Array.from(teams.values()), [teams]);
+    const playerDirectory = useMemo(() => createPlayerDirectory(teamsArray), [teamsArray]);
 
     const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean) => {
         if (playerScore === 0 && opponentScore === 0) {
@@ -44,13 +51,16 @@ export function TeamMatchListTable({ matches, tournamentName, className }: TeamM
             className={className}
         >
             {matches.map((match) => {
-                const { playerA, playerB } = match.players;
+                const playerA = resolveMatchPlayer(match.players.playerA, playerDirectory);
+                const playerB = resolveMatchPlayer(match.players.playerB, playerDirectory);
                 const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted);
                 const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted);
+                // 定数からラウンド名を取得、それでもなければID
+                const roundName = getTeamMatchRoundLabelById(match.roundId) || match.roundId;
 
                 return (
                     <TableRow key={match.matchId}>
-                        <PlayerCell text={match.round} title={match.round} />
+                        <PlayerCell text={roundName} title={roundName} />
                         <PlayerCell text={playerA.teamName} title={playerA.teamName} colorClass={playerAColor} />
                         <PlayerCell text={playerA.displayName} title={playerA.displayName} colorClass={playerAColor} />
                         <ScoreCell

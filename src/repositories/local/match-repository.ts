@@ -5,9 +5,12 @@ export class LocalMatchRepository {
      * 全ての試合を取得
      */
     async listAll(orgId: string, tournamentId: string): Promise<LocalMatch[]> {
-        return await db.matches
+        const allMatches = await db.matches
             .where({ organizationId: orgId, tournamentId })
             .sortBy("sortOrder");
+
+        // 論理削除されていない試合のみ返す
+        return allMatches.filter(m => !m._deleted);
     }
 
     /**
@@ -32,9 +35,9 @@ export class LocalMatchRepository {
     /**
      * ラウンドで試合を取得
      */
-    async listByRound(orgId: string, tournamentId: string, round: string): Promise<LocalMatch[]> {
+    async listByRoundId(orgId: string, tournamentId: string, roundId: string): Promise<LocalMatch[]> {
         return await db.matches
-            .where({ organizationId: orgId, tournamentId, round })
+            .where({ organizationId: orgId, tournamentId, roundId })
             .sortBy("sortOrder");
     }
 
@@ -84,6 +87,46 @@ export class LocalMatchRepository {
             .where({ organizationId: orgId, tournamentId })
             .filter(m => m.isSynced === false)
             .count();
+    }
+
+    /**
+     * matchIdで試合を更新
+     */
+    async updateByMatchId(matchId: string, changes: Partial<LocalMatch>): Promise<number> {
+        return await db.matches
+            .where("matchId")
+            .equals(matchId)
+            .modify(changes);
+    }
+
+    /**
+     * matchIdで試合を削除（論理削除）
+     */
+    async delete(matchId: string): Promise<void> {
+        await db.matches
+            .where("matchId")
+            .equals(matchId)
+            .modify({ _deleted: true, isSynced: false });
+    }
+
+    /**
+     * 複数の試合を一括削除（論理削除）
+     */
+    async deleteMultiple(matchIds: string[]): Promise<void> {
+        await db.matches
+            .where("matchId")
+            .anyOf(matchIds)
+            .modify({ _deleted: true, isSynced: false });
+    }
+
+    /**
+     * matchIdで試合を物理削除
+     */
+    async hardDelete(matchId: string): Promise<void> {
+        await db.matches
+            .where("matchId")
+            .equals(matchId)
+            .delete();
     }
 }
 

@@ -6,7 +6,7 @@ import { SearchableSelect, type SearchableSelectOption } from "@/components/mole
 import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
 import { TableCell } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
-import { TEAM_MATCH_ROUNDS } from "@/lib/constants";
+import { TEAM_MATCH_ROUND_OPTIONS, getTeamMatchRoundLabelById } from "@/lib/constants";
 import type { Team } from "@/types/team.schema";
 import type { TeamMatchSetupData } from "@/types/match-setup";
 
@@ -43,7 +43,10 @@ export function TeamMatchRow({
         transition,
     };
 
-    const roundOptions: SearchableSelectOption[] = TEAM_MATCH_ROUNDS.map((r) => ({ value: r, label: r }));
+    const handleRoundChange = (value: string) => {
+        onUpdate(index, "roundId", value);
+        onUpdate(index, "roundName", getTeamMatchRoundLabelById(value));
+    };
 
     const playerAOptions: SearchableSelectOption[] = teamA.players.map(player => ({
         value: player.playerId,
@@ -69,14 +72,14 @@ export function TeamMatchRow({
                     <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                 </div>
             </TableCell>
-            <TableCell className="py-2 px-3 truncate" title={row.round}>
+            <TableCell className="py-2 px-3 truncate" title={row.roundName}>
                 <SearchableSelect
-                    value={row.round}
-                    onValueChange={value => onUpdate(index, "round", value)}
-                    options={roundOptions}
+                    value={row.roundId}
+                    onValueChange={handleRoundChange}
+                    options={TEAM_MATCH_ROUND_OPTIONS}
                     placeholder="ポジション選択"
                     searchPlaceholder="ポジション名で検索..."
-                    hasError={errors.includes("round")}
+                    hasError={errors.includes("round") || errors.includes("roundId")}
                 />
             </TableCell>
             <TableCell className="py-2 px-3 truncate" title={row.playerAId}>

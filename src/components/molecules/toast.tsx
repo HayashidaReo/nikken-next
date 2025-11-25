@@ -82,12 +82,12 @@ interface ToastContainerProps {
   notifications: Notification[];
   onRemove: (id: string) => void;
   position?:
-    | "top-right"
-    | "top-left"
-    | "bottom-right"
-    | "bottom-left"
-    | "top-center"
-    | "bottom-center";
+  | "top-right"
+  | "top-left"
+  | "bottom-right"
+  | "bottom-left"
+  | "top-center"
+  | "bottom-center";
 }
 
 const positionClasses: Record<string, string> = {
@@ -109,7 +109,7 @@ export function ToastContainer({
   return (
     <div
       className={cn(
-        "fixed z-50 flex flex-col gap-2 max-w-sm w-full",
+        "fixed z-[100] flex flex-col gap-2 max-w-sm w-full",
         positionClasses[position]
       )}
     >

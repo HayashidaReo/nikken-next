@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 
 /**
  * 反則状態の列挙型
@@ -37,10 +36,8 @@ export const numberToHansokuState = {
  * データベース設計の players.playerA/playerB に対応
  */
 export const matchPlayerSchema = z.object({
-  displayName: z.string().min(1, "表示名は必須です"),
   playerId: z.string().min(1, "選手IDは必須です"),
   teamId: z.string().min(1, "チームIDは必須です"),
-  teamName: z.string().min(1, "チーム名は必須です"),
   score: z.number().min(0).max(2).default(0), // 0, 1, 2点
   hansoku: z.number().min(0).max(4).default(0), // 0-4の反則状態
 });
@@ -52,9 +49,7 @@ export const matchPlayerSchema = z.object({
 export const matchSchema = z.object({
   matchId: z.string().optional(), // Firestoreで自動生成
   courtId: z.string().min(1, "コートIDは必須です"),
-  round: z.string()
-    .min(1, "ラウンドは必須です")
-    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+  roundId: z.string().min(1, "ラウンドIDは必須です"),
   players: z.object({
     playerA: matchPlayerSchema,
     playerB: matchPlayerSchema,
@@ -73,6 +68,14 @@ export const matchCreateSchema = matchSchema.omit({
   matchId: true,
   createdAt: true,
   updatedAt: true,
+});
+
+/**
+ * ID指定ありの試合作成用スキーマ
+ * 同期処理などでIDを指定して作成する場合に使用
+ */
+export const matchCreateWithIdSchema = matchCreateSchema.extend({
+  matchId: z.string().min(1, "試合IDは必須です"),
 });
 
 /**
@@ -117,6 +120,7 @@ export type HansokuState = z.infer<typeof hansokuStateEnum>;
 export type MatchPlayer = z.infer<typeof matchPlayerSchema>;
 export type Match = z.infer<typeof matchSchema>;
 export type MatchCreate = z.infer<typeof matchCreateSchema>;
+export type MatchCreateWithId = z.infer<typeof matchCreateWithIdSchema>;
 export type MatchUpdate = z.infer<typeof matchUpdateSchema>;
 export type MatchUpdateRequest = z.infer<typeof matchUpdateRequestSchema>;
 
@@ -126,9 +130,7 @@ export type MatchUpdateRequest = z.infer<typeof matchUpdateRequestSchema>;
 export const matchGroupSchema = z.object({
   matchGroupId: z.string().optional(), // Firestoreで自動生成
   courtId: z.string().min(1, "コートIDは必須です"),
-  round: z.string()
-    .min(1, "ラウンドは必須です")
-    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+  roundId: z.string().min(1, "ラウンドIDは必須です"),
   sortOrder: z.number().int().min(0),
   teamAId: z.string().min(1, "チームAは必須です"),
   teamBId: z.string().min(1, "チームBは必須です"),
@@ -143,9 +145,7 @@ export const matchGroupSchema = z.object({
 export const teamMatchSchema = z.object({
   matchId: z.string().optional(),
   matchGroupId: z.string().min(1, "チーム対戦IDは必須です"),
-  round: z.string()
-    .min(1, "ラウンドは必須です")
-    .max(TEXT_LENGTH_LIMITS.ROUND_NAME_MAX, `ラウンドは${TEXT_LENGTH_LIMITS.ROUND_NAME_MAX}文字以内で入力してください`),
+  roundId: z.string().min(1, "ラウンドIDは必須です"),
   players: z.object({
     playerA: matchPlayerSchema,
     playerB: matchPlayerSchema,

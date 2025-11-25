@@ -23,7 +23,7 @@ export function ScoreboardOperator({
   const {
     matchId,
     courtName,
-    round,
+    roundName,
     tournamentName,
     playerA,
     playerB,
@@ -76,7 +76,7 @@ export function ScoreboardOperator({
     matchId,
     tournamentName,
     courtName,
-    round,
+    roundName,
     playerA,
     playerB,
     timeRemaining,
@@ -94,7 +94,7 @@ export function ScoreboardOperator({
             <MatchHeader
               tournamentName={tournamentName}
               courtName={courtName}
-              round={round}
+              roundName={roundName}
             />
           </div>
         </div>

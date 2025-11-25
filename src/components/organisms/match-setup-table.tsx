@@ -10,9 +10,11 @@ import { AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { MATCH_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
-import type { Team, Player } from "@/types/team.schema";
+import type { Player } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
 import type { DetectedChanges } from "@/lib/utils/match-conflict-detection";
+import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
+import { useMasterData } from "@/components/providers/master-data-provider";
 import {
   DndContext,
   closestCenter,
@@ -31,20 +33,7 @@ import {
 } from "@dnd-kit/sortable";
 import { arrayMove } from "@dnd-kit/sortable";
 
-interface MatchSetupData {
-  id: string;
-  courtId: string;
-  round: string;
-  playerATeamId: string;
-  playerAId: string;
-  playerBTeamId: string;
-  playerBId: string;
-  sortOrder: number;
-}
-
 interface MatchSetupTableProps {
-  teams: Team[];
-  courts: Array<{ courtId: string; courtName: string }>;
   matches: Match[];
   onSave: (matches: MatchSetupData[]) => void;
   isSaving?: boolean;
@@ -58,8 +47,6 @@ interface MatchSetupTableProps {
 const noop = () => { };
 
 export function MatchSetupTable({
-  teams,
-  courts,
   matches,
   onSave,
   isSaving = false,
@@ -68,6 +55,8 @@ export function MatchSetupTable({
   detectedCount = 0,
   onOpenUpdateDialog,
 }: MatchSetupTableProps) {
+  const { teams, rounds } = useMasterData();
+
   // ドラッグ＆ドロップのセンサー設定
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -76,21 +65,23 @@ export function MatchSetupTable({
     })
   );
 
-  // 承認済みのチームのみフィルター
-  const approvedTeams = teams.filter(team => team.isApproved); // 初期データを作成
   const initialData = useMemo(() => {
-    return matches
-      .map(match => ({
-        id: match.matchId || "", // undefined の場合は空文字列
+    return matches.map(match => {
+      const roundId = match.roundId || "";
+      const roundName = rounds.get(roundId)?.roundName || roundId;
+      return {
+        id: match.matchId || "",
         courtId: match.courtId,
-        round: match.round,
+        roundId,
+        roundName,
         playerATeamId: match.players.playerA.teamId,
         playerAId: match.players.playerA.playerId,
         playerBTeamId: match.players.playerB.teamId,
         playerBId: match.players.playerB.playerId,
         sortOrder: match.sortOrder,
-      }))
-  }, [matches]);
+      };
+    });
+  }, [matches, rounds]);
 
   // data の初期化と更新
   // ID構成のハッシュキーを計算（追加・削除の検知用）
@@ -143,7 +134,10 @@ export function MatchSetupTable({
         // 変更されたフィールドのみを更新（ユーザーの編集内容は保持）
         const updatedRow = { ...row };
         if (changes.courtId) updatedRow.courtId = newRow.courtId;
-        if (changes.round) updatedRow.round = newRow.round;
+        if (changes.round) {
+          updatedRow.roundName = newRow.roundName;
+          updatedRow.roundId = newRow.roundId;
+        }
         if (changes.playerA) {
           updatedRow.playerATeamId = newRow.playerATeamId;
           updatedRow.playerAId = newRow.playerAId;
@@ -163,7 +157,7 @@ export function MatchSetupTable({
 
   // チームから選手を取得する関数
   const getPlayersFromTeam = (teamId: string): Player[] => {
-    const team = approvedTeams.find(t => t.teamId === teamId);
+    const team = teams.get(teamId);
     return team ? team.players : [];
   };
 
@@ -176,7 +170,7 @@ export function MatchSetupTable({
     setData(prev =>
       prev.map((row, index) => {
         if (index === rowIndex) {
-          const newRow = { ...row, [field]: value };
+          const newRow = { ...row, [field]: value } as MatchSetupData;
 
           // チームが変更された場合は対応する選手もリセット
           if (field === "playerATeamId") {
@@ -197,7 +191,8 @@ export function MatchSetupTable({
     const newRow: MatchSetupData = {
       id: `match-${Date.now()}`,
       courtId: "",
-      round: "",
+      roundId: "",
+      roundName: "",
       playerATeamId: "",
       playerAId: "",
       playerBTeamId: "",
@@ -291,8 +286,6 @@ export function MatchSetupTable({
                   key={row.id}
                   row={row}
                   index={index}
-                  approvedTeams={approvedTeams}
-                  courts={courts}
                   detectedRowChanges={{
                     courtId: Boolean(rowChanges.courtId),
                     round: Boolean(rowChanges.round),
@@ -338,8 +331,6 @@ export function MatchSetupTable({
                   <MatchRow
                     row={activeRow}
                     index={activeIndex}
-                    approvedTeams={approvedTeams}
-                    courts={courts}
                     detectedRowChanges={{
                       courtId: Boolean(rowChanges.courtId),
                       round: Boolean(rowChanges.round),

@@ -6,9 +6,12 @@ export class LocalTeamMatchRepository {
     }
 
     async listAll(orgId: string, tournamentId: string, matchGroupId: string): Promise<LocalTeamMatch[]> {
-        return await db.teamMatches
+        const allMatches = await db.teamMatches
             .where({ organizationId: orgId, tournamentId, matchGroupId })
             .sortBy('sortOrder');
+
+        // 論理削除されていない試合のみ返す
+        return allMatches.filter(m => !m._deleted);
     }
 
     async put(match: LocalTeamMatch): Promise<number> {
@@ -20,6 +23,10 @@ export class LocalTeamMatchRepository {
     }
 
     async delete(matchId: string): Promise<void> {
+        await db.teamMatches.where({ matchId }).modify({ _deleted: true, isSynced: false });
+    }
+
+    async hardDelete(matchId: string): Promise<void> {
         await db.teamMatches.where({ matchId }).delete();
     }
 
@@ -74,6 +81,10 @@ export class LocalTeamMatchRepository {
     }
 
     async deleteByMatchId(matchId: string): Promise<void> {
+        await db.teamMatches.where({ matchId }).modify({ _deleted: true, isSynced: false });
+    }
+
+    async hardDeleteByMatchId(matchId: string): Promise<void> {
         await db.teamMatches.where({ matchId }).delete();
     }
 }

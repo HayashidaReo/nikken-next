@@ -12,7 +12,7 @@ interface MonitorDisplayProps {
 export function MonitorDisplay({ className }: MonitorDisplayProps) {
   const {
     courtName,
-    round,
+    roundName,
     tournamentName,
     playerA,
     playerB,
@@ -65,7 +65,7 @@ export function MonitorDisplay({ className }: MonitorDisplayProps) {
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-2">{tournamentName}</h1>
         <div className="text-2xl opacity-90">
-          {courtName} - {round}
+          {courtName} - {roundName}
         </div>
       </div>
 

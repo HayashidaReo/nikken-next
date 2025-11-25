@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { MatchGroupSetupTable } from "@/components/organisms/match-group-setup-table";
 import { TeamMatchSetupTable } from "@/components/organisms/team-match-setup-table";
@@ -6,22 +8,17 @@ import { ArrowLeft } from "lucide-react";
 import { useMatchGroups, useCreateMatchGroup, useUpdateMatchGroup, useDeleteMatchGroup } from "@/queries/use-match-groups";
 import { useTeamMatches, useCreateTeamMatch, useUpdateTeamMatch, useDeleteTeamMatch } from "@/queries/use-team-matches";
 import { useToast } from "@/components/providers/notification-provider";
-import type { Tournament } from "@/types/tournament.schema";
-import type { Team } from "@/types/team.schema";
 import type { MatchGroupCreate, TeamMatchCreate } from "@/types/match.schema";
 import type { MatchGroupSetupData, TeamMatchSetupData } from "@/types/match-setup";
+import { useMasterData } from "@/components/providers/master-data-provider";
 
-interface MatchGroupSetupManagerProps {
-    tournament: Tournament;
-    teams: Team[];
-}
-
-export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupManagerProps) {
+export function MatchGroupSetupManager() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const selectedMatchGroupId = searchParams.get("matchGroupId");
     const { showSuccess, showError } = useToast();
+    const { teams } = useMasterData();
 
     // チーム対戦（MatchGroups）
     const { data: matchGroups = [] } = useMatchGroups();
@@ -53,6 +50,8 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
         // 既存のIDセット
         const currentIds = new Set(data.map(d => d.id).filter(id => !id.startsWith("group-")));
 
+        const resolveRoundId = (row: MatchGroupSetupData) => row.roundId;
+
         try {
             // 削除
             const toDelete = matchGroups.filter(g => g.matchGroupId && !currentIds.has(g.matchGroupId));
@@ -62,11 +61,16 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
 
             // 作成・更新
             for (const item of data) {
+                const roundId = resolveRoundId(item);
+                if (!roundId) {
+                    throw new Error("ラウンドが選択されていません");
+                }
+
                 if (item.id.startsWith("group-")) {
                     // 作成
                     const newGroup: MatchGroupCreate = {
                         courtId: item.courtId,
-                        round: item.round,
+                        roundId,
                         teamAId: item.teamAId,
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
@@ -76,7 +80,7 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                     // 更新
                     const patch: Partial<MatchGroupCreate> = {
                         courtId: item.courtId,
-                        round: item.round,
+                        roundId,
                         teamAId: item.teamAId,
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
@@ -96,12 +100,14 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
         const selectedGroup = matchGroups.find(g => g.matchGroupId === selectedMatchGroupId);
         if (!selectedGroup) return;
 
-        const teamA = teams.find(t => t.teamId === selectedGroup.teamAId);
-        const teamB = teams.find(t => t.teamId === selectedGroup.teamBId);
+        const teamA = teams.get(selectedGroup.teamAId);
+        const teamB = teams.get(selectedGroup.teamBId);
         if (!teamA || !teamB) return;
 
         try {
             const currentIds = new Set(data.map(d => d.id).filter(id => !id.startsWith("match-")));
+
+            const resolveRoundId = (row: TeamMatchSetupData) => row.roundId;
 
             // 削除
             const toDelete = teamMatches.filter(m => m.matchId && !currentIds.has(m.matchId));
@@ -116,15 +122,20 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
 
                 if (!playerA || !playerB) continue; // 無効なデータはスキップ
 
+                const roundId = resolveRoundId(item);
+                if (!roundId) {
+                    throw new Error("ラウンドが選択されていません");
+                }
+
                 if (item.id.startsWith("match-")) {
                     // Create
                     const newMatch: TeamMatchCreate = {
                         matchGroupId: selectedMatchGroupId,
-                        round: item.round,
+                        roundId,
                         sortOrder: item.sortOrder,
                         players: {
-                            playerA: { ...playerA, teamId: teamA.teamId, teamName: teamA.teamName, score: 0, hansoku: 0 },
-                            playerB: { ...playerB, teamId: teamB.teamId, teamName: teamB.teamName, score: 0, hansoku: 0 },
+                            playerA: { ...playerA, teamId: teamA.teamId, score: 0, hansoku: 0 },
+                            playerB: { ...playerB, teamId: teamB.teamId, score: 0, hansoku: 0 },
                         },
                         isCompleted: false,
                     };
@@ -134,11 +145,11 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
                     // 更新時は既存の score / hansoku を保持する
                     const existingMatch = teamMatches.find(m => m.matchId === item.id);
                     const patch: Partial<TeamMatchCreate> = {
-                        round: item.round,
+                        roundId,
                         sortOrder: item.sortOrder,
                         players: {
-                            playerA: { ...playerA, teamId: teamA.teamId, teamName: teamA.teamName, score: existingMatch?.players.playerA.score ?? 0, hansoku: existingMatch?.players.playerA.hansoku ?? 0 },
-                            playerB: { ...playerB, teamId: teamB.teamId, teamName: teamB.teamName, score: existingMatch?.players.playerB.score ?? 0, hansoku: existingMatch?.players.playerB.hansoku ?? 0 },
+                            playerA: { ...playerA, teamId: teamA.teamId, score: existingMatch?.players.playerA.score ?? 0, hansoku: existingMatch?.players.playerA.hansoku ?? 0 },
+                            playerB: { ...playerB, teamId: teamB.teamId, score: existingMatch?.players.playerB.score ?? 0, hansoku: existingMatch?.players.playerB.hansoku ?? 0 },
                         },
                     };
                     await updateTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: item.id, patch });
@@ -154,8 +165,8 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
         const selectedGroup = matchGroups.find(g => g.matchGroupId === selectedMatchGroupId);
         if (!selectedGroup) return <div>エラー: 対戦グループが見つかりません</div>;
 
-        const teamA = teams.find(t => t.teamId === selectedGroup.teamAId);
-        const teamB = teams.find(t => t.teamId === selectedGroup.teamBId);
+        const teamA = teams.get(selectedGroup.teamAId);
+        const teamB = teams.get(selectedGroup.teamBId);
 
         if (!teamA || !teamB) return <div>エラー: チームが見つかりません</div>;
 
@@ -180,8 +191,6 @@ export function MatchGroupSetupManager({ tournament, teams }: MatchGroupSetupMan
     return (
         <MatchGroupSetupTable
             key={matchGroups.map(g => g.matchGroupId).join('-') + matchGroups.length}
-            teams={teams}
-            courts={tournament.courts}
             matchGroups={matchGroups}
             onSave={handleSaveMatchGroups}
             onSelect={handleSelect}

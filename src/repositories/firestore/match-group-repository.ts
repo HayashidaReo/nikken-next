@@ -11,7 +11,7 @@ import {
     CollectionReference,
     DocumentSnapshot,
     DocumentData,
-    serverTimestamp,
+    Timestamp,
 } from "firebase/firestore";
 import type { Unsubscribe } from "firebase/firestore";
 
@@ -58,13 +58,15 @@ export class FirestoreMatchGroupRepository implements MatchGroupRepository {
         const docRef = doc(collectionRef);
         const matchGroupId = docRef.id;
 
+        const now = Timestamp.now();
+
         const firestoreDoc: FirestoreMatchGroupCreateDoc =
             MatchGroupMapper.toFirestoreForCreate({ ...matchGroup, id: matchGroupId });
 
         await setDoc(docRef, {
             ...firestoreDoc,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
+            createdAt: now,
+            updatedAt: now,
         });
 
         const snap = await getDoc(docRef);
@@ -76,11 +78,32 @@ export class FirestoreMatchGroupRepository implements MatchGroupRepository {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
         const docRef = doc(collectionRef, matchGroupId);
 
-        const updateData = MatchGroupMapper.toFirestoreForUpdate(patch);
-        await setDoc(docRef, {
-            ...updateData,
-            updatedAt: serverTimestamp(),
-        }, { merge: true });
+        // 既存データを読み込み
+        const currentSnap = await getDoc(docRef);
+        const now = Timestamp.now();
+
+        if (!currentSnap.exists()) {
+            // ドキュメントが存在しない場合は新規作成
+            const updateData = MatchGroupMapper.toFirestoreForUpdate(patch);
+            await setDoc(docRef, {
+                matchGroupId,
+                ...updateData,
+                createdAt: now,
+                updatedAt: now,
+            });
+        } else {
+            // 既存データに更新内容をマージ
+            const currentData = currentSnap.data() as FirestoreMatchGroupDoc;
+            const updateData = MatchGroupMapper.toFirestoreForUpdate(patch);
+            const mergedData = {
+                ...currentData, // 既存データを全て保持
+                ...updateData,  // 更新内容で上書き
+                createdAt: currentData.createdAt || now,
+                updatedAt: now,
+            };
+
+            await setDoc(docRef, mergedData);
+        }
 
         const snap = await getDoc(docRef);
         const data = snap.data() as FirestoreMatchGroupDoc;

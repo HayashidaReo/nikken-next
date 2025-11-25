@@ -6,7 +6,7 @@ import { numberToHansokuState } from "@/types/match.schema";
  * 試合に関するビジネスルールをカプセル化
  */
 export class MatchEntity {
-  constructor(private readonly data: Match) {}
+  constructor(private readonly data: Match) { }
 
   get id(): string | undefined {
     return this.data.matchId;
@@ -17,7 +17,7 @@ export class MatchEntity {
   }
 
   get round(): string {
-    return this.data.round;
+    return this.data.roundId;
   }
 
   get playerA(): MatchPlayer {
@@ -81,7 +81,7 @@ export class MatchEntity {
   get playerAHansokuState(): string {
     return (
       numberToHansokuState[
-        this.data.players.playerA.hansoku as keyof typeof numberToHansokuState
+      this.data.players.playerA.hansoku as keyof typeof numberToHansokuState
       ] || "none"
     );
   }
@@ -92,7 +92,7 @@ export class MatchEntity {
   get playerBHansokuState(): string {
     return (
       numberToHansokuState[
-        this.data.players.playerB.hansoku as keyof typeof numberToHansokuState
+      this.data.players.playerB.hansoku as keyof typeof numberToHansokuState
       ] || "none"
     );
   }
@@ -106,9 +106,9 @@ export class MatchEntity {
       if (winner === "draw") {
         return "引き分け";
       } else if (winner === "playerA") {
-        return `${this.playerA.displayName} 勝利`;
+        return `${this.playerA.playerId} 勝利`;
       } else if (winner === "playerB") {
-        return `${this.playerB.displayName} 勝利`;
+        return `${this.playerB.playerId} 勝利`;
       }
     }
 

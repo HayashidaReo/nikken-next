@@ -1,24 +1,29 @@
-import { db, LocalMatch, LocalTournament, LocalMatchGroup, LocalTeamMatch } from '@/lib/db';
+import { db, LocalMatch, LocalTournament, LocalMatchGroup, LocalTeamMatch, LocalTeam } from '@/lib/db';
 import { FirestoreMatchRepository } from '@/repositories/firestore/match-repository';
 import { FirestoreMatchGroupRepository } from '@/repositories/firestore/match-group-repository';
 import { FirestoreTeamMatchRepository } from '@/repositories/firestore/team-match-repository';
+import { FirestoreTeamRepository } from '@/repositories/firestore/team-repository';
 import { localMatchRepository } from '@/repositories/local/match-repository';
 import { localTournamentRepository } from '@/repositories/local/tournament-repository';
 import { localMatchGroupRepository } from '@/repositories/local/match-group-repository';
 import { localTeamMatchRepository } from '@/repositories/local/team-match-repository';
+import { localTeamRepository } from '@/repositories/local/team-repository';
 import { tournamentSchema } from '@/types/tournament.schema';
-import type { Match, MatchGroup, TeamMatch } from '@/types/match.schema';
+import type { Match, MatchGroup, TeamMatch, MatchCreateWithId } from '@/types/match.schema';
 import type { Tournament } from '@/types/tournament.schema';
+import type { Team } from '@/types/team.schema';
 
 const matchRepository = new FirestoreMatchRepository();
 const matchGroupRepository = new FirestoreMatchGroupRepository();
 const teamMatchRepository = new FirestoreTeamMatchRepository();
+const teamRepository = new FirestoreTeamRepository();
 
 interface FetchedData {
     tournament: Tournament;
     matches: Match[];
     matchGroups: MatchGroup[];
     teamMatches: TeamMatch[];
+    teams: Team[];
 }
 
 async function fetchFromFirestore(orgId: string, tournamentId: string): Promise<FetchedData> {
@@ -35,6 +40,10 @@ async function fetchFromFirestore(orgId: string, tournamentId: string): Promise<
     let matches: Match[] = [];
     let matchGroups: MatchGroup[] = [];
     let teamMatches: TeamMatch[] = [];
+    let teams: Team[] = [];
+
+    // チームデータ (大会種別に関わらず、常に取得)
+    teams = await teamRepository.listAll(orgId, tournamentId);
 
     if (tournamentType === 'individual') {
         // Matches (Individual)
@@ -53,18 +62,20 @@ async function fetchFromFirestore(orgId: string, tournamentId: string): Promise<
         teamMatches = teamMatchesArrays.flat();
     }
 
-    return { tournament, matches, matchGroups, teamMatches };
+    return { tournament, matches, matchGroups, teamMatches, teams };
 }
 
 async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedData): Promise<void> {
-    const { tournament, matches, matchGroups, teamMatches } = data;
+    const { tournament, matches, matchGroups, teamMatches, teams } = data;
 
-    await db.transaction('rw', db.matches, db.tournaments, db.matchGroups, db.teamMatches, async () => {
+    // @ts-expect-error: Dexieの型定義制限により引数過多のエラーが出ますが、実行時は可変長引数で動作します
+    await db.transaction('rw', db.matches, db.tournaments, db.matchGroups, db.teamMatches, db.teams, async () => {
         // 既存のこの大会のデータを削除 (クリーンな状態で上書き)
         await localMatchRepository.deleteByTournament(orgId, tournamentId);
         await localTournamentRepository.delete(orgId, tournamentId);
         await localMatchGroupRepository.deleteByTournament(orgId, tournamentId);
         await localTeamMatchRepository.deleteByTournament(orgId, tournamentId);
+        await localTeamRepository.deleteByTournament(orgId, tournamentId);
 
         // 大会データを保存
         const localTournament: LocalTournament = {
@@ -104,7 +115,55 @@ async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedD
             }));
             await localTeamMatchRepository.bulkPut(localTeamMatches);
         }
+
+        // チームデータを保存
+        if (teams.length > 0) {
+            const localTeams: LocalTeam[] = teams.map(t => ({
+                ...t,
+                organizationId: orgId,
+                tournamentId: tournamentId,
+                isSynced: true,
+            }));
+            await localTeamRepository.bulkPut(localTeams);
+        }
     });
+}
+
+/**
+ * 同期処理の共通ロジック
+ */
+async function syncItems<T extends { _deleted?: boolean; id?: number }>(
+    items: T[],
+    itemName: string,
+    getId: (item: T) => string | undefined,
+    syncAction: (item: T, id: string) => Promise<void>,
+    deleteAction: (item: T, id: string) => Promise<void>,
+    markSynced: (item: T) => Promise<void>,
+    hardDeleteLocal: (id: string) => Promise<void>
+): Promise<number> {
+    let successCount = 0;
+    for (const item of items) {
+        const id = getId(item);
+        if (!id) {
+            console.error(`[SyncService] ${itemName} has no ID, skipping`, item);
+            continue;
+        }
+
+        try {
+            if (item._deleted) {
+                await deleteAction(item, id);
+                await hardDeleteLocal(id);
+                successCount++;
+            } else {
+                await syncAction(item, id);
+                await markSynced(item);
+                successCount++;
+            }
+        } catch (error) {
+            console.error(`[SyncService] Failed to sync ${itemName} ${id}`, error);
+        }
+    }
+    return successCount;
 }
 
 export const syncService = {
@@ -133,66 +192,95 @@ export const syncService = {
         // 1. 未送信の試合データを取得 (Individual)
         const unsyncedMatches = await localMatchRepository.getUnsynced(orgId, tournamentId);
 
-        // 2. 未送信の団体戦試合データを取得 (Team)
+        // 2. 未送信の団体戦グループデータを取得 (Team)
+        const unsyncedMatchGroups = await localMatchGroupRepository.getUnsynced(orgId, tournamentId);
+
+        // 3. 未送信の団体戦試合データを取得 (Team)
         const unsyncedTeamMatches = await localTeamMatchRepository.getUnsynced(orgId, tournamentId);
 
-        if (unsyncedMatches.length === 0 && unsyncedTeamMatches.length === 0) {
+        if (unsyncedMatches.length === 0 && unsyncedMatchGroups.length === 0 && unsyncedTeamMatches.length === 0) {
             return 0;
         }
 
         let successCount = 0;
 
-        // 3. Firestoreに保存 (Individual)
-        const uploadResults = await Promise.allSettled(
-            unsyncedMatches.map(match => {
-                if (!match.matchId) return Promise.reject(new Error("matchId is missing"));
-                return matchRepository.update(orgId, tournamentId, match.matchId, {
+        // 個人戦試合の同期
+        successCount += await syncItems(
+            unsyncedMatches,
+            "match",
+            (m) => m.matchId,
+            async (match, id) => {
+                // 必要なプロパティを明示的に指定してオブジェクトを作成
+                const matchData: MatchCreateWithId = {
+                    matchId: id,
+                    courtId: match.courtId,
+                    roundId: match.roundId,
                     players: match.players,
+                    sortOrder: match.sortOrder,
                     isCompleted: match.isCompleted,
-                });
-            })
+                };
+                await matchRepository.save(orgId, tournamentId, matchData);
+            },
+            async (_, id) => {
+                await matchRepository.delete(orgId, tournamentId, id);
+            },
+            async (match) => {
+                if (match.id) await localMatchRepository.update(match.id, { isSynced: true });
+            },
+            async (id) => {
+                await localMatchRepository.hardDelete(id);
+            }
         );
 
-        for (let i = 0; i < uploadResults.length; i++) {
-            const result = uploadResults[i];
-            const match = unsyncedMatches[i];
-            if (result.status === "fulfilled") {
-                try {
-                    await localMatchRepository.update(match.id!, { isSynced: true });
-                    successCount++;
-                } catch (error) {
-                    console.error(`[SyncService] Failed to update local flag for match ${match.matchId}`, error);
-                }
-            } else {
-                console.error(`[SyncService] Failed to upload match ${match.matchId}`, result.reason);
-            }
-        }
-
-        // 4. Firestoreに保存 (Team)
-        const uploadTeamResults = await Promise.allSettled(
-            unsyncedTeamMatches.map(match => {
-                if (!match.matchId || !match.matchGroupId) return Promise.reject(new Error("matchId or matchGroupId is missing"));
-                return teamMatchRepository.update(orgId, tournamentId, match.matchGroupId, match.matchId, {
-                    players: match.players,
-                    isCompleted: match.isCompleted,
+        // 団体戦グループの同期
+        successCount += await syncItems(
+            unsyncedMatchGroups,
+            "match group",
+            (g) => g.matchGroupId,
+            async (group, id) => {
+                await matchGroupRepository.update(orgId, tournamentId, id, {
+                    matchGroupId: group.matchGroupId,
+                    courtId: group.courtId,
+                    roundId: group.roundId,
+                    sortOrder: group.sortOrder,
+                    teamAId: group.teamAId,
+                    teamBId: group.teamBId,
                 });
-            })
+            },
+            async (_, id) => {
+                await matchGroupRepository.delete(orgId, tournamentId, id);
+            },
+            async (group) => {
+                if (group.id) await localMatchGroupRepository.updateById(group.id, { isSynced: true });
+            },
+            async (id) => {
+                await localMatchGroupRepository.hardDelete(id);
+            }
         );
 
-        for (let i = 0; i < uploadTeamResults.length; i++) {
-            const result = uploadTeamResults[i];
-            const match = unsyncedTeamMatches[i];
-            if (result.status === "fulfilled") {
-                try {
-                    await localTeamMatchRepository.update(match.id!, { isSynced: true });
-                    successCount++;
-                } catch (error) {
-                    console.error(`[SyncService] Failed to update local flag for team match ${match.matchId}`, error);
-                }
-            } else {
-                console.error(`[SyncService] Failed to upload team match ${match.matchId}`, result.reason);
+        // 団体戦試合の同期
+        successCount += await syncItems(
+            unsyncedTeamMatches,
+            "team match",
+            (m) => m.matchId,
+            async (teamMatch, id) => {
+                if (!teamMatch.matchGroupId) throw new Error("Missing matchGroupId");
+                await teamMatchRepository.update(orgId, tournamentId, teamMatch.matchGroupId, id, {
+                    players: teamMatch.players,
+                    isCompleted: teamMatch.isCompleted,
+                });
+            },
+            async (teamMatch, id) => {
+                if (!teamMatch.matchGroupId) throw new Error("Missing matchGroupId");
+                await teamMatchRepository.delete(orgId, tournamentId, teamMatch.matchGroupId, id);
+            },
+            async (teamMatch) => {
+                if (teamMatch.id) await localTeamMatchRepository.update(teamMatch.id, { isSynced: true });
+            },
+            async (id) => {
+                await localTeamMatchRepository.hardDelete(id);
             }
-        }
+        );
 
         return successCount;
     },
@@ -202,8 +290,20 @@ export const syncService = {
      */
     async getUnsyncedCount(orgId: string, tournamentId: string): Promise<number> {
         const matchesCount = await localMatchRepository.countUnsynced(orgId, tournamentId);
+        const matchGroupsCount = await localMatchGroupRepository.countUnsynced(orgId, tournamentId);
         const teamMatchesCount = await localTeamMatchRepository.countUnsynced(orgId, tournamentId);
-        return matchesCount + teamMatchesCount;
+        return matchesCount + matchGroupsCount + teamMatchesCount;
+    },
+
+    /**
+     * ローカルDBのキャッシュを削除する
+     * matches / matchGroups / teamMatches (+ teams が存在する場合) をクリア
+     */
+    async clearLocalData(): Promise<void> {
+        await db.matches.clear();
+        await db.matchGroups.clear();
+        await db.teamMatches.clear();
+        await db.teams.clear();
     }
 };
 

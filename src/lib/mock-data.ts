@@ -126,22 +126,18 @@ export const mockMatches: Match[] = [
   {
     matchId: "match-1",
     courtId: "court-1",
-    round: "1回戦",
+    roundId: "1回戦",
     sortOrder: 0,
     players: {
       playerA: {
-        displayName: "山田",
         playerId: "player-1",
         teamId: "team-1",
-        teamName: "東京大学",
         score: 1,
         hansoku: 1, // 黄
       },
       playerB: {
-        displayName: "鈴木",
         playerId: "player-4",
         teamId: "team-2",
-        teamName: "京都大学",
         score: 0,
         hansoku: 0, // なし
       },
@@ -154,22 +150,18 @@ export const mockMatches: Match[] = [
   {
     matchId: "match-2",
     courtId: "court-2",
-    round: "1回戦",
+    roundId: "1回戦",
     sortOrder: 1,
     players: {
       playerA: {
-        displayName: "佐藤",
         playerId: "player-2",
         teamId: "team-1",
-        teamName: "東京大学",
         score: 2,
         hansoku: 0, // なし
       },
       playerB: {
-        displayName: "田中",
         playerId: "player-5",
         teamId: "team-2",
-        teamName: "京都大学",
         score: 0,
         hansoku: 2, // 赤
       },
@@ -181,22 +173,18 @@ export const mockMatches: Match[] = [
   {
     matchId: "match-3",
     courtId: "court-3",
-    round: "準決勝",
+    roundId: "準決勝",
     sortOrder: 2,
     players: {
       playerA: {
-        displayName: "山田 次",
         playerId: "player-3",
         teamId: "team-1",
-        teamName: "東京大学",
         score: 1,
         hansoku: 0, // なし
       },
       playerB: {
-        displayName: "高橋",
         playerId: "player-6",
         teamId: "team-3",
-        teamName: "大阪大学",
         score: 1,
         hansoku: 1, // 黄
       },

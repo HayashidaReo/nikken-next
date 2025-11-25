@@ -1,7 +1,8 @@
 export interface MatchGroupSetupData {
     id: string;
     courtId: string;
-    round: string;
+    roundId: string;
+    roundName: string;
     teamAId: string;
     teamBId: string;
     sortOrder: number;
@@ -9,7 +10,8 @@ export interface MatchGroupSetupData {
 
 export interface TeamMatchSetupData {
     id: string;
-    round: string;
+    roundId: string;
+    roundName: string;
     playerAId: string;
     playerBId: string;
     sortOrder: number;
