@@ -166,6 +166,7 @@ export default function MonitorControlPage() {
         return {
           matchId: m.matchId || "",
           sortOrder: m.sortOrder,
+          roundId: m.roundId,
           playerA: {
             displayName: pA.displayName,
             teamName: pA.teamName,

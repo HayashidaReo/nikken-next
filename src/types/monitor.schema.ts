@@ -34,6 +34,7 @@ export const monitorDataSchema = z.object({
     teamMatchResults: z.array(z.object({
         matchId: z.string(),
         sortOrder: z.number(),
+        roundId: z.string().optional(),
         playerA: monitorPlayerSchema,
         playerB: monitorPlayerSchema,
         winner: z.enum(["playerA", "playerB", "draw", "none"]),
