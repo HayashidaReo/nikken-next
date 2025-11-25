@@ -5,6 +5,7 @@ import { TeamMatch } from "@/types/match.schema";
 import { Team } from "@/types/team.schema";
 import { Tournament } from "@/types/tournament.schema";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
+import { TEAM_MATCH_CONSTANTS } from "@/lib/constants";
 
 /**
  * 団体戦の試合進行を制御するカスタムフック
@@ -84,10 +85,6 @@ export function useTeamMatchController({
     const courtName = useMonitorStore((s) => s.courtName);
     const viewMode = useMonitorStore((s) => s.viewMode);
 
-    // 団体戦の通常試合（代表戦を除く）の最終試合順序
-    const LAST_REGULAR_MATCH_ORDER = 5;
-    const LAST_REGULAR_MATCH_ROUND_ID = '5';
-    const REP_MATCH_ROUND_ID = '6';
 
 
     /**
@@ -112,7 +109,7 @@ export function useTeamMatchController({
     if (activeTournamentType === "team" && teamMatches) {
         // 現在の試合が代表戦で完了している場合は必ず終了
         const currentMatch = teamMatches.find((m) => m.matchId === matchId);
-        if (currentMatch?.roundId === REP_MATCH_ROUND_ID) {
+        if (currentMatch?.roundId === TEAM_MATCH_CONSTANTS.REP_MATCH_ROUND_ID) {
             // 代表戦が完了したら全試合終了
             isAllFinished = true;
         } else {
@@ -121,14 +118,14 @@ export function useTeamMatchController({
                 .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
                 .sort((a, b) => a.sortOrder - b.sortOrder)[0];
 
-            // 5試合終了後の同点判定
+            // 完了した通常試合を抽出
             const completedRegularMatches = teamMatches.filter(
-                (m) => m.sortOrder <= LAST_REGULAR_MATCH_ORDER && (m.isCompleted || m.matchId === matchId)
+                (m) => m.sortOrder <= TEAM_MATCH_CONSTANTS.LAST_REGULAR_MATCH_ORDER && (m.isCompleted || m.matchId === matchId)
             );
 
             // 勝敗数を集計
             // 5試合目の時
-            if (currentMatch?.roundId === LAST_REGULAR_MATCH_ROUND_ID) {
+            if (currentMatch?.roundId === TEAM_MATCH_CONSTANTS.LAST_REGULAR_MATCH_ROUND_ID) {
                 let winsA = 0;
                 let winsB = 0;
 
@@ -150,7 +147,7 @@ export function useTeamMatchController({
                 // 同点の場合
                 if (winsA === winsB) {
                     // 代表戦が既に設定されているかチェック
-                    const hasRepMatch = teamMatches.some((m) => m.roundId === '6');
+                    const hasRepMatch = teamMatches.some((m) => m.roundId === TEAM_MATCH_CONSTANTS.REP_MATCH_ROUND_ID);
 
                     if (hasRepMatch) {
                         // 代表戦が既に設定されている場合は通常フロー（次の試合へ）
@@ -352,8 +349,8 @@ export function useTeamMatchController({
                 tournamentId || "",
                 matchGroupId,
                 {
-                    roundId: '6',
-                    sortOrder: 5,
+                    roundId: TEAM_MATCH_CONSTANTS.REP_MATCH_ROUND_ID,
+                    sortOrder: TEAM_MATCH_CONSTANTS.LAST_REGULAR_MATCH_ORDER + 1,
                     players: {
                         playerA: {
                             playerId: playerAId,

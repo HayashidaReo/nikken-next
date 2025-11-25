@@ -104,6 +104,16 @@ export function getTeamMatchRoundIdByIndex(index: number): string {
   return TEAM_MATCH_ROUNDS[index]?.id ?? "";
 }
 
+// 団体戦関連の汎用定数
+export const TEAM_MATCH_CONSTANTS = {
+  /** 団体戦の通常試合（代表戦を除く）の最終試合順序 */
+  LAST_REGULAR_MATCH_ORDER: 4,
+  /** 団体戦の通常試合（代表戦を除く）の最終ラウンドID */
+  LAST_REGULAR_MATCH_ROUND_ID: '5',
+  /** 代表戦のラウンドID */
+  REP_MATCH_ROUND_ID: '6',
+} as const;
+
 // 🥋 ペナルティ関連定数
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
