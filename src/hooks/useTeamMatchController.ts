@@ -4,6 +4,7 @@ import { useMonitorStore } from "@/store/use-monitor-store";
 import { TeamMatch } from "@/types/match.schema";
 import { Team } from "@/types/team.schema";
 import { Tournament } from "@/types/tournament.schema";
+import { determineWinner, Winner } from "@/domains/match/match-logic";
 
 interface UseTeamMatchControllerProps {
     matchId: string;
@@ -76,10 +77,7 @@ export function useTeamMatchController({
             const snapshot = useMonitorStore.getState().getMonitorSnapshot();
 
             // 現在の試合の勝者判定（再計算）
-            let winner: "playerA" | "playerB" | "draw" | "none" = "none";
-            if (snapshot.playerA.score > snapshot.playerB.score) winner = "playerA";
-            else if (snapshot.playerB.score > snapshot.playerA.score) winner = "playerB";
-            else winner = "draw";
+            const winner: Winner = determineWinner(snapshot.playerA.score, snapshot.playerB.score, true);
 
             // 全試合終了 -> 団体戦結果表示
             const results = teamMatches
@@ -101,10 +99,11 @@ export function useTeamMatchController({
                     const pA = resolvePlayer(m.players.playerA.playerId, m.players.playerA.teamId);
                     const pB = resolvePlayer(m.players.playerB.playerId, m.players.playerB.teamId);
 
-                    let w: "playerA" | "playerB" | "draw" | "none" = "none";
-                    if (m.players.playerA.score > m.players.playerB.score) w = "playerA";
-                    else if (m.players.playerB.score > m.players.playerA.score) w = "playerB";
-                    else if (m.isCompleted || m.matchId === matchId) w = "draw"; // 完了していて同点なら引き分け
+                    const w: Winner = determineWinner(
+                        m.players.playerA.score,
+                        m.players.playerB.score,
+                        m.isCompleted || m.matchId === matchId
+                    );
 
                     return {
                         matchId: m.matchId || "",

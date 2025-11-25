@@ -23,6 +23,7 @@ import { useState, useCallback } from "react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
+import { determineWinner, Winner } from "@/domains/match/match-logic";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -123,10 +124,7 @@ export default function MonitorControlPage() {
 
     // 2. 結果表示モードへ
     const snapshot = useMonitorStore.getState().getMonitorSnapshot();
-    let winner: "playerA" | "playerB" | "draw" | "none" = "none";
-    if (snapshot.playerA.score > snapshot.playerB.score) winner = "playerA";
-    else if (snapshot.playerB.score > snapshot.playerA.score) winner = "playerB";
-    else winner = "draw";
+    const winner: Winner = determineWinner(snapshot.playerA.score, snapshot.playerB.score, true);
 
     // 常に試合結果を表示する
     setMatchResult({
