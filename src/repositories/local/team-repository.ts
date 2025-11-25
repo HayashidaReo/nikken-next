@@ -15,8 +15,8 @@ export class LocalTeamRepository {
         return await db.teams.put(team);
     }
 
-    async bulkPut(teams: LocalTeam[]): Promise<string> {
-        return await db.teams.bulkPut(teams);
+    async bulkPut(teams: LocalTeam[]): Promise<void> {
+        await db.teams.bulkPut(teams);
     }
 
     async update(teamId: string, changes: Partial<LocalTeam>): Promise<number> {
