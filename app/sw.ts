@@ -14,7 +14,16 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const serwist = new Serwist({
-    precacheEntries: self.__SW_MANIFEST,
+    precacheEntries: [
+        ...(self.__SW_MANIFEST || []),
+        { url: "/dashboard", revision: null },
+        { url: "/match-setup", revision: null },
+        { url: "/monitor-control", revision: null },
+        { url: "/teams", revision: null },
+        { url: "/tournament-settings", revision: null },
+        { url: "/monitor-display", revision: null },
+        { url: "/not-found", revision: null },
+    ],
     skipWaiting: true,
     clientsClaim: true,
     navigationPreload: true,
