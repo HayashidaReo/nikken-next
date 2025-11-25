@@ -23,6 +23,7 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
 import { MonitorControlHeader } from "@/components/organisms/monitor-control-header";
+import { RepMatchSetupDialog } from "@/components/molecules/rep-match-setup-dialog";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -39,6 +40,7 @@ export default function MonitorControlPage() {
   const { orgId, activeTournamentId, activeTournamentType } = useAuthContext();
   const { showError } = useToast();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showRepMatchDialog, setShowRepMatchDialog] = useState(false);
 
   // データ取得ロジック（ストア優先）
   const { isLoading, hasError, matchFound } = useMatchDataWithPriority(matchId);
@@ -64,16 +66,20 @@ export default function MonitorControlPage() {
   // 団体戦コントローラー
   const {
     isAllFinished,
+    needsRepMatch,
     handleShowTeamResult,
     handleNextMatch,
     handleBackToDashboard,
     handleEnterKey: teamMatchEnterHandler,
+    handleCreateRepMatch,
   } = useTeamMatchController({
     matchId,
     activeTournamentType,
     teamMatches,
     teams,
     tournament,
+    orgId,
+    tournamentId: activeTournamentId,
   });
 
   const handleSave = useCallback(async () => {
@@ -136,6 +142,26 @@ export default function MonitorControlPage() {
   }, [handleSave, setMatchResult, setViewMode]);
 
   const isSaving = saveIndividualMatchResultMutation.isPending || saveTeamMatchResultMutation.isPending;
+
+  // 代表戦ダイアログのハンドラー
+  const handleNextMatchClick = useCallback(() => {
+    if (needsRepMatch) {
+      // 代表戦が必要な場合はダイアログを表示
+      setShowRepMatchDialog(true);
+    } else {
+      // 通常の次の試合へ
+      handleNextMatch();
+    }
+  }, [needsRepMatch, handleNextMatch]);
+
+  const handleRepMatchConfirm = useCallback((playerAId: string, playerBId: string) => {
+    setShowRepMatchDialog(false);
+    handleCreateRepMatch(playerAId, playerBId);
+  }, [handleCreateRepMatch]);
+
+  const handleRepMatchCancel = useCallback(() => {
+    setShowRepMatchDialog(false);
+  }, []);
 
   // キーボードショートカット
   const handleEnterKey = useCallback(() => {
@@ -245,7 +271,7 @@ export default function MonitorControlPage() {
           onMonitorAction={handleMonitorAction}
           onSave={handleSave}
           onConfirmMatch={handleConfirmMatchClick}
-          onNextMatch={handleNextMatch}
+          onNextMatch={handleNextMatchClick}
           onShowTeamResult={handleShowTeamResult}
         />
 
@@ -269,6 +295,16 @@ export default function MonitorControlPage() {
           cancelText="キャンセル"
           confirmShortcut="Enter"
         />
+        {/* 代表戦設定ダイアログ */}
+        {teams && teams.length >= 2 && (
+          <RepMatchSetupDialog
+            isOpen={showRepMatchDialog}
+            teamA={teams[0]}
+            teamB={teams[1]}
+            onConfirm={handleRepMatchConfirm}
+            onCancel={handleRepMatchCancel}
+          />
+        )}
       </div>
     </div>
   );

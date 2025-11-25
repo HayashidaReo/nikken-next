@@ -57,6 +57,10 @@ interface UseTeamMatchControllerProps {
     teams: Team[] | undefined;
     /** 大会情報 */
     tournament: Tournament | undefined;
+    /** 組織ID */
+    orgId: string | null;
+    /** 大会ID */
+    tournamentId: string | null;
 }
 
 export function useTeamMatchController({
@@ -65,6 +69,8 @@ export function useTeamMatchController({
     teamMatches,
     teams,
     tournament,
+    orgId,
+    tournamentId,
 }: UseTeamMatchControllerProps) {
     const router = useRouter();
     const matchGroupId = useMonitorStore((s) => s.matchGroupId);
@@ -96,24 +102,33 @@ export function useTeamMatchController({
         };
     }, [teams]);
 
-    // 全試合終了判定
+    // 全試合終了判定と代表戦の必要性判定
     let isAllFinished = false;
+    let needsRepMatch = false; // 代表戦が必要かどうか
+
     if (activeTournamentType === "team" && teamMatches) {
-        // 現在の試合より後の試合があるかチェック
-        const nextMatch = teamMatches
-            .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
-            .sort((a, b) => a.sortOrder - b.sortOrder)[0];
-
-        if (!nextMatch) {
+        // 現在の試合が代表戦で完了している場合は必ず終了
+        const currentMatch = teamMatches.find((m) => m.matchId === matchId);
+        if (currentMatch?.roundId === '6') {
+            // 代表戦が完了したら全試合終了
             isAllFinished = true;
-        } else if (nextMatch.roundId === '6') {
-            // 5試合目終了時、かつ次は6試合目（代表戦）の場合
-            // ここまでの勝敗を計算する（現在の試合含む）
-            let winsA = 0;
-            let winsB = 0;
+        } else {
+            // 現在の試合より後の試合があるかチェック
+            const nextMatch = teamMatches
+                .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
+                .sort((a, b) => a.sortOrder - b.sortOrder)[0];
 
-            teamMatches.forEach((m) => {
-                if (m.sortOrder <= LAST_REGULAR_MATCH_ORDER) {
+            // 5試合終了後の同点判定
+            const completedRegularMatches = teamMatches.filter(
+                (m) => m.sortOrder <= LAST_REGULAR_MATCH_ORDER && (m.isCompleted || m.matchId === matchId)
+            );
+
+            // 5試合全て完了している場合のみ、勝敗数を集計
+            if (completedRegularMatches.length === LAST_REGULAR_MATCH_ORDER) {
+                let winsA = 0;
+                let winsB = 0;
+
+                completedRegularMatches.forEach((m) => {
                     // 現在の試合については、ストアの最新状態（保存直後）を使用する
                     let scoreA = m.players.playerA.score;
                     let scoreB = m.players.playerB.score;
@@ -126,11 +141,27 @@ export function useTeamMatchController({
 
                     if (scoreA > scoreB) winsA++;
                     else if (scoreB > scoreA) winsB++;
-                }
-            });
+                });
 
-            // 勝敗がついている場合は終了とする（代表戦を行わない）
-            if (winsA !== winsB) {
+                // 同点の場合
+                if (winsA === winsB) {
+                    // 代表戦が既に設定されているかチェック
+                    const hasRepMatch = teamMatches.some((m) => m.roundId === '6');
+
+                    if (hasRepMatch) {
+                        // 代表戦が既に設定されている場合は通常フロー（次の試合へ）
+                        isAllFinished = false;
+                    } else {
+                        // 代表戦が未設定の場合、設定が必要
+                        needsRepMatch = true;
+                        isAllFinished = false;
+                    }
+                } else {
+                    // 勝敗がついている場合は終了
+                    isAllFinished = true;
+                }
+            } else if (!nextMatch) {
+                // 次の試合がなく、5試合も完了していない場合は終了
                 isAllFinished = true;
             }
         }
@@ -289,11 +320,91 @@ export function useTeamMatchController({
         }
     }, [activeTournamentType, viewMode, isAllFinished, handleNextMatch, handleShowTeamResult]);
 
+    /**
+     * 代表戦を作成して開始する
+     * @param playerAId - チームAの代表選手ID
+     * @param playerBId - チームBの代表選手ID
+     */
+    const handleCreateRepMatch = useCallback(async (playerAId: string, playerBId: string) => {
+        if (!matchGroupId || !teams) return;
+
+        const { localTeamMatchRepository } = await import("@/repositories/local/team-match-repository");
+
+        // チーム情報を取得
+        const teamA = teams.find(t => t.players.some(p => p.playerId === playerAId));
+        const teamB = teams.find(t => t.players.some(p => p.playerId === playerBId));
+
+        if (!teamA || !teamB) {
+            console.error("Team not found");
+            return;
+        }
+
+        try {
+            // 代表戦のTeamMatchを作成
+            const repMatch = await localTeamMatchRepository.create(
+                orgId || "",
+                tournamentId || "",
+                matchGroupId,
+                {
+                    roundId: '6',
+                    sortOrder: 6,
+                    players: {
+                        playerA: {
+                            playerId: playerAId,
+                            teamId: teamA.teamId,
+                            score: 0,
+                            hansoku: 0,
+                        },
+                        playerB: {
+                            playerId: playerBId,
+                            teamId: teamB.teamId,
+                            score: 0,
+                            hansoku: 0,
+                        },
+                    },
+                    isCompleted: false,
+                }
+            );
+
+            // 選手情報を解決
+            const playerA = resolvePlayer(playerAId, teamA.teamId);
+            const playerB = resolvePlayer(playerBId, teamB.teamId);
+
+            // 代表戦を初期化して開始
+            initializeMatch(repMatch, tournamentName, courtName, {
+                resolvedPlayers: {
+                    playerA: {
+                        ...repMatch.players.playerA,
+                        displayName: playerA.displayName,
+                        teamName: playerA.teamName,
+                    },
+                    playerB: {
+                        ...repMatch.players.playerB,
+                        displayName: playerB.displayName,
+                        teamName: playerB.teamName,
+                    },
+                },
+                roundName: "代表戦",
+                defaultMatchTime: tournament?.defaultMatchTime,
+            });
+
+            // 非公開にする
+            setPublic(false);
+
+            // URLを更新
+            router.push(`/monitor-control/${repMatch.matchId}`);
+        } catch (error) {
+            console.error("Failed to create representative match:", error);
+        }
+    }, [matchGroupId, teams, resolvePlayer, initializeMatch, tournamentName, courtName, tournament, setPublic, router, orgId, tournamentId]);
+
     return {
         isAllFinished,
+        needsRepMatch,
         handleShowTeamResult,
         handleNextMatch,
         handleBackToDashboard,
         handleEnterKey,
+        handleCreateRepMatch,
     };
 }
