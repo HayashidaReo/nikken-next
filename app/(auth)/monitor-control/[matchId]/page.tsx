@@ -4,9 +4,8 @@ import { useParams } from "next/navigation";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { useSaveIndividualMatchResult, useSaveTeamMatchResult } from "@/queries/use-match-result";
-import { ArrowLeft, Monitor, Unplug, Save, ChevronRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import SwitchLabel from "@/components/molecules/switch-label";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -21,9 +20,9 @@ import { useTeams } from "@/queries/use-teams";
 import { useTournament } from "@/queries/use-tournaments";
 import { useState, useCallback } from "react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
+import { MonitorControlHeader } from "@/components/organisms/monitor-control-header";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -263,84 +262,22 @@ export default function MonitorControlPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* ヘッダー */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleBackToDashboard}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              戻る
-            </Button>            <div className="ml-2">
-              <ConnectionStatus mode={monitorStatusMode} error={null} />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <SwitchLabel
-                id="public-toggle-header"
-                checked={isPublic}
-                onChange={(v) => {
-                  if (v !== isPublic) togglePublic();
-                }}
-                onLabel={"公開中"}
-                offLabel={"非公開"}
-                className="flex items-center gap-3"
-              />
-              <ShortcutBadge shortcut="PP" />
-            </div>
-
-            <div className="flex items-center gap-3">
-              {activeTournamentType === "team" && viewMode === "scoreboard" && (
-                <Button onClick={handleConfirmMatchClick} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
-                  試合確定
-                  <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              )}
-              {activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished && (
-                <Button onClick={handleNextMatch} variant="default" className="bg-green-600 hover:bg-green-700 gap-2">
-                  次の試合へ
-                  <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              )}
-              {activeTournamentType === "team" && viewMode === "match_result" && isAllFinished && (
-                <Button onClick={handleShowTeamResult} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
-                  最終結果を表示
-                  <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              )}
-              {activeTournamentType === "team" && viewMode === "team_result" && (
-                <Button onClick={() => handleBackToDashboard()} variant="outline">
-                  一覧へ戻る
-                </Button>
-              )}
-              <Button onClick={handleMonitorAction} variant={isPresentationConnected ? "destructive" : "outline"}>
-                {isPresentationConnected ? (
-                  <>
-                    <Unplug className="w-4 h-4 mr-2" />
-                    接続を解除
-                  </>
-                ) : (
-                  <>
-                    <Monitor className="w-4 h-4 mr-2" />
-                    表示用モニターを開く
-                  </>
-                )}
-              </Button>
-
-              {activeTournamentType !== "team" && (
-                <div className="flex items-center gap-2">
-                  <Button onClick={handleSave} size="sm" disabled={isSaving}>
-                    <Save className="w-4 h-4 mr-2" />
-                    {isSaving ? "保存中..." : "保存"}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <MonitorControlHeader
+          isPublic={isPublic}
+          onTogglePublic={togglePublic}
+          monitorStatusMode={monitorStatusMode}
+          isPresentationConnected={isPresentationConnected}
+          activeTournamentType={activeTournamentType}
+          viewMode={viewMode}
+          isAllFinished={isAllFinished}
+          isSaving={isSaving}
+          onBackToDashboard={handleBackToDashboard}
+          onMonitorAction={handleMonitorAction}
+          onSave={handleSave}
+          onConfirmMatch={handleConfirmMatchClick}
+          onNextMatch={handleNextMatch}
+          onShowTeamResult={handleShowTeamResult}
+        />
 
         <ScoreboardOperator
           organizationId={orgId || ""}

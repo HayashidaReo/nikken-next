@@ -9,6 +9,8 @@ import {
   isMatchEnded,
 } from "@/domains/match/match-logic";
 
+export type ViewMode = "scoreboard" | "match_result" | "team_result";
+
 interface MonitorState {
   // 試合の基本情報（初期データから設定）
   matchId: string | null;
@@ -39,7 +41,7 @@ interface MonitorState {
 
   // 表示制御
   isPublic: boolean; // 公開/非公開
-  viewMode: "scoreboard" | "match_result" | "team_result";
+  viewMode: ViewMode;
   matchResult?: {
     playerA: MonitorPlayer;
     playerB: MonitorPlayer;
@@ -75,7 +77,7 @@ interface MonitorState {
   setTimerMode: (mode: "countdown" | "stopwatch") => void;
   togglePublic: () => void;
   setPublic: (isPublic: boolean) => void;
-  setViewMode: (mode: "scoreboard" | "match_result" | "team_result") => void;
+  setViewMode: (mode: ViewMode) => void;
   setMatchResult: (result: MonitorState["matchResult"]) => void;
   setTeamMatchResults: (results: MonitorData["teamMatchResults"]) => void;
   setPresentationConnected: (connected: boolean) => void;
