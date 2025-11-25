@@ -10,11 +10,11 @@ import { AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { MATCH_SETUP_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
-import type { Team, Player } from "@/types/team.schema";
-import type { Round } from "@/types/tournament.schema";
+import type { Player } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
 import type { DetectedChanges } from "@/lib/utils/match-conflict-detection";
 import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
+import { useMasterData } from "@/components/providers/master-data-provider";
 import {
   DndContext,
   closestCenter,
@@ -34,9 +34,6 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 
 interface MatchSetupTableProps {
-  teams: Team[];
-  courts: Array<{ courtId: string; courtName: string }>;
-  rounds: Round[];
   matches: Match[];
   onSave: (matches: MatchSetupData[]) => void;
   isSaving?: boolean;
@@ -50,9 +47,6 @@ interface MatchSetupTableProps {
 const noop = () => { };
 
 export function MatchSetupTable({
-  teams,
-  courts,
-  rounds,
   matches,
   onSave,
   isSaving = false,
@@ -61,6 +55,8 @@ export function MatchSetupTable({
   detectedCount = 0,
   onOpenUpdateDialog,
 }: MatchSetupTableProps) {
+  const { teams, rounds } = useMasterData();
+
   // ドラッグ＆ドロップのセンサー設定
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -69,15 +65,10 @@ export function MatchSetupTable({
     })
   );
 
-  // ラウンドの検索用マップ
-  const roundIdToName = useMemo(() => new Map(rounds.map(r => [r.roundId, r.roundName])), [rounds]);
-
-  // 承認済みのチームのみフィルター
-  const approvedTeams = teams.filter(team => team.isApproved); // 初期データを作成
   const initialData = useMemo(() => {
     return matches.map(match => {
       const roundId = match.roundId || "";
-      const roundName = roundIdToName.get(roundId) || roundId;
+      const roundName = rounds.get(roundId)?.roundName || roundId;
       return {
         id: match.matchId || "",
         courtId: match.courtId,
@@ -90,7 +81,7 @@ export function MatchSetupTable({
         sortOrder: match.sortOrder,
       };
     });
-  }, [matches, roundIdToName]);
+  }, [matches, rounds]);
 
   // data の初期化と更新
   // ID構成のハッシュキーを計算（追加・削除の検知用）
@@ -166,8 +157,12 @@ export function MatchSetupTable({
 
   // チームから選手を取得する関数
   const getPlayersFromTeam = (teamId: string): Player[] => {
-    const team = approvedTeams.find(t => t.teamId === teamId);
-    return team ? team.players : [];
+    const team = teams.get(teamId);
+    // 承認済みチームのみから取得する場合は approvedTeams を使うべきだが、
+    // ここではID指定なので teams Map から直接引く方が高速かつ確実
+    // ただし、承認済みチェックが必要なら approvedTeams.find を使うか、Map に isApproved フラグを含める
+    // ここでは既存ロジックに合わせて approvedTeams から探すか、Map から引いて isApproved を確認する
+    return team && team.isApproved ? team.players : [];
   };
 
   // データを更新する関数
@@ -295,8 +290,6 @@ export function MatchSetupTable({
                   key={row.id}
                   row={row}
                   index={index}
-                  approvedTeams={approvedTeams}
-                  courts={courts}
                   detectedRowChanges={{
                     courtId: Boolean(rowChanges.courtId),
                     round: Boolean(rowChanges.round),
@@ -306,7 +299,6 @@ export function MatchSetupTable({
                   }}
                   isAdded={isAddedMatch}
                   isDeleted={isDeletedMatch}
-                  rounds={rounds}
                   getPlayersFromTeam={getPlayersFromTeam}
                   onUpdate={updateData}
                   onRemove={removeRow}
@@ -343,9 +335,6 @@ export function MatchSetupTable({
                   <MatchRow
                     row={activeRow}
                     index={activeIndex}
-                    approvedTeams={approvedTeams}
-                    courts={courts}
-                    rounds={rounds}
                     detectedRowChanges={{
                       courtId: Boolean(rowChanges.courtId),
                       round: Boolean(rowChanges.round),

@@ -24,6 +24,7 @@ import {
   type MatchSetupData,
   type DetectedChanges,
 } from "@/lib/utils/match-conflict-detection";
+import { MasterDataProvider } from "@/components/providers/master-data-provider";
 
 export default function MatchSetupPage() {
   const { showSuccess, showError } = useToast();
@@ -585,27 +586,27 @@ export default function MatchSetupPage() {
   if (tournament.tournamentType === "team") {
     return (
       <MainLayout activeTab="match-setup">
-        <MatchGroupSetupManager tournament={tournament} teams={teams} />
+        <MasterDataProvider teams={teams} courts={tournament.courts} rounds={tournament.rounds}>
+          <MatchGroupSetupManager />
+        </MasterDataProvider>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout activeTab="match-setup">
-      <div className="space-y-6">
-        <MatchSetupTable
-          teams={teams}
-          courts={tournament.courts}
-          rounds={tournament.rounds}
-          matches={mergedMatches}
-          onSave={handleSave}
-          isSaving={isSaving}
-          detectedChanges={detectedChanges}
-          detectedCount={detectedCount}
-          onOpenUpdateDialog={handleUpdateClick}
-        />
-
-      </div>
+      <MasterDataProvider teams={teams} courts={tournament.courts} rounds={tournament.rounds}>
+        <div className="space-y-6">
+          <MatchSetupTable
+            matches={mergedMatches}
+            onSave={handleSave}
+            isSaving={isSaving}
+            detectedChanges={detectedChanges}
+            detectedCount={detectedCount}
+            onOpenUpdateDialog={handleUpdateClick}
+          />
+        </div>
+      </MasterDataProvider>
     </MainLayout>
   );
 }

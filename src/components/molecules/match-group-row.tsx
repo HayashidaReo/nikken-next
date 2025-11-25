@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -7,16 +9,12 @@ import { SearchableSelect, type SearchableSelectOption } from "@/components/mole
 import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
 import { TableCell } from "@/components/atoms/table";
 import { cn } from "@/lib/utils/utils";
-import type { Team } from "@/types/team.schema";
-import type { Court, Round } from "@/types/tournament.schema";
 import type { MatchGroupSetupData } from "@/types/match-setup";
+import { useMasterData } from "@/components/providers/master-data-provider";
 
 interface MatchGroupRowProps {
     row: MatchGroupSetupData;
     index: number;
-    teams: Team[];
-    courts: Court[];
-    rounds: Round[];
     onUpdate: (index: number, field: keyof MatchGroupSetupData, value: string) => void;
     onRemove: (index: number) => void;
     onSelect: (row: MatchGroupSetupData) => void;
@@ -26,14 +24,12 @@ interface MatchGroupRowProps {
 export function MatchGroupRow({
     row,
     index,
-    teams,
-    courts,
-    rounds,
     onUpdate,
     onRemove,
     onSelect,
     errors = [],
 }: MatchGroupRowProps) {
+    const { teams, courts, rounds } = useMasterData();
     const {
         attributes,
         listeners,
@@ -48,40 +44,40 @@ export function MatchGroupRow({
         transition,
     };
 
-    const courtOptions: SearchableSelectOption[] = courts.map(c => ({
+    const courtOptions: SearchableSelectOption[] = useMemo(() => Array.from(courts.values()).map(c => ({
         value: c.courtId,
         label: c.courtName,
-    }));
+    })), [courts]);
 
     const roundOptions: SearchableSelectOption[] = useMemo(
-        () => rounds.map(round => ({ value: round.roundId, label: round.roundName })),
+        () => Array.from(rounds.values()).map(round => ({ value: round.roundId, label: round.roundName })),
         [rounds]
     );
     const selectedRoundValue = useMemo(() => {
         if (row.roundId) return row.roundId;
-        const fallback = rounds.find(round => round.roundName === row.roundName);
+        const fallback = Array.from(rounds.values()).find(round => round.roundName === row.roundName);
         if (fallback) return fallback.roundId;
         return row.roundName || "";
     }, [row.roundName, row.roundId, rounds]);
 
     const roundOptionsWithFallback = useMemo(() => {
         if (!row.roundName) return roundOptions;
-        const exists = rounds.some(round => round.roundId === row.roundId || round.roundName === row.roundName);
+        const exists = Array.from(rounds.values()).some(round => round.roundId === row.roundId || round.roundName === row.roundName);
         if (exists) return roundOptions;
         const fallbackValue = row.roundId || row.roundName;
         return [...roundOptions, { value: fallbackValue, label: `${row.roundName} (未登録)` }];
     }, [roundOptions, row.roundName, row.roundId, rounds]);
 
     const handleRoundChange = (value: string) => {
-        const roundName = rounds.find(round => round.roundId === value)?.roundName || value;
+        const roundName = rounds.get(value)?.roundName || value;
         onUpdate(index, "roundId", value);
         onUpdate(index, "roundName", roundName);
     };
 
-    const teamOptions: SearchableSelectOption[] = teams.map(team => ({
+    const teamOptions: SearchableSelectOption[] = useMemo(() => Array.from(teams.values()).map(team => ({
         value: team.teamId,
         label: team.teamName,
-    }));
+    })), [teams]);
 
     return (
         <AnimatedTableRow

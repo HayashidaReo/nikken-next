@@ -10,18 +10,15 @@ import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
 import { Trash2, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
-import type { Team, Player } from "@/types/team.schema";
-import type { Round } from "@/types/tournament.schema";
+import type { Player } from "@/types/team.schema";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useMasterData } from "@/components/providers/master-data-provider";
 
 interface MatchRowProps {
     row: MatchSetupData;
     index: number;
-    approvedTeams: Team[];
-    courts: Array<{ courtId: string; courtName: string }>;
-    rounds: Round[];
     detectedRowChanges?: { courtId?: boolean; round?: boolean; playerA?: boolean; playerB?: boolean; sortOrder?: boolean };
     isAdded?: boolean;
     isDeleted?: boolean;
@@ -33,9 +30,6 @@ interface MatchRowProps {
 export function MatchRow({
     row,
     index,
-    approvedTeams,
-    courts,
-    rounds,
     detectedRowChanges = {},
     isAdded = false,
     isDeleted = false,
@@ -44,6 +38,7 @@ export function MatchRow({
     onRemove,
 }: MatchRowProps) {
     const [showConfirm, setShowConfirm] = useState(false);
+    const { teams, courts, rounds } = useMasterData();
 
     // ドラッグ＆ドロップ機能のセットアップ
     const {
@@ -61,40 +56,42 @@ export function MatchRow({
     };
 
     // Prepare options for searchable selects
-    const courtOptions: SearchableSelectOption[] = courts.map(c => ({
+    const courtOptions: SearchableSelectOption[] = useMemo(() => Array.from(courts.values()).map(c => ({
         value: c.courtId,
         label: c.courtName,
-    }));
+    })), [courts]);
 
     const roundOptions: SearchableSelectOption[] = useMemo(
-        () => rounds.map(round => ({ value: round.roundId, label: round.roundName })),
+        () => Array.from(rounds.values()).map(round => ({ value: round.roundId, label: round.roundName })),
         [rounds]
     );
     const selectedRoundValue = useMemo(() => {
         if (row.roundId) return row.roundId;
-        const fallback = rounds.find(round => round.roundName === row.roundName);
+        const fallback = Array.from(rounds.values()).find(round => round.roundName === row.roundName);
         if (fallback) return fallback.roundId;
         return row.roundName || "";
     }, [row.roundName, row.roundId, rounds]);
 
     const roundOptionsWithFallback = useMemo(() => {
         if (!row.roundName) return roundOptions;
-        const exists = rounds.some(round => round.roundId === row.roundId || round.roundName === row.roundName);
+        const exists = Array.from(rounds.values()).some(round => round.roundId === row.roundId || round.roundName === row.roundName);
         if (exists) return roundOptions;
         const fallbackValue = row.roundId || row.roundName;
         return [...roundOptions, { value: fallbackValue, label: `${row.roundName} (未登録)` }];
     }, [roundOptions, row.roundName, row.roundId, rounds]);
 
     const handleRoundChange = (value: string) => {
-        const roundName = rounds.find(round => round.roundId === value)?.roundName || value;
+        const roundName = rounds.get(value)?.roundName || value;
         onUpdate(index, "roundId", value);
         onUpdate(index, "roundName", roundName);
     };
 
-    const teamOptions: SearchableSelectOption[] = approvedTeams.map(team => ({
-        value: team.teamId,
-        label: team.teamName,
-    }));
+    const teamOptions: SearchableSelectOption[] = useMemo(() => Array.from(teams.values())
+        .filter(team => team.isApproved)
+        .map(team => ({
+            value: team.teamId,
+            label: team.teamName,
+        })), [teams]);
 
     const playerAOptions: SearchableSelectOption[] = getPlayersFromTeam(row.playerATeamId).map(player => ({
         value: player.playerId,

@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import {
     DndContext,
@@ -25,14 +27,10 @@ import { TableRow, TableCell } from "@/components/atoms/table";
 import { useToast } from "@/components/providers/notification-provider";
 import { TEAM_MATCH_ROUND_SUMMARIES, getTeamMatchRoundLabelById } from "@/lib/constants";
 import type { MatchGroup } from "@/types/match.schema";
-import type { Team } from "@/types/team.schema";
-import type { Court, Round } from "@/types/tournament.schema";
 import type { MatchGroupSetupData } from "@/types/match-setup";
+import { useMasterData } from "@/components/providers/master-data-provider";
 
 interface MatchGroupSetupTableProps {
-    teams: Team[];
-    courts: Court[];
-    rounds: Round[];
     matchGroups: MatchGroup[];
     onSave: (data: MatchGroupSetupData[]) => void;
     onSelect: (group: MatchGroupSetupData) => void;
@@ -40,15 +38,13 @@ interface MatchGroupSetupTableProps {
 }
 
 export function MatchGroupSetupTable({
-    teams,
-    courts,
-    rounds,
     matchGroups,
     onSave,
     onSelect,
     isSaving,
 }: MatchGroupSetupTableProps) {
     const { showError } = useToast();
+    const { rounds } = useMasterData();
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -56,7 +52,16 @@ export function MatchGroupSetupTable({
         })
     );
 
-    const roundSource = rounds?.length ? rounds : TEAM_MATCH_ROUND_SUMMARIES;
+    // rounds が空の場合は定数を使用するが、useMasterData から来る rounds は Map なので、
+    // Map が空かどうかで判断するか、あるいは rounds Map を優先する。
+    // ここでは rounds Map を配列に変換して使用する。
+    const roundsArray = useMemo(() => Array.from(rounds.values()), [rounds]);
+    const roundSource = roundsArray.length ? roundsArray : TEAM_MATCH_ROUND_SUMMARIES;
+
+    // roundIdToName は Map から直接引けるので不要になるかもしれないが、
+    // TEAM_MATCH_ROUND_SUMMARIES を使う場合のフォールバックとして残すか、
+    // あるいは useMasterData の rounds を使う前提にする。
+    // ここでは既存ロジックを踏襲しつつ Map を作成。
     const roundIdToName = useMemo(
         () => new Map(roundSource.map((r: { roundId: string; roundName: string }) => [r.roundId, r.roundName])),
         [roundSource]
@@ -125,7 +130,7 @@ export function MatchGroupSetupTable({
         setData((prev) => [
             ...prev,
             {
-                id: `group-${Date.now()}`,
+                id: `group - ${Date.now()} `,
                 courtId: "",
                 roundName: "",
                 roundId: "",
@@ -188,9 +193,6 @@ export function MatchGroupSetupTable({
                             key={row.id}
                             row={row}
                             index={index}
-                            teams={teams}
-                            courts={courts}
-                            rounds={rounds}
                             onUpdate={updateData}
                             onRemove={removeRow}
                             onSelect={onSelect}
@@ -219,9 +221,6 @@ export function MatchGroupSetupTable({
                                     <MatchGroupRow
                                         row={activeRow}
                                         index={activeIndex}
-                                        teams={teams}
-                                        courts={courts}
-                                        rounds={rounds}
                                         onUpdate={() => { }}
                                         onRemove={() => { }}
                                         onSelect={() => { }}
