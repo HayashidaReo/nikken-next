@@ -48,7 +48,7 @@ describe("monitorDataSchema", () => {
             matchId: "match-123",
             tournamentName: "Test Tournament",
             courtName: "Court A",
-            round: "Final",
+            roundName: "Final",
             playerA: validPlayer,
             playerB: validPlayer,
             timeRemaining: 300,
@@ -64,7 +64,7 @@ describe("monitorDataSchema", () => {
             matchId: "match-123",
             // tournamentName missing
             courtName: "Court A",
-            round: "Final",
+            roundName: "Final",
             playerA: validPlayer,
             playerB: validPlayer,
             timeRemaining: 300,
@@ -80,7 +80,7 @@ describe("monitorDataSchema", () => {
             matchId: "match-123",
             tournamentName: "Test Tournament",
             courtName: "Court A",
-            round: "Final",
+            roundName: "Final",
             playerA: { ...validPlayer, score: "invalid" }, // Invalid score type
             playerB: validPlayer,
             timeRemaining: 300,

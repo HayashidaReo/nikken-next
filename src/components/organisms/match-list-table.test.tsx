@@ -6,6 +6,7 @@ jest.mock("next/navigation", () => ({
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MatchListTable } from "./match-list-table";
+import { MasterDataProvider } from "@/components/providers/master-data-provider";
 import type { Match } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
 
@@ -85,14 +86,22 @@ const makeMatch = (overrides: Partial<Match> = {}): Match => {
 
 describe("MatchListTable display", () => {
     it("renders header score label centered", () => {
-        render(<MatchListTable matches={[]} tournamentName="Tourn" courts={sampleCourts} teams={sampleTeams} />);
+        render(
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[]} tournamentName="Tourn" />
+            </MasterDataProvider>
+        );
         const scoreHeader = screen.getByText("得点");
         expect(scoreHeader).toHaveClass("text-center");
     });
 
     it("resolves and displays court name instead of courtId", () => {
         const m = makeMatch();
-        render(<MatchListTable matches={[m]} tournamentName="Tourn" courts={sampleCourts} teams={sampleTeams} />);
+        render(
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[m]} tournamentName="Tourn" />
+            </MasterDataProvider>
+        );
         // court name should be displayed
         expect(screen.getByText("Aコート")).toBeInTheDocument();
     });
@@ -100,13 +109,16 @@ describe("MatchListTable display", () => {
     it("displays round name resolved from roundId when rounds are provided", () => {
         const m = makeMatch({ roundId: "round-1" });
         render(
-            <MatchListTable
-                matches={[m]}
-                tournamentName="Tourn"
+            <MasterDataProvider
                 courts={sampleCourts}
                 teams={sampleTeams}
                 rounds={[{ roundId: "round-1", roundName: "1回戦" }]}
-            />
+            >
+                <MatchListTable
+                    matches={[m]}
+                    tournamentName="Tourn"
+                />
+            </MasterDataProvider>
         );
 
         expect(screen.getByText("1回戦")).toBeInTheDocument();
@@ -114,7 +126,11 @@ describe("MatchListTable display", () => {
 
     it("displays scores with a hyphen between them and aligned in the same row", () => {
         const m = makeMatch();
-        render(<MatchListTable matches={[m]} tournamentName="Tourn" courts={sampleCourts} teams={sampleTeams} />);
+        render(
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[m]} tournamentName="Tourn" />
+            </MasterDataProvider>
+        );
         // find the row containing player A
         const playerA = screen.getByText("Player A");
         const row = playerA.closest("tr");
@@ -141,7 +157,9 @@ describe("MatchListTable display", () => {
         });
 
         const { container } = render(
-            <MatchListTable matches={[noPenalty, withPenalty]} tournamentName="Tourn" courts={sampleCourts} teams={sampleTeams} />
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[noPenalty, withPenalty]} tournamentName="Tourn" />
+            </MasterDataProvider>
         );
 
         // For the no-penalty row: hyphen displays within penalty area
@@ -167,7 +185,11 @@ describe("MatchListTable display", () => {
     it("operation button triggers initializeMatch navigation when clicked (no runtime error)", async () => {
         const user = userEvent.setup();
         const m = makeMatch();
-        render(<MatchListTable matches={[m]} tournamentName="Tourn" courts={sampleCourts} teams={sampleTeams} />);
+        render(
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[m]} tournamentName="Tourn" />
+            </MasterDataProvider>
+        );
         const btn = screen.getByRole("button", { name: /モニター/ });
         await user.click(btn);
         // we don't assert navigation here, just ensure click handler runs without throwing

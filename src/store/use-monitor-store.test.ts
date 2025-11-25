@@ -373,7 +373,7 @@ describe("useMonitorStore", () => {
         matchId: "test-match-001",
         tournamentName: "テスト大会",
         courtName: "Aコート",
-        round: "決勝",
+        roundName: "決勝",
         playerA: {
           displayName: "山田",
           teamName: "チームA",
