@@ -79,16 +79,17 @@ export function TeamResultView({ data }: TeamResultViewProps) {
 
             {/* Match List */}
             <div className="relative z-10 w-[1600px] bg-gray-900/60 rounded-[20px] overflow-hidden border border-gray-700 backdrop-blur-sm">
-                <div className="grid grid-cols-[120px_1fr_200px_1fr] h-[60px] bg-gray-800/80 border-b border-gray-600 items-center px-[40px]">
+                <div className="grid grid-cols-[120px_1fr_200px_1fr_120px] h-[60px] bg-gray-800/80 border-b border-gray-600 items-center px-[40px]">
                     <div className="text-center text-[28px] font-bold text-gray-500"></div>
                     <div className="text-center text-[28px] font-bold text-red-400">選手名</div>
                     <div className="text-center text-[28px] font-bold text-gray-300">結果</div>
                     <div className="text-center text-[28px] font-bold text-blue-400">選手名</div>
+                    <div className="text-center text-[28px] font-bold text-gray-500"></div>
                 </div>
 
                 <div className="divide-y divide-gray-700/50">
                     {teamMatchResults.map((match, index) => (
-                        <div key={match.matchId} className="grid grid-cols-[120px_1fr_200px_1fr] h-[85px] items-center px-[40px] hover:bg-white/5 transition-colors">
+                        <div key={match.matchId} className="grid grid-cols-[120px_1fr_200px_1fr_120px] h-[85px] items-center px-[40px] hover:bg-white/5 transition-colors">
                             {/* Round Name */}
                             <div className="flex justify-center">
                                 <span className="text-[28px] font-bold text-gray-400 bg-gray-800/50 px-3 py-1 rounded">
@@ -133,6 +134,9 @@ export function TeamResultView({ data }: TeamResultViewProps) {
                                 </div>
                                 <div className="text-[36px] font-bold truncate max-w-[400px]">{match.playerB.displayName}</div>
                             </div>
+
+                            {/* Empty space for balance */}
+                            <div></div>
                         </div>
                     ))}
                 </div>
