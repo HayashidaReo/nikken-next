@@ -111,19 +111,27 @@ export default function MonitorControlPage() {
     else if (snapshot.playerB.score > snapshot.playerA.score) winner = "playerB";
     else winner = "draw";
 
-    // 全試合終了判定
-    let isAllFinished = false;
-    if (activeTournamentType === "team" && teamMatches) {
-      // 現在の試合より後の試合があるかチェック
-      const nextMatch = teamMatches
-        .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
-        .sort((a, b) => a.sortOrder - b.sortOrder)[0];
-      if (!nextMatch) {
-        isAllFinished = true;
-      }
-    }
+    // 常に試合結果を表示する
+    setMatchResult({
+      playerA: snapshot.playerA,
+      playerB: snapshot.playerB,
+      winner,
+    });
+    setViewMode("match_result");
+  };
 
-    if (isAllFinished && teamMatches && teams) {
+  const handleShowTeamResult = () => {
+    if (activeTournamentType === "team" && teamMatches && teams) {
+      const snapshot = useMonitorStore.getState().getMonitorSnapshot();
+
+      // 現在の試合の勝者判定（再計算）
+      let winner: "playerA" | "playerB" | "draw" | "none" = "none";
+      if (snapshot.playerA.score >= 2) winner = "playerA";
+      else if (snapshot.playerB.score >= 2) winner = "playerB";
+      else if (snapshot.playerA.score > snapshot.playerB.score) winner = "playerA";
+      else if (snapshot.playerB.score > snapshot.playerA.score) winner = "playerB";
+      else winner = "draw";
+
       // 全試合終了 -> 団体戦結果表示
       const results = teamMatches.map((m) => {
         // 選手名解決
@@ -177,13 +185,6 @@ export default function MonitorControlPage() {
 
       setTeamMatchResults(results);
       setViewMode("team_result");
-    } else {
-      setMatchResult({
-        playerA: snapshot.playerA,
-        playerB: snapshot.playerB,
-        winner,
-      });
-      setViewMode("match_result");
     }
   };
 
@@ -236,6 +237,18 @@ export default function MonitorControlPage() {
   };
 
   const isSaving = saveIndividualMatchResultMutation.isPending || saveTeamMatchResultMutation.isPending;
+
+  // 全試合終了判定
+  let isAllFinished = false;
+  if (activeTournamentType === "team" && teamMatches) {
+    // 現在の試合より後の試合があるかチェック
+    const nextMatch = teamMatches
+      .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
+      .sort((a, b) => a.sortOrder - b.sortOrder)[0];
+    if (!nextMatch) {
+      isAllFinished = true;
+    }
+  }
 
   // ローディング状態
   if (isLoading) {
@@ -356,9 +369,15 @@ export default function MonitorControlPage() {
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               )}
-              {activeTournamentType === "team" && viewMode === "match_result" && (
+              {activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished && (
                 <Button onClick={handleNextMatch} variant="default" className="bg-green-600 hover:bg-green-700">
                   次の試合へ
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
+              {activeTournamentType === "team" && viewMode === "match_result" && isAllFinished && (
+                <Button onClick={handleShowTeamResult} variant="default" className="bg-purple-600 hover:bg-purple-700">
+                  最終結果を表示
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               )}
