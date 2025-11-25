@@ -49,7 +49,12 @@ export function TimerControl({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onTimerModeChange(timerMode === "countdown" ? "stopwatch" : "countdown")}
+              onClick={() => {
+                const newMode = timerMode === "countdown" ? "stopwatch" : "countdown";
+                onTimerModeChange(newMode);
+                // カウントダウンに切り替える時はデフォルト値、ストップウォッチは0秒
+                onTimeChange(newMode === "countdown" ? defaultMatchTime : 0);
+              }}
               disabled={isTimerRunning}
               className="gap-2"
             >

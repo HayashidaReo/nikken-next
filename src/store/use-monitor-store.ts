@@ -242,7 +242,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   },
 
   setTimerMode: (mode: "countdown" | "stopwatch") => {
-    set({ timerMode: mode, timeRemaining: 0, isTimerRunning: false });
+    set({ timerMode: mode, isTimerRunning: false });
   },
 
   togglePublic: () => {
