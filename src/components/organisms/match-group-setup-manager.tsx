@@ -55,12 +55,14 @@ export function MatchGroupSetupManager() {
         try {
             // 削除
             const toDelete = matchGroups.filter(g => g.matchGroupId && !currentIds.has(g.matchGroupId));
-            for (const group of toDelete) {
-                if (group.matchGroupId) await deleteMatchGroup.mutateAsync(group.matchGroupId);
-            }
+            const deletePromises = toDelete.map(group => {
+                if (group.matchGroupId) return deleteMatchGroup.mutateAsync(group.matchGroupId);
+                return Promise.resolve();
+            });
+            await Promise.all(deletePromises);
 
             // 作成・更新
-            for (const item of data) {
+            const savePromises = data.map(item => {
                 const roundId = resolveRoundId(item);
                 if (!roundId) {
                     throw new Error("ラウンドが選択されていません");
@@ -75,7 +77,7 @@ export function MatchGroupSetupManager() {
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
                     };
-                    await createMatchGroup.mutateAsync(newGroup);
+                    return createMatchGroup.mutateAsync(newGroup);
                 } else {
                     // 更新
                     const patch: Partial<MatchGroupCreate> = {
@@ -85,9 +87,11 @@ export function MatchGroupSetupManager() {
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
                     };
-                    await updateMatchGroup.mutateAsync({ matchGroupId: item.id, patch });
+                    return updateMatchGroup.mutateAsync({ matchGroupId: item.id, patch });
                 }
-            }
+            });
+            await Promise.all(savePromises);
+
             showSuccess("チーム対戦を保存しました");
         } catch (error) {
             showError(error instanceof Error ? error.message : "チーム対戦の保存に失敗しました");
@@ -111,16 +115,18 @@ export function MatchGroupSetupManager() {
 
             // 削除
             const toDelete = teamMatches.filter(m => m.matchId && !currentIds.has(m.matchId));
-            for (const match of toDelete) {
-                if (match.matchId) await deleteTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: match.matchId });
-            }
+            const deletePromises = toDelete.map(match => {
+                if (match.matchId) return deleteTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: match.matchId });
+                return Promise.resolve();
+            });
+            await Promise.all(deletePromises);
 
             // 作成・更新
-            for (const item of data) {
+            const savePromises = data.map(item => {
                 const playerA = teamA.players.find(p => p.playerId === item.playerAId);
                 const playerB = teamB.players.find(p => p.playerId === item.playerBId);
 
-                if (!playerA || !playerB) continue; // 無効なデータはスキップ
+                if (!playerA || !playerB) return Promise.resolve(); // 無効なデータはスキップ
 
                 const roundId = resolveRoundId(item);
                 if (!roundId) {
@@ -139,7 +145,7 @@ export function MatchGroupSetupManager() {
                         },
                         isCompleted: false,
                     };
-                    await createTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, match: newMatch });
+                    return createTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, match: newMatch });
                 } else {
                     // 更新
                     // 更新時は既存の score / hansoku を保持する
@@ -152,9 +158,11 @@ export function MatchGroupSetupManager() {
                             playerB: { ...playerB, teamId: teamB.teamId, score: existingMatch?.players.playerB.score ?? 0, hansoku: existingMatch?.players.playerB.hansoku ?? 0 },
                         },
                     };
-                    await updateTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: item.id, patch });
+                    return updateTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: item.id, patch });
                 }
-            }
+            });
+            await Promise.all(savePromises);
+
             showSuccess("個人試合を保存しました");
         } catch (error) {
             showError(error instanceof Error ? error.message : "個人試合の保存に失敗しました");
