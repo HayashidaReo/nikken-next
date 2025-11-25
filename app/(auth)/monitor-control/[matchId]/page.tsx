@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { useSaveIndividualMatchResult, useSaveTeamMatchResult } from "@/queries/use-match-result";
@@ -19,14 +19,13 @@ import { useMonitorController } from "@/hooks/useMonitorController";
 import { useTeamMatches } from "@/queries/use-team-matches";
 import { useTeams } from "@/queries/use-teams";
 import { useTournament } from "@/queries/use-tournaments";
-import { TeamMatch } from "@/types/match.schema";
 import { useState, useCallback } from "react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
+import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 
 export default function MonitorControlPage() {
   const params = useParams();
-  const router = useRouter();
   const matchId = params.matchId as string;
   const saveIndividualMatchResultMutation = useSaveIndividualMatchResult();
   const saveTeamMatchResultMutation = useSaveTeamMatchResult();
@@ -46,13 +45,9 @@ export default function MonitorControlPage() {
 
   // 団体戦用のデータ取得
   const matchGroupId = useMonitorStore((s) => s.matchGroupId);
-  const currentSortOrder = useMonitorStore((s) => s.sortOrder);
   const setViewMode = useMonitorStore((s) => s.setViewMode);
   const setMatchResult = useMonitorStore((s) => s.setMatchResult);
-  const setTeamMatchResults = useMonitorStore((s) => s.setTeamMatchResults);
-  const setPublic = useMonitorStore((s) => s.setPublic);
   const viewMode = useMonitorStore((s) => s.viewMode);
-  const initializeMatch = useMonitorStore((s) => s.initializeMatch);
   const { data: teamMatches } = useTeamMatches(matchGroupId || null);
   const { data: teams } = useTeams();
   const { data: tournament } = useTournament(orgId, activeTournamentId);
@@ -66,13 +61,19 @@ export default function MonitorControlPage() {
     handleFallbackCancel,
   } = useMonitorController();
 
-  const handleBack = () => {
-    if (activeTournamentType === "team" && matchGroupId) {
-      router.push(`/dashboard?matchGroupId=${matchGroupId}`);
-    } else {
-      router.push("/dashboard");
-    }
-  };
+  // 団体戦コントローラー
+  const {
+    isAllFinished,
+    handleShowTeamResult,
+    handleNextMatch,
+    handleBackToDashboard,
+  } = useTeamMatchController({
+    matchId,
+    activeTournamentType,
+    teamMatches,
+    teams,
+    tournament,
+  });
 
   const handleSave = useCallback(async () => {
     try {
@@ -136,168 +137,7 @@ export default function MonitorControlPage() {
     setViewMode("match_result");
   }, [handleSave, setMatchResult, setViewMode]);
 
-  const handleShowTeamResult = useCallback(() => {
-    if (activeTournamentType === "team" && teamMatches && teams) {
-      const snapshot = useMonitorStore.getState().getMonitorSnapshot();
-
-      // 現在の試合の勝者判定（再計算）
-      let winner: "playerA" | "playerB" | "draw" | "none" = "none";
-      if (snapshot.playerA.score > snapshot.playerB.score) winner = "playerA";
-      else if (snapshot.playerB.score > snapshot.playerA.score) winner = "playerB";
-      else winner = "draw";
-
-      // 全試合終了 -> 団体戦結果表示
-      const results = teamMatches
-        .filter((m) => {
-          // 完了した試合のみを対象とする
-          // 現在の試合は保存されたばかりなので含める
-          return m.isCompleted || m.matchId === matchId;
-        })
-        .map((m) => {
-          // 選手名解決
-          const resolvePlayer = (playerId: string, teamId: string) => {
-            const team = teams.find((t) => t.teamId === teamId);
-            const player = team?.players.find((p) => p.playerId === playerId);
-            return {
-              displayName: player?.displayName || playerId,
-              teamName: team?.teamName || teamId,
-            };
-          };
-          const pA = resolvePlayer(m.players.playerA.playerId, m.players.playerA.teamId);
-          const pB = resolvePlayer(m.players.playerB.playerId, m.players.playerB.teamId);
-
-          let w: "playerA" | "playerB" | "draw" | "none" = "none";
-          if (m.players.playerA.score > m.players.playerB.score) w = "playerA";
-          else if (m.players.playerB.score > m.players.playerA.score) w = "playerB";
-          else if (m.isCompleted || m.matchId === matchId) w = "draw"; // 完了していて同点なら引き分け
-
-          return {
-            matchId: m.matchId || "",
-            sortOrder: m.sortOrder,
-            roundId: m.roundId,
-            playerA: {
-              displayName: pA.displayName,
-              teamName: pA.teamName,
-              score: m.players.playerA.score,
-              hansoku: m.players.playerA.hansoku,
-            },
-            playerB: {
-              displayName: pB.displayName,
-              teamName: pB.teamName,
-              score: m.players.playerB.score,
-              hansoku: m.players.playerB.hansoku,
-            },
-            winner: w,
-          };
-        });
-
-      // 現在の試合（まだ teamMatches に反映されていない可能性があるため、ストアの値で上書き）
-      const currentMatchIndex = results.findIndex(r => r.matchId === matchId);
-      if (currentMatchIndex !== -1) {
-        results[currentMatchIndex] = {
-          ...results[currentMatchIndex],
-          playerA: snapshot.playerA,
-          playerB: snapshot.playerB,
-          winner,
-        };
-      }
-
-      setTeamMatchResults(results);
-      setViewMode("team_result");
-    }
-  }, [activeTournamentType, teamMatches, teams, matchId, setTeamMatchResults, setViewMode]);
-
-  const handleNextMatch = useCallback(async () => {
-    // 3. 次の試合へ
-    if (activeTournamentType === "team" && teamMatches && teams) {
-      const nextMatch = teamMatches
-        .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
-        .sort((a, b) => a.sortOrder - b.sortOrder)[0];
-
-      if (nextMatch) {
-        // 次の試合データを構築
-        // 選手名解決
-        const resolvePlayer = (playerId: string, teamId: string) => {
-          const team = teams.find((t) => t.teamId === teamId);
-          const player = team?.players.find((p) => p.playerId === playerId);
-          return {
-            displayName: player?.displayName || playerId,
-            teamName: team?.teamName || teamId,
-          };
-        };
-
-        const playerAInfo = resolvePlayer(nextMatch.players.playerA.playerId, nextMatch.players.playerA.teamId);
-        const playerBInfo = resolvePlayer(nextMatch.players.playerB.playerId, nextMatch.players.playerB.teamId);
-
-        // initializeMatch を呼び出してストアを更新
-        initializeMatch(nextMatch as TeamMatch, useMonitorStore.getState().tournamentName, useMonitorStore.getState().courtName, {
-          resolvedPlayers: {
-            playerA: {
-              ...nextMatch.players.playerA,
-              displayName: playerAInfo.displayName,
-              teamName: playerAInfo.teamName,
-            },
-            playerB: {
-              ...nextMatch.players.playerB,
-              displayName: playerBInfo.displayName,
-              teamName: playerBInfo.teamName,
-            },
-          },
-          roundName: useMonitorStore.getState().roundName, // 回戦名は変わらない前提
-          defaultMatchTime: tournament?.defaultMatchTime,
-        });
-
-        // 非公開にする
-        setPublic(false);
-
-        // URLを更新して次の試合へ遷移（ルーター経由で遷移することでフックを再実行させる）
-        router.push(`/monitor-control/${nextMatch.matchId}`);
-      }
-    }
-  }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, setPublic, router, tournament]);
-
   const isSaving = saveIndividualMatchResultMutation.isPending || saveTeamMatchResultMutation.isPending;
-
-  // 全試合終了判定
-  let isAllFinished = false;
-  if (activeTournamentType === "team" && teamMatches) {
-    // 現在の試合より後の試合があるかチェック
-    const nextMatch = teamMatches
-      .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
-      .sort((a, b) => a.sortOrder - b.sortOrder)[0];
-
-    if (!nextMatch) {
-      isAllFinished = true;
-    } else if (nextMatch.roundId === '6') {
-      // 5試合目終了時、かつ次は6試合目（代表戦）の場合
-      // ここまでの勝敗を計算する（現在の試合含む）
-      console.log("Checking wins before representative match");
-      let winsA = 0;
-      let winsB = 0;
-
-      teamMatches.forEach((m) => {
-        if (m.sortOrder <= 5) {
-          // 現在の試合については、ストアの最新状態（保存直後）を使用する
-          let scoreA = m.players.playerA.score;
-          let scoreB = m.players.playerB.score;
-
-          if (m.matchId === matchId) {
-            const snapshot = useMonitorStore.getState().getMonitorSnapshot();
-            scoreA = snapshot.playerA.score;
-            scoreB = snapshot.playerB.score;
-          }
-
-          if (scoreA > scoreB) winsA++;
-          else if (scoreB > scoreA) winsB++;
-        }
-      });
-
-      // 勝敗がついている場合は終了とする（代表戦を行わない）
-      if (winsA !== winsB) {
-        isAllFinished = true;
-      }
-    }
-  }
 
   // キーボードショートカット
   const handleEnterKey = useCallback(() => {
@@ -344,7 +184,7 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={handleBack}>
+              <Button variant="outline" onClick={handleBackToDashboard}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 戻る
               </Button>
@@ -371,7 +211,7 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={handleBack}>
+              <Button variant="outline" onClick={handleBackToDashboard}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 戻る
               </Button>
@@ -400,7 +240,7 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={handleBack}>
+              <Button variant="outline" onClick={handleBackToDashboard}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 戻る
               </Button>
@@ -428,7 +268,7 @@ export default function MonitorControlPage() {
         {/* ヘッダー */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleBack}>
+            <Button variant="outline" onClick={handleBackToDashboard}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               戻る
             </Button>            <div className="ml-2">
@@ -474,7 +314,7 @@ export default function MonitorControlPage() {
                 </Button>
               )}
               {activeTournamentType === "team" && viewMode === "team_result" && (
-                <Button onClick={() => handleBack()} variant="outline">
+                <Button onClick={() => handleBackToDashboard()} variant="outline">
                   一覧へ戻る
                 </Button>
               )}
