@@ -229,8 +229,8 @@ export default function MonitorControlPage() {
         // 非公開にする
         setPublic(false);
 
-        // URLも更新しておく（リロード時のため）
-        window.history.pushState(null, "", `/monitor-control/${nextMatch.matchId}`);
+        // URLを更新して次の試合へ遷移（ルーター経由で遷移することでフックを再実行させる）
+        router.push(`/monitor-control/${nextMatch.matchId}`);
       }
     }
   };
