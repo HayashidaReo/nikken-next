@@ -71,6 +71,14 @@ export const matchCreateSchema = matchSchema.omit({
 });
 
 /**
+ * ID指定ありの試合作成用スキーマ
+ * 同期処理などでIDを指定して作成する場合に使用
+ */
+export const matchCreateWithIdSchema = matchCreateSchema.extend({
+  matchId: z.string().min(1, "試合IDは必須です"),
+});
+
+/**
  * 試合結果更新用のスキーマ
  * モニター操作画面で使用
  */
@@ -112,6 +120,7 @@ export type HansokuState = z.infer<typeof hansokuStateEnum>;
 export type MatchPlayer = z.infer<typeof matchPlayerSchema>;
 export type Match = z.infer<typeof matchSchema>;
 export type MatchCreate = z.infer<typeof matchCreateSchema>;
+export type MatchCreateWithId = z.infer<typeof matchCreateWithIdSchema>;
 export type MatchUpdate = z.infer<typeof matchUpdateSchema>;
 export type MatchUpdateRequest = z.infer<typeof matchUpdateRequestSchema>;
 

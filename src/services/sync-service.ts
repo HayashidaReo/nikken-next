@@ -9,7 +9,7 @@ import { localMatchGroupRepository } from '@/repositories/local/match-group-repo
 import { localTeamMatchRepository } from '@/repositories/local/team-match-repository';
 import { localTeamRepository } from '@/repositories/local/team-repository';
 import { tournamentSchema } from '@/types/tournament.schema';
-import type { Match, MatchGroup, TeamMatch } from '@/types/match.schema';
+import type { Match, MatchGroup, TeamMatch, MatchCreateWithId } from '@/types/match.schema';
 import type { Tournament } from '@/types/tournament.schema';
 import type { Team } from '@/types/team.schema';
 
@@ -189,7 +189,8 @@ export const syncService = {
 
                     // matchData は LocalMatch から継承した Match 型のプロパティを持つ
                     // save メソッドに渡す
-                    await matchRepository.save(orgId, tournamentId, matchData);
+                    // 型アサーションを使用して、matchId が存在することを保証
+                    await matchRepository.save(orgId, tournamentId, matchData as MatchCreateWithId);
 
                     // ローカルDBの同期フラグを更新
                     await localMatchRepository.update(match.id!, { isSynced: true });
