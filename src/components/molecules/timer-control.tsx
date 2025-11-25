@@ -67,6 +67,7 @@ export function TimerControl({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    aria-label="タイマーモード切り替え"
                     variant="outline"
                     size="sm"
                     onClick={() => {
