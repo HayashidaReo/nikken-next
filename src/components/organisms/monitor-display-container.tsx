@@ -41,7 +41,23 @@ export function MonitorDisplayContainer({
 
   // 非公開時の表示
   if (!data.isPublic) {
-    return <StandbyScreen />;
+    return (
+      <div
+        className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
+      >
+        <div
+          style={{
+            width: MONITOR_CONSTANTS.BASE_WIDTH,
+            height: MONITOR_CONSTANTS.BASE_HEIGHT,
+            transform: `scale(${scale})`,
+            transformOrigin: "center",
+          }}
+          className="bg-black flex-shrink-0"
+        >
+          <StandbyScreen />
+        </div>
+      </div>
+    );
   }
 
   // モードによる分岐
