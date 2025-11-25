@@ -68,9 +68,10 @@ export class FirestoreMatchRepository implements MatchRepository {
     async create(orgId: string, tournamentId: string, match: MatchCreate): Promise<Match> {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
 
-        // ドキュメントIDを生成
-        const docRef = doc(collectionRef);
-        const matchId = docRef.id;
+        // matchId が指定されている場合はそれを使用、なければ生成
+        const matchWithId = match as MatchCreate & { matchId?: string };
+        const matchId = matchWithId.matchId || doc(collectionRef).id;
+        const docRef = doc(collectionRef, matchId);
 
         const now = Timestamp.now();
 
@@ -97,8 +98,10 @@ export class FirestoreMatchRepository implements MatchRepository {
         // 並列処理で複数の試合を作成
         await Promise.all(
             matches.map(async (match) => {
-                const docRef = doc(collectionRef);
-                const matchId = docRef.id;
+                // matchId が指定されている場合はそれを使用、なければ生成
+                const matchWithId = match as MatchCreate & { matchId?: string };
+                const matchId = matchWithId.matchId || doc(collectionRef).id;
+                const docRef = doc(collectionRef, matchId);
 
                 const now = Timestamp.now();
 

@@ -167,29 +167,34 @@ export const syncService = {
 
         let successCount = 0;
 
-        // 3. Firestoreに保存 (Individual)
-        const uploadResults = await Promise.allSettled(
-            unsyncedMatches.map(match => {
-                if (!match.matchId) return Promise.reject(new Error("matchId is missing"));
-                return matchRepository.update(orgId, tournamentId, match.matchId, {
-                    players: match.players,
-                    isCompleted: match.isCompleted,
-                });
-            })
-        );
+        // 個人戦試合の同期（新規作成 or 更新）
+        for (const match of unsyncedMatches) {
+            if (!match.matchId) {
+                console.error("[SyncService] Match has no matchId, skipping", match);
+                continue;
+            }
 
-        for (let i = 0; i < uploadResults.length; i++) {
-            const result = uploadResults[i];
-            const match = unsyncedMatches[i];
-            if (result.status === "fulfilled") {
-                try {
-                    await localMatchRepository.update(match.id!, { isSynced: true });
-                    successCount++;
-                } catch (error) {
-                    console.error(`[SyncService] Failed to update local flag for match ${match.matchId}`, error);
+            try {
+                // Firestoreに存在するかチェック
+                const existingMatch = await matchRepository.getById(orgId, tournamentId, match.matchId);
+
+                if (existingMatch) {
+                    // 既存試合を更新（結果のみ）
+                    await matchRepository.update(orgId, tournamentId, match.matchId, {
+                        players: match.players,
+                        isCompleted: match.isCompleted,
+                    });
+                } else {
+                    // 新規試合を作成（全フィールド）
+                    const { organizationId: _organizationId, tournamentId: _, isSynced: _isSynced, id: _id, ...matchData } = match;
+                    await matchRepository.create(orgId, tournamentId, matchData);
                 }
-            } else {
-                console.error(`[SyncService] Failed to upload match ${match.matchId}`, result.reason);
+
+                // ローカルDBの同期フラグを更新
+                await localMatchRepository.update(match.id!, { isSynced: true });
+                successCount++;
+            } catch (error) {
+                console.error(`[SyncService] Failed to sync match ${match.matchId}`, error);
             }
         }
 
