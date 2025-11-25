@@ -151,7 +151,7 @@ export default function MonitorControlPage() {
           const team = teams.find((t) => t.teamId === teamId);
           const player = team?.players.find((p) => p.playerId === playerId);
           return {
-            displayName: player ? `${player.lastName} ${player.firstName}` : playerId,
+            displayName: player?.displayName || playerId,
             teamName: team?.teamName || teamId,
           };
         };
@@ -213,7 +213,7 @@ export default function MonitorControlPage() {
           const team = teams.find((t) => t.teamId === teamId);
           const player = team?.players.find((p) => p.playerId === playerId);
           return {
-            displayName: player ? `${player.lastName} ${player.firstName}` : playerId,
+            displayName: player?.displayName || playerId,
             teamName: team?.teamName || teamId,
           };
         };
