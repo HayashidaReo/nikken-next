@@ -209,9 +209,17 @@ export const syncService = {
             unsyncedMatches,
             "match",
             (m) => m.matchId,
-            async (match, _) => {
-                const { organizationId: _1, tournamentId: _2, isSynced: _3, id: _4, _deleted: _5, ...matchData } = match;
-                await matchRepository.save(orgId, tournamentId, matchData as MatchCreateWithId);
+            async (match, id) => {
+                // 必要なプロパティを明示的に指定してオブジェクトを作成（団体戦と同様のアプローチ）
+                const matchData: MatchCreateWithId = {
+                    matchId: id,
+                    courtId: match.courtId,
+                    roundId: match.roundId,
+                    players: match.players,
+                    sortOrder: match.sortOrder,
+                    isCompleted: match.isCompleted,
+                };
+                await matchRepository.save(orgId, tournamentId, matchData);
             },
             async (_, id) => {
                 await matchRepository.delete(orgId, tournamentId, id);
