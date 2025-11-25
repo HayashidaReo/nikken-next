@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Match, MatchGroup, TeamMatch } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
 import type { Court, Round } from "@/types/tournament.schema";
+import { MasterDataProvider } from "@/components/providers/master-data-provider";
 
 interface DashboardContentProps {
     tournamentType: "individual" | "team";
@@ -32,49 +33,49 @@ export function DashboardContent({
     rounds,
     onBack,
 }: DashboardContentProps) {
-    if (tournamentType === "team") {
-        if (matchGroupId) {
-            const group = matchGroups.find((g) => g.matchGroupId === matchGroupId);
-            const teamA = teams.find((t) => t.teamId === group?.teamAId)?.teamName || "";
-            const teamB = teams.find((t) => t.teamId === group?.teamBId)?.teamName || "";
-            const title = `${tournamentName} (${teamA} vs ${teamB})`;
+    const content = (() => {
+        if (tournamentType === "team") {
+            if (matchGroupId) {
+                const group = matchGroups.find((g) => g.matchGroupId === matchGroupId);
+                const teamA = teams.find((t) => t.teamId === group?.teamAId)?.teamName || "";
+                const teamB = teams.find((t) => t.teamId === group?.teamBId)?.teamName || "";
+                const title = `${tournamentName} (${teamA} vs ${teamB})`;
+
+                return (
+                    <>
+                        <div className="mb-4">
+                            <Button variant="outline" onClick={onBack}>
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                一覧に戻る
+                            </Button>
+                        </div>
+                        <TeamMatchListTableMemo
+                            matches={teamMatches}
+                            tournamentName={title}
+                        />
+                    </>
+                );
+            }
 
             return (
-                <>
-                    <div className="mb-4">
-                        <Button variant="outline" onClick={onBack}>
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            一覧に戻る
-                        </Button>
-                    </div>
-                    <TeamMatchListTableMemo
-                        matches={teamMatches}
-                        tournamentName={title}
-                        rounds={rounds}
-                        teams={teams}
-                    />
-                </>
+                <MatchGroupListTableMemo
+                    matchGroups={matchGroups}
+                    tournamentName={tournamentName}
+                />
             );
         }
 
         return (
-            <MatchGroupListTableMemo
-                matchGroups={matchGroups}
-                teams={teams}
+            <MatchListTableMemo
+                matches={matches}
                 tournamentName={tournamentName}
-                courts={courts}
-                rounds={rounds}
             />
         );
-    }
+    })();
 
     return (
-        <MatchListTableMemo
-            matches={matches}
-            tournamentName={tournamentName}
-            courts={courts}
-            rounds={rounds}
-            teams={teams}
-        />
+        <MasterDataProvider teams={teams} courts={courts} rounds={rounds}>
+            {content}
+        </MasterDataProvider>
     );
 }
