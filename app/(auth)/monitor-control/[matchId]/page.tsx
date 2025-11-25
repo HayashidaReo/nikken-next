@@ -259,8 +259,37 @@ export default function MonitorControlPage() {
     const nextMatch = teamMatches
       .filter((m) => m.sortOrder > (currentSortOrder ?? -1))
       .sort((a, b) => a.sortOrder - b.sortOrder)[0];
+
     if (!nextMatch) {
       isAllFinished = true;
+    } else if (nextMatch.roundId === '6') {
+      // 5試合目終了時、かつ次は6試合目（代表戦）の場合
+      // ここまでの勝敗を計算する（現在の試合含む）
+      console.log("Checking wins before representative match");
+      let winsA = 0;
+      let winsB = 0;
+
+      teamMatches.forEach((m) => {
+        if (m.sortOrder <= 5) {
+          // 現在の試合については、ストアの最新状態（保存直後）を使用する
+          let scoreA = m.players.playerA.score;
+          let scoreB = m.players.playerB.score;
+
+          if (m.matchId === matchId) {
+            const snapshot = useMonitorStore.getState().getMonitorSnapshot();
+            scoreA = snapshot.playerA.score;
+            scoreB = snapshot.playerB.score;
+          }
+
+          if (scoreA > scoreB) winsA++;
+          else if (scoreB > scoreA) winsB++;
+        }
+      });
+
+      // 勝敗がついている場合は終了とする（代表戦を行わない）
+      if (winsA !== winsB) {
+        isAllFinished = true;
+      }
     }
   }
 
