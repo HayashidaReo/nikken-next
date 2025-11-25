@@ -74,10 +74,12 @@ export function MatchGroupRow({
         onUpdate(index, "roundName", roundName);
     };
 
-    const teamOptions: SearchableSelectOption[] = useMemo(() => Array.from(teams.values()).map(team => ({
-        value: team.teamId,
-        label: team.teamName,
-    })), [teams]);
+    const teamOptions: SearchableSelectOption[] = useMemo(() => Array.from(teams.values())
+        .filter(team => team.isApproved)
+        .map(team => ({
+            value: team.teamId,
+            label: team.teamName,
+        })), [teams]);
 
     return (
         <AnimatedTableRow
