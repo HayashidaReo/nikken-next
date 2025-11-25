@@ -35,15 +35,15 @@ export function TeamResultView({ data }: TeamResultViewProps) {
                 <div className={cn(
                     "flex-1 flex flex-col items-center justify-center rounded-[20px] border-[4px] transition-all duration-500 relative",
                     teamWinner === "teamA"
-                        ? "border-blue-500 bg-blue-900/30 shadow-[0_0_60px_rgba(59,130,246,0.3)]"
+                        ? "border-red-500 bg-red-900/30 shadow-[0_0_60px_rgba(239,68,68,0.3)]"
                         : "border-gray-700 bg-gray-900/30"
                 )}>
                     {teamWinner === "teamA" && (
-                        <div className="absolute -top-[30px] bg-blue-600 text-white px-[30px] py-[5px] rounded-full text-[24px] font-bold shadow-lg">
+                        <div className="absolute -top-[30px] bg-red-600 text-white px-[30px] py-[5px] rounded-full text-[24px] font-bold shadow-lg">
                             WINNER
                         </div>
                     )}
-                    <div className="text-[48px] font-bold text-blue-300 mb-[10px] max-w-[600px] truncate px-[20px]">
+                    <div className="text-[48px] font-bold text-red-300 mb-[10px] max-w-[600px] truncate px-[20px]">
                         {teamAName}
                     </div>
                     <div className="flex items-baseline gap-[10px]">
@@ -58,15 +58,15 @@ export function TeamResultView({ data }: TeamResultViewProps) {
                 <div className={cn(
                     "flex-1 flex flex-col items-center justify-center rounded-[20px] border-[4px] transition-all duration-500 relative",
                     teamWinner === "teamB"
-                        ? "border-red-500 bg-red-900/30 shadow-[0_0_60px_rgba(239,68,68,0.3)]"
+                        ? "border-blue-500 bg-blue-900/30 shadow-[0_0_60px_rgba(59,130,246,0.3)]"
                         : "border-gray-700 bg-gray-900/30"
                 )}>
                     {teamWinner === "teamB" && (
-                        <div className="absolute -top-[30px] bg-red-600 text-white px-[30px] py-[5px] rounded-full text-[24px] font-bold shadow-lg">
+                        <div className="absolute -top-[30px] bg-blue-600 text-white px-[30px] py-[5px] rounded-full text-[24px] font-bold shadow-lg">
                             WINNER
                         </div>
                     )}
-                    <div className="text-[48px] font-bold text-red-300 mb-[10px] max-w-[600px] truncate px-[20px]">
+                    <div className="text-[48px] font-bold text-blue-300 mb-[10px] max-w-[600px] truncate px-[20px]">
                         {teamBName}
                     </div>
                     <div className="flex items-baseline gap-[10px]">
@@ -79,9 +79,9 @@ export function TeamResultView({ data }: TeamResultViewProps) {
             {/* Match List */}
             <div className="relative z-10 w-[1600px] bg-gray-900/60 rounded-[20px] overflow-hidden border border-gray-700 backdrop-blur-sm">
                 <div className="grid grid-cols-[1fr_200px_1fr] h-[60px] bg-gray-800/80 border-b border-gray-600 items-center px-[40px]">
-                    <div className="text-center text-[24px] font-bold text-blue-400">選手名</div>
-                    <div className="text-center text-[24px] font-bold text-gray-300">結果</div>
                     <div className="text-center text-[24px] font-bold text-red-400">選手名</div>
+                    <div className="text-center text-[24px] font-bold text-gray-300">結果</div>
+                    <div className="text-center text-[24px] font-bold text-blue-400">選手名</div>
                 </div>
 
                 <div className="divide-y divide-gray-700/50">
@@ -92,7 +92,7 @@ export function TeamResultView({ data }: TeamResultViewProps) {
                                 <div className="text-[32px] font-bold truncate max-w-[400px]">{match.playerA.displayName}</div>
                                 <div className={cn(
                                     "text-[48px] font-black w-[60px] text-center leading-none",
-                                    match.winner === "playerA" ? "text-blue-400" : "text-gray-600"
+                                    match.winner === "playerA" ? "text-red-400" : "text-gray-600"
                                 )}>
                                     {match.playerA.score}
                                 </div>
@@ -106,9 +106,9 @@ export function TeamResultView({ data }: TeamResultViewProps) {
                                 ) : (
                                     <div className="flex items-center gap-[10px]">
                                         {match.winner === "playerA" ? (
-                                            <span className="text-[32px] font-black text-blue-500">◀ WIN</span>
+                                            <span className="text-[32px] font-black text-red-500">◀ WIN</span>
                                         ) : (
-                                            <span className="text-[32px] font-black text-red-500">WIN ▶</span>
+                                            <span className="text-[32px] font-black text-blue-500">WIN ▶</span>
                                         )}
                                     </div>
                                 )}
@@ -118,7 +118,7 @@ export function TeamResultView({ data }: TeamResultViewProps) {
                             <div className={cn("flex items-center justify-start gap-[30px]", match.winner === "playerB" ? "opacity-100" : "opacity-50")}>
                                 <div className={cn(
                                     "text-[48px] font-black w-[60px] text-center leading-none",
-                                    match.winner === "playerB" ? "text-red-400" : "text-gray-600"
+                                    match.winner === "playerB" ? "text-blue-400" : "text-gray-600"
                                 )}>
                                     {match.playerB.score}
                                 </div>

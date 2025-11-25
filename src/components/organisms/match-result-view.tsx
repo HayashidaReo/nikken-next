@@ -32,7 +32,7 @@ export function MatchResultView({ data }: MatchResultViewProps) {
                 <div className={cn(
                     "w-[600px] h-[600px] flex flex-col items-center justify-center rounded-[40px] border-[6px] transition-all duration-500 relative",
                     winner === "playerA"
-                        ? "border-blue-500 bg-blue-900/40 shadow-[0_0_100px_rgba(59,130,246,0.4)] scale-105 z-20"
+                        ? "border-red-500 bg-red-900/40 shadow-[0_0_100px_rgba(239,68,68,0.4)] scale-105 z-20"
                         : "border-gray-700 bg-gray-900/40 opacity-80 scale-95 z-10"
                 )}>
                     {winner === "playerA" && (
@@ -41,7 +41,7 @@ export function MatchResultView({ data }: MatchResultViewProps) {
                         </div>
                     )}
 
-                    <div className="text-[48px] text-blue-300 mb-[20px] font-bold tracking-wide max-w-[500px] truncate">
+                    <div className="text-[48px] text-red-300 mb-[20px] font-bold tracking-wide max-w-[500px] truncate">
                         {playerA.teamName}
                     </div>
                     <div className="text-[80px] font-bold mb-[40px] leading-tight max-w-[540px] text-center line-clamp-2">
@@ -78,7 +78,7 @@ export function MatchResultView({ data }: MatchResultViewProps) {
                 <div className={cn(
                     "w-[600px] h-[600px] flex flex-col items-center justify-center rounded-[40px] border-[6px] transition-all duration-500 relative",
                     winner === "playerB"
-                        ? "border-red-500 bg-red-900/40 shadow-[0_0_100px_rgba(239,68,68,0.4)] scale-105 z-20"
+                        ? "border-blue-500 bg-blue-900/40 shadow-[0_0_100px_rgba(59,130,246,0.4)] scale-105 z-20"
                         : "border-gray-700 bg-gray-900/40 opacity-80 scale-95 z-10"
                 )}>
                     {winner === "playerB" && (
@@ -87,7 +87,7 @@ export function MatchResultView({ data }: MatchResultViewProps) {
                         </div>
                     )}
 
-                    <div className="text-[48px] text-red-300 mb-[20px] font-bold tracking-wide max-w-[500px] truncate">
+                    <div className="text-[48px] text-blue-300 mb-[20px] font-bold tracking-wide max-w-[500px] truncate">
                         {playerB.teamName}
                     </div>
                     <div className="text-[80px] font-bold mb-[40px] leading-tight max-w-[540px] text-center line-clamp-2">
