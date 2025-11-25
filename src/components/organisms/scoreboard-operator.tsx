@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import {
@@ -9,8 +8,8 @@ import {
   TimerControl,
 } from "@/components/molecules";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { useMonitorSender } from "@/hooks/useMonitorSender";
 import { useGameTimer } from "@/hooks/useGameTimer";
+import { useMonitorSync } from "@/hooks/useMonitorSync";
 
 interface ScoreboardOperatorProps {
   organizationId: string;
@@ -24,7 +23,6 @@ export function ScoreboardOperator({
   className
 }: ScoreboardOperatorProps) {
   const {
-    matchId,
     courtName,
     roundName,
     tournamentName,
@@ -33,10 +31,6 @@ export function ScoreboardOperator({
     timeRemaining,
     isTimerRunning,
     timerMode,
-    isPublic,
-    viewMode,
-    matchResult,
-    teamMatchResults,
     setPlayerScore,
     setPlayerHansoku,
     setTimeRemaining,
@@ -46,33 +40,14 @@ export function ScoreboardOperator({
     selectedPlayer,
   } = useMonitorStore();
 
-  const { sendMessage } = useMonitorSender();
-
   // キーボードショートカットの有効化
   useKeyboardShortcuts();
 
   // タイマー処理
   useGameTimer();
 
-  useEffect(() => {
-    // データを送信
-    const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-    sendMessage("data", monitorData);
-  }, [
-    matchId,
-    tournamentName,
-    courtName,
-    roundName,
-    playerA,
-    playerB,
-    timeRemaining,
-    isTimerRunning,
-    isPublic,
-    viewMode,
-    matchResult,
-    teamMatchResults,
-    sendMessage,
-  ]);
+  // モニター同期処理
+  useMonitorSync();
 
   return (
     <div className={cn("w-full mx-auto space-y-4", className)}>
