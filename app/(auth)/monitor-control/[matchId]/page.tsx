@@ -37,7 +37,7 @@ export default function MonitorControlPage() {
   const togglePublic = useMonitorStore((s) => s.togglePublic);
 
   const { orgId, activeTournamentId, activeTournamentType } = useAuthContext();
-  const { showSuccess, showError } = useToast();
+  const { showError } = useToast();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // データ取得ロジック（ストア優先）
@@ -103,13 +103,11 @@ export default function MonitorControlPage() {
           await saveTeamMatchResultMutation.mutateAsync(request);
         }
       }
-
-      showSuccess("試合結果を保存しました");
     } catch (err) {
       console.error(err);
       showError("試合結果の保存に失敗しました");
     }
-  }, [orgId, activeTournamentId, activeTournamentType, saveTeamMatchResultMutation, saveIndividualMatchResultMutation, showSuccess, showError]);
+  }, [orgId, activeTournamentId, activeTournamentType, saveTeamMatchResultMutation, saveIndividualMatchResultMutation, showError]);
 
   const handleConfirmMatchClick = useCallback(() => {
     setShowConfirmDialog(true);
@@ -136,7 +134,7 @@ export default function MonitorControlPage() {
     setViewMode("match_result");
   }, [handleSave, setMatchResult, setViewMode]);
 
-  const handleShowTeamResult = () => {
+  const handleShowTeamResult = useCallback(() => {
     if (activeTournamentType === "team" && teamMatches && teams) {
       const snapshot = useMonitorStore.getState().getMonitorSnapshot();
 
@@ -198,7 +196,7 @@ export default function MonitorControlPage() {
       setTeamMatchResults(results);
       setViewMode("team_result");
     }
-  };
+  }, [activeTournamentType, teamMatches, teams, matchId, setTeamMatchResults, setViewMode]);
 
   const handleNextMatch = useCallback(async () => {
     // 3. 次の試合へ
@@ -281,6 +279,12 @@ export default function MonitorControlPage() {
       handleNextMatch();
       return;
     }
+
+    // 最終結果を表示ボタンが表示されている場合 -> 最終結果を表示
+    if (activeTournamentType === "team" && viewMode === "match_result" && isAllFinished) {
+      handleShowTeamResult();
+      return;
+    }
   }, [
     showConfirmDialog,
     activeTournamentType,
@@ -289,6 +293,7 @@ export default function MonitorControlPage() {
     handleConfirmMatchExecute,
     handleNextMatch,
     handleConfirmMatchClick,
+    handleShowTeamResult,
   ]);
 
   useKeyboardShortcuts({ onEnter: handleEnterKey });
@@ -423,9 +428,10 @@ export default function MonitorControlPage() {
                 </Button>
               )}
               {activeTournamentType === "team" && viewMode === "match_result" && isAllFinished && (
-                <Button onClick={handleShowTeamResult} variant="default" className="bg-purple-600 hover:bg-purple-700">
+                <Button onClick={handleShowTeamResult} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
                   最終結果を表示
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  <ShortcutBadge shortcut="Enter" className="bg-purple-700 text-purple-100 border-purple-500" />
+                  <ChevronRight className="w-4 h-4" />
                 </Button>
               )}
               {activeTournamentType === "team" && viewMode === "team_result" && (
