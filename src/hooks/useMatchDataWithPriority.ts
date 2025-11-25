@@ -1,14 +1,6 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { useMatch } from "@/queries/use-matches";
-import { useTeamMatch } from "@/queries/use-team-matches";
-import { useTournament } from "@/queries/use-tournaments";
-import { useAuthContext } from "@/hooks/useAuthContext";
-import { useMatchGroups } from "@/queries/use-match-groups";
-import { useTeams } from "@/queries/use-teams";
-import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
-import { findRoundName } from "@/lib/utils/round-utils";
-import { getTeamMatchRoundLabelById } from "@/lib/constants";
+import { useResolvedMatchData } from "@/hooks/useResolvedMatchData";
 
 interface UseMatchDataWithPriorityResult {
     isLoading: boolean;
@@ -22,50 +14,23 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
     const storeMatchId = useMonitorStore((s) => s.matchId);
     const storeTournamentName = useMonitorStore((s) => s.tournamentName);
 
-    const { orgId, activeTournamentId, activeTournamentType, isLoading: authLoading } = useAuthContext();
-
     // ストア優先: ストアに現在の matchId のデータがあれば Firebase クエリは無効化する
     const hasStoreData = Boolean(storeMatchId && storeMatchId === matchId && storeTournamentName);
 
-    // 大会種別に基づいて取得するデータを制御
-    // typeが未設定の場合は両方取得を試みる（互換性のため）
-    const shouldFetchIndividual = !hasStoreData && (activeTournamentType === "individual" || !activeTournamentType);
-    const shouldFetchTeam = !hasStoreData && (activeTournamentType === "team" || !activeTournamentType);
-
-    // 個人戦データを取得
-    const { data: individualMatch, isLoading: individualLoading, error: individualError } = useMatch(shouldFetchIndividual ? matchId : null);
-
-    // 団体戦データを取得
-    const { data: teamMatch, isLoading: teamLoading, error: teamError } = useTeamMatch(shouldFetchTeam ? matchId : null);
-
-    const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(
-        hasStoreData ? null : orgId,
-        hasStoreData ? null : activeTournamentId
-    );
-
-    const { data: matchGroups = [], isLoading: matchGroupsLoading } = useMatchGroups();
-    const { data: teams = [], isLoading: teamsLoading } = useTeams();
-    const playerDirectory = useMemo(() => createPlayerDirectory(teams), [teams]);
-
-    // どちらかのデータがあればOK
-    const match = individualMatch || teamMatch;
-
-    // ロード状態の判定:
-    // データが見つかればロード完了とみなす
-    // データが見つかっていない場合、取得対象のいずれかがロード中ならロード中とみなす
-    const isMatchLoading = !match && ((shouldFetchIndividual && individualLoading) || (shouldFetchTeam && teamLoading));
+    // データ取得と解決ロジックを分離したフックを使用
+    const {
+        match,
+        tournament,
+        courtName,
+        roundName,
+        resolvedPlayers,
+        isLoading,
+        error
+    } = useResolvedMatchData(matchId);
 
     // ストア優先のため、ストアデータがある場合は fetch 側の loading/error を無視する
-    // チーム情報やマッチグループ情報も必須なため、それらのロードも待つ
-    const isLoading = authLoading || (!hasStoreData && (isMatchLoading || tournamentLoading || matchGroupsLoading || teamsLoading));
-
-    // エラー判定
-    const hasError = !hasStoreData && !match && !isLoading && (
-        (shouldFetchIndividual && individualError) ||
-        (shouldFetchTeam && teamError) ||
-        tournamentError ||
-        (!individualMatch && !teamMatch)
-    );
+    const effectiveIsLoading = !hasStoreData && isLoading;
+    const effectiveHasError = !hasStoreData && error;
 
     useEffect(() => {
         // ストアに既にデータがある場合は初期化不要
@@ -76,44 +41,16 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
 
         // Firebase から取得したデータで初期化（フォールバック）
         if (match && tournament) {
-            let courtId = "";
-            if ("courtId" in match) {
-                courtId = match.courtId;
-            } else if ("matchGroupId" in match) {
-                const group = matchGroups.find(g => g.matchGroupId === match.matchGroupId);
-                courtId = group?.courtId || "";
-            }
-
-            const court = tournament.courts.find(
-                (c: { courtId: string; courtName: string }) => c.courtId === courtId
-            );
-            const courtName = court ? court.courtName : courtId;
-
-            const resolvedPlayers = {
-                playerA: resolveMatchPlayer(match.players.playerA, playerDirectory),
-                playerB: resolveMatchPlayer(match.players.playerB, playerDirectory),
-            };
-
-            // 大会種別に応じてラウンド名を解決
-            let roundName: string;
-            if (activeTournamentType === "team" || teamMatch) {
-                // 団体戦の場合はconstantsから取得
-                roundName = getTeamMatchRoundLabelById(match.roundId) || match.roundId;
-            } else {
-                // 個人戦の場合はtournament.roundsから取得
-                roundName = findRoundName(match.roundId, tournament.rounds);
-            }
-
             initializeMatch(match, tournament.tournamentName, courtName, {
                 resolvedPlayers,
                 roundName,
             });
         }
-    }, [hasStoreData, match, tournament, initializeMatch, matchGroups, playerDirectory, isLoading, activeTournamentType, teamMatch]);
+    }, [hasStoreData, match, tournament, initializeMatch, courtName, roundName, resolvedPlayers, isLoading]);
 
     return {
-        isLoading,
-        hasError: hasError ? (hasError instanceof Error ? hasError : true) : null,
+        isLoading: effectiveIsLoading,
+        hasError: effectiveHasError ? (effectiveHasError instanceof Error ? effectiveHasError : true) : null,
         matchFound: hasStoreData || !!match,
     };
 }
