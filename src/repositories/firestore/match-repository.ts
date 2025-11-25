@@ -127,47 +127,42 @@ export class FirestoreMatchRepository implements MatchRepository {
     }
 
     /**
-     * Transaction を使って競合を回避しながら更新
-     * 複数端末での同時編集に対応
-     * 1. 最新データを読み取り
-     * 2. patch とマージ
-     * 3. 書き込み
+     * 試合情報を更新する
+     * 存在しない場合はエラーを投げる
      */
     async update(orgId: string, tournamentId: string, matchId: string, patch: Partial<Match>): Promise<Match> {
         const collectionRef = this.getCollectionRef(orgId, tournamentId);
         const docRef = doc(collectionRef, matchId);
 
-        await runTransaction(db, async (transaction) => {
-            // 1. トランザクション内で最新データを読み取り
-            const snap = await transaction.get(docRef);
-            if (!snap.exists()) {
-                throw new Error(`Match document not found: ${matchId}`);
-            }
+        // 1. 最新データを読み取り
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) {
+            throw new Error(`Match document not found: ${matchId}`);
+        }
 
-            const currentData = snap.data() as FirestoreMatchDoc;
-            const currentMatch = MatchMapper.toDomain({ ...currentData, id: snap.id });
+        const currentData = snap.data() as FirestoreMatchDoc;
+        const currentMatch = MatchMapper.toDomain({ ...currentData, id: snap.id });
 
-            // 2. 最新データに patch をマージ
-            const mergedMatch: Match = {
-                ...currentMatch,
-                ...patch,
-                matchId: currentMatch.matchId, // matchId は変更しない
-                createdAt: currentMatch.createdAt, // createdAt は変更しない
-                updatedAt: new Date(), // 新しい更新日時（後で serverTimestamp に置き換わる）
-            };
+        // 2. 最新データに patch をマージ
+        const mergedMatch: Match = {
+            ...currentMatch,
+            ...patch,
+            matchId: currentMatch.matchId, // matchId は変更しない
+            createdAt: currentMatch.createdAt, // createdAt は変更しない
+            updatedAt: new Date(), // 新しい更新日時
+        };
 
-            // 3. Firestore 形式に変換して書き込み
-            const updateData = MatchMapper.toFirestoreForUpdate(mergedMatch);
-            transaction.update(docRef, {
-                ...updateData as Partial<DocumentData>,
-                updatedAt: Timestamp.now(),
-            });
-        });
+        // 3. Firestore 形式に変換して書き込み
+        const updateData = MatchMapper.toFirestoreForUpdate(mergedMatch);
+        await setDoc(docRef, {
+            ...updateData,
+            updatedAt: Timestamp.now(),
+        }, { merge: true });
 
-        // トランザクション完了後、最新データを取得して返す
+        // 更新後のデータを取得して返す
         const finalSnap = await getDoc(docRef);
         const finalData = finalSnap.data() as FirestoreMatchDoc | undefined;
-        if (!finalData) throw new Error("Updated document has no data after transaction");
+        if (!finalData) throw new Error("Updated document has no data");
         return MatchMapper.toDomain({ ...finalData, id: finalSnap.id });
     }
 
