@@ -70,10 +70,10 @@ export class LocalMatchRepository {
      * 未同期の試合を取得
      */
     async getUnsynced(orgId: string, tournamentId: string): Promise<LocalMatch[]> {
-        const matches = await db.matches
+        return await db.matches
             .where({ organizationId: orgId, tournamentId })
+            .filter(m => m.isSynced === false)
             .toArray();
-        return matches.filter(m => m.isSynced === false);
     }
 
     /**

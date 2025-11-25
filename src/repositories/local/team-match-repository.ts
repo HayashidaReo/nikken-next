@@ -28,10 +28,10 @@ export class LocalTeamMatchRepository {
     }
 
     async getUnsynced(orgId: string, tournamentId: string): Promise<LocalTeamMatch[]> {
-        const matches = await db.teamMatches
+        return await db.teamMatches
             .where({ organizationId: orgId, tournamentId })
+            .filter(m => m.isSynced === false)
             .toArray();
-        return matches.filter(m => m.isSynced === false);
     }
 
     async countUnsynced(orgId: string, tournamentId: string): Promise<number> {
