@@ -116,6 +116,7 @@ export function RepMatchSetupDialog({
                             options={teamAOptions}
                             placeholder="選手を選択してください"
                             searchPlaceholder="選手名で検索..."
+                            className="h-10"
                         />
                     </div>
 
@@ -130,6 +131,7 @@ export function RepMatchSetupDialog({
                             options={teamBOptions}
                             placeholder="選手を選択してください"
                             searchPlaceholder="選手名で検索..."
+                            className="h-10"
                         />
                     </div>
 
