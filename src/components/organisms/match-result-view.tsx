@@ -1,5 +1,6 @@
 import { MonitorData } from "@/types/monitor.schema";
 import { cn } from "@/lib/utils/utils";
+import { getPenaltyCards, HansokuLevel } from "@/lib/utils/penalty-utils";
 
 interface MatchResultViewProps {
     data: MonitorData;
@@ -10,6 +11,9 @@ export function MatchResultView({ data }: MatchResultViewProps) {
     if (!matchResult) return null;
 
     const { playerA, playerB, winner } = matchResult;
+
+    const playerACards = getPenaltyCards(playerA.hansoku as HansokuLevel);
+    const playerBCards = getPenaltyCards(playerB.hansoku as HansokuLevel);
 
     return (
         <div className="w-[1920px] h-[1080px] flex flex-col items-center justify-center bg-black text-white relative overflow-hidden">
@@ -47,17 +51,21 @@ export function MatchResultView({ data }: MatchResultViewProps) {
                         {playerA.score}
                     </div>
 
-                    <div className="flex gap-[12px] mt-[20px]">
-                        {/* 反則表示 */}
-                        {Array.from({ length: 4 }).map((_, i) => (
-                            <div
-                                key={i}
-                                className={cn(
-                                    "w-[40px] h-[40px] rounded-full border-2 border-white/50",
-                                    i < playerA.hansoku ? "bg-red-600 border-white shadow-[0_0_10px_rgba(220,38,38,0.8)]" : "bg-transparent"
-                                )}
-                            />
-                        ))}
+                    <div className="flex gap-[20px] mt-[20px] h-[100px] items-center justify-center">
+                        {/* 反則カード表示 */}
+                        {playerACards.length > 0 ? (
+                            playerACards.map((card, i) => (
+                                <div
+                                    key={i}
+                                    className={cn(
+                                        "w-[60px] h-[90px] rounded-[8px] border-[3px] border-white shadow-lg",
+                                        card.type === "yellow" ? "bg-yellow-400" : "bg-red-600"
+                                    )}
+                                />
+                            ))
+                        ) : (
+                            <div className="h-[90px]" />
+                        )}
                     </div>
                 </div>
 
@@ -89,17 +97,21 @@ export function MatchResultView({ data }: MatchResultViewProps) {
                         {playerB.score}
                     </div>
 
-                    <div className="flex gap-[12px] mt-[20px]">
-                        {/* 反則表示 */}
-                        {Array.from({ length: 4 }).map((_, i) => (
-                            <div
-                                key={i}
-                                className={cn(
-                                    "w-[40px] h-[40px] rounded-full border-2 border-white/50",
-                                    i < playerB.hansoku ? "bg-red-600 border-white shadow-[0_0_10px_rgba(220,38,38,0.8)]" : "bg-transparent"
-                                )}
-                            />
-                        ))}
+                    <div className="flex gap-[20px] mt-[20px] h-[100px] items-center justify-center">
+                        {/* 反則カード表示 */}
+                        {playerBCards.length > 0 ? (
+                            playerBCards.map((card, i) => (
+                                <div
+                                    key={i}
+                                    className={cn(
+                                        "w-[60px] h-[90px] rounded-[8px] border-[3px] border-white shadow-lg",
+                                        card.type === "yellow" ? "bg-yellow-400" : "bg-red-600"
+                                    )}
+                                />
+                            ))
+                        ) : (
+                            <div className="h-[90px]" />
+                        )}
                     </div>
                 </div>
             </div>
