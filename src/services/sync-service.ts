@@ -210,7 +210,7 @@ export const syncService = {
             "match",
             (m) => m.matchId,
             async (match, id) => {
-                // 必要なプロパティを明示的に指定してオブジェクトを作成（団体戦と同様のアプローチ）
+                // 必要なプロパティを明示的に指定してオブジェクトを作成
                 const matchData: MatchCreateWithId = {
                     matchId: id,
                     courtId: match.courtId,
