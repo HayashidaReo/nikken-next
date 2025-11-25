@@ -197,9 +197,9 @@ export class MatchData {
     /**
      * 特定のラウンドの試合を取得
      */
-    async getMatchesByRound(round: string): Promise<Match[]> {
+    async getMatchesByRound(roundId: string): Promise<Match[]> {
         return this.queryMatches([
-            where("round", "==", round),
+            where("roundId", "==", roundId),
             orderBy("createdAt", "asc"),
         ]);
     }

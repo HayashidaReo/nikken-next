@@ -18,7 +18,11 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Firebase サービスの取得
 export const auth = getAuth(app);
+
+// Firestore インスタンスを取得
+// 既存インスタンスがあればそれを返す getFirestore を使用します。
 export const db = getFirestore(app);
+
 
 // デフォルトエクスポート
 export default app;

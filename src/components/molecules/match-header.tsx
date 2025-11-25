@@ -4,14 +4,14 @@ import { Trophy, MapPin, Repeat } from "lucide-react";
 interface MatchHeaderProps {
   tournamentName: string;
   courtName: string;
-  round: string;
+  roundName: string;
   className?: string;
 }
 
 export function MatchHeader({
   tournamentName,
   courtName,
-  round,
+  roundName,
   className,
 }: MatchHeaderProps) {
   return (
@@ -61,7 +61,7 @@ export function MatchHeader({
         </div>
         <div className="absolute inset-0 flex items-start justify-center px-4 pt-7">
           <p className="font-bold text-lg text-gray-900 text-center leading-tight">
-            {round}
+            {roundName}
           </p>
         </div>
       </div>

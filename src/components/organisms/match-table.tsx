@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/atoms/car
 import { Table, TableHeader, TableRow, TableBody, TableHead } from "@/components/atoms/table";
 
 interface MatchTableProps {
-    title?: string;
+    title?: ReactNode;
     columns: ColumnDef[];
     children: ReactNode;
     className?: string;
@@ -19,7 +19,7 @@ export function MatchTable({ title, columns, children, className, headerRight }:
         <Card className={cn("w-full", className)}>
             {(title || headerRight) && (
                 <CardHeader className="flex-row items-center justify-between space-y-0">
-                    {title ? <CardTitle className="text-xl">{title}</CardTitle> : <div />}
+                    {title ? <CardTitle className="text-xl flex-1">{title}</CardTitle> : <div className="flex-1" />}
                     {headerRight ?? null}
                 </CardHeader>
             )}

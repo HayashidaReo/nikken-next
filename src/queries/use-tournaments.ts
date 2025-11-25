@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Tournament } from "@/types/tournament.schema";
-import { createApiError } from "@/lib/utils/api-error";
+import { useLiveQuery } from "dexie-react-hooks";
+import { localTournamentRepository } from "@/repositories/local/tournament-repository";
 
 /**
  * Query Keys for Tournament entities
@@ -15,72 +16,91 @@ export const tournamentKeys = {
 };
 
 /**
- * 組織内の大会一覧を取得するQuery
+ * 組織内の大会一覧を取得するQuery (Local First)
+ *
+ * アーキテクチャ: Local First
+ * 1. まずローカルDB (Dexie) からデータを即座に取得して表示します (useLiveQuery)。
+ * 2. バックグラウンドでAPIから最新データを取得し (useQuery)、ローカルDBを更新します。
+ * 3. ローカルDBが更新されると、useLiveQuery が自動的に再描画をトリガーします。
+ *
+ * これにより、オフライン時でもデータが表示され、オンライン復帰時に自動的に同期されます。
  */
 export function useTournamentsByOrganization(orgId: string | null) {
-    return useQuery({
-        queryKey: [...tournamentKeys.lists(), "organization", orgId],
+    // 1. Local Data (Immediate)
+    const localTournaments = useLiveQuery(
+        () => (orgId ? localTournamentRepository.listByOrganization(orgId) : []),
+        [orgId]
+    );
+
+    // 2. Remote Sync (Background)
+    useQuery({
+        queryKey: [...tournamentKeys.lists(), "organization", orgId, "sync"],
         queryFn: async () => {
-            if (!orgId) throw new Error("Organization ID is required");
+            if (!orgId) return null;
 
-            const response = await fetch(`/api/tournaments/${orgId}`);
-            if (!response.ok) {
-                throw await createApiError(response);
+            // タイムアウト付きでフェッチ (5秒)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            try {
+                const response = await fetch(`/api/tournaments/${orgId}`, { signal: controller.signal });
+
+                if (!response.ok) {
+                    // オフラインやサーバーエラーの場合は無視してローカルデータを使用
+                    return null;
+                }
+
+                const data = await response.json();
+                const tournaments = data.data || [];
+
+                // ローカルDBを更新
+                // APIから返ってくるISO文字列をDateに変換して保存
+                const localTournaments = tournaments.map((t: Tournament) => ({
+                    ...t,
+                    organizationId: orgId,
+                    tournamentDate: t.tournamentDate ? new Date(t.tournamentDate) : null,
+                    createdAt: t.createdAt ? new Date(t.createdAt) : undefined,
+                    updatedAt: t.updatedAt ? new Date(t.updatedAt) : undefined,
+                }));
+
+                await localTournamentRepository.bulkPut(localTournaments);
+                return tournaments;
+            } catch {
+                // タイムアウトやネットワークエラーは無視
+                return null;
+            } finally {
+                clearTimeout(timeoutId);
             }
-
-            const data = await response.json();
-            const tournaments = data.data || [];
-
-            // APIから返ってくるISO文字列をDateに変換
-            return tournaments.map((tournament: Tournament) => ({
-                ...tournament,
-                tournamentDate: tournament.tournamentDate ? new Date(tournament.tournamentDate) : null,
-                createdAt: tournament.createdAt ? new Date(tournament.createdAt) : undefined,
-                updatedAt: tournament.updatedAt ? new Date(tournament.updatedAt) : undefined,
-            }));
         },
         enabled: !!orgId,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 1000 * 60 * 5, // 5分間は再フェッチしない
+        retry: 1,
     });
+
+    return {
+        data: localTournaments ?? [],
+        isLoading: localTournaments === undefined,
+        error: null as Error | null,
+    };
 }
 
 /**
- * 特定の大会情報を取得するQuery
+ * 特定の大会情報を取得するQuery (Local DB)
  */
 export function useTournament(
     orgId: string | null,
     tournamentId: string | null
 ) {
-    return useQuery({
-        queryKey: [...tournamentKeys.detail(`${orgId}/${tournamentId}`)],
-        queryFn: async () => {
-            if (!orgId || !tournamentId) {
-                throw new Error("Organization ID and Tournament ID are required");
-            }
+    const tournament = useLiveQuery(async () => {
+        if (!orgId || !tournamentId) return undefined;
+        return await localTournamentRepository.getById(orgId, tournamentId);
+    }, [orgId, tournamentId]);
 
-            const response = await fetch(`/api/tournaments/${orgId}/${tournamentId}`);
-            if (!response.ok) {
-                throw await createApiError(response);
-            }
-
-            const data = await response.json();
-            const tournament = data.tournament;
-
-            // APIから返ってくるISO文字列をDateに変換
-            if (tournament) {
-                return {
-                    ...tournament,
-                    tournamentDate: tournament.tournamentDate ? new Date(tournament.tournamentDate) : null,
-                    createdAt: tournament.createdAt ? new Date(tournament.createdAt) : undefined,
-                    updatedAt: tournament.updatedAt ? new Date(tournament.updatedAt) : undefined,
-                };
-            }
-
-            return tournament;
-        },
-        enabled: !!(orgId && tournamentId),
-        staleTime: 5 * 60 * 1000,
-    });
+    return {
+        data: tournament,
+        isLoading: tournament === undefined,
+        error: null as Error | null
+    };
 }
 
 /**
@@ -92,9 +112,11 @@ export function useCreateTournament() {
     return useMutation({
         mutationFn: async ({
             orgId,
+            tournamentId,
             tournamentData,
         }: {
             orgId: string;
+            tournamentId: string;
             tournamentData: {
                 tournamentName: string;
                 tournamentDate: Date;
@@ -102,6 +124,8 @@ export function useCreateTournament() {
                 location: string;
                 defaultMatchTime: number;
                 courts: { courtId: string; courtName: string }[];
+                rounds: { roundId: string; roundName: string }[];
+                tournamentType: "individual" | "team";
             };
         }) => {
             const response = await fetch(`/api/tournaments/${orgId}`, {
@@ -109,7 +133,10 @@ export function useCreateTournament() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(tournamentData),
+                body: JSON.stringify({
+                    ...tournamentData,
+                    tournamentId, // クライアント生成IDを含める
+                }),
             });
 
             if (!response.ok) {

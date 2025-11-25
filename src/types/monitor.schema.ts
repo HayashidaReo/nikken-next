@@ -19,12 +19,27 @@ export const monitorDataSchema = z.object({
     matchId: z.string(),
     tournamentName: z.string(),
     courtName: z.string(),
-    round: z.string(),
+    roundName: z.string(),
     playerA: monitorPlayerSchema,
     playerB: monitorPlayerSchema,
     timeRemaining: z.number(),
     isTimerRunning: z.boolean(),
+    timerMode: z.enum(["countdown", "stopwatch"]).default("countdown"),
     isPublic: z.boolean(),
+    viewMode: z.enum(["scoreboard", "match_result", "team_result"]).default("scoreboard"),
+    matchResult: z.object({
+        playerA: monitorPlayerSchema,
+        playerB: monitorPlayerSchema,
+        winner: z.enum(["playerA", "playerB", "draw", "none"]),
+    }).optional(),
+    teamMatchResults: z.array(z.object({
+        matchId: z.string(),
+        sortOrder: z.number(),
+        roundId: z.string().optional(),
+        playerA: monitorPlayerSchema,
+        playerB: monitorPlayerSchema,
+        winner: z.enum(["playerA", "playerB", "draw", "none"]),
+    })).optional(),
 });
 
 /**

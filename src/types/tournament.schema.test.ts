@@ -121,6 +121,7 @@ describe("Tournament Schema Validation", () => {
 
   describe("tournamentSchema", () => {
     const validTournament: Tournament = {
+      tournamentId: "tournament-001",
       tournamentName: "全国日本拳法選手権大会",
       tournamentDate: new Date("2024-03-15"),
       tournamentDetail: "テスト用の大会概要",
@@ -130,6 +131,11 @@ describe("Tournament Schema Validation", () => {
         { courtId: "court-001", courtName: "Aコート" },
         { courtId: "court-002", courtName: "Bコート" },
       ],
+      rounds: [
+        { roundId: "round-001", roundName: "1回戦" },
+        { roundId: "round-002", roundName: "決勝戦" },
+      ],
+      tournamentType: "individual",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -254,12 +260,17 @@ describe("Tournament Schema Validation", () => {
       };
 
       const tournament: Tournament = {
+        tournamentId: "tournament-001",
         tournamentName: "テスト大会",
         tournamentDate: new Date("2024-01-01"),
         tournamentDetail: "テスト用大会",
         location: "テスト会場",
         defaultMatchTime: 180,
         courts: [court],
+        rounds: [
+          { roundId: "round-001", roundName: "予選" },
+        ],
+        tournamentType: "individual",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -274,12 +285,15 @@ describe("Tournament Schema Validation", () => {
   describe("エッジケーステスト", () => {
     it("最大文字数制限内の文字列を処理", () => {
       const tournament: Tournament = {
+        tournamentId: "tournament-001",
         tournamentName: "あ".repeat(15), // TOURNAMENT_NAME_MAX = 15
         tournamentDate: new Date("2024-01-01"),
         tournamentDetail: "あ".repeat(1000), // TOURNAMENT_DETAIL_MAX = 1000
         location: "あ".repeat(10), // LOCATION_MAX = 10
         defaultMatchTime: 180,
         courts: [],
+        rounds: [],
+        tournamentType: "individual",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -292,12 +306,15 @@ describe("Tournament Schema Validation", () => {
       const specialChars = "!@#$%^&*()_";
 
       const tournament: Tournament = {
+        tournamentId: "tournament-001",
         tournamentName: `テスト大会`, // 制限内
         tournamentDate: new Date("2024-01-01"),
         tournamentDetail: `テスト用大会 ${specialChars}`,
         location: `テスト会場`, // 制限内
         defaultMatchTime: 180,
         courts: [],
+        rounds: [],
+        tournamentType: "individual",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -308,12 +325,15 @@ describe("Tournament Schema Validation", () => {
 
     it("非常に大きな試合時間を処理", () => {
       const tournament: Tournament = {
+        tournamentId: "tournament-001",
         tournamentName: "テスト大会",
         tournamentDate: new Date("2024-01-01"),
         tournamentDetail: "テスト用大会",
         location: "テスト会場",
         defaultMatchTime: 86400, // 24時間
         courts: [],
+        rounds: [],
+        tournamentType: "individual",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -325,12 +345,15 @@ describe("Tournament Schema Validation", () => {
     it("ISO文字列の日付を自動的にDateに変換", () => {
       // API経由で送られる場合（JSON.stringifyでISO文字列になる）
       const tournamentWithStringDate = {
+        tournamentId: "tournament-001",
         tournamentName: "テスト大会",
         tournamentDate: "2024-03-15T00:00:00.000Z", // ISO文字列
         tournamentDetail: "テスト用大会",
         location: "テスト会場",
         defaultMatchTime: 180,
         courts: [],
+        rounds: [],
+        tournamentType: "individual",
         createdAt: "2024-01-01T00:00:00.000Z",
         updatedAt: "2024-01-01T00:00:00.000Z",
       };

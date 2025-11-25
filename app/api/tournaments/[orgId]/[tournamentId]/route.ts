@@ -120,13 +120,13 @@ export async function PUT(
       updateData.tournamentDate = Timestamp.fromDate(updateData.tournamentDate);
     }
 
-    // Firestoreの大会ドキュメントを更新
+    // Firestoreの大会ドキュメントを更新（存在しない場合は作成）
     await adminDb
       .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
       .doc(orgId)
       .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
       .doc(tournamentId)
-      .update(updateData);
+      .set(updateData, { merge: true });
 
     return NextResponse.json({
       success: true,

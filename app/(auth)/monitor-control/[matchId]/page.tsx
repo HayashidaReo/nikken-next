@@ -1,26 +1,35 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { useSaveMatchResult } from "@/queries/use-match-result";
-import { ArrowLeft, Monitor, Unplug, Save } from "lucide-react";
+import { useSaveIndividualMatchResult, useSaveTeamMatchResult } from "@/queries/use-match-result";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import SwitchLabel from "@/components/molecules/switch-label";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { useToast } from "@/components/providers/notification-provider";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { FallbackMonitorDialog } from "@/components/molecules";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMatchDataWithPriority } from "@/hooks/useMatchDataWithPriority";
 import { useMonitorController } from "@/hooks/useMonitorController";
+import { useTeamMatches } from "@/queries/use-team-matches";
+import { useTeams } from "@/queries/use-teams";
+import { useTournament } from "@/queries/use-tournaments";
+import { useState, useCallback, useMemo } from "react";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useTeamMatchController } from "@/hooks/useTeamMatchController";
+import { determineWinner, Winner } from "@/domains/match/match-logic";
+import { MonitorControlHeader } from "@/components/organisms/monitor-control-header";
+import { RepMatchSetupDialog } from "@/components/molecules/rep-match-setup-dialog";
 
 export default function MonitorControlPage() {
   const params = useParams();
   const matchId = params.matchId as string;
-  const saveMatchResultMutation = useSaveMatchResult();
+  const saveIndividualMatchResultMutation = useSaveIndividualMatchResult();
+  const saveTeamMatchResultMutation = useSaveTeamMatchResult();
 
   const presentationConnected = useMonitorStore((s) => s.presentationConnected);
   const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
@@ -28,11 +37,22 @@ export default function MonitorControlPage() {
   const isPublic = useMonitorStore((s) => s.isPublic);
   const togglePublic = useMonitorStore((s) => s.togglePublic);
 
-  const { orgId, activeTournamentId } = useAuthContext();
-  const { showSuccess, showError } = useToast();
+  const { orgId, activeTournamentId, activeTournamentType } = useAuthContext();
+  const { showError } = useToast();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showRepMatchDialog, setShowRepMatchDialog] = useState(false);
 
   // データ取得ロジック（ストア優先）
   const { isLoading, hasError, matchFound } = useMatchDataWithPriority(matchId);
+
+  // 団体戦用のデータ取得
+  const matchGroupId = useMonitorStore((s) => s.matchGroupId);
+  const setViewMode = useMonitorStore((s) => s.setViewMode);
+  const setMatchResult = useMonitorStore((s) => s.setMatchResult);
+  const viewMode = useMonitorStore((s) => s.viewMode);
+  const { data: teamMatches } = useTeamMatches(matchGroupId || null);
+  const { data: teams } = useTeams();
+  const { data: tournament } = useTournament(orgId, activeTournamentId);
 
   // モニター制御ロジック
   const {
@@ -41,13 +61,28 @@ export default function MonitorControlPage() {
     showFallbackDialog,
     handleFallbackConfirm,
     handleFallbackCancel,
-  } = useMonitorController({
+  } = useMonitorController();
+
+  // 団体戦コントローラー
+  const {
+    isAllFinished,
+    needsRepMatch,
+    handleShowTeamResult,
+    handleNextMatch,
+    handleBackToDashboard,
+    handleEnterKey: teamMatchEnterHandler,
+    handleCreateRepMatch,
+  } = useTeamMatchController({
     matchId,
-    orgId: orgId || "",
-    tournamentId: activeTournamentId || "",
+    activeTournamentType,
+    teamMatches,
+    teams,
+    tournament,
+    orgId,
+    tournamentId: activeTournamentId,
   });
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     try {
       const store = useMonitorStore.getState();
       const matchId = store.matchId;
@@ -55,7 +90,7 @@ export default function MonitorControlPage() {
         throw new Error('Match ID is missing');
       }
       const snapshot = store.getMonitorSnapshot();
-      await saveMatchResultMutation.mutateAsync({
+      const request = {
         matchId,
         organizationId: orgId || "",
         tournamentId: activeTournamentId || "",
@@ -63,13 +98,94 @@ export default function MonitorControlPage() {
           playerA: { score: snapshot.playerA.score, hansoku: snapshot.playerA.hansoku },
           playerB: { score: snapshot.playerB.score, hansoku: snapshot.playerB.hansoku },
         },
-      });
-      showSuccess("試合結果を保存しました");
+      };
+
+      // 大会種別に応じて保存先を切り替え
+      if (activeTournamentType === "team") {
+        await saveTeamMatchResultMutation.mutateAsync(request);
+      } else if (activeTournamentType === "individual") {
+        await saveIndividualMatchResultMutation.mutateAsync(request);
+      } else {
+        // 種別が不明な場合はフォールバック（両方試行）
+        try {
+          await saveIndividualMatchResultMutation.mutateAsync(request);
+        } catch {
+          await saveTeamMatchResultMutation.mutateAsync(request);
+        }
+      }
     } catch (err) {
       console.error(err);
       showError("試合結果の保存に失敗しました");
     }
-  };
+  }, [orgId, activeTournamentId, activeTournamentType, saveTeamMatchResultMutation, saveIndividualMatchResultMutation, showError]);
+
+  const handleConfirmMatchClick = useCallback(() => {
+    setShowConfirmDialog(true);
+  }, []);
+
+  const handleConfirmMatchExecute = useCallback(async () => {
+    setShowConfirmDialog(false);
+    // 1. 保存
+    await handleSave();
+
+    // 2. 結果表示モードへ
+    const snapshot = useMonitorStore.getState().getMonitorSnapshot();
+    const winner: Winner = determineWinner(snapshot.playerA.score, snapshot.playerB.score, true);
+
+    // 常に試合結果を表示する
+    setMatchResult({
+      playerA: snapshot.playerA,
+      playerB: snapshot.playerB,
+      winner,
+    });
+    setViewMode("match_result");
+  }, [handleSave, setMatchResult, setViewMode]);
+
+  const isSaving = saveIndividualMatchResultMutation.isPending || saveTeamMatchResultMutation.isPending;
+
+  // 代表戦ダイアログのハンドラー
+  const handleNextMatchClick = useCallback(() => {
+    if (needsRepMatch) {
+      // 代表戦が必要な場合はダイアログを表示
+      setShowRepMatchDialog(true);
+    } else {
+      // 通常の次の試合へ
+      handleNextMatch();
+    }
+  }, [needsRepMatch, handleNextMatch]);
+
+  const handleRepMatchConfirm = useCallback((playerAId: string, playerBId: string) => {
+    setShowRepMatchDialog(false);
+    handleCreateRepMatch(playerAId, playerBId);
+  }, [handleCreateRepMatch]);
+
+  const handleRepMatchCancel = useCallback(() => {
+    setShowRepMatchDialog(false);
+  }, []);
+
+  // teamMatchesから正しいチーム順序を取得
+  const orderedTeams = useMemo(() => {
+    if (!teamMatches || teamMatches.length === 0 || !teams) return null;
+
+    // 表示用のチーム順序（teamA/teamB）を決定するために先頭要素を利用する。
+    const firstMatch = teamMatches[0];
+    const teamAId = firstMatch.players.playerA.teamId;
+    const teamBId = firstMatch.players.playerB.teamId;
+
+    const teamA = teams.find(t => t.teamId === teamAId);
+    const teamB = teams.find(t => t.teamId === teamBId);
+
+    if (!teamA || !teamB) return null;
+
+    return { teamA, teamB };
+  }, [teamMatches, teams]);
+
+  // キーボードショートカット
+  const handleEnterKey = useCallback(() => {
+    teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick);
+  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick]);
+
+  useKeyboardShortcuts({ onEnter: handleEnterKey });
 
   // ローディング状態
   if (isLoading) {
@@ -78,12 +194,10 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  試合一覧に戻る
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={handleBackToDashboard}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                戻る
+              </Button>
 
               <div className="ml-2">
                 <ConnectionStatus mode={monitorStatusMode} error={null} />
@@ -107,12 +221,10 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  試合一覧に戻る
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={handleBackToDashboard}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                戻る
+              </Button>
 
               <div className="ml-2">
                 <ConnectionStatus mode={monitorStatusMode} error={null} />
@@ -138,12 +250,10 @@ export default function MonitorControlPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  試合一覧に戻る
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={handleBackToDashboard}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                戻る
+              </Button>
 
               <div className="ml-2">
                 <ConnectionStatus mode={monitorStatusMode} error={null} />
@@ -165,64 +275,53 @@ export default function MonitorControlPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                試合一覧に戻る
-              </Button>
-            </Link>
-
-            <div className="ml-2">
-              <ConnectionStatus mode={monitorStatusMode} error={null} />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <SwitchLabel
-              id="public-toggle-header"
-              checked={isPublic}
-              onChange={(v) => {
-                if (v !== isPublic) togglePublic();
-              }}
-              onLabel={"公開中"}
-              offLabel={"非公開"}
-              className="flex items-center gap-3"
-            />
-
-            <div className="flex items-center gap-3">
-              <Button onClick={handleMonitorAction} variant={isPresentationConnected ? "destructive" : "outline"}>
-                {isPresentationConnected ? (
-                  <>
-                    <Unplug className="w-4 h-4 mr-2" />
-                    接続を解除
-                  </>
-                ) : (
-                  <>
-                    <Monitor className="w-4 h-4 mr-2" />
-                    表示用モニターを開く
-                  </>
-                )}
-              </Button>
-
-              <Button onClick={handleSave} size="sm" disabled={saveMatchResultMutation.isPending}>
-                <Save className="w-4 h-4 mr-2" />
-                {saveMatchResultMutation.isPending ? "保存中..." : "保存"}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <MonitorControlHeader
+          isPublic={isPublic}
+          onTogglePublic={togglePublic}
+          monitorStatusMode={monitorStatusMode}
+          isPresentationConnected={isPresentationConnected}
+          activeTournamentType={activeTournamentType}
+          viewMode={viewMode}
+          isAllFinished={isAllFinished}
+          isSaving={isSaving}
+          onBackToDashboard={handleBackToDashboard}
+          onMonitorAction={handleMonitorAction}
+          onSave={handleSave}
+          onConfirmMatch={handleConfirmMatchClick}
+          onNextMatch={handleNextMatchClick}
+          onShowTeamResult={handleShowTeamResult}
+        />
 
         <ScoreboardOperator
           organizationId={orgId || ""}
           tournamentId={activeTournamentId || ""}
+          defaultMatchTime={tournament?.defaultMatchTime}
         />
         <FallbackMonitorDialog
           isOpen={showFallbackDialog}
           onConfirm={handleFallbackConfirm}
           onCancel={handleFallbackCancel}
         />
+        <ConfirmDialog
+          isOpen={showConfirmDialog}
+          title="試合結果の確定"
+          message="現在のスコアで試合を確定し、結果を保存しますか？"
+          onConfirm={handleConfirmMatchExecute}
+          onCancel={() => setShowConfirmDialog(false)}
+          confirmText="確定する"
+          cancelText="キャンセル"
+          confirmShortcut="Enter"
+        />
+        {/* 代表戦設定ダイアログ */}
+        {orderedTeams && (
+          <RepMatchSetupDialog
+            isOpen={showRepMatchDialog}
+            teamA={orderedTeams.teamA}
+            teamB={orderedTeams.teamB}
+            onConfirm={handleRepMatchConfirm}
+            onCancel={handleRepMatchCancel}
+          />
+        )}
       </div>
     </div>
   );

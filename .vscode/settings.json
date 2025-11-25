@@ -10,8 +10,12 @@
     "coverage": true
   },
   "cSpell.words": [
+    "Dexie",
     "firestore",
     "Hansoku",
-    "nikken"
+    "nikken",
+    "serwist",
+    "Turbopack",
+    "webworker"
   ]
 }

@@ -7,10 +7,8 @@ import {
 
 describe("Match Schema Validation", () => {
   const validMatchPlayer: MatchPlayer = {
-    displayName: "山田",
     playerId: "player-001",
     teamId: "team-001",
-    teamName: "テストチーム",
     score: 0,
     hansoku: 0,
   };
@@ -18,14 +16,13 @@ describe("Match Schema Validation", () => {
   const validMatch: Match = {
     matchId: "match-001",
     courtId: "court-001",
-    round: "1回戦",
+    roundId: "round-001",
     sortOrder: 0,
     players: {
       playerA: validMatchPlayer,
       playerB: {
         ...validMatchPlayer,
         playerId: "player-002",
-        displayName: "鈴木",
       },
     },
     isCompleted: false,
@@ -98,12 +95,12 @@ describe("Match Schema Validation", () => {
       }
     });
 
-    it("ラウンドが空の場合はエラーになる", () => {
-      const invalidMatch = { ...validMatch, round: "" };
+    it("ラウンドIDが空の場合はエラーになる", () => {
+      const invalidMatch = { ...validMatch, roundId: "" };
       const result = matchSchema.safeParse(invalidMatch);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("ラウンドは必須です");
+        expect(result.error.issues[0].message).toBe("ラウンドIDは必須です");
       }
     });
   });

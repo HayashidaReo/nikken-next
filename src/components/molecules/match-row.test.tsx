@@ -2,12 +2,14 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MatchRow } from "@/components/molecules/match-row";
+import { MasterDataProvider } from "@/components/providers/master-data-provider";
 import type { Team } from "@/types/team.schema";
 
 const sampleRow = {
     id: "m-1",
     courtId: "c1",
-    round: "予選1回戦",
+    roundId: "round-1",
+    roundName: "予選1回戦",
     playerATeamId: "t1",
     playerAId: "p1",
     playerBTeamId: "t2",
@@ -49,21 +51,25 @@ describe("MatchRow", () => {
         const handleUpdate = jest.fn();
 
         render(
-            <table>
-                <tbody>
-                    <MatchRow
-                        row={sampleRow}
-                        index={0}
-                        approvedTeams={teams as Team[]}
-                        courts={[{ courtId: "c1", courtName: "Court 1" }]}
-                        getPlayersFromTeam={(teamId: string) =>
-                            teams.find(t => t.teamId === teamId)?.players ?? []
-                        }
-                        onUpdate={handleUpdate}
-                        onRemove={handleRemove}
-                    />
-                </tbody>
-            </table>
+            <MasterDataProvider
+                teams={teams as Team[]}
+                courts={[{ courtId: "c1", courtName: "Court 1" }]}
+                rounds={[{ roundId: "round-1", roundName: "予選1回戦" }]}
+            >
+                <table>
+                    <tbody>
+                        <MatchRow
+                            row={sampleRow}
+                            index={0}
+                            getPlayersFromTeam={(teamId: string) =>
+                                teams.find(t => t.teamId === teamId)?.players ?? []
+                            }
+                            onUpdate={handleUpdate}
+                            onRemove={handleRemove}
+                        />
+                    </tbody>
+                </table>
+            </MasterDataProvider>
         );
 
         // Delete button is the last button in the row; open confirmation and confirm

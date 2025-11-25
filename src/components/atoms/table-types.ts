@@ -1,6 +1,6 @@
 export interface ColumnDef {
     key: string;
-    label: string;
+    label: React.ReactNode;
     /** width as percentage (0-100) */
     width?: number;
     className?: string;

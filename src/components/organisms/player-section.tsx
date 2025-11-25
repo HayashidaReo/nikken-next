@@ -6,13 +6,13 @@ import {
   getPlayerPositionClass,
   type PlayerVariant,
 } from "@/lib/utils/player-utils";
-import { type MatchPlayer } from "@/types/match.schema";
+import type { MonitorPlayer } from "@/types/monitor.schema";
 import { type HansokuLevel } from "@/lib/utils/penalty-utils";
 import { useResponsiveFont } from "@/hooks/useResponsiveFont";
 import { RESPONSIVE_FONT_CONSTANTS } from "@/lib/constants";
 
 interface PlayerSectionProps {
-  player: MatchPlayer;
+  player: MonitorPlayer;
   variant: PlayerVariant;
   className?: string;
 }

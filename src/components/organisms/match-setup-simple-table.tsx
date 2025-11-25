@@ -27,12 +27,14 @@ import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { Team, Player } from "@/types/team.schema";
 import type { Match } from "@/types/match.schema";
+import type { Round } from "@/types/tournament.schema";
 import { useToast } from "@/components/providers/notification-provider";
 
 interface MatchSetupData {
   id: string;
   courtId: string;
-  round: string;
+  roundId: string;
+  roundName: string;
   playerATeamId: string;
   playerAId: string;
   playerBTeamId: string;
@@ -42,6 +44,7 @@ interface MatchSetupData {
 interface MatchSetupTableProps {
   teams: Team[];
   courts: Array<{ courtId: string; courtName: string }>;
+  rounds: Round[];
   matches: Match[];
   onSave: (matches: MatchSetupData[]) => void;
   className?: string;
@@ -50,25 +53,32 @@ interface MatchSetupTableProps {
 export function MatchSetupTable({
   teams,
   courts,
+  rounds,
   matches,
   onSave,
   className,
 }: MatchSetupTableProps) {
   // 承認済みのチームのみフィルター
   const approvedTeams = teams.filter(team => team.isApproved);
+  const roundIdToName = useMemo(() => new Map(rounds.map(round => [round.roundId, round.roundName])), [rounds]);
 
   // 初期データを作成
   const initialData = useMemo(() => {
-    return matches.map(match => ({
-      id: match.matchId || "", // undefined の場合は空文字列
-      courtId: match.courtId,
-      round: match.round,
-      playerATeamId: match.players.playerA.teamId,
-      playerAId: match.players.playerA.playerId,
-      playerBTeamId: match.players.playerB.teamId,
-      playerBId: match.players.playerB.playerId,
-    }));
-  }, [matches]);
+    return matches.map(match => {
+      const roundId = match.roundId || "";
+      const roundName = roundIdToName.get(roundId) || roundId;
+      return {
+        id: match.matchId || "",
+        courtId: match.courtId,
+        roundId,
+        roundName,
+        playerATeamId: match.players.playerA.teamId,
+        playerAId: match.players.playerA.playerId,
+        playerBTeamId: match.players.playerB.teamId,
+        playerBId: match.players.playerB.playerId,
+      };
+    });
+  }, [matches, roundIdToName]);
 
   const [data, setData] = useState<MatchSetupData[]>(initialData);
   const { showError } = useToast();
@@ -88,7 +98,7 @@ export function MatchSetupTable({
     setData(prev =>
       prev.map((row, index) => {
         if (index === rowIndex) {
-          const newRow = { ...row, [field]: value };
+          const newRow = { ...row, [field]: value } as MatchSetupData;
 
           // チームが変更された場合は対応する選手もリセット
           if (field === "playerATeamId") {
@@ -109,7 +119,8 @@ export function MatchSetupTable({
     const newRow: MatchSetupData = {
       id: `match-${Date.now()}`,
       courtId: "",
-      round: "",
+      roundId: "",
+      roundName: "",
       playerATeamId: "",
       playerAId: "",
       playerBTeamId: "",
@@ -128,7 +139,7 @@ export function MatchSetupTable({
     const isValid = data.every(
       row =>
         row.courtId &&
-        row.round &&
+        row.roundId &&
         row.playerATeamId &&
         row.playerAId &&
         row.playerBTeamId &&
@@ -141,6 +152,12 @@ export function MatchSetupTable({
     }
 
     onSave(data);
+  };
+
+  const handleRoundChange = (index: number, value: string) => {
+    const roundName = roundIdToName.get(value) || value;
+    updateData(index, "roundId", value);
+    updateData(index, "roundName", roundName);
   };
 
   return (
@@ -202,20 +219,20 @@ export function MatchSetupTable({
                     {/* ラウンド */}
                     <TableCell className="p-2">
                       <Select
-                        value={row.round}
+                        value={row.roundId || ""}
                         onValueChange={value =>
-                          updateData(index, "round", value)
+                          handleRoundChange(index, value)
                         }
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="ラウンドを選択" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1回戦">1回戦</SelectItem>
-                          <SelectItem value="2回戦">2回戦</SelectItem>
-                          <SelectItem value="準々決勝">準々決勝</SelectItem>
-                          <SelectItem value="準決勝">準決勝</SelectItem>
-                          <SelectItem value="決勝">決勝</SelectItem>
+                          {rounds.map(round => (
+                            <SelectItem key={round.roundId} value={round.roundId}>
+                              {round.roundName}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </TableCell>

@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { useMatch } from "@/queries/use-matches";
-import { useTournament } from "@/queries/use-tournaments";
-import { useAuthContext } from "@/hooks/useAuthContext";
+import { useResolvedMatchData } from "@/hooks/useResolvedMatchData";
 
 interface UseMatchDataWithPriorityResult {
     isLoading: boolean;
@@ -16,40 +14,44 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
     const storeMatchId = useMonitorStore((s) => s.matchId);
     const storeTournamentName = useMonitorStore((s) => s.tournamentName);
 
-    const { orgId, activeTournamentId, isLoading: authLoading } = useAuthContext();
-
     // ストア優先: ストアに現在の matchId のデータがあれば Firebase クエリは無効化する
     const hasStoreData = Boolean(storeMatchId && storeMatchId === matchId && storeTournamentName);
 
-    // Firebase からデータを取得（ただしストアにあればクエリは無効化）
-    const { data: match, isLoading: matchLoading, error: matchError } = useMatch(hasStoreData ? null : matchId);
-    const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(
-        hasStoreData ? null : orgId,
-        hasStoreData ? null : activeTournamentId
-    );
+    // データ取得と解決ロジックを分離したフックを使用
+    const {
+        match,
+        tournament,
+        courtName,
+        roundName,
+        resolvedPlayers,
+        isLoading,
+        error
+    } = useResolvedMatchData(matchId);
 
     // ストア優先のため、ストアデータがある場合は fetch 側の loading/error を無視する
-    const isLoading = authLoading || (!hasStoreData && (matchLoading || tournamentLoading));
-    const hasError = !hasStoreData && (matchError || tournamentError);
+    const effectiveIsLoading = !hasStoreData && isLoading;
+    const effectiveHasError = !hasStoreData && error;
 
     useEffect(() => {
         // ストアに既にデータがある場合は初期化不要
         if (hasStoreData) return;
 
+        // データがまだロード中の場合は初期化しない
+        if (isLoading) return;
+
         // Firebase から取得したデータで初期化（フォールバック）
         if (match && tournament) {
-            const court = tournament.courts.find(
-                (c: { courtId: string; courtName: string }) => c.courtId === match.courtId
-            );
-            const courtName = court ? court.courtName : match.courtId;
-
-            initializeMatch(match, tournament.tournamentName, courtName);
+            initializeMatch(match, tournament.tournamentName, courtName, {
+                resolvedPlayers,
+                roundName,
+                defaultMatchTime: tournament.defaultMatchTime,
+            });
         }
-    }, [hasStoreData, match, tournament, initializeMatch]);
+    }, [hasStoreData, match, tournament, initializeMatch, courtName, roundName, resolvedPlayers, isLoading]);
 
     return {
-        isLoading,
-        hasError: hasError ? (hasError instanceof Error ? hasError : true) : null,
+        isLoading: effectiveIsLoading,
+        hasError: effectiveHasError ? (effectiveHasError instanceof Error ? effectiveHasError : true) : null,
         matchFound: hasStoreData || !!match,
     };
 }

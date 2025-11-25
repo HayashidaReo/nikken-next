@@ -5,12 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/atoms/card";
+
 import { cn } from "@/lib/utils/utils";
 import {
   ConfirmationDialog,
@@ -23,6 +18,7 @@ import { teamFormSchema } from "@/types/team-form.schema";
 import { useFormSubmit } from "@/hooks";
 import { useToast } from "@/components/providers/notification-provider";
 import { defaultTeamFormValues } from "@/lib/form-defaults";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 interface TeamRegistrationFormProps {
   onSubmit: (data: TeamFormData) => Promise<void>;
@@ -47,11 +43,14 @@ export function TeamRegistrationForm({
     handleSubmit,
     trigger,
     getValues,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<TeamFormData>({
     resolver: zodResolver(teamFormSchema),
     defaultValues: defaultTeamFormValues,
   });
+
+  // ブラウザのリロード/閉じる操作に対する警告
+  useUnsavedChanges(isDirty);
 
   const { handleSubmit: submitForm, isLoading, error } = useFormSubmit();
 
@@ -86,113 +85,131 @@ export function TeamRegistrationForm({
 
   return (
     <div className={cn("max-w-4xl mx-auto", className)}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">選手登録フォーム</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10">
+        <div className="mb-8 border-b border-gray-100 pb-6">
+          <h2 className="text-2xl font-bold text-gray-900">出場チーム申請フォーム</h2>
+          <p className="text-gray-500 mt-2">
+            以下のフォームに必要な情報を入力して、申請を行ってください。
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+            <div className="text-red-500 mt-0.5">⚠️</div>
+            <div>
               <p className="text-red-800 font-medium">送信エラー</p>
               <p className="text-red-700 text-sm mt-1">{error}</p>
             </div>
-          )}
-          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-            {/* 代表者情報 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>代表者情報</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormInput
-                    label="代表者名"
-                    name="representativeName"
-                    required
-                    placeholder="山田太郎"
-                    register={register}
-                    error={errors.representativeName?.message}
-                  />
+          </div>
+        )}
 
-                  <FormInput
-                    label="代表者電話番号"
-                    name="representativePhone"
-                    type="tel"
-                    required
-                    placeholder="090-1234-5678"
-                    register={register}
-                    error={errors.representativePhone?.message}
-                  />
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-10">
+          {/* 代表者情報 */}
+          <section>
+            <div className="flex items-center gap-2 mb-6">
+              <div className="h-6 w-1 bg-blue-600 rounded-full" />
+              <h3 className="text-lg font-semibold text-gray-900">代表者情報</h3>
+            </div>
 
-                  <FormInput
-                    label="代表者メールアドレス"
-                    name="representativeEmail"
-                    type="email"
-                    required
-                    placeholder="example@email.com"
-                    className="md:col-span-2"
-                    register={register}
-                    error={errors.representativeEmail?.message}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput
+                label="代表者名"
+                name="representativeName"
+                required
+                placeholder="山田太郎"
+                register={register}
+                error={errors.representativeName?.message}
+                inputClassName="bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+              />
 
-            {/* チーム情報 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>チーム情報</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FormInput
-                  label="チーム名（団体名）"
-                  name="teamName"
-                  required
-                  placeholder="○○道場 / ○○大学"
-                  register={register}
-                  error={errors.teamName?.message}
-                />
-              </CardContent>
-            </Card>
+              <FormInput
+                label="代表者電話番号"
+                name="representativePhone"
+                type="tel"
+                required
+                placeholder="090-1234-5678"
+                register={register}
+                error={errors.representativePhone?.message}
+                inputClassName="bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+              />
 
-            {/* 選手一覧 */}
+              <FormInput
+                label="代表者メールアドレス"
+                name="representativeEmail"
+                type="email"
+                required
+                placeholder="example@email.com"
+                className="md:col-span-2"
+                inputClassName="bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                register={register}
+                error={errors.representativeEmail?.message}
+              />
+            </div>
+          </section>
+
+          {/* チーム情報 */}
+          <section>
+            <div className="flex items-center gap-2 mb-6">
+              <div className="h-6 w-1 bg-blue-600 rounded-full" />
+              <h3 className="text-lg font-semibold text-gray-900">チーム情報</h3>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              <FormInput
+                label="チーム名（団体名）"
+                name="teamName"
+                required
+                placeholder="○○道場 / ○○大学"
+                register={register}
+                error={errors.teamName?.message}
+                inputClassName="bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+              />
+            </div>
+          </section>
+
+          {/* 選手一覧 */}
+          <section>
+            <div className="flex items-center gap-2 mb-6">
+              <div className="h-6 w-1 bg-blue-600 rounded-full" />
+              <h3 className="text-lg font-semibold text-gray-900">選手一覧</h3>
+            </div>
+
             <PlayerListForm
               control={control}
               errors={errors}
               register={register}
             />
+          </section>
 
-            {/* 備考 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>備考欄</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FormTextarea
-                  label="自由記述"
-                  name="remarks"
-                  placeholder="特別な配慮事項や連絡事項があれば記入してください"
-                  rows={4}
-                  register={register}
-                />
-              </CardContent>
-            </Card>
-
-            <div className="flex gap-4 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-              >
-                戻る
-              </Button>
-              <Button type="submit" isLoading={isLoading} loadingText="準備中...">
-                確認画面へ
-              </Button>
+          {/* 備考 */}
+          <section>
+            <div className="flex items-center gap-2 mb-6">
+              <div className="h-6 w-1 bg-blue-600 rounded-full" />
+              <h3 className="text-lg font-semibold text-gray-900">備考欄</h3>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+
+            <FormTextarea
+              label="自由記述"
+              name="remarks"
+              placeholder="特別な配慮事項や連絡事項があれば記入してください"
+              rows={4}
+              register={register}
+              textareaClassName="bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+            />
+          </section>
+
+          <div className="pt-6 border-t border-gray-100 flex gap-4 justify-end">
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              loadingText="準備中..."
+              className="px-8 h-12 text-base bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20"
+            >
+              確認画面へ
+            </Button>
+          </div>
+        </form>
+      </div>
 
       <ConfirmationDialog
         isVisible={showConfirmation}

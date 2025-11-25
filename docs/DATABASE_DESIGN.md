@@ -1,5 +1,17 @@
 # Firestore データベース設計
 
+## データ正規化の方針
+
+本システムでは、データの整合性とメンテナンス性を確保するため、以下の原則に従います：
+
+- **名前はIDで参照**: コート名、ラウンド名、チーム名、選手名などの表示用データは、すべてIDで参照し、マスターデータ（tournaments、teams）から取得して表示します。
+- **IDの保存場所**:
+  - `courtId`, `roundId`: tournamentsコレクションのcourts/rounds配列に定義
+  - `teamId`: teamsコレクションのドキュメントID
+  - `playerId`: teamsコレクション内のplayers配列に定義
+- **表示名の取得**: 画面表示時は、保存されたIDを基に対応するマスターデータから名前を取得します。
+- **データ同期**: チーム名や選手名が変更された場合、Cloud Functionで関連するmatchesコレクションのキャッシュデータ（displayName, teamName）を自動更新します。
+
 ## organizations コレクション
 
 大会運営を行う主催組織ごとに、tournaments コレクションの管理を行います。
@@ -39,6 +51,10 @@
 | `courts`             | Array of Maps | 会場のコート情報                         |
 | `courts[].courtId`   | String        | コートID                                 |
 | `courts[].courtName` | String        | コート名                                 |
+| `rounds`             | Array of Maps | ラウンド（回戦）情報                     |
+| `rounds[].roundId`   | String        | ラウンドID                               |
+| `rounds[].roundName` | String        | ラウンド名                               |
+| `tournamentType`     | String        | 大会形式 ("individual" \| "team")        |
 | `createdAt`          | Timestamp     | データ作成日時                           |
 | `updatedAt`          | Timestamp     | 最終編集日時                             |
 
@@ -74,16 +90,38 @@
 | `createdAt`             | Timestamp     | フォーム送信日時                                           |
 | `updatedAt`             | Timestamp     | 最終編集日時                                               |
 
-## matches コレクション
+
+## matchGroups コレクション (団体戦用)
+
+団体戦における「チーム対チーム」の試合（対戦カード）を管理します。
+個人戦の場合は使用しません。
+
+- **パス**: `organizations/{orgId}/tournaments/{tournamentId}/matchGroups/{matchGroupId}`
+- **ドキュメントID**: 自動生成ID
+
+### フィールド
+
+| フィールド名   | データ型  | 説明                                                   |
+| -------------- | --------- | ------------------------------------------------------ |
+| `matchGroupId` | String    | チーム試合ID                                           |
+| `courtId`      | String    | コートID（tournamentsのcourts配列内のcourtIdと対応）   |
+| `roundId`      | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応） |
+| `sortOrder`    | number    | 表示順序                                               |
+| `teamAId`      | String    | チームAのID                                            |
+| `teamBId`      | String    | チームBのID                                            |
+| `createdAt`    | Timestamp | 作成日時                                               |
+| `updatedAt`    | Timestamp | 最終編集日時                                           |
+
+## matches コレクション (個人戦用)
 
 全ての試合の組み合わせ、およびリアルタイムの試合状況（得点、反則、選手名など）を管理します。このコレクションがアプリの核となります。
 
 ### 目的
 
 - 「試合の組み合わせ設定画面」で、ドキュメントを作成・編集・削除する
-- 「試合一覧画面」で、このコレクションの全データをリアルタイム購読（onSnapshot）し、一覧表示する
+- 「試合一覧画面」で、このコレクションを一覧表示する
 
-- **パス**: `organizations/{orgId}/tournaments/{tournamentId}/matches/{matchId}`
+- **パス (個人戦)**: `organizations/{orgId}/tournaments/{tournamentId}/matches/{matchId}`
 - **ドキュメントID**: 自動生成ID （= 試合id）
 
 ### フィールド
@@ -91,15 +129,45 @@
 | フィールド名                  | データ型  | 説明                                                                          |
 | ----------------------------- | --------- | ----------------------------------------------------------------------------- |
 | `matchId`                     | String    | 試合ID                                                                        |
-| `courtId`                     | String    | コートID                                                                      |
-| `round`                       | String    | 回戦（例: "1回戦"）                                                           |
+| `courtId`                     | String    | コートID（tournamentsのcourts配列内のcourtIdと対応）                          |
+| `roundId`                     | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応）                        |
 | `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
 | `players`                     | Map       | 選手の情報                                                                    |
 | `players.playerA`             | Map       | 選手Aの情報                                                                   |
-| `players.playerA.displayName` | String    | 表示名                                                                        |
 | `players.playerA.playerId`    | String    | 選手ID                                                                        |
 | `players.playerA.teamId`      | String    | チームID                                                                      |
-| `players.playerA.teamName`    | String    | チーム名                                                                      |
+| `players.playerA.score`       | Number    | 選手Aの得点（0, 1, 2）                                                        |
+| `players.playerA.hansoku`     | Number    | 選手Aの反則状態（0:"none", 1:"yellow", 2:"red", 3:"red_yellow", 4:"red_red"） |
+| `players.playerB`             | Map       | 選手Bの情報（playerAと同様の構造）                                            |
+| `isCompleted`                 | Boolean   | 試合完了フラグ                                                                |
+| `createdAt`                   | Timestamp | 組み合わせ作成日時                                                            |
+| `updatedAt`                   | Timestamp | 最終編集日時                                                                  |
+
+
+## teamMatches コレクション (団体戦用)
+
+全ての試合の組み合わせ、およびリアルタイムの試合状況（得点、反則、選手名など）を管理します。このコレクションがアプリの核となります。
+
+### 目的
+
+- 「試合の組み合わせ設定画面」で、ドキュメントを作成・編集・削除する
+- 「試合一覧画面」で、このコレクションを一覧表示する
+
+- **パス (団体戦)**: `organizations/{orgId}/tournaments/{tournamentId}/matchGroups/{matchGroupId}/teamMatches/{matchId}`
+- **ドキュメントID**: 自動生成ID （= 試合id）
+
+### フィールド
+
+| フィールド名                  | データ型  | 説明                                                                          |
+| ----------------------------- | --------- | ----------------------------------------------------------------------------- |
+| `matchId`                     | String    | 試合ID                                                                        |
+| `matchGroupId`                | String    | 親となるチーム試合ID                                                          |
+| `roundId`                     | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応）                        |
+| `sortOrder`                   | Number    | 表示順序（昇順でソート）                                                      |
+| `players`                     | Map       | 選手の情報                                                                    |
+| `players.playerA`             | Map       | 選手Aの情報                                                                   |
+| `players.playerA.playerId`    | String    | 選手ID                                                                        |
+| `players.playerA.teamId`      | String    | チームID                                                                      |
 | `players.playerA.score`       | Number    | 選手Aの得点（0, 1, 2）                                                        |
 | `players.playerA.hansoku`     | Number    | 選手Aの反則状態（0:"none", 1:"yellow", 2:"red", 3:"red_yellow", 4:"red_red"） |
 | `players.playerB`             | Map       | 選手Bの情報（playerAと同様の構造）                                            |

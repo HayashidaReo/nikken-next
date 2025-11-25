@@ -1,17 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FirestoreTeamRepository } from "@/repositories/firestore/team-repository";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/db";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import type { Team, TeamCreate } from "@/types/team.schema";
 import type { TeamFormData } from "@/types/team-form.schema";
-
-/**
- * Team リポジトリのインスタンス（シングルトン）
- *
- * 注意: このクエリは認証済みユーザー専用です
- * - 管理画面（チーム一覧、承認機能など）で使用
- * - 選手登録フォームでは API Route (/api/teams/register) を使用
- */
-const teamRepository = new FirestoreTeamRepository();
 
 /**
  * Query Keys for Team entities
@@ -26,42 +18,45 @@ export const teamKeys = {
 };
 
 /**
- * 全てのチームを取得するQuery
- * 認証コンテキストから組織・大会IDを自動取得
+ * 全てのチームを取得するQuery (Local First)
  */
 export function useTeams() {
-  const { orgId, activeTournamentId, isReady } = useAuthContext();
+  const { orgId, activeTournamentId } = useAuthContext();
 
-  return useQuery({
-    queryKey: teamKeys.list({ orgId, tournamentId: activeTournamentId }),
-    queryFn: () => {
-      if (!orgId || !activeTournamentId) {
-        throw new Error("Organization ID and Tournament ID are required");
-      }
-      return teamRepository.listAll(orgId, activeTournamentId);
-    },
-    enabled: Boolean(isReady && orgId && activeTournamentId), // 認証・組織・大会が揃った場合のみ実行
-    staleTime: 5 * 60 * 1000, // 5分間はキャッシュを有効とする
-  });
+  const teams = useLiveQuery(async () => {
+    if (!orgId || !activeTournamentId) return [];
+    return await db.teams
+      .where({ organizationId: orgId, tournamentId: activeTournamentId })
+      .toArray();
+  }, [orgId, activeTournamentId]);
+
+  return {
+    data: teams,
+    isLoading: teams === undefined,
+    error: null as Error | null
+  };
 }
 
+
 /**
- * 特定のチームを取得するQuery
+ * 特定のチームを取得するQuery (Local First)
  */
 export function useTeam(teamId: string | null | undefined) {
-  const { orgId, activeTournamentId, isReady } = useAuthContext();
+  const { orgId, activeTournamentId } = useAuthContext();
 
-  return useQuery({
-    queryKey: teamKeys.detail(teamId || ""),
-    queryFn: () => {
-      if (!teamId || !orgId || !activeTournamentId) {
-        throw new Error("Team ID, Organization ID and Tournament ID are required");
-      }
-      return teamRepository.getById(orgId, activeTournamentId, teamId);
-    },
-    enabled: Boolean(isReady && teamId && orgId && activeTournamentId), // 全て揃った場合のみクエリを実行
-    staleTime: 5 * 60 * 1000,
-  });
+  const team = useLiveQuery(async () => {
+    if (!teamId || !orgId || !activeTournamentId) return undefined;
+    return await db.teams
+      .where('teamId')
+      .equals(teamId)
+      .first();
+  }, [teamId, orgId, activeTournamentId]);
+
+  return {
+    data: team,
+    isLoading: team === undefined,
+    error: null as Error | null
+  };
 }
 
 /**
@@ -72,11 +67,23 @@ export function useCreateTeam() {
   const { orgId, activeTournamentId } = useAuthContext();
 
   return useMutation({
-    mutationFn: (newTeam: TeamCreate) => {
+    mutationFn: async (newTeam: TeamCreate) => {
       if (!orgId || !activeTournamentId) {
         throw new Error("Organization ID and Tournament ID are required");
       }
-      return teamRepository.create(orgId, activeTournamentId, newTeam);
+      const teamId = crypto.randomUUID();
+      const now = new Date();
+      const localTeam = {
+        ...newTeam,
+        teamId,
+        organizationId: orgId,
+        tournamentId: activeTournamentId,
+        isSynced: false,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await db.teams.put(localTeam);
+      return localTeam;
     },
     onSuccess: createdTeam => {
       // 一覧キャッシュを無効化
@@ -98,11 +105,21 @@ export function useUpdateTeam() {
   const { orgId, activeTournamentId } = useAuthContext();
 
   return useMutation({
-    mutationFn: ({ teamId, patch }: { teamId: string; patch: Partial<Team> }) => {
+    mutationFn: async ({ teamId, patch }: { teamId: string; patch: Partial<Team> }) => {
       if (!orgId || !activeTournamentId) {
         throw new Error("Organization ID and Tournament ID are required");
       }
-      return teamRepository.update(orgId, activeTournamentId, teamId, patch);
+      const team = await db.teams.where('teamId').equals(teamId).first();
+      if (!team) throw new Error("Team not found");
+
+      const updatedTeam = {
+        ...team,
+        ...patch,
+        updatedAt: new Date(),
+        isSynced: false,
+      };
+      await db.teams.put(updatedTeam);
+      return updatedTeam;
     },
     onSuccess: updatedTeam => {
       // 一覧キャッシュを無効化
@@ -124,11 +141,15 @@ export function useDeleteTeam() {
   const { orgId, activeTournamentId } = useAuthContext();
 
   return useMutation({
-    mutationFn: (teamId: string) => {
+    mutationFn: async (teamId: string) => {
       if (!orgId || !activeTournamentId) {
         throw new Error("Organization ID and Tournament ID are required");
       }
-      return teamRepository.delete(orgId, activeTournamentId, teamId);
+      // Dexie doesn't support deleting by non-primary key directly in one go easily without key
+      // But we can find key first or just use delete on table if key is teamId?
+      // Wait, primary key in db.ts for teams is 'teamId'.
+      // So we can just delete(teamId).
+      await db.teams.delete(teamId);
     },
     onSuccess: (_, deletedTeamId) => {
       // 一覧キャッシュを無効化
@@ -194,36 +215,3 @@ export function useRegisterTeamWithParams(orgId: string, tournamentId: string) {
   return useRegisterTeamBase(orgId, tournamentId);
 }
 
-/**
- * リアルタイム購読用のフック（オプション）
- * 使用例: チーム管理画面でリアルタイム更新が必要な場合
- */
-export function useTeamsRealtime() {
-  const queryClient = useQueryClient();
-  const { orgId, activeTournamentId, isReady } = useAuthContext();
-
-  return useQuery({
-    queryKey: [...teamKeys.lists(), "realtime", { orgId, tournamentId: activeTournamentId }],
-    queryFn: () => {
-      if (!orgId || !activeTournamentId) {
-        throw new Error("Organization ID and Tournament ID are required");
-      }
-
-      return new Promise<Team[]>(resolve => {
-        // リアルタイム購読を開始
-        const unsubscribe = teamRepository.listenAll(orgId, activeTournamentId, (teams: Team[]) => {
-          // キャッシュを更新
-          queryClient.setQueryData(teamKeys.list({ orgId, tournamentId: activeTournamentId }), teams);
-          resolve(teams);
-        });
-
-        // クリーンアップ関数を返す
-        return () => unsubscribe();
-      });
-    },
-    enabled: Boolean(isReady && orgId && activeTournamentId),
-    staleTime: Infinity, // リアルタイム更新なので常にフレッシュ
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-}

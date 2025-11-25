@@ -3,24 +3,22 @@ import { useMonitorData } from "@/hooks/use-monitor-data";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
-
-interface TokenData {
-  matchId: string;
-  orgId: string;
-  tournamentId: string;
-}
+import { useBuzzer } from "@/hooks/useBuzzer";
+import { MatchResultView } from "./match-result-view";
+import { TeamResultView } from "./team-result-view";
 
 interface MonitorDisplayContainerProps {
   className?: string;
-  tokenData?: TokenData | null;
 }
 
 export function MonitorDisplayContainer({
   className = "",
-  tokenData,
 }: MonitorDisplayContainerProps) {
-  const { data } = useMonitorData(tokenData);
+  const { data } = useMonitorData();
   const [scale, setScale] = useState(1);
+
+  // タイマーが0になったらブザーを鳴らす（カウントダウンモードのみ）
+  useBuzzer(data.timeRemaining, data.timerMode);
 
   useEffect(() => {
     const handleResize = () => {
@@ -43,7 +41,64 @@ export function MonitorDisplayContainer({
 
   // 非公開時の表示
   if (!data.isPublic) {
-    return <StandbyScreen />;
+    return (
+      <div
+        className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
+      >
+        <div
+          style={{
+            width: MONITOR_CONSTANTS.BASE_WIDTH,
+            height: MONITOR_CONSTANTS.BASE_HEIGHT,
+            transform: `scale(${scale})`,
+            transformOrigin: "center",
+          }}
+          className="bg-black flex-shrink-0"
+        >
+          <StandbyScreen />
+        </div>
+      </div>
+    );
+  }
+
+  // モードによる分岐
+  if (data.viewMode === "match_result") {
+    return (
+      <div
+        className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
+      >
+        <div
+          style={{
+            width: MONITOR_CONSTANTS.BASE_WIDTH,
+            height: MONITOR_CONSTANTS.BASE_HEIGHT,
+            transform: `scale(${scale})`,
+            transformOrigin: "center",
+          }}
+          className="bg-black flex-shrink-0"
+        >
+          <MatchResultView data={data} />
+        </div>
+      </div>
+    );
+  }
+
+  if (data.viewMode === "team_result") {
+    return (
+      <div
+        className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
+      >
+        <div
+          style={{
+            width: MONITOR_CONSTANTS.BASE_WIDTH,
+            height: MONITOR_CONSTANTS.BASE_HEIGHT,
+            transform: `scale(${scale})`,
+            transformOrigin: "center",
+          }}
+          className="bg-black flex-shrink-0"
+        >
+          <TeamResultView data={data} />
+        </div>
+      </div>
+    );
   }
 
   return (

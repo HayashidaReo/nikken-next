@@ -5,18 +5,12 @@ import {
 } from "@/lib/constants/monitor";
 import type { MonitorData } from "@/types/monitor.schema";
 
-interface TokenData {
-  matchId: string;
-  orgId: string;
-  tournamentId: string;
-}
-
-export function useMonitorData(tokenData?: TokenData | null) {
+export function useMonitorData() {
   const [data, setData] = useState<MonitorData>({
     matchId: "",
     tournamentName: "大会名未設定",
     courtName: "コート名未設定",
-    round: "ラウンド未設定",
+    roundName: "ラウンド未設定",
     playerA: {
       displayName: "選手A",
       teamName: "チーム名未設定",
@@ -32,32 +26,13 @@ export function useMonitorData(tokenData?: TokenData | null) {
     timeRemaining: 300,
     isTimerRunning: false,
     isPublic: false,
+    timerMode: "countdown",
+    viewMode: "scoreboard",
   });
 
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const heartbeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // トークンデータが提供されている場合は、トークンベース認証モードとして動作する
-  // このモードでは、通常のユーザ認証フロー（ログインや権限チェック）をスキップし、
-  // 受け取ったトークンに基づいて限定的にモニター表示を許可する動作を行う。
-  // ここでは表示側（受信側）が即時に「接続済み」と見なされることで、
-  // - 認証ダイアログやリダイレクトなどの副作用を起こさずにUIを描画できる
-  // - プレゼンテーションやBroadcastChannel経由のメッセージ受信待ちに移行できる
-  // という利点がある一方で、セキュリティ上の範囲が限定されるため、
-  // トークン発行側で有効期限やスコープチェックを厳格に行う必要がある点に注意する。
-  useEffect(() => {
-    if (!tokenData) return;
-
-    // エフェクト内での同期的な状態更新を避けるため、更新を遅延させる
-    const t = setTimeout(() => {
-      setIsConnected(true);
-    }, 0);
-
-    return () => {
-      clearTimeout(t);
-    };
-  }, [tokenData]);
 
   // BroadcastChannelでのデータ共有
   useEffect(() => {

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 import { adminDb } from "@/lib/firebase-admin/server";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 import { tournamentCreateSchema } from "@/types/tournament.schema";
@@ -128,6 +127,8 @@ export async function POST(
       location,
       defaultMatchTime,
       courts,
+      rounds,
+      tournamentType,
     } = validatedData;
 
     // Firebase Admin DB の初期化チェック
@@ -151,12 +152,17 @@ export async function POST(
       );
     }
 
-    // サーバー側で createdAt/updatedAt を生成
+    // サーバー側で createdAt/updatedAt を生成 (クライアントから送られてきた場合はそれを優先)
     const now = new Date();
+    const clientCreatedAt = body.createdAt ? new Date(body.createdAt) : undefined;
+    const clientUpdatedAt = body.updatedAt ? new Date(body.updatedAt) : undefined;
 
+    // 有効な日付かチェック
+    const createdAt = !isNaN(clientCreatedAt?.getTime() || NaN) ? clientCreatedAt! : now;
+    const updatedAt = !isNaN(clientUpdatedAt?.getTime() || NaN) ? clientUpdatedAt! : now;
 
-    // UUIDを生成
-    const tournamentId = uuidv4();
+    // クライアント側から送られてきたtournamentIdを使用
+    const tournamentId = body.tournamentId;
 
     const tournamentData = {
       tournamentId,
@@ -167,8 +173,10 @@ export async function POST(
       defaultMatchTime:
         typeof defaultMatchTime === "number" ? defaultMatchTime : 180,
       courts: Array.isArray(courts) ? courts : [],
-      createdAt: now, // サーバー側で生成
-      updatedAt: now, // サーバー側で生成
+      rounds: Array.isArray(rounds) ? rounds : [],
+      tournamentType,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     };
 
     // 大会を作成
@@ -190,6 +198,8 @@ export async function POST(
           location: tournamentData.location,
           defaultMatchTime: tournamentData.defaultMatchTime,
           courts: tournamentData.courts,
+          rounds: tournamentData.rounds,
+          tournamentType: tournamentData.tournamentType,
           createdAt: tournamentData.createdAt.toISOString(),
           updatedAt: tournamentData.updatedAt.toISOString(),
         },

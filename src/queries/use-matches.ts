@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { FirestoreMatchRepository } from "@/repositories/firestore/match-repository";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import type { Match, MatchCreate } from "@/types/match.schema";
+import { useLiveQuery } from "dexie-react-hooks";
+import { localMatchRepository } from "@/repositories/local/match-repository";
+import type { LocalMatch } from "@/lib/db";
 
 /**
  * Match リポジトリのインスタンス（シングルトン）
@@ -23,86 +26,85 @@ export const matchKeys = {
     details: () => [...matchKeys.all, "detail"] as const,
     detail: (id: string) => [...matchKeys.details(), id] as const,
     courtMatches: (courtId: string) => [...matchKeys.all, "court", courtId] as const,
-    roundMatches: (round: string) => [...matchKeys.all, "round", round] as const,
+    roundMatchesById: (roundId: string) => [...matchKeys.all, "round", roundId] as const,
     playerMatches: (playerId: string) => [...matchKeys.all, "player", playerId] as const,
     teamMatches: (teamId: string) => [...matchKeys.all, "team", teamId] as const,
 };
 
 /**
- * 全ての試合を取得するQuery
- * 認証コンテキストから組織・大会IDを自動取得
+ * 全ての試合を取得するQuery (Local DB)
  */
-export function useMatches() {
-    const { orgId, activeTournamentId, isReady } = useAuthContext();
+export function useMatches(enabled: boolean = true) {
+    const { orgId, activeTournamentId } = useAuthContext();
 
-    return useQuery({
-        queryKey: matchKeys.list({ orgId, tournamentId: activeTournamentId }),
-        queryFn: () => {
-            if (!orgId || !activeTournamentId) {
-                throw new Error("Organization ID and Tournament ID are required");
-            }
-            return matchRepository.listAll(orgId, activeTournamentId);
-        },
-        enabled: Boolean(isReady && orgId && activeTournamentId), // 認証・組織・大会が揃った場合のみ実行
-        staleTime: 5 * 60 * 1000, // 5分間はキャッシュを有効とする
-    });
+    const matches = useLiveQuery(async () => {
+        if (!enabled || !orgId || !activeTournamentId) {
+            return [];
+        }
+
+        const result = await localMatchRepository.listAll(orgId, activeTournamentId);
+        return result;
+    }, [orgId, activeTournamentId, enabled]);
+
+    return {
+        data: matches,
+        isLoading: matches === undefined,
+        error: null as Error | null
+    };
 }
 
 /**
- * 特定の試合を取得するQuery
+ * 特定の試合を取得するQuery (Local DB)
  */
 export function useMatch(matchId: string | null | undefined) {
-    const { orgId, activeTournamentId, isReady } = useAuthContext();
+    const { orgId, activeTournamentId } = useAuthContext();
 
-    return useQuery({
-        queryKey: matchKeys.detail(matchId || ""),
-        queryFn: () => {
-            if (!matchId || !orgId || !activeTournamentId) {
-                throw new Error("Match ID, Organization ID and Tournament ID are required");
-            }
-            return matchRepository.getById(orgId, activeTournamentId, matchId);
-        },
-        enabled: Boolean(isReady && matchId && orgId && activeTournamentId), // 全て揃った場合のみクエリを実行
-        staleTime: 5 * 60 * 1000,
-    });
+    const match = useLiveQuery(async () => {
+        if (!matchId || !orgId || !activeTournamentId) return undefined;
+        return await localMatchRepository.getById(matchId);
+    }, [matchId, orgId, activeTournamentId]);
+
+    return {
+        data: match,
+        isLoading: match === undefined,
+        error: null as Error | null
+    };
 }
 
 /**
- * 特定のコートの試合を取得するQuery
+ * 特定のコートの試合を取得するQuery (Local DB)
  */
 export function useMatchesByCourtId(courtId: string | null | undefined) {
-    const { orgId, activeTournamentId, isReady } = useAuthContext();
+    const { orgId, activeTournamentId } = useAuthContext();
 
-    return useQuery({
-        queryKey: matchKeys.courtMatches(courtId || ""),
-        queryFn: () => {
-            if (!courtId || !orgId || !activeTournamentId) {
-                throw new Error("Court ID, Organization ID and Tournament ID are required");
-            }
-            return matchRepository.listByCourtId(orgId, activeTournamentId, courtId);
-        },
-        enabled: Boolean(isReady && courtId && orgId && activeTournamentId),
-        staleTime: 3 * 60 * 1000, // 3分間はキャッシュを有効とする
-    });
+    const matches = useLiveQuery(async () => {
+        if (!courtId || !orgId || !activeTournamentId) return [];
+        return await localMatchRepository.listByCourtId(orgId, activeTournamentId, courtId);
+    }, [courtId, orgId, activeTournamentId]);
+
+    return {
+        data: matches,
+        isLoading: matches === undefined,
+        error: null as Error | null
+    };
 }
 
 /**
- * 特定のラウンドの試合を取得するQuery
+ * 特定のラウンドIDの試合を取得するQuery (Local DB)
  */
-export function useMatchesByRound(round: string | null | undefined) {
-    const { orgId, activeTournamentId, isReady } = useAuthContext();
+export function useMatchesByRoundId(roundId: string | null | undefined) {
+    const { orgId, activeTournamentId } = useAuthContext();
 
-    return useQuery({
-        queryKey: matchKeys.roundMatches(round || ""),
-        queryFn: () => {
-            if (!round || !orgId || !activeTournamentId) {
-                throw new Error("Round, Organization ID and Tournament ID are required");
-            }
-            return matchRepository.listByRound(orgId, activeTournamentId, round);
-        },
-        enabled: Boolean(isReady && round && orgId && activeTournamentId),
-        staleTime: 3 * 60 * 1000,
-    });
+    const matches = useLiveQuery(async () => {
+        if (!roundId || !orgId || !activeTournamentId) return [];
+        return await localMatchRepository.listByRoundId(orgId, activeTournamentId, roundId);
+    }, [roundId, orgId, activeTournamentId]);
+
+    return {
+        data: matches,
+        isLoading: matches === undefined,
+        error: null as Error | null
+    };
 }
 
 /**
@@ -151,13 +153,32 @@ export function useCreateMatch() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
-        mutationFn: (newMatch: MatchCreate) => {
+        mutationFn: async (newMatch: MatchCreate) => {
             if (!orgId || !activeTournamentId) {
                 throw new Error("Organization ID and Tournament ID are required");
             }
-            return matchRepository.create(orgId, activeTournamentId, newMatch);
+
+            const matchId = crypto.randomUUID();
+            const now = new Date();
+
+            const createdMatch: Match = {
+                ...newMatch,
+                matchId,
+                createdAt: now,
+                updatedAt: now,
+            };
+
+            const localMatch: LocalMatch = {
+                ...createdMatch,
+                organizationId: orgId,
+                tournamentId: activeTournamentId,
+                isSynced: false,
+            };
+
+            await localMatchRepository.put(localMatch);
+            return createdMatch;
         },
-        onSuccess: createdMatch => {
+        onSuccess: (createdMatch) => {
             // 一覧キャッシュを無効化
             queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
             // 作成された試合の詳細をキャッシュに追加
@@ -167,7 +188,7 @@ export function useCreateMatch() {
             );
             // 関連する条件検索のキャッシュも無効化
             queryClient.invalidateQueries({ queryKey: matchKeys.courtMatches(createdMatch.courtId) });
-            queryClient.invalidateQueries({ queryKey: matchKeys.roundMatches(createdMatch.round) });
+            queryClient.invalidateQueries({ queryKey: matchKeys.roundMatchesById(createdMatch.roundId) });
         },
     });
 }
@@ -176,13 +197,30 @@ export function useCreateMatches() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
-        mutationFn: (newMatches: MatchCreate[]) => {
+        mutationFn: async (newMatches: MatchCreate[]) => {
             if (!orgId || !activeTournamentId) {
                 throw new Error("Organization ID and Tournament ID are required");
             }
-            return matchRepository.createMultiple(orgId, activeTournamentId, newMatches);
+
+            const now = new Date();
+            const createdMatches: Match[] = newMatches.map(m => ({
+                ...m,
+                matchId: crypto.randomUUID(),
+                createdAt: now,
+                updatedAt: now,
+            }));
+
+            const localMatches: LocalMatch[] = createdMatches.map(m => ({
+                ...m,
+                organizationId: orgId,
+                tournamentId: activeTournamentId,
+                isSynced: false,
+            }));
+
+            await localMatchRepository.bulkPut(localMatches);
+            return createdMatches;
         },
-        onSuccess: createdMatches => {
+        onSuccess: (createdMatches) => {
             // 全ての一覧キャッシュを無効化
             queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
 
@@ -196,14 +234,14 @@ export function useCreateMatches() {
 
             // 関連する条件検索のキャッシュも無効化
             const courtIds = [...new Set(createdMatches.map(m => m.courtId))];
-            const rounds = [...new Set(createdMatches.map(m => m.round))];
+            const roundIds = [...new Set(createdMatches.map(m => m.roundId))];
 
             courtIds.forEach(courtId => {
                 queryClient.invalidateQueries({ queryKey: matchKeys.courtMatches(courtId) });
             });
 
-            rounds.forEach(round => {
-                queryClient.invalidateQueries({ queryKey: matchKeys.roundMatches(round) });
+            roundIds.forEach(roundId => {
+                queryClient.invalidateQueries({ queryKey: matchKeys.roundMatchesById(roundId) });
             });
         },
     });
@@ -218,13 +256,26 @@ export function useUpdateMatch() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
-        mutationFn: ({ matchId, patch }: { matchId: string; patch: Partial<Match> }) => {
+        mutationFn: async ({ matchId, patch }: { matchId: string; patch: Partial<Match> }) => {
             if (!orgId || !activeTournamentId) {
                 throw new Error("Organization ID and Tournament ID are required");
             }
-            return matchRepository.update(orgId, activeTournamentId, matchId, patch);
+
+            // 既存の試合を取得
+            const existing = await localMatchRepository.getById(matchId);
+            if (!existing) throw new Error("Match not found");
+
+            const updatedMatch: LocalMatch = {
+                ...existing,
+                ...patch,
+                updatedAt: new Date(),
+                isSynced: false,
+            };
+
+            await localMatchRepository.put(updatedMatch);
+            return updatedMatch;
         },
-        onSuccess: updatedMatch => {
+        onSuccess: (updatedMatch) => {
             // 一覧キャッシュを無効化
             queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
             // 更新された試合の詳細をキャッシュに追加
@@ -234,7 +285,7 @@ export function useUpdateMatch() {
             );
             // 関連する条件検索のキャッシュも無効化
             queryClient.invalidateQueries({ queryKey: matchKeys.courtMatches(updatedMatch.courtId) });
-            queryClient.invalidateQueries({ queryKey: matchKeys.roundMatches(updatedMatch.round) });
+            queryClient.invalidateQueries({ queryKey: matchKeys.roundMatchesById(updatedMatch.roundId) });
         },
     });
 }
@@ -247,11 +298,12 @@ export function useDeleteMatch() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
-        mutationFn: (matchId: string) => {
+        mutationFn: async (matchId: string) => {
             if (!orgId || !activeTournamentId) {
                 throw new Error("Organization ID and Tournament ID are required");
             }
-            return matchRepository.delete(orgId, activeTournamentId, matchId);
+            await localMatchRepository.delete(matchId);
+            return matchId;
         },
         onSuccess: (_, deletedMatchId) => {
             // 一覧キャッシュを無効化
@@ -272,11 +324,12 @@ export function useDeleteMatches() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
-        mutationFn: (matchIds: string[]) => {
+        mutationFn: async (matchIds: string[]) => {
             if (!orgId || !activeTournamentId) {
                 throw new Error("Organization ID and Tournament ID are required");
             }
-            return matchRepository.deleteMultiple(orgId, activeTournamentId, matchIds);
+            await localMatchRepository.deleteMultiple(matchIds);
+            return matchIds;
         },
         onSuccess: (_, deletedMatchIds) => {
             // 一覧キャッシュを無効化

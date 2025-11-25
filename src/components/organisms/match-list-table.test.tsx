@@ -6,32 +6,73 @@ jest.mock("next/navigation", () => ({
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MatchListTable } from "./match-list-table";
+import { MasterDataProvider } from "@/components/providers/master-data-provider";
 import type { Match } from "@/types/match.schema";
+import type { Team } from "@/types/team.schema";
 
 const sampleCourts = [
     { courtId: "court-1", courtName: "Aコート" },
     { courtId: "court-2", courtName: "Bコート" },
 ];
 
+const sampleTeams: Team[] = [
+    {
+        teamId: "t-a",
+        teamName: "Team A",
+        representativeName: "Rep A",
+        representativePhone: "000",
+        representativeEmail: "a@example.com",
+        remarks: "",
+        isApproved: true,
+        players: [
+            {
+                playerId: "p-a",
+                lastName: "A",
+                firstName: "Player",
+                displayName: "Player A",
+            },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    } as Team,
+    {
+        teamId: "t-b",
+        teamName: "Team B",
+        representativeName: "Rep B",
+        representativePhone: "000",
+        representativeEmail: "b@example.com",
+        remarks: "",
+        isApproved: true,
+        players: [
+            {
+                playerId: "p-b",
+                lastName: "B",
+                firstName: "Player",
+                displayName: "Player B",
+            },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    } as Team,
+];
+
 const makeMatch = (overrides: Partial<Match> = {}): Match => {
     const base: Match = {
         matchId: "m-1",
         courtId: "court-1",
-        round: "1回戦",
+        roundId: "round-1",
+        sortOrder: 0,
+        isCompleted: false,
         players: {
             playerA: {
-                displayName: "Player A",
                 playerId: "p-a",
                 teamId: "t-a",
-                teamName: "Team A",
                 score: 2,
                 hansoku: 0,
             },
             playerB: {
-                displayName: "Player B",
                 playerId: "p-b",
                 teamId: "t-b",
-                teamName: "Team B",
                 score: 1,
                 hansoku: 0,
             },
@@ -45,21 +86,51 @@ const makeMatch = (overrides: Partial<Match> = {}): Match => {
 
 describe("MatchListTable display", () => {
     it("renders header score label centered", () => {
-        render(<MatchListTable matches={[]} tournamentName="Tourn" courts={sampleCourts} />);
+        render(
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[]} tournamentName="Tourn" />
+            </MasterDataProvider>
+        );
         const scoreHeader = screen.getByText("得点");
         expect(scoreHeader).toHaveClass("text-center");
     });
 
     it("resolves and displays court name instead of courtId", () => {
         const m = makeMatch();
-        render(<MatchListTable matches={[m]} tournamentName="Tourn" courts={sampleCourts} />);
+        render(
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[m]} tournamentName="Tourn" />
+            </MasterDataProvider>
+        );
         // court name should be displayed
         expect(screen.getByText("Aコート")).toBeInTheDocument();
     });
 
+    it("displays round name resolved from roundId when rounds are provided", () => {
+        const m = makeMatch({ roundId: "round-1" });
+        render(
+            <MasterDataProvider
+                courts={sampleCourts}
+                teams={sampleTeams}
+                rounds={[{ roundId: "round-1", roundName: "1回戦" }]}
+            >
+                <MatchListTable
+                    matches={[m]}
+                    tournamentName="Tourn"
+                />
+            </MasterDataProvider>
+        );
+
+        expect(screen.getByText("1回戦")).toBeInTheDocument();
+    });
+
     it("displays scores with a hyphen between them and aligned in the same row", () => {
         const m = makeMatch();
-        render(<MatchListTable matches={[m]} tournamentName="Tourn" courts={sampleCourts} />);
+        render(
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[m]} tournamentName="Tourn" />
+            </MasterDataProvider>
+        );
         // find the row containing player A
         const playerA = screen.getByText("Player A");
         const row = playerA.closest("tr");
@@ -86,7 +157,9 @@ describe("MatchListTable display", () => {
         });
 
         const { container } = render(
-            <MatchListTable matches={[noPenalty, withPenalty]} tournamentName="Tourn" courts={sampleCourts} />
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[noPenalty, withPenalty]} tournamentName="Tourn" />
+            </MasterDataProvider>
         );
 
         // For the no-penalty row: hyphen displays within penalty area
@@ -112,7 +185,11 @@ describe("MatchListTable display", () => {
     it("operation button triggers initializeMatch navigation when clicked (no runtime error)", async () => {
         const user = userEvent.setup();
         const m = makeMatch();
-        render(<MatchListTable matches={[m]} tournamentName="Tourn" courts={sampleCourts} />);
+        render(
+            <MasterDataProvider courts={sampleCourts} teams={sampleTeams}>
+                <MatchListTable matches={[m]} tournamentName="Tourn" />
+            </MasterDataProvider>
+        );
         const btn = screen.getByRole("button", { name: /モニター/ });
         await user.click(btn);
         // we don't assert navigation here, just ensure click handler runs without throwing

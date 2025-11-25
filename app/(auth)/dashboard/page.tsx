@@ -1,34 +1,73 @@
 "use client";
 
-import { useMemo } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
-import { MatchListTableMemo } from "@/components/organisms/match-list-table";
-import { useMatchesRealtime } from "@/queries/use-matches";
-import { useTournament } from "@/queries/use-tournaments";
-import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
+import { Button } from "@/components/atoms/button";
+import { DownloadCloud, UploadCloud, Trash2 } from "lucide-react";
+import { DashboardContent } from "@/components/templates/dashboard-content";
+import { useDashboard } from "@/hooks/useDashboard";
 
 export default function DashboardPage() {
-  const { needsTournamentSelection, activeTournamentId, orgId, isLoading: authLoading } = useAuthContext();
-
-  // Firebase からデータを取得（リアルタイム更新対応）
-  const { data: matches = [], isLoading: matchesLoading, error: matchesError } = useMatchesRealtime();
-  const { data: tournament, isLoading: tournamentLoading, error: tournamentError } = useTournament(orgId, activeTournamentId);
-
-  // matches リストをメモ化して不要な再レンダリングを防止
-  const memoizedMatches = useMemo(() => matches, [matches]);
-
-  // tournament データをメモ化
-  const memoizedTournament = useMemo(() => tournament, [tournament]);
-  const memoizedCourts = useMemo(() => tournament?.courts ?? [], [tournament?.courts]);
-
-  const isLoading = authLoading || matchesLoading || tournamentLoading;
-  const hasError = matchesError || tournamentError;
+  const {
+    needsTournamentSelection,
+    orgId,
+    activeTournamentId,
+    isDownloading,
+    isUploading,
+    isClearing,
+    isLoading,
+    hasError,
+    matchGroupId,
+    tournament,
+    matches,
+    matchGroups,
+    teamMatches,
+    teams,
+    courts,
+    handleDownload,
+    handleUpload,
+    handleClearLocal,
+    handleBack,
+  } = useDashboard();
 
   return (
     <MainLayout activeTab="matches">
       <div className="space-y-6">
+        {/* データ取得ボタン */}
+        {!needsTournamentSelection && orgId && activeTournamentId && (
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              disabled={isDownloading || isUploading || isClearing}
+            >
+              <DownloadCloud className="w-4 h-4 mr-2" />
+              {isDownloading ? "取得中..." : "データ取得"}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleUpload}
+              disabled={isUploading || isDownloading || isClearing}
+            >
+              <UploadCloud className="w-4 h-4 mr-2" />
+              {isUploading ? "送信中..." : "クラウドへ送信"}
+            </Button>
+
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleClearLocal}
+              disabled={isClearing || isDownloading || isUploading}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {isClearing ? "削除中..." : "ローカルデータ削除"}
+            </Button>
+          </div>
+        )}
 
         {/* 大会が選択されていない場合 */}
         {needsTournamentSelection && (
@@ -54,7 +93,7 @@ export default function DashboardPage() {
         )}
 
         {/* 大会情報が取得できない場合 */}
-        {!needsTournamentSelection && !isLoading && !hasError && !memoizedTournament && (
+        {!needsTournamentSelection && !isLoading && !hasError && !tournament && (
           <InfoDisplay
             variant="warning"
             title="大会情報が見つかりません"
@@ -63,11 +102,18 @@ export default function DashboardPage() {
         )}
 
         {/* 正常時の表示 */}
-        {!needsTournamentSelection && !isLoading && !hasError && memoizedTournament && (
-          <MatchListTableMemo
-            matches={memoizedMatches}
-            tournamentName={memoizedTournament.tournamentName}
-            courts={memoizedCourts}
+        {!needsTournamentSelection && !isLoading && !hasError && tournament && (
+          <DashboardContent
+            tournamentType={tournament.tournamentType}
+            matchGroupId={matchGroupId}
+            matches={matches}
+            matchGroups={matchGroups}
+            teamMatches={teamMatches}
+            teams={teams}
+            tournamentName={tournament.tournamentName}
+            courts={courts}
+            rounds={tournament.rounds}
+            onBack={handleBack}
           />
         )}
       </div>

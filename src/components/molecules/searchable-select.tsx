@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { Check, ChevronDown, Search, HelpCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils/utils";
 import {
@@ -10,6 +10,12 @@ import {
     calculateListMaxHeight,
     shouldOpenAbove,
 } from "./searchable-select.constants";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/atoms/tooltip";
 
 export interface SearchableSelectOption {
     value: string;
@@ -25,6 +31,8 @@ interface SearchableSelectProps {
     className?: string;
     searchPlaceholder?: string;
     'data-field-key'?: string;
+    hasError?: boolean;
+    hint?: string;
 }
 
 export function SearchableSelect({
@@ -36,6 +44,8 @@ export function SearchableSelect({
     className,
     searchPlaceholder = '検索...',
     'data-field-key': dataFieldKey,
+    hasError = false,
+    hint,
 }: SearchableSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -546,14 +556,18 @@ export function SearchableSelect({
 
     // トリガー（表示部分）の動的クラス
     const triggerClasses = [
-        'flex h-8 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-1 text-sm',
+        'flex w-full items-center justify-between rounded-md border bg-white px-3 text-sm',
         'cursor-pointer outline-none',
         // キーボードナビゲーション中はフォーカスリングを表示しない
         !isKeyboardNavigating && 'focus:ring-2 focus:ring-blue-500',
         disabled
-            ? 'bg-gray-50 cursor-not-allowed opacity-50'
-            : 'border-gray-300 hover:border-gray-400',
+            ? 'bg-gray-50 cursor-not-allowed opacity-50 border-gray-300'
+            : hasError
+                ? 'border-red-500 hover:border-red-600'
+                : 'border-gray-300 hover:border-gray-400',
         !value ? 'text-gray-500' : 'text-gray-900',
+        // classNameから高さクラスを抽出（h-8, h-10, h-12など）
+        className?.match(/h-\d+/) ? className.match(/h-\d+/)![0] : 'h-8',
     ];
 
     return (
@@ -579,13 +593,32 @@ export function SearchableSelect({
                 ref={triggerAreaRef}
                 className={cn(...triggerClasses)}
             >
-                <span className="truncate">{selectedLabel}</span>
-                <ChevronDown
-                    className={cn(
-                        "h-4 w-4 text-gray-500 transition-transform",
-                        isOpen && "rotate-180"
-                    )}
-                />
+                {hint && (
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{hint}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                )}
+                <span className="pl-1 flex-1 truncate text-left">{selectedLabel}</span>
+                <div className="flex items-center">
+                    <ChevronDown
+                        className={cn(
+                            "h-4 w-4 text-gray-500 transition-transform",
+                            isOpen && "rotate-180"
+                        )}
+                    />
+                </div>
             </div>
 
             {/* Dropdown Portal */}

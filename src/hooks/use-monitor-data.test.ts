@@ -69,7 +69,7 @@ describe("useMonitorData", () => {
         matchId: "",
         tournamentName: "大会名未設定",
         courtName: "コート名未設定",
-        round: "ラウンド未設定",
+        roundName: "ラウンド未設定",
         playerA: {
           displayName: "選手A",
           teamName: "チーム名未設定",
@@ -85,6 +85,8 @@ describe("useMonitorData", () => {
         timeRemaining: 300,
         isTimerRunning: false,
         isPublic: false,
+        timerMode: "countdown",
+        viewMode: "scoreboard",
       });
 
       expect(result.current.isConnected).toBe(false);
@@ -118,7 +120,7 @@ describe("useMonitorData", () => {
         matchId: "hb-1",
         tournamentName: "HB大会",
         courtName: "コート",
-        round: "決勝",
+        roundName: "決勝",
         playerA: { displayName: "A", teamName: "T", score: 0, hansoku: 0 },
         playerB: { displayName: "B", teamName: "T", score: 0, hansoku: 0 },
         timeRemaining: 60,
@@ -154,7 +156,7 @@ describe("useMonitorData", () => {
         matchId: "hb-2",
         tournamentName: "HB2",
         courtName: "C",
-        round: "準決勝",
+        roundName: "準決勝",
         playerA: { displayName: "A", teamName: "T", score: 0, hansoku: 0 },
         playerB: { displayName: "B", teamName: "T", score: 0, hansoku: 0 },
         timeRemaining: 60,
@@ -199,7 +201,7 @@ describe("useMonitorData", () => {
         matchId: "raw-1",
         tournamentName: "Raw大会",
         courtName: "R",
-        round: "予選",
+        roundName: "予選",
         playerA: { displayName: "A", teamName: "T", score: 1, hansoku: 0 },
         playerB: { displayName: "B", teamName: "T", score: 2, hansoku: 0 },
         timeRemaining: 120,
@@ -227,7 +229,7 @@ describe("useMonitorData", () => {
         matchId: "match-123",
         tournamentName: "テスト大会",
         courtName: "Aコート",
-        round: "準決勝",
+        roundName: "準決勝",
         playerA: {
           displayName: "選手1",
           teamName: "チーム1",

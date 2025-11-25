@@ -79,6 +79,41 @@ export const TEXT_LENGTH_LIMITS = {
   TOURNAMENT_DETAIL_MAX: 1000,
 } as const;
 
+// 団体戦ラウンド順 (Team match role names)
+export const TEAM_MATCH_ROUNDS = [
+  { id: "1", label: "先鋒" },
+  { id: "2", label: "次鋒" },
+  { id: "3", label: "中堅" },
+  { id: "4", label: "副将" },
+  { id: "5", label: "大将" },
+  { id: "6", label: "代表戦" },
+] as const;
+
+export const TEAM_MATCH_ROUND_OPTIONS = TEAM_MATCH_ROUNDS.map(round => ({
+  value: round.id,
+  label: round.label,
+}));
+
+export function getTeamMatchRoundLabelById(roundId?: string | null): string {
+  if (!roundId) return "";
+  const round = TEAM_MATCH_ROUNDS.find(r => r.id === roundId);
+  return round ? round.label : "";
+}
+
+export function getTeamMatchRoundIdByIndex(index: number): string {
+  return TEAM_MATCH_ROUNDS[index]?.id ?? "";
+}
+
+// 団体戦関連の汎用定数
+export const TEAM_MATCH_CONSTANTS = {
+  /** 団体戦の通常試合（代表戦を除く）の最終試合順序 */
+  LAST_REGULAR_MATCH_ORDER: 4,
+  /** 団体戦の通常試合（代表戦を除く）の最終ラウンドID */
+  LAST_REGULAR_MATCH_ROUND_ID: '5',
+  /** 代表戦のラウンドID */
+  REP_MATCH_ROUND_ID: '6',
+} as const;
+
 // 🥋 ペナルティ関連定数
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
@@ -127,6 +162,10 @@ export const FIRESTORE_COLLECTIONS = {
   MATCHES: "matches",
   /** ユーザーコレクション */
   USERS: "users",
+  /** 団体戦グループコレクション */
+  MATCH_GROUPS: "matchGroups",
+  /** 団体戦試合コレクション */
+  TEAM_MATCHES: "teamMatches",
 } as const;
 
 // 🌐 APIエンドポイント定数
@@ -139,6 +178,12 @@ export const API_ENDPOINTS = {
 export const AUTH_CONSTANTS = {
   /** ログアウト後にリダイレクトするまでの待機時間（ミリ秒） */
   LOGOUT_REDIRECT_DELAY: 500,
+} as const;
+
+// 💾 ストレージ関連定数
+export const STORAGE_CONSTANTS = {
+  /** Presentation Connection ID のストレージキー */
+  PRESENTATION_CONNECTION_ID: "presentation_connection_id",
 } as const;
 
 // 🛣️ ルートパス定数

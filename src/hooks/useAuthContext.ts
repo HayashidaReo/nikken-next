@@ -12,6 +12,7 @@ export function useAuthContext() {
     const { user, isLoading: authLoading, isAuthenticated } = useAuth();
     const {
         activeTournamentId,
+        activeTournamentType,
         isLoading: tournamentLoading,
         hasTournamentSelected,
     } = useActiveTournament();
@@ -39,6 +40,7 @@ export function useAuthContext() {
         user,
         orgId,
         activeTournamentId,
+        activeTournamentType,
         isAuthenticated,
         hasTournamentSelected,
         isReady,

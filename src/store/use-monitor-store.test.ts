@@ -10,21 +10,17 @@ import type { Match } from "@/types/match.schema";
 const mockMatch: Match = {
   matchId: "test-match-001",
   courtId: "court-001",
-  round: "決勝",
+  roundId: "final",
   players: {
     playerA: {
-      displayName: "山田",
       playerId: "player-a-001",
       teamId: "team-a-001",
-      teamName: "チームA",
       score: 0,
       hansoku: 0,
     },
     playerB: {
-      displayName: "鈴木",
       playerId: "player-b-001",
       teamId: "team-b-001",
-      teamName: "チームB",
       score: 1,
       hansoku: 1,
     },
@@ -33,6 +29,24 @@ const mockMatch: Match = {
   updatedAt: new Date(),
   sortOrder: 1,
   isCompleted: false,
+};
+
+const resolvedPlayers = {
+  playerA: {
+    ...mockMatch.players.playerA,
+    displayName: "山田",
+    teamName: "チームA",
+  },
+  playerB: {
+    ...mockMatch.players.playerB,
+    displayName: "鈴木",
+    teamName: "チームB",
+  },
+};
+
+const initializeOptions = {
+  resolvedPlayers,
+  roundName: "決勝",
 };
 
 // スパイを設定
@@ -44,7 +58,7 @@ beforeEach(() => {
   useMonitorStore.setState({
     matchId: null,
     courtName: "",
-    round: "",
+    roundName: "",
     tournamentName: "",
     playerA: {
       displayName: "",
@@ -75,7 +89,7 @@ describe("useMonitorStore", () => {
 
       expect(result.current.matchId).toBeNull();
       expect(result.current.courtName).toBe("");
-      expect(result.current.round).toBe("");
+      expect(result.current.roundName).toBe("");
       expect(result.current.tournamentName).toBe("");
       expect(result.current.playerA).toEqual({
         displayName: "",
@@ -100,12 +114,12 @@ describe("useMonitorStore", () => {
       const { result } = renderHook(() => useMonitorStore());
 
       act(() => {
-        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート");
+        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート", initializeOptions);
       });
 
       expect(result.current.matchId).toBe("test-match-001");
       expect(result.current.courtName).toBe("Aコート");
-      expect(result.current.round).toBe("決勝");
+      expect(result.current.roundName).toBe("決勝");
       expect(result.current.tournamentName).toBe("テスト大会");
       expect(result.current.playerA).toEqual({
         displayName: "山田",
@@ -126,7 +140,7 @@ describe("useMonitorStore", () => {
     beforeEach(() => {
       const { result } = renderHook(() => useMonitorStore());
       act(() => {
-        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート");
+        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート", initializeOptions);
       });
     });
 
@@ -195,7 +209,7 @@ describe("useMonitorStore", () => {
     beforeEach(() => {
       const { result } = renderHook(() => useMonitorStore());
       act(() => {
-        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート");
+        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート", initializeOptions);
       });
     });
 
@@ -348,7 +362,7 @@ describe("useMonitorStore", () => {
 
       // 状態を変更
       act(() => {
-        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート");
+        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート", initializeOptions);
         result.current.setPlayerScore("A", 1);
         result.current.togglePublic();
       });
@@ -359,7 +373,7 @@ describe("useMonitorStore", () => {
         matchId: "test-match-001",
         tournamentName: "テスト大会",
         courtName: "Aコート",
-        round: "決勝",
+        roundName: "決勝",
         playerA: {
           displayName: "山田",
           teamName: "チームA",
@@ -375,6 +389,10 @@ describe("useMonitorStore", () => {
         timeRemaining: 180,
         isTimerRunning: false,
         isPublic: true,
+        matchResult: undefined,
+        teamMatchResults: undefined,
+        timerMode: "countdown",
+        viewMode: "scoreboard",
       });
     });
   });
@@ -385,7 +403,7 @@ describe("useMonitorStore", () => {
 
       // 1. 試合を初期化
       act(() => {
-        result.current.initializeMatch(mockMatch, "全国大会", "中央コート");
+        result.current.initializeMatch(mockMatch, "全国大会", "中央コート", initializeOptions);
       });
 
       expect(result.current.matchId).toBe("test-match-001");
