@@ -26,7 +26,7 @@ import { useMonitorSender } from "@/hooks/useMonitorSender";
  * **注意事項:**
  * - このフックは、モニター操作画面（コントロール側）でのみ使用してください
  * - モニター表示画面側では使用しないでください（無限ループの原因になります）
- * - 状態の変更ごとにメッセージが送信されるため、パフォーマンスに影響する可能性があります
+ * - Zustandの`subscribe` APIを使用しているため、コンポーネントの再レンダリングを最小限に抑えます
  * 
  * @see {@link useMonitorStore} - 同期元のストア
  * @see {@link useMonitorSender} - メッセージ送信を担当するフック
@@ -34,38 +34,19 @@ import { useMonitorSender } from "@/hooks/useMonitorSender";
 export function useMonitorSync() {
     const { sendMessage } = useMonitorSender();
 
-    const matchId = useMonitorStore((s) => s.matchId);
-    const tournamentName = useMonitorStore((s) => s.tournamentName);
-    const courtName = useMonitorStore((s) => s.courtName);
-    const roundName = useMonitorStore((s) => s.roundName);
-    const playerA = useMonitorStore((s) => s.playerA);
-    const playerB = useMonitorStore((s) => s.playerB);
-    const timeRemaining = useMonitorStore((s) => s.timeRemaining);
-    const isTimerRunning = useMonitorStore((s) => s.isTimerRunning);
-    const timerMode = useMonitorStore((s) => s.timerMode);
-    const isPublic = useMonitorStore((s) => s.isPublic);
-    const viewMode = useMonitorStore((s) => s.viewMode);
-    const matchResult = useMonitorStore((s) => s.matchResult);
-    const teamMatchResults = useMonitorStore((s) => s.teamMatchResults);
-
     useEffect(() => {
-        // データを送信
-        const monitorData = useMonitorStore.getState().getMonitorSnapshot();
-        sendMessage("data", monitorData);
-    }, [
-        matchId,
-        tournamentName,
-        courtName,
-        roundName,
-        playerA,
-        playerB,
-        timeRemaining,
-        isTimerRunning,
-        timerMode,
-        isPublic,
-        viewMode,
-        matchResult,
-        teamMatchResults,
-        sendMessage,
-    ]);
+        // Zustandのsubscribe APIを使用してストアの変更を監視
+        // これにより、個別の状態を購読するよりも効率的に変更を検知できる
+        const unsubscribe = useMonitorStore.subscribe((state) => {
+            const monitorData = state.getMonitorSnapshot();
+            sendMessage("data", monitorData);
+        });
+
+        // 初回マウント時にもデータを送信
+        const initialData = useMonitorStore.getState().getMonitorSnapshot();
+        sendMessage("data", initialData);
+
+        // クリーンアップ
+        return unsubscribe;
+    }, [sendMessage]);
 }
