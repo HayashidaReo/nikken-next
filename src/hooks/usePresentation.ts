@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { MONITOR_DISPLAY_CHANNEL } from "@/lib/constants/monitor";
+import { STORAGE_CONSTANTS } from "../lib/constants";
 
 // Presentation API の型定義
 declare global {
@@ -63,9 +64,6 @@ export function usePresentation(presentationUrl: string) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 接続IDを保存するキー
-  const STORAGE_KEY = "presentation_connection_id";
-
   // 初回スナップショット送信ヘルパー
   const sendInitialSnapshot = (connection?: PresentationConnection) => {
     try {
@@ -103,7 +101,7 @@ export function usePresentation(presentationUrl: string) {
   // 接続確立後の共通処理
   const setupConnection = useCallback((connection: PresentationConnection, registerGlobal: boolean) => {
     // IDを保存
-    localStorage.setItem(STORAGE_KEY, connection.id);
+    localStorage.setItem(STORAGE_CONSTANTS.PRESENTATION_CONNECTION_ID, connection.id);
 
     setState(prev => ({
       ...prev,
@@ -153,7 +151,7 @@ export function usePresentation(presentationUrl: string) {
 
     const handleClose = () => {
       setState(prev => ({ ...prev, isConnected: false, connection: null }));
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_CONSTANTS.PRESENTATION_CONNECTION_ID);
       if (registerGlobal) {
         useMonitorStore.getState().setPresentationConnection(null);
         useMonitorStore.getState().setPresentationConnected(false);
@@ -194,7 +192,7 @@ export function usePresentation(presentationUrl: string) {
         });
 
       // 再接続を試みる
-      const savedId = localStorage.getItem(STORAGE_KEY);
+      const savedId = localStorage.getItem(STORAGE_CONSTANTS.PRESENTATION_CONNECTION_ID);
       if (savedId) {
         presentation.reconnect(savedId)
           .then(connection => {
@@ -204,7 +202,7 @@ export function usePresentation(presentationUrl: string) {
           })
           .catch(err => {
             console.log("Presentation reconnect failed:", err);
-            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_CONSTANTS.PRESENTATION_CONNECTION_ID);
           });
       }
 

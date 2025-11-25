@@ -170,6 +170,12 @@ export const AUTH_CONSTANTS = {
   LOGOUT_REDIRECT_DELAY: 500,
 } as const;
 
+// 💾 ストレージ関連定数
+export const STORAGE_CONSTANTS = {
+  /** Presentation Connection ID のストレージキー */
+  PRESENTATION_CONNECTION_ID: "presentation_connection_id",
+} as const;
+
 // 🛣️ ルートパス定数
 export const ROUTES = {
   LOGIN: "/login",
