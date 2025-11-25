@@ -203,6 +203,7 @@ export function usePresentation(presentationUrl: string) {
           .catch(err => {
             console.log("Presentation reconnect failed:", err);
             localStorage.removeItem(STORAGE_CONSTANTS.PRESENTATION_CONNECTION_ID);
+            setError("プレゼンテーションへの再接続に失敗しました");
           });
       }
 
