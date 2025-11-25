@@ -85,6 +85,36 @@ export class LocalMatchRepository {
             .filter(m => m.isSynced === false)
             .count();
     }
+
+    /**
+     * matchIdで試合を更新
+     */
+    async updateByMatchId(matchId: string, changes: Partial<LocalMatch>): Promise<number> {
+        return await db.matches
+            .where("matchId")
+            .equals(matchId)
+            .modify(changes);
+    }
+
+    /**
+     * matchIdで試合を削除
+     */
+    async delete(matchId: string): Promise<void> {
+        await db.matches
+            .where("matchId")
+            .equals(matchId)
+            .delete();
+    }
+
+    /**
+     * 複数の試合を一括削除
+     */
+    async deleteMultiple(matchIds: string[]): Promise<void> {
+        await db.matches
+            .where("matchId")
+            .anyOf(matchIds)
+            .delete();
+    }
 }
 
 export const localMatchRepository = new LocalMatchRepository();
