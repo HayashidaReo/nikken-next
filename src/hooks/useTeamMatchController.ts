@@ -347,7 +347,7 @@ export function useTeamMatchController({
                 matchGroupId,
                 {
                     roundId: '6',
-                    sortOrder: 6,
+                    sortOrder: 5,
                     players: {
                         playerA: {
                             playerId: playerAId,

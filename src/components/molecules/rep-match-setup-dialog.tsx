@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/atoms/button";
 import {
     Card,
@@ -11,6 +11,8 @@ import {
 import { Users } from "lucide-react";
 import { DialogOverlay } from "./dialog-overlay";
 import { Team } from "@/types/team.schema";
+import { SearchableSelect } from "./searchable-select";
+import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 
 /**
  * 代表戦の選手設定ダイアログ
@@ -43,14 +45,14 @@ export function RepMatchSetupDialog({
     const [selectedPlayerA, setSelectedPlayerA] = useState<string>("");
     const [selectedPlayerB, setSelectedPlayerB] = useState<string>("");
 
-    const handleConfirm = () => {
+    const handleConfirm = useCallback(() => {
         if (selectedPlayerA && selectedPlayerB) {
             onConfirm(selectedPlayerA, selectedPlayerB);
             // リセット
             setSelectedPlayerA("");
             setSelectedPlayerB("");
         }
-    };
+    }, [selectedPlayerA, selectedPlayerB, onConfirm]);
 
     const handleCancel = () => {
         onCancel();
@@ -60,6 +62,33 @@ export function RepMatchSetupDialog({
     };
 
     const isValid = selectedPlayerA && selectedPlayerB;
+
+    // Enterキーでの確定処理
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Enter" && isValid) {
+                e.preventDefault();
+                handleConfirm();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, isValid, handleConfirm]);
+
+    // チームAの選手オプション
+    const teamAOptions = teamA.players.map((player) => ({
+        value: player.playerId,
+        label: player.displayName,
+    }));
+
+    // チームBの選手オプション
+    const teamBOptions = teamB.players.map((player) => ({
+        value: player.playerId,
+        label: player.displayName,
+    }));
 
     return (
         <DialogOverlay isOpen={isOpen} onClose={handleCancel}>
@@ -81,18 +110,13 @@ export function RepMatchSetupDialog({
                         <label className="text-sm font-semibold text-red-600">
                             {teamA.teamName} の代表選手
                         </label>
-                        <select
+                        <SearchableSelect
                             value={selectedPlayerA}
-                            onChange={(e) => setSelectedPlayerA(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                        >
-                            <option value="">選手を選択してください</option>
-                            {teamA.players.map((player) => (
-                                <option key={player.playerId} value={player.playerId}>
-                                    {player.displayName}
-                                </option>
-                            ))}
-                        </select>
+                            onValueChange={setSelectedPlayerA}
+                            options={teamAOptions}
+                            placeholder="選手を選択してください"
+                            searchPlaceholder="選手名で検索..."
+                        />
                     </div>
 
                     {/* Team B 選手選択 */}
@@ -100,18 +124,13 @@ export function RepMatchSetupDialog({
                         <label className="text-sm font-semibold text-blue-600">
                             {teamB.teamName} の代表選手
                         </label>
-                        <select
+                        <SearchableSelect
                             value={selectedPlayerB}
-                            onChange={(e) => setSelectedPlayerB(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">選手を選択してください</option>
-                            {teamB.players.map((player) => (
-                                <option key={player.playerId} value={player.playerId}>
-                                    {player.displayName}
-                                </option>
-                            ))}
-                        </select>
+                            onValueChange={setSelectedPlayerB}
+                            options={teamBOptions}
+                            placeholder="選手を選択してください"
+                            searchPlaceholder="選手名で検索..."
+                        />
                     </div>
 
                     {/* ボタン */}
@@ -121,10 +140,11 @@ export function RepMatchSetupDialog({
                         </Button>
                         <Button
                             onClick={handleConfirm}
-                            className="flex-1 bg-purple-600 hover:bg-purple-700"
+                            className="flex-1 bg-purple-600 hover:bg-purple-700 gap-2"
                             disabled={!isValid}
                         >
                             代表戦を開始
+                            {isValid && <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />}
                         </Button>
                     </div>
                 </CardContent>
