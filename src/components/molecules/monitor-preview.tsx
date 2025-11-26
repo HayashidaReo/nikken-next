@@ -49,8 +49,8 @@ export function MonitorPreview({
 
     if (!data.matchId) return null;
 
-    // 型キャスト (matchIdチェック済みのため安全)
-    const monitorData = data as unknown as import("@/types/monitor.schema").MonitorData;
+    // スナップショットを取得（型安全）
+    const monitorData = data.getMonitorSnapshot();
 
     // コンテンツのレンダリング
     const renderContent = () => {
