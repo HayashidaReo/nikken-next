@@ -39,21 +39,21 @@
       "repo": "nikken-next"
     },
     "mac": {
-      "target": {
-        "target": "dmg",
-        "category": "public.app-category.sports",
-        "hardenedRuntime": true,
-        "gatekeeperAssess": false,
-        "entitlements": "entitlements.mac.plist",
-        "entitlementsInherit": "entitlements.mac.plist",
-        "notarize": {
-          "teamId": "Y26NFPJ3FL"
-        },
-        "arch": [
-          "x64",
-          "arm64"
-        ]
-      }
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.sports",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "notarize": {
+        "teamId": "Y26NFPJ3FL"
+      },
+      "arch": [
+        "x64",
+        "arm64"
+      ]
     },
     "win": {
       "target": [
