@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { TeamForm } from "@/components/organisms/team-edit-form";
+import { TeamForm } from "@/components/organisms/team-form";
 import { useTeam, useUpdateTeam } from "@/queries/use-teams";
 import { useTeamPersistence } from "@/hooks/useTeamPersistence";
 import { useAuthContext } from "@/hooks/useAuthContext";

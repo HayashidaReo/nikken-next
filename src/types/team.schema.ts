@@ -44,7 +44,28 @@ export const teamSchema = baseTeamSchema.extend({
  */
 export const teamCreateSchema = baseTeamSchema;
 
+/**
+ * 管理画面用のTeamスキーマ
+ * 代表者情報は任意入力（入力された場合は形式チェックあり）
+ */
+export const teamManagementSchema = baseTeamSchema.extend({
+  representativeName: z.string(),
+  representativePhone: z.string(),
+  representativeEmail: z.union([
+    z.literal(""),
+    z.string().email("正しいメールアドレスを入力してください"),
+  ]),
+  players: z.array(
+    playerSchema.extend({
+      displayName: z.string(),
+    })
+  ).min(1, "最低1人の選手を登録してください"),
+  remarks: z.string(),
+  isApproved: z.boolean(),
+});
+
 // TypeScriptの型を自動導出
 export type Player = z.infer<typeof playerSchema>;
 export type Team = z.infer<typeof teamSchema>;
 export type TeamCreate = z.infer<typeof teamCreateSchema>;
+export type TeamManagement = z.infer<typeof teamManagementSchema>;

@@ -36,23 +36,11 @@ import { useArrayField } from "@/hooks/useArrayField";
 import { createDefaultTeamEditValues } from "@/lib/form-defaults";
 import { formatPlayerFullName } from "@/lib/utils/player-name-utils";
 
+import { teamManagementSchema } from "@/types/team.schema";
+
 // 編集用のスキーマ
-const teamEditSchema = z.object({
-  teamName: z.string().min(1, "チーム名は必須です"),
-  representativeName: z.string().min(1, "代表者名は必須です"),
-  representativePhone: z.string().min(1, "電話番号は必須です"),
-  representativeEmail: z.email("正しいメールアドレスを入力してください"),
-  isApproved: z.boolean(),
-  remarks: z.string(),
-  players: z.array(
-    z.object({
-      playerId: z.string(),
-      lastName: z.string().min(1, "姓は必須です"),
-      firstName: z.string().min(1, "名は必須です"),
-      displayName: z.string(),
-    })
-  ),
-});
+// 管理画面では代表者情報は任意（ただし入力時は形式チェックあり）
+const teamEditSchema = teamManagementSchema;
 
 type TeamEditData = z.infer<typeof teamEditSchema>;
 
@@ -275,7 +263,6 @@ export function TeamForm({
                 <FormInput
                   label="代表者名"
                   name="representativeName"
-                  required
                   placeholder="代表者名を入力"
                   register={register}
                   error={errors.representativeName?.message}
@@ -284,7 +271,6 @@ export function TeamForm({
                 <FormInput
                   label="電話番号"
                   name="representativePhone"
-                  required
                   type="tel"
                   placeholder="電話番号を入力"
                   register={register}
@@ -294,7 +280,6 @@ export function TeamForm({
                 <FormInput
                   label="メールアドレス"
                   name="representativeEmail"
-                  required
                   type="email"
                   placeholder="メールアドレスを入力"
                   register={register}
