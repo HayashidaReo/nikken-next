@@ -12,11 +12,13 @@ import { cn } from "@/lib/utils/utils";
 interface MonitorPreviewProps {
     width?: number;
     className?: string;
+    monitorStatusMode: "presentation" | "fallback" | "disconnected";
 }
 
 export function MonitorPreview({
     width = 220,
     className = "",
+    monitorStatusMode,
 }: MonitorPreviewProps) {
     const data = useMonitorStore();
     const [scale, setScale] = useState(1);
@@ -26,6 +28,24 @@ export function MonitorPreview({
         // 基準幅に対するスケールを計算
         setScale(width / MONITOR_CONSTANTS.BASE_WIDTH);
     }, [width]);
+
+    // 未接続の場合
+    if (monitorStatusMode === "disconnected") {
+        return (
+            <div
+                className={cn(
+                    "bg-gray-100 overflow-hidden relative border-2 border-gray-200 rounded-lg flex items-center justify-center",
+                    className
+                )}
+                style={{
+                    width,
+                    height,
+                }}
+            >
+                <div className="text-gray-400 text-sm font-medium">未接続</div>
+            </div>
+        );
+    }
 
     if (!data.matchId) return null;
 

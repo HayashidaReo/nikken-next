@@ -2,8 +2,8 @@ import { ArrowLeft, Monitor, Unplug, Save, ChevronRight } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
-import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { ViewMode } from "@/store/use-monitor-store";
+import { MonitorPreview } from "@/components/molecules/monitor-preview";
 
 /**
  * モニター操作画面のヘッダーコンポーネント
@@ -83,18 +83,20 @@ export function MonitorControlHeader({
     onShowTeamResult,
 }: MonitorControlHeaderProps) {
     return (
-        <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-4">
+            <div className="flex items-center justify-start">
                 <Button variant="outline" onClick={onBackToDashboard}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     戻る
                 </Button>
-                <div className="ml-2">
-                    <ConnectionStatus mode={monitorStatusMode} error={null} />
-                </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* モニタープレビュー */}
+            <div className="flex justify-center">
+                <MonitorPreview width={200} monitorStatusMode={monitorStatusMode} />
+            </div>
+
+            <div className="flex items-center justify-end gap-4">
                 <div className="flex items-center gap-2">
                     <SwitchLabel
                         id="public-toggle-header"

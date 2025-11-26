@@ -7,7 +7,6 @@ import {
   PlayerScoreCard,
   TimerControl,
 } from "@/components/molecules";
-import { MonitorPreview } from "@/components/molecules/monitor-preview";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 interface ScoreboardOperatorProps {
@@ -46,11 +45,6 @@ export function ScoreboardOperator({
     <div className={cn("w-full mx-auto space-y-4", className)}>
       {/* ヘッダー情報 */}
       <div className="px-6 lg:px-12">
-        {/* モニタープレビュー（中央配置） */}
-        <div className="flex justify-center mb-4">
-          <MonitorPreview width={220} />
-        </div>
-
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <MatchHeader
