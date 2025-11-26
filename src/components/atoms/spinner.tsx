@@ -11,7 +11,7 @@ import { Blocks } from 'react-loader-spinner';
 
 interface SpinnerProps {
   /** スピナーのサイズ */
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   /** カスタムクラス名 */
   className?: string;
   /** スピナーの色（デフォルトはprimary色） */
@@ -19,6 +19,7 @@ interface SpinnerProps {
 }
 
 const sizeConfig = {
+  xs: { height: 30, width: 30 },
   sm: { height: 40, width: 40 },
   md: { height: 60, width: 60 },
   lg: { height: 80, width: 80 },
