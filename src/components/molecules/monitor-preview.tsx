@@ -34,7 +34,7 @@ export function MonitorPreview({
         return (
             <div
                 className={cn(
-                    "bg-gray-100 overflow-hidden relative border-2 border-gray-200 rounded-lg flex items-center justify-center",
+                    "bg-gray-100 overflow-hidden relative rounded-lg flex items-center justify-center",
                     className
                 )}
                 style={{
@@ -72,7 +72,7 @@ export function MonitorPreview({
     return (
         <div
             className={cn(
-                "bg-black overflow-hidden relative border-2 border-gray-800 rounded-lg shadow-lg",
+                "bg-black overflow-hidden relative rounded-lg",
                 className
             )}
             style={{

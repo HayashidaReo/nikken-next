@@ -84,11 +84,12 @@ export function MonitorControlHeader({
 }: MonitorControlHeaderProps) {
     return (
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-4">
-            <div className="flex items-center justify-start">
+            <div className="flex items-center justify-start gap-4">
                 <Button variant="outline" onClick={onBackToDashboard}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     戻る
                 </Button>
+                <h1 className="text-xl font-bold text-gray-900">モニター操作画面</h1>
             </div>
 
             {/* モニタープレビュー */}
@@ -147,7 +148,7 @@ export function MonitorControlHeader({
                         ) : (
                             <>
                                 <Monitor className="w-4 h-4 mr-2" />
-                                表示用モニターを開く
+                                表示用モニターに接続
                             </>
                         )}
                     </Button>

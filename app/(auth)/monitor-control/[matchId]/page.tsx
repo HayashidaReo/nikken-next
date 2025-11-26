@@ -63,6 +63,21 @@ export default function MonitorControlPage() {
     handleFallbackCancel,
   } = useMonitorController();
 
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+
+  const handleMonitorClick = useCallback(() => {
+    if (isPresentationConnected) {
+      setShowDisconnectConfirm(true);
+    } else {
+      handleMonitorAction();
+    }
+  }, [isPresentationConnected, handleMonitorAction]);
+
+  const handleDisconnectConfirm = useCallback(() => {
+    setShowDisconnectConfirm(false);
+    handleMonitorAction();
+  }, [handleMonitorAction]);
+
   // 団体戦コントローラー
   const {
     isAllFinished,
@@ -285,7 +300,7 @@ export default function MonitorControlPage() {
           isAllFinished={isAllFinished}
           isSaving={isSaving}
           onBackToDashboard={handleBackToDashboard}
-          onMonitorAction={handleMonitorAction}
+          onMonitorAction={handleMonitorClick}
           onSave={handleSave}
           onConfirmMatch={handleConfirmMatchClick}
           onNextMatch={handleNextMatchClick}
@@ -311,6 +326,16 @@ export default function MonitorControlPage() {
           confirmText="確定する"
           cancelText="キャンセル"
           confirmShortcut="Enter"
+        />
+        <ConfirmDialog
+          isOpen={showDisconnectConfirm}
+          title="モニター接続の解除"
+          message="表示用モニターとの接続を解除しますか？"
+          onConfirm={handleDisconnectConfirm}
+          onCancel={() => setShowDisconnectConfirm(false)}
+          confirmText="解除する"
+          cancelText="キャンセル"
+          variant="destructive"
         />
         {/* 代表戦設定ダイアログ */}
         {orderedTeams && (
