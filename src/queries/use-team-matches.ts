@@ -45,6 +45,7 @@ export function useUpdateTeamMatch() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         mutationFn: ({ matchGroupId, matchId, patch }: { matchGroupId: string; matchId: string; patch: Partial<TeamMatchCreate> }) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
             return localTeamMatchRepository.updateByMatchId(matchId, patch);
@@ -60,6 +61,7 @@ export function useDeleteTeamMatch() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         mutationFn: ({ matchGroupId, matchId }: { matchGroupId: string; matchId: string }) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
             return localTeamMatchRepository.deleteByMatchId(matchId);

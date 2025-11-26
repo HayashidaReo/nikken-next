@@ -1,10 +1,10 @@
 import { app, BrowserWindow } from "electron";
 import path from "path";
-import { spawn } from "child_process";
+import { spawn, ChildProcess } from "child_process";
 import fs from "fs";
 
 let mainWindow: BrowserWindow | null;
-let serverProcess: any | null;
+let serverProcess: ChildProcess | null;
 
 const isDev = process.env.NODE_ENV === "development";
 const PORT = 3000; // In production, you might want to find a free port dynamically
@@ -59,11 +59,11 @@ async function startServer() {
         cwd: path.dirname(serverPath)
     });
 
-    serverProcess.stdout.on("data", (data: any) => {
+    serverProcess.stdout?.on("data", (data: Buffer) => {
         console.log(`Server: ${data}`);
     });
 
-    serverProcess.stderr.on("data", (data: any) => {
+    serverProcess.stderr?.on("data", (data: Buffer) => {
         console.error(`Server Error: ${data}`);
     });
 }

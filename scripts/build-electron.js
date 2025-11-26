@@ -5,7 +5,6 @@ const path = require("path");
 const rootDir = path.resolve(__dirname, "..");
 const nextDir = path.join(rootDir, ".next");
 const standaloneDir = path.join(nextDir, "standalone");
-const distDir = path.join(rootDir, "dist");
 
 console.log("Building Next.js app...");
 execSync("npm run build", { stdio: "inherit", cwd: rootDir });

@@ -13,6 +13,11 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "coverage/**",
+    // Electron build directories:
+    "dist/**",
+    "release/**",
+    // Build scripts (use CommonJS):
+    "scripts/**",
   ]),
   // Jest設定ファイルではrequireを許可
   {
