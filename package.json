@@ -40,17 +40,16 @@
     },
     "mac": {
       "target": [
-        "dmg"
+        {
+          "target": "dmg",
+          "arch": ["universal"]
+        }
       ],
       "category": "public.app-category.sports",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist",
-      "arch": [
-        "x64",
-        "arm64"
-      ]
+      "entitlementsInherit": "entitlements.mac.plist"
     },
     "win": {
       "target": [

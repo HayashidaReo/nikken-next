@@ -47,15 +47,13 @@ export default async function DownloadPage() {
         return release?.assets.find((asset) => pattern.test(asset.name))?.browser_download_url;
     };
 
-    const macArmUrl = getAssetUrl(/arm64\.dmg$/);
-    const macIntelUrl = getAssetUrl(/^(?!.*arm64).*\.dmg$/); // .dmg but not arm64
+    const macUrl = getAssetUrl(/\.dmg$/); // Universal DMG
     const winUrl = getAssetUrl(/\.exe$/);
 
     return (
         <DownloadContent
             release={release}
-            macArmUrl={macArmUrl}
-            macIntelUrl={macIntelUrl}
+            macUrl={macUrl}
             winUrl={winUrl}
         />
     );
