@@ -28,8 +28,8 @@ jobs:
           echo "Setting version to $VERSION"
           npm version $VERSION --no-git-tag-version
 
-      - name: Build Next.js App
-        run: npm run build
+      - name: Build Electron App
+        run: npm run electron:build
         env:
           # --- Client SDK用 ---
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
