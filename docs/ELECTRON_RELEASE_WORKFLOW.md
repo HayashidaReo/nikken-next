@@ -52,11 +52,53 @@
 
 ## 4. セキュリティ & 権限
 
-- **GitHub Token**: Actionsのデフォルト `GITHUB_TOKEN` には通常、リリース作成権限があります。リポジトリ設定の Actions > General > Workflow permissions で "Read and write permissions" が有効になっていることを確認してください。
-- **コード署名**:
-    - **macOS**: Apple Developer Certificate (`CSC_LINK`, `CSC_KEY_PASSWORD`) が必要です。これがない場合、アプリ起動時に「未確認の開発者」という警告が表示されます。
-    - **Windows**: コード署名証明書 (`CSC_LINK`, `CSC_KEY_PASSWORD`) が必要です。
-    - *注記*: 今回の初期計画ではコード署名なしで進めます（警告は出ますが動作はします）。署名手順については別途ドキュメント化します。
+### GitHub Token
+Actionsのデフォルト `GITHUB_TOKEN` には通常、リリース作成権限があります。リポジトリ設定の Actions > General > Workflow permissions で "Read and write permissions" が有効になっていることを確認してください。
+
+### macOS コード署名と公証 (Code Signing & Notarization)
+macOSでアプリを配布し、自動アップデートを機能させるには、Appleによる署名と公証が必須です。
+
+#### 必要なもの
+1.  **Apple Developer Program メンバーシップ** (年間登録が必要)
+2.  **Developer ID Application 証明書** (`.p12` 形式)
+3.  **App Store Connect API Key** (公証用)
+
+#### セットアップ手順
+
+**1. 証明書の準備**
+1.  Apple Developer サイトで "Developer ID Application" 証明書を作成・ダウンロードします。
+2.  Macのキーチェーンアクセスにインポートします。
+3.  キーチェーンアクセスから証明書を書き出し (`.p12` 形式)、パスワードを設定します。
+4.  この `.p12` ファイルを Base64 エンコードします。
+    ```bash
+    base64 -i certificate.p12 | pbcopy
+    ```
+
+**2. 公証用APIキーの準備**
+1.  App Store Connect で "Users and Access" > "Integrations" > "Team Keys" にアクセスします。
+2.  新しいキーを作成 (Role: App Manager) し、`.p8` ファイルをダウンロードします。
+3.  **Key ID** と **Issuer ID** をメモします。
+4.  `.p8` ファイルの内容を Base64 エンコードします。
+    ```bash
+    base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy
+    ```
+
+**3. GitHub Secrets の設定**
+リポジトリの Settings > Secrets and variables > Actions に以下のシークレットを登録します。
+
+| Secret Name | Value Description |
+| :--- | :--- |
+| `APPLE_CERTIFICATE` | Base64エンコードされた `.p12` 証明書 |
+| `APPLE_CERTIFICATE_PASSWORD` | `.p12` 証明書のパスワード |
+| `APPLE_API_KEY` | Base64エンコードされた `.p8` APIキーファイル |
+| `APPLE_API_KEY_ID` | Key ID (例: `XXXXXXXXXX`) |
+| `APPLE_API_ISSUER` | Issuer ID (UUID形式) |
+
+#### 仕組み
+- **ビルド時**: GitHub Actions ワークフロー内で、Base64エンコードされた `APPLE_API_KEY` をデコードして一時ファイル (`AuthKey.p8`) に復元します。
+- **署名**: `electron-builder` が `CSC_LINK` (証明書) を使用してアプリに署名します。
+- **公証**: `electron-builder` が `notarize` ブロックの設定と復元されたAPIキーを使用して、Appleの公証サーバーにアプリを送信します。
+- **Entitlements**: `entitlements.mac.plist` に定義された権限（カメラ、マイク、JITなど）がアプリに付与されます。
 
 ## 5. 実装ステップ
 

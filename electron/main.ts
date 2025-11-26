@@ -1,13 +1,55 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, dialog } from "electron";
 import path from "path";
 import { spawn, ChildProcess } from "child_process";
 import fs from "fs";
+import { autoUpdater } from "electron-updater";
 
 let mainWindow: BrowserWindow | null;
 let serverProcess: ChildProcess | null;
 
 const isDev = process.env.NODE_ENV === "development";
 const PORT = 3000; // In production, you might want to find a free port dynamically
+
+import log from "electron-log";
+
+// --- Auto Updater Configuration ---
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+
+// Configure logging
+autoUpdater.logger = log;
+log.transports.file.level = "info";
+
+function setupAutoUpdater() {
+    if (isDev) {
+        console.log("Skipping auto-updater in development mode");
+        return;
+    }
+
+    autoUpdater.checkForUpdatesAndNotify();
+
+    autoUpdater.on("update-available", () => {
+        console.log("Update available");
+    });
+
+    autoUpdater.on("update-downloaded", () => {
+        console.log("Update downloaded");
+        dialog.showMessageBox({
+            type: "info",
+            title: "アップデートあり",
+            message: "新しいバージョンがダウンロードされました。再起動して適用しますか？",
+            buttons: ["はい", "後で"],
+        }).then((result) => {
+            if (result.response === 0) {
+                autoUpdater.quitAndInstall();
+            }
+        });
+    });
+
+    autoUpdater.on("error", (err) => {
+        console.error("Auto-updater error:", err);
+    });
+}
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -72,6 +114,9 @@ app.whenReady().then(async () => {
     await startServer();
     // Give the server a moment to start
     setTimeout(createWindow, 1000);
+
+    // Setup Auto Updater
+    setupAutoUpdater();
 
     app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) {

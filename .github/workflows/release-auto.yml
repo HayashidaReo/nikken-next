@@ -94,10 +94,19 @@ jobs:
           # --- GitHub Token for private repo releases ---
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Decode Apple API Key
+        env:
+          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY }}
+        run: |
+          echo "$APPLE_API_KEY_CONTENT" | base64 -D > AuthKey.p8
+
       - name: Publish Electron App
         run: npm run electron:pack -- --mac --win -p always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Add code signing secrets here later
-          # CSC_LINK: ${{ secrets.CSC_LINK }}
-          # CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # --- Code Signing & Notarization ---
+          CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
+          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY: ./AuthKey.p8
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}

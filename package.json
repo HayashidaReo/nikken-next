@@ -33,9 +33,22 @@
     "directories": {
       "output": "release"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "HayashidaReo",
+      "repo": "nikken-next"
+    },
     "mac": {
       "target": {
         "target": "dmg",
+        "category": "public.app-category.sports",
+        "hardenedRuntime": true,
+        "gatekeeperAssess": false,
+        "entitlements": "entitlements.mac.plist",
+        "entitlementsInherit": "entitlements.mac.plist",
+        "notarize": {
+          "teamId": "Y26NFPJ3FL"
+        },
         "arch": [
           "x64",
           "arm64"
@@ -79,6 +92,8 @@
     "clsx": "^2.1.1",
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.6.2",
     "firebase": "^12.4.0",
     "firebase-admin": "^13.5.0",
     "framer-motion": "^12.23.24",
