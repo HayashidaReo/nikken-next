@@ -7,7 +7,6 @@ export { MonitorDisplay } from "./monitor-display";
 export { MatchSetupTable } from "./match-setup-table";
 export { TeamManagementCardList } from "./team-management-card-list";
 export { TeamForm } from "./team-form";
-export { TournamentSettingsForm } from "./tournament-settings-form";
 export { TeamRegistrationForm } from "./team-registration-form";
 export { TournamentInfoBanner } from "./tournament-info-banner";
 export { OrganizationManagement } from "./organization-management";

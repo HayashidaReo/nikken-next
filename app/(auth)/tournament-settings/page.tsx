@@ -8,7 +8,7 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { AuthenticatedHeader } from "@/components/organisms/authenticated-header";
 import { TournamentList } from "@/components/organisms/tournament-list";
-import { TournamentForm } from "@/components/organisms/tournament-form";
+import { TournamentSettingForm } from "@/components/organisms/tournament-form";
 import { TournamentFormPlaceholder } from "@/components/organisms/tournament-form-placeholder";
 import { TournamentSettingsLayout } from "@/components/templates/tournament-settings-layout";
 import { useTournamentSettings } from "@/hooks/useTournamentSettings";
@@ -119,8 +119,10 @@ export default function TournamentSettingsPage() {
           }
           rightPanel={
             selectedTournament || isAddingNew ? (
-              <TournamentForm
+              <TournamentSettingForm
                 formData={formData}
+                initialCourts={selectedTournament?.courts}
+                initialRounds={selectedTournament?.rounds}
                 isAddingNew={isAddingNew}
                 onFormChange={handleFormChange}
                 onSave={handleSave}
