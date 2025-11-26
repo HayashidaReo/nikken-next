@@ -36,6 +36,7 @@ import { useArrayField } from "@/hooks/useArrayField";
 import { createDefaultTeamEditValues } from "@/lib/form-defaults";
 
 import { teamManagementSchema } from "@/types/team.schema";
+import { generateDisplayNames } from "@/domains/team/services/display-name-service";
 
 // 編集用のスキーマ
 // 管理画面では代表者情報は任意（ただし入力時は形式チェックあり）
@@ -122,48 +123,10 @@ export function TeamForm({
     const currentValues = getValues();
     const players = currentValues.players || [];
 
-    // 姓でグループ化
-    const lastNameGroups: { [key: string]: number[] } = {};
-    players.forEach((player, index) => {
-      const lastName = player.lastName;
-      if (!lastNameGroups[lastName]) {
-        lastNameGroups[lastName] = [];
-      }
-      lastNameGroups[lastName].push(index);
-    });
+    const updates = generateDisplayNames(players);
 
-    // displayNameを更新
-    Object.entries(lastNameGroups).forEach(([lastName, indices]) => {
-      if (indices.length === 1) {
-        // 重複なし：姓のみ
-        const idx = indices[0];
-        const current = players[idx]?.displayName || "";
-        if (current !== lastName) {
-          setValue(`players.${idx}.displayName`, lastName);
-        }
-      } else {
-        // 重複あり：姓 + 名の一部
-        indices.forEach(index => {
-          const player = players[index] || { firstName: "", displayName: "" };
-          const firstName = player.firstName || "";
-          let displayName = `${lastName} ${firstName.charAt(0)}`;
-
-          // 同じ姓＋名の一部でも重複する場合はフルネーム
-          const sameDisplay = indices.filter(i => {
-            const otherPlayer = players[i] || { firstName: "" };
-            return `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName;
-          });
-
-          if (sameDisplay.length > 1) {
-            displayName = `${lastName} ${firstName}`;
-          }
-
-          const current = player.displayName || "";
-          if (current !== displayName) {
-            setValue(`players.${index}.displayName`, displayName);
-          }
-        });
-      }
+    updates.forEach(({ index, displayName }) => {
+      setValue(`players.${index}.displayName`, displayName);
     });
   }, [getValues, setValue]);
 
