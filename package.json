@@ -47,9 +47,6 @@
       "gatekeeperAssess": false,
       "entitlements": "entitlements.mac.plist",
       "entitlementsInherit": "entitlements.mac.plist",
-      "notarize": {
-        "teamId": "Y26NFPJ3FL"
-      },
       "arch": [
         "x64",
         "arm64"
