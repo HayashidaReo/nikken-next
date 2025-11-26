@@ -10,22 +10,29 @@
 
 ## 2. GitHub Actions ワークフロー
 
-ワークフローファイル `.github/workflows/release.yml` を作成します。
+ワークフローファイル `.github/workflows/release.yml` を設定します。
 
 ### トリガー
-- `v*` にマッチするタグのプッシュ（例: `v1.0.0`）。
+- `main` ブランチへのプッシュ（PRマージを含む）。
 
-### ジョブ
-1.  **ビルド & リリース**:
-    - `macos-latest` 上で実行（設定によりMacとWindows両方のビルドが可能）。
-    - 手順:
-        - コードのチェックアウト。
-        - Node.jsのセットアップ。
-        - 依存関係のインストール。
-        - バージョンの設定（タグから自動抽出して `package.json` を更新）。
-        - Next.jsのビルド（`npm run build`）。
-        - Electronのビルド & 公開（`npm run electron:pack -- -p always`）。
-    - **シークレット**: リリースをアップロードするために `GH_TOKEN` が必要（GitHub Actionsにより自動提供）。
+### バージョン管理戦略
+コミットメッセージに基づいてバージョンを自動決定します。
+
+- メッセージに `release: major` が含まれる → **メジャーアップデート** (v1.0.0 -> v2.0.0)
+- メッセージに `release: minor` が含まれる → **マイナーアップデート** (v1.0.0 -> v1.1.0)
+- 上記以外（指定なし） → **パッチ修正** (v1.0.0 -> v1.0.1)
+
+### ジョブフロー
+1.  **バージョン更新**:
+    - コードをチェックアウト。
+    - コミットメッセージを解析し、`npm version` コマンドで `package.json` を更新。
+    - 更新された `package.json` をコミットし、Gitタグ（例: `v1.0.1`）を作成。
+    - リポジトリにプッシュ（`[skip ci]` を付与してループ防止）。
+2.  **ビルド & リリース**:
+    - `npm run electron:build` でアプリをビルド。
+    - `electron-builder` でインストーラーを作成。
+    - 作成したタグに基づいて GitHub Releases にリリースを作成し、アーティファクトをアップロード。
+    - **シークレット**: `GH_TOKEN` (Actions自動付与) および Firebase環境変数が必要。
 
 ## 3. Webアプリ ダウンロードページ
 
@@ -53,7 +60,7 @@
 
 ## 5. 実装ステップ
 
-1.  **ワークフロー作成**: `.github/workflows/release.yml` を追加。
-2.  **Package.json更新**: `repository` フィールドが正しく設定されていることを確認（electron-builderが参照するため）。
+1.  **ワークフロー作成**: `.github/workflows/release.yml` を更新し、コミットメッセージによるバージョン制御と自動リリースを実装。
+2.  **Package.json更新**: `repository` フィールドが正しく設定されていることを確認。
 3.  **ダウンロードページ作成**: `app/(public)/download/page.tsx` を実装。
-4.  **テスト**: `v0.0.1-test` タグをプッシュしてパイプラインを検証。
+4.  **テスト**: `develop` から `main` へのPRマージで動作確認。
