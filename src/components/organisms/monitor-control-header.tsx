@@ -35,53 +35,51 @@ import { MonitorPreview } from "@/components/molecules/monitor-preview";
  * @see {@link ViewMode} - 表示モードの型定義
  * @see {@link ConnectionStatus} - モニター接続状態を表示するコンポーネント
  */
-interface MonitorControlHeaderProps {
-    /** モニター表示の公開状態 */
+interface MonitorStateProps {
     isPublic: boolean;
-    /** 公開/非公開を切り替えるコールバック */
-    onTogglePublic: () => void;
-    /** モニター接続状態（"presentation" | "fallback" | "disconnected"） */
     monitorStatusMode: "presentation" | "fallback" | "disconnected";
-    /** Presentation APIでの接続状態 */
     isPresentationConnected: boolean;
-    /** 大会種別（"team" | "individual" | null） */
+}
+
+interface MatchStateProps {
     activeTournamentType: string | null | undefined;
-    /** 現在の表示モード */
     viewMode: ViewMode;
-    /** 団体戦の全試合が終了しているか */
     isAllFinished: boolean;
-    /** 保存処理中かどうか */
     isSaving: boolean;
-    /** ダッシュボードへ戻るコールバック */
+}
+
+interface MonitorActions {
+    onTogglePublic: () => void;
     onBackToDashboard: () => void;
-    /** モニター接続/切断のコールバック */
     onMonitorAction: () => void;
-    /** 試合結果を保存するコールバック（個人戦用） */
     onSave: () => void;
-    /** 試合確定のコールバック（団体戦用） */
     onConfirmMatch: () => void;
-    /** 次の試合へ進むコールバック（団体戦用） */
     onNextMatch: () => void;
-    /** 団体戦結果を表示するコールバック（団体戦用） */
     onShowTeamResult: () => void;
 }
 
+interface MonitorControlHeaderProps {
+    monitorState: MonitorStateProps;
+    matchState: MatchStateProps;
+    actions: MonitorActions;
+}
+
 export function MonitorControlHeader({
-    isPublic,
-    onTogglePublic,
-    monitorStatusMode,
-    isPresentationConnected,
-    activeTournamentType,
-    viewMode,
-    isAllFinished,
-    isSaving,
-    onBackToDashboard,
-    onMonitorAction,
-    onSave,
-    onConfirmMatch,
-    onNextMatch,
-    onShowTeamResult,
+    monitorState,
+    matchState,
+    actions,
 }: MonitorControlHeaderProps) {
+    const { isPublic, monitorStatusMode, isPresentationConnected } = monitorState;
+    const { activeTournamentType, viewMode, isAllFinished, isSaving } = matchState;
+    const {
+        onTogglePublic,
+        onBackToDashboard,
+        onMonitorAction,
+        onSave,
+        onConfirmMatch,
+        onNextMatch,
+        onShowTeamResult,
+    } = actions;
     return (
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-4">
             <div className="flex items-center justify-start gap-4">

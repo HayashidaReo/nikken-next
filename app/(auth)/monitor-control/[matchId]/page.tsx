@@ -222,20 +222,26 @@ export default function MonitorControlPage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <MonitorControlHeader
-          isPublic={isPublic}
-          onTogglePublic={togglePublic}
-          monitorStatusMode={monitorStatusMode}
-          isPresentationConnected={isPresentationConnected}
-          activeTournamentType={activeTournamentType}
-          viewMode={viewMode}
-          isAllFinished={isAllFinished}
-          isSaving={isSaving}
-          onBackToDashboard={handleBackToDashboard}
-          onMonitorAction={handleMonitorClick}
-          onSave={handleSave}
-          onConfirmMatch={handleConfirmMatchClick}
-          onNextMatch={handleNextMatchClick}
-          onShowTeamResult={handleShowTeamResult}
+          monitorState={{
+            isPublic,
+            monitorStatusMode,
+            isPresentationConnected,
+          }}
+          matchState={{
+            activeTournamentType,
+            viewMode,
+            isAllFinished,
+            isSaving,
+          }}
+          actions={{
+            onTogglePublic: togglePublic,
+            onBackToDashboard: handleBackToDashboard,
+            onMonitorAction: handleMonitorClick,
+            onSave: handleSave,
+            onConfirmMatch: handleConfirmMatchClick,
+            onNextMatch: handleNextMatchClick,
+            onShowTeamResult: handleShowTeamResult,
+          }}
         />
 
         <ScoreboardOperator
