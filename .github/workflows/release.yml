@@ -73,7 +73,7 @@ jobs:
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
 
       - name: Publish Electron App
-        run: npm run electron:pack -- -p always
+        run: npm run electron:pack -- --mac --win -p always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Add code signing secrets here later
