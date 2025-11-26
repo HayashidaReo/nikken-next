@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,7 +34,6 @@ import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useArrayField } from "@/hooks/useArrayField";
 import { createDefaultTeamEditValues } from "@/lib/form-defaults";
-import { formatPlayerFullName } from "@/lib/utils/player-name-utils";
 
 import { teamManagementSchema } from "@/types/team.schema";
 
@@ -62,7 +61,7 @@ export function TeamForm({
   const { isLoading, handleSubmit: handleFormSubmission } =
     useFormSubmit<TeamEditData>();
   const { confirmNavigation } = useUnsavedChanges(hasUnsavedChanges);
-  const { showWarning, showSuccess } = useToast();
+  const { showWarning } = useToast();
 
   const {
     register,
@@ -110,6 +109,12 @@ export function TeamForm({
   useEffect(() => {
     setHasUnsavedChanges(isDirty);
   }, [isDirty]);
+
+  // フォーム開始時の選手IDリストを保持（既存の選手を判定するため）
+  const [initialPlayerIds] = useState<Set<string>>(() => {
+    const players = team?.players || [];
+    return new Set(players.map((p) => p.playerId));
+  });
 
 
   // displayNameを自動生成する関数
@@ -175,46 +180,60 @@ export function TeamForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- updateDisplayNames intentionally omitted on purpose
   }, [watchedPlayers]);
 
-  // 選手を削除（共通hookを使用）
+  // 削除された既存選手の数を記録
+  const [deletedPlayerCount, setDeletedPlayerCount] = useState(0);
 
-  // 削除確認ダイアログの state
-  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
+  // 選手を削除（即座に削除、確認なし）
+  const handleRemovePlayer = (index: number) => {
+    const players = getValues().players || [];
+    const player = players[index];
 
-  const requestRemovePlayer = (index: number) => {
-    setDeleteConfirmIndex(index);
-  };
+    removeItem(index);
 
-  const confirmRemovePlayer = () => {
-    if (deleteConfirmIndex !== null) {
-      const players = getValues().players || [];
-      const name = formatPlayerFullName(players, deleteConfirmIndex);
-
-      removeItem(deleteConfirmIndex);
-      setDeleteConfirmIndex(null);
-      showSuccess(`${name} を削除しました`);
+    // フォーム開始時に存在していた選手（既存の選手）のみカウント
+    if (player && initialPlayerIds.has(player.playerId)) {
+      setDeletedPlayerCount((prev) => prev + 1);
     }
   };
 
-  const cancelRemovePlayer = () => setDeleteConfirmIndex(null);
-
-  // 削除確認ダイアログのメッセージをメモ化してレンダリング内の IIFE を排除
-  const deleteConfirmMessage = useMemo(() => {
-    if (deleteConfirmIndex === null) return "選手を削除しますか？";
-    // `watchedPlayers` は useWatch で監視しているためレンダリングと同期します
-    const players = watchedPlayers || getValues().players || [];
-    const name = formatPlayerFullName(players, deleteConfirmIndex);
-    return `${name} を削除しますか？ この操作は取り消せません。`;
-  }, [deleteConfirmIndex, watchedPlayers, getValues]);
-
-  // displayName の更新は useWatch + useEffect で行うため、個別のハンドラは不要
+  // 保存確認ダイアログの state
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState<TeamEditData | null>(null);
 
   // フォーム送信
   const handleFormSubmit = async (data: TeamEditData) => {
+    // 既存選手が削除された場合は確認ダイアログを表示
+    if (deletedPlayerCount > 0) {
+      setPendingSaveData(data);
+      setShowSaveConfirm(true);
+      return;
+    }
+
+    // 削除がない場合は直接保存
     await handleFormSubmission(onSave, data, {
       onSuccess: () => {
         setHasUnsavedChanges(false);
       },
     });
+  };
+
+  // 保存確認後の実行
+  const confirmSave = async () => {
+    if (!pendingSaveData) return;
+
+    setShowSaveConfirm(false);
+    await handleFormSubmission(onSave, pendingSaveData, {
+      onSuccess: () => {
+        setHasUnsavedChanges(false);
+        setDeletedPlayerCount(0);
+        setPendingSaveData(null);
+      },
+    });
+  };
+
+  const cancelSave = () => {
+    setShowSaveConfirm(false);
+    setPendingSaveData(null);
   };
 
   const handleCancelClick = () => {
@@ -421,7 +440,7 @@ export function TeamForm({
                       </div>
 
                       <div className="flex items-center justify-center">
-                        <RemoveButton onClick={() => requestRemovePlayer(index)} />
+                        <RemoveButton onClick={() => handleRemovePlayer(index)} />
                       </div>
                     </AnimatedListItem>
                   ))}
@@ -446,14 +465,14 @@ export function TeamForm({
       </TooltipProvider>
 
       <ConfirmDialog
-        isOpen={deleteConfirmIndex !== null}
+        isOpen={showSaveConfirm}
         title="選手の削除確認"
-        message={deleteConfirmMessage}
-        onConfirm={confirmRemovePlayer}
-        onCancel={cancelRemovePlayer}
-        confirmText="削除する"
+        message={`${deletedPlayerCount}人の選手を削除しました。このまま保存しますか？`}
+        onConfirm={confirmSave}
+        onCancel={cancelSave}
+        confirmText="保存する"
         cancelText="キャンセル"
-        variant="destructive"
+        variant="default"
       />
     </div>
   );
