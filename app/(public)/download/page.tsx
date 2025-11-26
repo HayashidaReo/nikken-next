@@ -18,9 +18,17 @@ type GitHubRelease = {
 
 async function getLatestRelease(): Promise<GitHubRelease | null> {
     try {
+        const headers: HeadersInit = {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+        };
+
         const res = await fetch(
             "https://api.github.com/repos/HayashidaReo/nikken-next/releases/latest",
-            { next: { revalidate: 3600 } } // Revalidate every hour
+            {
+                headers,
+                next: { revalidate: 1800 } // 30分ごとに再検証
+            }
         );
 
         if (!res.ok) {
