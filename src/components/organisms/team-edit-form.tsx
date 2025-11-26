@@ -56,19 +56,20 @@ const teamEditSchema = z.object({
 
 type TeamEditData = z.infer<typeof teamEditSchema>;
 
-interface TeamEditFormProps {
-  team: Team;
+interface TeamFormProps {
+  team?: Team;
   onSave: (data: TeamEditData) => Promise<void>;
   onCancel: () => void;
   className?: string;
 }
 
-export function TeamEditForm({
+export function TeamForm({
   team,
   onSave,
   onCancel,
   className,
-}: TeamEditFormProps) {
+}: TeamFormProps) {
+  const isEditMode = !!team;
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { isLoading, handleSubmit: handleFormSubmission } =
     useFormSubmit<TeamEditData>();
@@ -84,7 +85,24 @@ export function TeamEditForm({
     formState: { errors, isDirty },
   } = useForm<TeamEditData>({
     resolver: zodResolver(teamEditSchema),
-    defaultValues: createDefaultTeamEditValues(team),
+    defaultValues: team
+      ? createDefaultTeamEditValues(team)
+      : {
+        teamName: "",
+        representativeName: "",
+        representativePhone: "",
+        representativeEmail: "",
+        isApproved: false,
+        remarks: "",
+        players: [
+          {
+            playerId: `player-${Date.now()}`,
+            lastName: "",
+            firstName: "",
+            displayName: "",
+          },
+        ],
+      },
   });
 
   const { fields, addItem, removeItem } = useArrayField(control, "players", {
@@ -226,10 +244,12 @@ export function TeamEditForm({
             <ArrowLeft className="w-4 h-4 mr-2" />
             戻る
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900">チーム情報編集</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isEditMode ? "チーム情報編集" : "チーム新規登録"}
+          </h1>
         </div>
         <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading} loadingText="保存中...">
-          保存
+          {isEditMode ? "保存" : "登録"}
         </Button>
       </div>
 

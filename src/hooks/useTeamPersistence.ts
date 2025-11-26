@@ -56,15 +56,7 @@ export function useTeamPersistence() {
 
         try {
             // Firestoreに送信
-            await teamRepository.update(orgId, activeTournamentId, team.teamId, {
-                teamName: team.teamName,
-                representativeName: team.representativeName,
-                representativePhone: team.representativePhone,
-                representativeEmail: team.representativeEmail,
-                players: team.players,
-                remarks: team.remarks,
-                isApproved: team.isApproved,
-            });
+            await teamRepository.create(orgId, activeTournamentId, team);
 
             // ローカルの同期フラグを更新
             const localTeam = await localTeamRepository.getById(team.teamId);

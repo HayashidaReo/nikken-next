@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { ShareMenu } from "@/components/molecules/share-menu";
+import { Button } from "@/components/atoms/button";
+import { Plus } from "lucide-react";
 import { TeamStatsSummary } from "@/components/molecules/team-stats-summary";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useTeams } from "@/queries/use-teams";
@@ -98,10 +101,18 @@ export default function TeamsPage() {
           <div className="flex items-center gap-4">
             <TeamStatsSummary teams={teams} />
             {orgId && activeTournamentId && (
-              <ShareMenu
-                itemName="チーム・選手管理ページ"
-                sharePath={`/teams-form/${orgId}/${activeTournamentId}`}
-              />
+              <div className="flex items-center gap-2">
+                <Link href="/teams/new">
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    追加
+                  </Button>
+                </Link>
+                <ShareMenu
+                  itemName="チーム・選手管理ページ"
+                  sharePath={`/teams-form/${orgId}/${activeTournamentId}`}
+                />
+              </div>
             )}
           </div>
         </div>

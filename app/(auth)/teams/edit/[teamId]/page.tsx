@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { TeamEditForm } from "@/components/organisms/team-edit-form";
+import { TeamForm } from "@/components/organisms/team-edit-form";
 import { useTeam, useUpdateTeam } from "@/queries/use-teams";
 import { useTeamPersistence } from "@/hooks/useTeamPersistence";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -129,7 +129,7 @@ export default function TeamEditPage() {
   return (
     <MainLayout activeTab="teams">
       <div className="py-8 px-4">
-        <TeamEditForm team={team} onSave={handleSave} onCancel={handleCancel} />
+        <TeamForm team={team} onSave={handleSave} onCancel={handleCancel} />
 
         <ConfirmDialog
           isOpen={showSyncDialog}
