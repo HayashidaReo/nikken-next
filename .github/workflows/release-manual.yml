@@ -1,13 +1,9 @@
-name: Release Electron App
+name: Release Electron App (Manual)
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.vscode/**'
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
@@ -19,8 +15,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,32 +22,14 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Determine Version Bump
-        id: bump
-        run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          echo "Commit message: $COMMIT_MSG"
-          
-          if [[ "$COMMIT_MSG" == *"release: major"* ]]; then
-            echo "type=major" >> $GITHUB_OUTPUT
-          elif [[ "$COMMIT_MSG" == *"release: minor"* ]]; then
-            echo "type=minor" >> $GITHUB_OUTPUT
-          else
-            echo "type=patch" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Bump Version & Push
-        run: |
-          npm version ${{ steps.bump.outputs.type }} -m "chore(release): %s [skip ci]"
-          git push origin main --follow-tags
-
       - name: Install dependencies
         run: npm ci
+
+      - name: Set Version from Tag
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "Setting version to $VERSION"
+          npm version $VERSION --no-git-tag-version
 
       - name: Build Electron App
         run: npm run electron:build
@@ -71,6 +47,8 @@ jobs:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          # --- GitHub Token for private repo releases ---
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish Electron App
         run: npm run electron:pack -- --mac --win -p always
