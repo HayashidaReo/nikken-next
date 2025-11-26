@@ -24,6 +24,7 @@ import { Plus } from "lucide-react";
 import MatchTable from "@/components/organisms/match-table";
 import { MatchGroupRow } from "@/components/molecules/match-group-row";
 import { TableRow, TableCell } from "@/components/atoms/table";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useToast } from "@/components/providers/notification-provider";
 import type { MatchGroup } from "@/types/match.schema";
 import type { MatchGroupSetupData } from "@/types/match-setup";
@@ -106,7 +107,25 @@ export function MatchGroupSetupTable({
             return;
         }
 
+        // 既存の対戦が削除されている場合は確認ダイアログを表示
+        if (deletedGroupCount > 0) {
+            setShowSaveConfirm(true);
+            return;
+        }
+
         onSave(data);
+    };
+
+    const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+    const confirmSave = () => {
+        setShowSaveConfirm(false);
+        onSave(data);
+        setDeletedGroupCount(0);
+    };
+
+    const cancelSave = () => {
+        setShowSaveConfirm(false);
     };
 
     const addRow = () => {
@@ -125,8 +144,23 @@ export function MatchGroupSetupTable({
         ]);
     };
 
+    // 初期データのIDセット（既存対戦の削除判定用）
+    const [initialGroupIds] = useState<Set<string>>(() => {
+        return new Set(matchGroups.map(g => g.matchGroupId || ""));
+    });
+
+    // 削除された既存対戦の数
+    const [deletedGroupCount, setDeletedGroupCount] = useState(0);
+
     const removeRow = (index: number) => {
-        setData((prev) => prev.filter((_, i) => i !== index));
+        setData((prev) => {
+            const group = prev[index];
+            // 既存の対戦が削除された場合のみカウント
+            if (group && initialGroupIds.has(group.id)) {
+                setDeletedGroupCount(c => c + 1);
+            }
+            return prev.filter((_, i) => i !== index);
+        });
     };
 
     const handleDragStart = (event: DragStartEvent) => {
@@ -215,6 +249,16 @@ export function MatchGroupSetupTable({
                     </table>
                 ) : null}
             </DragOverlay>
-        </DndContext>
+
+            <ConfirmDialog
+                isOpen={showSaveConfirm}
+                title="対戦の削除確認"
+                message={`${deletedGroupCount}件の対戦を削除しました。このまま保存しますか？`}
+                onConfirm={confirmSave}
+                onCancel={cancelSave}
+                confirmText="保存する"
+                cancelText="キャンセル"
+            />
+        </DndContext >
     );
 }
