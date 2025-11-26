@@ -75,3 +75,47 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## 🖥️ デスクトップアプリ (Electron)
+
+このプロジェクトは Electron を使用してデスクトップアプリとしてビルド・配布することができます。
+
+### 開発モード
+
+Next.js の開発サーバーと Electron を同時に起動します。
+
+```bash
+npm run electron:dev
+```
+
+### 本番ビルド
+
+ローカルでインストーラーを作成する場合：
+
+```bash
+# 1. アプリケーションのビルド
+npm run electron:build
+
+# 2. パッケージ化（インストーラー生成）
+npm run electron:pack
+```
+
+生成物は `release` ディレクトリに出力されます。
+
+### リリースフロー (GitHub Actions)
+
+GitHub Actions を使用して、タグのプッシュをトリガーに自動でリリースを作成できます。
+
+1.  変更をコミットし、タグを作成してプッシュします。
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+3.  GitHub Actions が自動的にビルドを行い、GitHub Releases にインストーラー（`.dmg`, `.exe`）をアップロードします。
+4.  Webアプリの `/download` ページに最新バージョンが表示されます。
+
+詳細なワークフローについては [`docs/ELECTRON_RELEASE_WORKFLOW.md`](docs/ELECTRON_RELEASE_WORKFLOW.md) を参照してください。

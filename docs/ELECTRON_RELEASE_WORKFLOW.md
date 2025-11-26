@@ -22,6 +22,7 @@
         - コードのチェックアウト。
         - Node.jsのセットアップ。
         - 依存関係のインストール。
+        - バージョンの設定（タグから自動抽出して `package.json` を更新）。
         - Next.jsのビルド（`npm run build`）。
         - Electronのビルド & 公開（`npm run electron:pack -- -p always`）。
     - **シークレット**: リリースをアップロードするために `GH_TOKEN` が必要（GitHub Actionsにより自動提供）。
