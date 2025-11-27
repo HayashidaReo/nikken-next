@@ -88,8 +88,8 @@ export function DownloadContent({ release, macArmUrl, macIntelUrl, winUrl }: Dow
                                             </Button>
                                         ) : null}
                                         {macIntelUrl ? (
-                                            <Button asChild variant="outline" className="w-full h-12 border-white/10 bg-transparent !text-white hover:!bg-white/10 transition-colors" size="lg">
-                                                <Link href={macIntelUrl} className="flex items-center justify-center gap-2">
+                                            <Button asChild className="w-full h-12 border-white/20 bg-white/10 !text-white hover:!bg-white/50 transition-colors font-medium" size="lg">
+                                                <Link href={macIntelUrl} className="flex items-center justify-center gap-2 text-white hover:!text-black">
                                                     <Command className="h-4 w-4" />
                                                     Intel チップ
                                                 </Link>

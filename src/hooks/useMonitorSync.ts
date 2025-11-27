@@ -31,22 +31,40 @@ import { useMonitorSender } from "@/hooks/useMonitorSender";
  * @see {@link useMonitorStore} - 同期元のストア
  * @see {@link useMonitorSender} - メッセージ送信を担当するフック
  */
-export function useMonitorSync() {
+export function useMonitorSync(options?: { persistKey?: string }) {
     const { sendMessage } = useMonitorSender();
 
     useEffect(() => {
         // Zustandのsubscribe APIを使用してストアの変更を監視
-        // これにより、個別の状態を購読するよりも効率的に変更を検知できる
         const unsubscribe = useMonitorStore.subscribe((state) => {
             const monitorData = state.getMonitorSnapshot();
             sendMessage("data", monitorData);
+
+            // 永続化キーが指定されている場合はLocalStorageに保存
+            if (options?.persistKey) {
+                try {
+                    // MonitorDataは必要な情報をすべて含んでいるため、そのまま保存
+                    localStorage.setItem(options.persistKey, JSON.stringify(monitorData));
+                } catch (err) {
+                    console.error("Failed to persist monitor data:", err);
+                }
+            }
         });
 
         // 初回マウント時にもデータを送信
         const initialData = useMonitorStore.getState().getMonitorSnapshot();
         sendMessage("data", initialData);
 
+        // 初回も保存（ロード直後の状態を保存することになる）
+        if (options?.persistKey) {
+            try {
+                localStorage.setItem(options.persistKey, JSON.stringify(initialData));
+            } catch (err) {
+                console.error("Failed to persist initial monitor data:", err);
+            }
+        }
+
         // クリーンアップ
         return unsubscribe;
-    }, [sendMessage]);
+    }, [sendMessage, options?.persistKey]);
 }
