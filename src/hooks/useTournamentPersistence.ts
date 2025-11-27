@@ -30,8 +30,8 @@ export function useTournamentPersistence() {
             if (localTournament._deleted) {
                 // 論理削除されている場合はFirestoreから削除
                 await firestoreRepository.delete(orgId, tournamentId);
-                // 同期完了としてマーク
-                await localTournamentRepository.markAsSynced(tournamentId);
+                // 物理削除してクリーンアップ
+                await localTournamentRepository.hardDelete(tournamentId);
             } else {
                 // 作成または更新
                 await firestoreRepository.create(orgId, localTournament);

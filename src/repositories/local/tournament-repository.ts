@@ -89,6 +89,13 @@ export class LocalTournamentRepository {
     async markAsSynced(tournamentId: string): Promise<void> {
         await db.tournaments.update(tournamentId, { isSynced: true });
     }
+
+    /**
+     * 大会を物理削除（同期完了後のクリーンアップ用）
+     */
+    async hardDelete(tournamentId: string): Promise<void> {
+        await db.tournaments.delete(tournamentId);
+    }
 }
 
 export const localTournamentRepository = new LocalTournamentRepository();

@@ -53,17 +53,25 @@ export function useTournamentsByOrganization(orgId: string | null) {
                 const data = await response.json();
                 const tournaments = data.data || [];
 
-                // ローカルDBを更新
-                // APIから返ってくるISO文字列をDateに変換して保存
-                const localTournaments = tournaments.map((t: Tournament) => ({
-                    ...t,
-                    organizationId: orgId,
-                    tournamentDate: t.tournamentDate ? new Date(t.tournamentDate) : null,
-                    createdAt: t.createdAt ? new Date(t.createdAt) : undefined,
-                    updatedAt: t.updatedAt ? new Date(t.updatedAt) : undefined,
-                }));
+                // 未同期のローカル変更を取得
+                const unsyncedLocalTournaments = await localTournamentRepository.getUnsynced(orgId);
+                const unsyncedIds = new Set(unsyncedLocalTournaments.map(t => t.tournamentId));
 
-                await localTournamentRepository.bulkPut(localTournaments);
+                // ローカルDBを更新
+                // 未同期の項目は上書きしないようにフィルタリング
+                const localTournaments = tournaments
+                    .filter((t: Tournament) => !unsyncedIds.has(t.tournamentId!))
+                    .map((t: Tournament) => ({
+                        ...t,
+                        organizationId: orgId,
+                        tournamentDate: t.tournamentDate ? new Date(t.tournamentDate) : null,
+                        createdAt: t.createdAt ? new Date(t.createdAt) : undefined,
+                        updatedAt: t.updatedAt ? new Date(t.updatedAt) : undefined,
+                    }));
+
+                if (localTournaments.length > 0) {
+                    await localTournamentRepository.bulkPut(localTournaments);
+                }
                 return tournaments;
             } catch {
                 // タイムアウトやネットワークエラーは無視
