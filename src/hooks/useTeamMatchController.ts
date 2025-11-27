@@ -273,9 +273,10 @@ export function useTeamMatchController({
      * @param playerBId - チームBの代表選手ID
      */
     const handleCreateRepMatch = useCallback(async (playerAId: string, playerBId: string) => {
-        if (!matchGroupId || !teams) return;
+        if (!matchGroupId || !teams || !tournament) return;
 
         const { localTeamMatchRepository } = await import("@/repositories/local/team-match-repository");
+        const { localMatchGroupRepository } = await import("@/repositories/local/match-group-repository");
 
         // チーム情報を取得
         const teamA = teams.find(t => t.players.some(p => p.playerId === playerAId));
@@ -285,6 +286,13 @@ export function useTeamMatchController({
             console.error("Team not found");
             return;
         }
+
+        // matchGroupからcourtIdを取得
+        const matchGroup = await localMatchGroupRepository.getById(matchGroupId);
+
+        const court = matchGroup?.courtId
+            ? tournament.courts.find(c => c.courtId === matchGroup.courtId)
+            : undefined;
 
         try {
             // 代表戦のTeamMatchを作成
@@ -318,7 +326,7 @@ export function useTeamMatchController({
             const playerB = resolvePlayer(playerBId, teamB.teamId);
 
             // 代表戦を初期化して開始
-            initializeMatch(repMatch, tournamentName, courtName, {
+            initializeMatch(repMatch, tournament.tournamentName, court?.courtName || "", {
                 resolvedPlayers: {
                     playerA: {
                         ...repMatch.players.playerA,
@@ -340,7 +348,7 @@ export function useTeamMatchController({
         } catch (error) {
             console.error("Failed to create representative match:", error);
         }
-    }, [matchGroupId, teams, resolvePlayer, initializeMatch, tournamentName, courtName, tournament, router, orgId, tournamentId]);
+    }, [matchGroupId, teams, tournament, resolvePlayer, initializeMatch, router, orgId, tournamentId]);
 
     return {
         isAllFinished,
