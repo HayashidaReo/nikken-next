@@ -2,6 +2,7 @@
 
 import { memo, useMemo, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useMonitorStore } from "@/store/use-monitor-store";
 import { TableRow } from "@/components/atoms/table";
 import ScoreCell from "@/components/molecules/score-cell";
 import PlayerCell from "@/components/molecules/player-cell";
@@ -22,6 +23,7 @@ interface TeamMatchListTableProps {
 
 export function TeamMatchListTable({ matches, tournamentName, className }: TeamMatchListTableProps) {
     const router = useRouter();
+    const initializeMatch = useMonitorStore((s) => s.initializeMatch);
     const { teams } = useMasterData();
 
     const teamsArray = useMemo(() => Array.from(teams.values()), [teams]);
@@ -78,6 +80,44 @@ export function TeamMatchListTable({ matches, tournamentName, className }: TeamM
                         <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} />
                         <ActionCell
                             onMonitor={() => {
+                                initializeMatch(match, tournamentName as string, "", {
+                                    resolvedPlayers: {
+                                        playerA,
+                                        playerB,
+                                    },
+                                    roundName,
+                                    groupMatches: matches
+                                        .filter((m) => m.matchGroupId === match.matchGroupId)
+                                        .sort((a, b) => a.sortOrder - b.sortOrder)
+                                        .map((m) => {
+                                            const pA = resolveMatchPlayer(m.players.playerA, playerDirectory);
+                                            const pB = resolveMatchPlayer(m.players.playerB, playerDirectory);
+                                            let winner: "playerA" | "playerB" | "draw" | "none" = "none";
+                                            if (m.isCompleted) {
+                                                if (pA.score > pB.score) winner = "playerA";
+                                                else if (pB.score > pA.score) winner = "playerB";
+                                                else winner = "draw";
+                                            }
+                                            return {
+                                                matchId: m.matchId || "",
+                                                sortOrder: m.sortOrder,
+                                                playerA: {
+                                                    displayName: pA.displayName,
+                                                    teamName: pA.teamName,
+                                                    score: pA.score,
+                                                    hansoku: pA.hansoku,
+                                                },
+                                                playerB: {
+                                                    displayName: pB.displayName,
+                                                    teamName: pB.teamName,
+                                                    score: pB.score,
+                                                    hansoku: pB.hansoku,
+                                                },
+                                                isCompleted: m.isCompleted,
+                                                winner,
+                                            };
+                                        }),
+                                });
                                 router.push(`/monitor-control/${match.matchId}`);
                             }}
                         />

@@ -5,7 +5,7 @@ import { useMonitorStore } from "@/store/use-monitor-store";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
-import { MatchResultView } from "@/components/organisms/match-result-view";
+import { MonitorGroupResults } from "@/components/organisms/monitor-group-results";
 import { TeamResultView } from "@/components/organisms/team-result-view";
 import { cn } from "@/lib/utils/utils";
 
@@ -59,7 +59,25 @@ export function MonitorPreview({
         }
 
         if (data.viewMode === "match_result") {
-            return <MatchResultView data={monitorData} />;
+            // groupMatchesがない場合（個人戦など）はmatchResultから構築
+            const displayMatches = monitorData.groupMatches || (monitorData.matchResult ? [{
+                matchId: monitorData.matchId,
+                sortOrder: 1,
+                playerA: monitorData.matchResult.playerA,
+                playerB: monitorData.matchResult.playerB,
+                isCompleted: true,
+                winner: monitorData.matchResult.winner,
+            }] : []);
+
+            return (
+                <div className="w-full h-full flex items-center justify-center">
+                    <MonitorGroupResults
+                        groupMatches={displayMatches}
+                        currentMatchId={monitorData.matchId}
+                        className="w-full h-full"
+                    />
+                </div>
+            );
         }
 
         if (data.viewMode === "team_result") {

@@ -209,14 +209,11 @@ export function useTeamMatchController({
                     defaultMatchTime: tournament?.defaultMatchTime,
                 });
 
-                // 非公開にする
-                setPublic(false);
-
                 // URLを更新して次の試合へ遷移（ルーター経由で遷移することでフックを再実行させる）
                 router.push(`/monitor-control/${nextMatch.matchId}`);
             }
         }
-    }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, setPublic, router, tournament, tournamentName, courtName, roundName, resolvePlayer]);
+    }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, router, tournament, tournamentName, courtName, roundName, resolvePlayer]);
 
     const handleBackToDashboard = useCallback(() => {
         if (activeTournamentType === "team" && matchGroupId) {

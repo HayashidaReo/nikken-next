@@ -4,7 +4,7 @@ import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
 import { useBuzzer } from "@/hooks/useBuzzer";
-import { MatchResultView } from "./match-result-view";
+import { MonitorGroupResults } from "./monitor-group-results";
 import { TeamResultView } from "./team-result-view";
 
 interface MonitorDisplayContainerProps {
@@ -62,6 +62,16 @@ export function MonitorDisplayContainer({
 
   // モードによる分岐
   if (data.viewMode === "match_result") {
+    // groupMatchesがない場合（個人戦など）はmatchResultから構築
+    const displayMatches = data.groupMatches || (data.matchResult ? [{
+      matchId: data.matchId,
+      sortOrder: 1,
+      playerA: data.matchResult.playerA,
+      playerB: data.matchResult.playerB,
+      isCompleted: true,
+      winner: data.matchResult.winner,
+    }] : []);
+
     return (
       <div
         className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
@@ -73,9 +83,13 @@ export function MonitorDisplayContainer({
             transform: `scale(${scale})`,
             transformOrigin: "center",
           }}
-          className="bg-black flex-shrink-0"
+          className="bg-black flex-shrink-0 flex items-center justify-center"
         >
-          <MatchResultView data={data} />
+          <MonitorGroupResults
+            groupMatches={displayMatches}
+            currentMatchId={data.matchId}
+            className="w-full h-full"
+          />
         </div>
       </div>
     );

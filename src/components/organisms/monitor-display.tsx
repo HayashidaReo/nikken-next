@@ -4,6 +4,7 @@ import { useMonitorStore } from "@/store/use-monitor-store";
 import { SCORE_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils/utils";
 import { formatTime } from "@/lib/utils/time-utils";
+import { MonitorGroupResults } from "./monitor-group-results";
 
 interface MonitorDisplayProps {
   className?: string;
@@ -18,6 +19,9 @@ export function MonitorDisplay({ className }: MonitorDisplayProps) {
     playerB,
     timeRemaining,
     isPublic,
+    viewMode,
+    groupMatches,
+    matchId,
   } = useMonitorStore();
 
   // 反則状態を表示用に変換
@@ -38,17 +42,41 @@ export function MonitorDisplay({ className }: MonitorDisplayProps) {
     }
   };
 
+  // ... (existing code)
+
   if (!isPublic) {
+    // ... (existing code)
+  }
+
+  // 試合結果（団体戦一覧）モード
+  if (viewMode === "match_result" && groupMatches && groupMatches.length > 0) {
     return (
       <div
         className={cn(
-          "min-h-screen bg-gradient-to-b from-blue-900 to-blue-800 flex items-center justify-center text-white",
+          "min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8 flex flex-col",
           className
         )}
       >
-        <div className="text-center">
-          <div className="text-6xl font-bold mb-8">準備中</div>
-          <div className="text-2xl opacity-80">しばらくお待ちください</div>
+        {/* ヘッダー */}
+        <div className="text-center mb-8 flex-shrink-0">
+          <h1 className="text-4xl font-bold mb-2">{tournamentName}</h1>
+          <div className="text-2xl opacity-90">
+            {courtName} - {roundName} (対戦一覧)
+          </div>
+        </div>
+
+        {/* グループ結果一覧 */}
+        <div className="flex-1 flex items-center justify-center overflow-hidden">
+          <MonitorGroupResults
+            groupMatches={groupMatches}
+            currentMatchId={matchId}
+            className="w-full"
+          />
+        </div>
+
+        {/* フッター */}
+        <div className="absolute bottom-8 left-8 text-lg opacity-70">
+          日本拳法大会管理システム
         </div>
       </div>
     );

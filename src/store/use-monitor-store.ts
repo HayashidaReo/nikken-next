@@ -49,6 +49,7 @@ interface MonitorState {
     winner: "playerA" | "playerB" | "draw" | "none";
   };
   teamMatchResults?: MonitorData["teamMatchResults"];
+  groupMatches?: MonitorData["groupMatches"];
 
   presentationConnected: boolean;
   presentationConnection?: PresentationConnection | null;
@@ -67,6 +68,7 @@ interface MonitorState {
       };
       roundName?: string;
       defaultMatchTime?: number;
+      groupMatches?: MonitorData["groupMatches"];
     }
   ) => void;
   setPlayerScore: (player: "A" | "B", score: number) => void;
@@ -132,9 +134,10 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       };
       roundName?: string;
       defaultMatchTime?: number;
+      groupMatches?: MonitorData["groupMatches"];
     }
   ) => {
-    const { resolvedPlayers, roundName, defaultMatchTime = 180 } = options || {};
+    const { resolvedPlayers, roundName, defaultMatchTime = 180, groupMatches } = options || {};
     const fallbackPlayer = (
       player: Match["players"]["playerA"] | TeamMatch["players"]["playerA"]
     ): ResolvedMatchPlayer => ({
@@ -178,6 +181,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       timeRemaining: defaultMatchTime,
       isTimerRunning: false,
       timerMode: "countdown", // カウントダウンモードに戻す
+      groupMatches,
     });
   },
 
@@ -346,6 +350,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       viewMode: s.viewMode,
       matchResult: s.matchResult,
       teamMatchResults: s.teamMatchResults,
+      groupMatches: s.groupMatches,
     };
   },
 
