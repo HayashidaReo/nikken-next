@@ -79,7 +79,6 @@ export function useTeamMatchController({
     const currentSortOrder = useMonitorStore((s) => s.sortOrder);
     const setViewMode = useMonitorStore((s) => s.setViewMode);
     const setTeamMatchResults = useMonitorStore((s) => s.setTeamMatchResults);
-    const setPublic = useMonitorStore((s) => s.setPublic);
     const initializeMatch = useMonitorStore((s) => s.initializeMatch);
     const roundName = useMonitorStore((s) => s.roundName);
     const tournamentName = useMonitorStore((s) => s.tournamentName);
@@ -336,15 +335,12 @@ export function useTeamMatchController({
                 defaultMatchTime: tournament?.defaultMatchTime,
             });
 
-            // 非公開にする
-            setPublic(false);
-
             // URLを更新
             router.push(`/monitor-control/${repMatch.matchId}`);
         } catch (error) {
             console.error("Failed to create representative match:", error);
         }
-    }, [matchGroupId, teams, resolvePlayer, initializeMatch, tournamentName, courtName, tournament, setPublic, router, orgId, tournamentId]);
+    }, [matchGroupId, teams, resolvePlayer, initializeMatch, tournamentName, courtName, tournament, router, orgId, tournamentId]);
 
     return {
         isAllFinished,
