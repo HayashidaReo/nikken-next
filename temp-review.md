@@ -1,424 +1,666 @@
-# コードレビュー: develop vs fix/offline-and-other
+# コードレビュー結果 - develop vs fix/offline-and-other
 
 ## レビュー概要
 
-このレビューは、`develop`ブランチと`fix/offline-and-other`ブランチの差分を、`CODING_RULES.md`に基づいて評価したものです。
-
-**レビュー対象ファイル数**: 33ファイル  
-**追加行数**: 約1,366行  
-**削除行数**: 約731行
-
----
-
-## ✅ 良好な点
-
-### 1. 適切な関数切り出し（リファクタリング項目1-3の実装）
-
-以下の関数/フックが適切に切り出されています：
-
-- **`useMatchAction`** (`src/hooks/useMatchAction.ts`):
-  - モニター操作画面の試合アクションロジックを適切に分離
-  - ページコンポーネントから128行のロジックを抽出
-  - 責務が明確で、テスト可能な設計
-  
-- **`generateDisplayNames`** (`src/domains/team/services/display-name-service.ts`):
-  - 表示名生成ロジックをドメイン層（`src/domains/team/services/`）に配置
-  - **CODING_RULES.md 11条（データ層アーキテクチャ）に準拠**
-  - ビジネスロジックがUIから完全に分離され、テストも実装済み
-  
-- **`useTeamFormKeyboard`** (`src/hooks/useTeamFormKeyboard.ts`):
-  - フォームのキーボードナビゲーション専用フックとして分離
-  - `useKeyboardShortcuts`（モニター操作用）と明確に役割分担
-
-### 2. Props最適化（MonitorControlHeader）
-
-- 14個の個別プロップスを3つのオブジェクト（`monitorState`, `matchState`, `actions`）にグループ化
-- **可読性と保守性が大幅に向上**
-- Propsの責務が明確化され、変更時の影響範囲が明確化
-
-### 3. 型安全性の向上
-
-- `MonitorPreview.tsx`:  `as unknown as` 型キャストを `getMonitorSnapshot()` メソッドに置き換え
-- **CODING_RULES.md 5条（Zod-First、any禁止）に準拠**
-- 型安全性が向上し、実行時エラーのリスクが低減
-
-### 4. 新規ページの追加
-
-- `app/(auth)/teams/new/page.tsx`: チーム新規登録ページを追加
-- Server Componentとして実装され、適切にデータフェッチを行っている
-
-### 5. テストコードの追加
-
-- `src/domains/team/services/display-name-service.test.ts`: 
-  - 7つのテストケースを実装
-  - エッジケース（重複、空入力など）を網羅
+**レビュー日時**: 2025-11-27  
+**レビュアー**: ベテランシステムエンジニア  
+**レビュー対象**: developブランチとfix/offline-and-otherブランチの差分  
+**変更規模**: 63ファイル、約3,415行追加、約1,955行削除
 
 ---
 
-## ⚠️ 改善が必要な点
+## 🎯 総評
 
-### 1. MonitorControlPage の肥大化（最重要）
+全体として、大規模なリファクタリングが実施されており、以下の改善が見られます：
 
-**ファイル**: `app/(auth)/monitor-control/[matchId]/page.tsx`
+### ✅ 良い点
+1. **責務の明確化**: カスタムフックへの適切な関数切り出しが行われている
+2. **テストコードの追加**: `display-name-service.test.ts`, `useMonitorPageData.test.ts`, `useMonitorPageUi.test.ts` などのテスト追加
+3. **スキーマの分離**: `team-match.schema.ts` を独立したファイルに分離
+4. **オフライン対応の強化**: ローカルファースト設計への改善
 
-**問題点**:
-- 現在行数: 244行（削減されたが、依然として大きい）
-- 複数の責務:
-  1. データフェッチ (`useMatchDataWithPriority`, `useTeamMatches`, `useTeams`, `useTournament`)
-  2. モニター制御 (`useMonitorController`)
-  3. 試合進行制御 (`useTeamMatchController`, `useMatchAction`)
-  4. UI状態管理 (`showDisconnectConfirm`, `orderedTeams`の計算)
-
-**CODING_RULES.md違反**:
-- 1条（Server Components First）: Client Componentとして実装されているが、分割可能
-- 2条（Atomic Design）: ページコンポーネントに複雑なロジックが集中
-
-**リスク**: 
-- 保守性低下
-- テストが困難
-- 変更時の影響範囲が不明確
-
-### 2. TeamForm の依然としたビジネスロジック含有
-
-**ファイル**: `src/components/organisms/team-form.tsx`
-
-**問題点**:
-- `updateDisplayNames`ロジックは切り出されたが、以下が残存:
-  - 選手削除時のカウント管理 (`deletedPlayerCount`, `initialPlayerIds`)
-  - 保存確認ロジック (`handleFormSubmit`, `confirmSave`)
-  
-**CODING_RULES.md違反**:
-- 2条（Organisms層の責務）: ビジネスロジックが多すぎる
-- 4条（明確な状態の分離）: ローカル状態が複雑化
-
-**推奨**: 
-- 削除管理ロジックを `useTeamFormDeletion` フックに切り出し
-- 保存確認ロジックを `useConfirmSave` フックに切り出し
-
-### 3. 不要ファイルの削除漏れ
-
-**ファイル**: `src/components/organisms/tournament-settings-form.tsx`
-
-**問題点**:
-- `git diff --stat` で削除されたと表示されているが、実際にはまだ存在する可能性がある
-  ```
-  src/components/organisms/tournament-settings-form.tsx          | 348 ---...
-  ```
-
-**確認事項**:
-- このファイルが完全に削除されているか確認
-- `tournament-form.tsx`への置き換えが完全か確認
-- インポートしている箇所が残っていないか確認
-
-### 4. index.ts（Barrel exports）の使用
-
-**ファイル**: `src/components/organisms/index.ts`
-
-**問題点**:
-- CODING_RULES.md 9条で明示的に禁止されている
-  > `index.ts`（Barrelファイル）は、App RouterのTree Shakingとの相性が悪いため、作成を禁止する
-
-**推奨**:
-- すべての `index.ts` を削除
-- 各ファイルを個別にインポートするよう修正
-
-### 5. チーム管理画面のローカルファースト実装の未完
-
-**ファイル**: `app/(auth)/teams/new/page.tsx`, `app/(auth)/teams/edit/[teamId]/page.tsx`
-
-**問題点**:
-- `useTeamPersistence`フックを使用しているが、実装が不完全
-- `OFFLINE.md`に記載されているローカルファーストの思想が完全には適用されていない
-
-**推奨**:
-- IndexedDB（Dexie）を使用したローカル永続化の実装を完了
-- オフライン時の振る舞いを明確化
-
-### 6. Service Worker の複雑化
-
-**ファイル**: `app/sw.ts`
-
-**問題点**:
-- 53行の追加があり、複雑化している
-- キャッシュ戦略とオフライン対応の設計が明確でない
-
-**推奨**:
-- Service Workerの責務を文書化
-- キャッシュ戦略を明確化（Network First, Cache First等）
+### ⚠️ 懸念点
+1. **削除されたファイルへの依存**: `TournamentSettingsForm` が削除されたが、参照が残っている可能性
+2. **関数の重複**: 同期処理のロジックが複数箇所で類似実装されている
+3. **命名の不統一**: `TournamentForm` と `TournamentSettingForm` の命名揺れ
+4. **コメント不足**: 新規追加されたフックの説明が不十分
+5. **エラーハンドリングの改善余地**: タイムアウト処理が複数箇所で重複
 
 ---
 
-## 🔍 詳細レビュー
+## 📋 リファクタリング項目一覧
 
-### MonitorControlPage の構造分析
+### 🔴 重要度: 高（即座に対応すべき項目）
 
-現在の依存関係:
-```
-MonitorControlPage
-├── useMatchDataWithPriority (データ取得)
-├── useMonitorController (モニター制御)
-├── useTeamMatchController (団体戦制御)
-├── useMatchAction (試合アクション)
-├── useTeamMatches (TanStack Query)
-├── useTeams (TanStack Query)
-├── useTournament (TanStack Query)
-└── useKeyboardShortcuts (キーボード)
-```
+#### 1. TournamentSettingsFormの削除に伴う参照漏れの確認
+**問題点**:
+- `src/components/organisms/tournament-settings-form.tsx` が削除されている
+- `src/lib/form-defaults.ts` の5行目に「tournament-settings-form.tsx から」というコメントが残存
+- `src/components/organisms/index.ts` からエクスポートが削除されているが、他のファイルでの参照が残っている可能性
 
-**問題**: 8つのフックに依存しており、Single Responsibility Principleに違反
-
-### TypeScript型定義の状況
-
-**良好**:
-- `MonitorStateProps`, `MatchStateProps`, `MonitorActions`のような明確な型定義
-- `z.infer<>`による型の自動導出（Zod-First）
-
-**改善余地**:
-- 一部のコンポーネントで`any`型が使用されている可能性（要確認）
-
----
-
-## 📋 優先度付きリファクタリング項目
-
-### 優先度【高】（即時対応推奨）
-
-#### 1. MonitorControlPage の分割
-
-**対象**: `app/(auth)/monitor-control/[matchId]/page.tsx`
-
-**アクション**:
-1. データフェッチロジックを `useMonitorPageData` フックに切り出し
-2. UI状態ロジック（`orderedTeams`計算等）を `useMonitorPageUI` フックに切り出し
-3. ページコンポーネントを100行以下に削減
-
-**メリット**:
-- 保守性の大幅向上
-- テスト容易性の向上
-- CODING_RULES.md 2条への準拠
-
-**工数見積**: 中（2-3時間）
-
-#### 2. index.ts（Barrel exports）の削除
-
-**対象**: `src/components/organisms/index.ts`, その他すべての`index.ts`
-
-**アクション**:
-1. すべての `index.ts` ファイルを削除
-2. インポート文を個別インポートに書き換え
-
-**メリット**:
-- Tree Shakingの最適化
-- バンドルサイズの削減
-- CODING_RULES.md 9条への準拠
-
-**工数見積**: 小（1時間）
-
-#### 3. 不要ファイルの削除確認と実行
-
-**対象**: `src/components/organisms/tournament-settings-form.tsx`
-
-**アクション**:
-1. ファイルの存在確認
-2. インポート箇所の検索と削除
-3. ファイル本体の削除
-
-**メリット**:
-- コードベースのクリーンアップ
-- 混乱の防止
-
-**工数見積**: 小（30分）
-
-### 優先度【中】（1週間以内に対応）
-
-#### 4. TeamForm のビジネスロジック抽出
-
-**対象**: `src/components/organisms/team-form.tsx`
-
-**アクション**:
-1. `handleFormSubmit`, `confirmSave`ロジックを `useConfirmSave` フックに切り出し
-2. `deletedPlayerCount`, `initialPlayerIds` 管理を `useTeamFormDeletion` フックに切り出し
-
-**メリット**:
-- Organismsコンポーネントの責務明確化
-- 再利用性の向上
-
-**工数見積**: 中（2時間）
-
-#### 5. MonitorControlHeader の JSDoc 追加
-
-**対象**: `src/components/organisms/monitor-control-header.tsx`
-
-**アクション**:
-- `MonitorStateProps`, `MatchStateProps`, `MonitorActions` の各プロパティにJSDocを追加
-- Props最適化後のドキュメント更新
-
-**メリット**:
-- 開発者体験の向上
-- IntelliSenseの改善
-
-**工数見積**: 小（30分）
-
-#### 6. useMatchAction のエラーハンドリング改善
-
-**対象**: `src/hooks/useMatchAction.ts`
-
-**アクション**:
+**対応内容**:
 ```typescript
-// 現状
-} catch (err) {
-    console.error(err);
-    showError("試合結果の保存に失敗しました");
+// src/lib/form-defaults.ts:5
+// 削除すべきコメント
+- // 大会設定フォーム用のスキーマ(tournament-settings-form.tsx から)
++ // 大会設定フォーム用のスキーマ
+```
+
+**影響範囲**:
+- `src/lib/form-defaults.ts`
+- 全てのimport文のgrep検査
+
+---
+
+#### 2. TournamentFormの関数名とファイル名の不一致
+**問題点**:
+- ファイル名: `tournament-form.tsx`
+- エクスポート関数名: `TournamentSettingForm`（差分41行目）
+- 本来のエクスポート名: `TournamentForm`（差分1行目）
+
+**対応内容**:
+```typescript
+// src/components/organisms/tournament-form.tsx
+- export function TournamentSettingForm({
++ export function TournamentForm({
+```
+
+**影響範囲**:
+- `src/components/organisms/tournament-form.tsx`
+- このコンポーネントをインポートしている全てのファイル
+
+---
+
+#### 3. 同期処理のロジック重複とタイムアウト処理の統一
+**問題点**:
+- `useTournamentPersistence.ts`, `useTeamPersistence.ts`, `useMatchPersistence.ts` で同様のタイムアウト処理（10秒）が重複実装されている
+- エラーハンドリングパターンが統一されていない
+
+**対応内容**:
+共通ユーティリティ関数として切り出す
+```typescript
+// src/lib/utils/sync-utils.ts (新規作成)
+import { DEFAULT_SYNC_TIMEOUT } from "@/lib/constants";
+
+interface SyncOptions {
+  timeout?: number;
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
 }
 
-// 改善案
-} catch (err) {
-    const errorMessage = err instanceof Error 
-        ? err.message 
-        : "試合結果の保存に失敗しました";
-    console.error("Match save failed:", err);
-    showError(errorMessage);
-    // エラーロギングサービスへの送信（Sentry等）
+/**
+ * クラウド同期処理を実行する共通関数
+ * @param syncTask 同期タスク
+ * @param options タイムアウトやコールバック設定
+ */
+export async function executeSyncWithTimeout<T>(
+  syncTask: () => Promise<T>,
+  options: SyncOptions = {}
+): Promise<T> {
+  const { timeout = DEFAULT_SYNC_TIMEOUT, onSuccess, onError } = options;
+
+  try {
+    const result = await Promise.race([
+      syncTask(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Sync timeout")), timeout)
+      ),
+    ]);
+
+    onSuccess?.();
+    return result;
+  } catch (error) {
+    const syncError = error instanceof Error ? error : new Error("Unknown sync error");
+    onError?.(syncError);
+    throw syncError;
+  }
 }
 ```
 
-**メリット**:
-- デバッグ効率の向上
-- エラー原因の特定が容易に
+各ファイルで共通関数を使用:
+```typescript
+// src/hooks/useTournamentPersistence.ts (例)
+import { executeSyncWithTimeout } from "@/lib/utils/sync-utils";
 
-**工数見積**: 小（1時間）
+const syncTournamentToCloud = useCallback(async (tournamentId: string) => {
+  await executeSyncWithTimeout(
+    async () => {
+      const localTournament = await localTournamentRepository.getById(orgId, tournamentId);
+      // ... 同期処理
+    },
+    {
+      onSuccess: () => showSuccess("クラウドに同期しました"),
+      onError: (error) => showError("クラウド同期に失敗しました"),
+    }
+  );
+}, []);
+```
 
-### 優先度【低】（リスクが低い、時間がある時に対応）
-
-#### 7. MonitorPreview のプロップス追加
-
-**対象**: `src/components/molecules/monitor-preview.tsx`
-
-**アクション**:
-- `className` プロップを受け取れるようにし、外部からスタイルを調整可能に
-- （既に実装済みなら不要）
-
-**メリット**:
-- 再利用性の向上
-
-**工数見積**: 極小（15分）
-
-#### 8. generateDisplayNames のパフォーマンス最適化
-
-**対象**: `src/domains/team/services/display-name-service.ts`
-
-**アクション**:
-- 大量の選手（100人以上）を扱う場合のパフォーマンステスト
-- 必要に応じてアルゴリズムの最適化
-
-**メリット**:
-- 大規模大会への対応
-
-**工数見積**: 中（状況次第）
-
-#### 9. Service Worker のリファクタリング
-
-**対象**: `app/sw.ts`
-
-**アクション**:
-1. キャッシュ戦略の文書化
-2. コメントの追加
-3. 複雑な部分の関数切り出し
-
-**メリット**:
-- PWA機能の保守性向上
-
-**工数見積**: 中（2時間）
-
-#### 10. TypeScript strict modeの有効化確認
-
-**対象**: `tsconfig.json`
-
-**アクション**:
-- `strict: true` が有効か確認
-- `noImplicitAny`, `strictNullChecks` 等の個別オプション確認
-
-**メリット**:
-- 型安全性の最大化
-- ランタイムエラーの事前検出
-
-**工数見積**: 小（確認のみなら15分、修正が必要なら数時間）
+**影響範囲**:
+- `src/hooks/useTournamentPersistence.ts`
+- `src/hooks/useTeamPersistence.ts`
+- `src/hooks/useMatchPersistence.ts`
+- `src/hooks/useMatchGroupPersistence.ts`
+- `src/lib/constants.ts` (DEFAULT_SYNC_TIMEOUT定数の追加)
 
 ---
 
-## 📊 総合評価
+#### 4. MonitorControlHeaderのprops構造変更に伴う型安全性の向上
+**問題点**:
+- `MonitorControlHeader` のpropsが大幅に変更され、ネストされたオブジェクト構造に変更されている
+- 型定義の明示性が不足している可能性
 
-### コーディング品質: ⭐⭐⭐⭐☆ (4/5)
+**対応内容**:
+型定義を明示的に分離する
+```typescript
+// src/components/organisms/monitor-control-header.tsx
+interface MonitorState {
+  isPublic: boolean;
+  monitorStatusMode: "presentation" | "fallback" | "disconnected";
+  isPresentationConnected: boolean;
+}
 
-**評価理由**:
-- 適切なリファクタリングが実施されている
-- テストコードが追加されている
-- CODING_RULES.mdへの準拠意識が高い
+interface MatchState {
+  activeTournamentType: string | null | undefined;
+  viewMode: "default" | "match_result" | "team_result";
+  isAllFinished: boolean;
+  isSaving: boolean;
+}
 
-**減点理由**:
-- MonitorControlPageの肥大化
-- index.ts（Barrel exports）の使用
-- 一部のビジネスロジックがUIコンポーネントに残存
+interface MonitorActions {
+  onTogglePublic: () => void;
+  onBackToDashboard: () => void;
+  onMonitorAction: () => void;
+  onSave: () => void;
+  onConfirmMatch: () => void;
+  onNextMatch: () => void;
+  onShowTeamResult: () => void;
+}
 
-### アーキテクチャ準拠: ⭐⭐⭐⭐☆ (4/5)
+interface MonitorControlHeaderProps {
+  monitorState: MonitorState;
+  matchState: MatchState;
+  actions: MonitorActions;
+}
+```
 
-**評価理由**:
-- ドメイン層への適切な配置（`generateDisplayNames`）
-- フックの適切な切り出し
-- Atomic Designの原則に概ね準拠
-
-**減点理由**:
-- ページコンポーネントの責務過多
-- Barrel exportsの使用
-
-### 保守性: ⭐⭐⭐☆☆ (3/5)
-
-**評価理由**:
-- リファクタリングにより部分的に改善
-- テストコードの追加
-
-**懸念点**:
-- MonitorControlPageの複雑性
-- 削除漏れファイルの可能性
-- 一部ドキュメント不足
-
----
-
-## 🎯 次のアクション
-
-### 1週間以内に実施すべき項目:
-1. ✅ index.ts の削除（優先度【高】）
-2. ✅ 不要ファイルの削除確認（優先度【高】）
-3. ✅ MonitorControlPageの分割開始（優先度【高】）
-
-### 2週間以内に実施すべき項目:
-4. TeamForm のビジネスロジック抽出（優先度【中】）
-5. useMatchAction のエラーハンドリング改善（優先度【中】）
-
-### 今後の課題:
-- ローカルファースト実装の完了
-- Service Workerの最適化
-- パフォーマンステストの実施
+**影響範囲**:
+- `src/components/organisms/monitor-control-header.tsx`
+- `app/(auth)/monitor-control/[matchId]/page.tsx`
 
 ---
 
-## 📝 レビュアーコメント
+#### 5. useApproveTeamの実装方法の確認
+**問題点**:
+- `app/(auth)/teams/page.tsx` で `useApproveTeam` を使用しているが、mutateメソッドの引数が不正確
+- 正しくは `mutate({ teamId, isApproved })` のようなオブジェクト形式が一般的
 
-全体として、**適切なリファクタリングが進んでおり、コード品質は向上しています**。
+**対応内容**:
+```typescript
+// app/(auth)/teams/page.tsx (33行目付近)
+- approveTeamMutation.mutate(teamId, isApproved);
++ approveTeamMutation.mutate({ teamId, isApproved });
+```
 
-特に、以下の点は高く評価できます:
-- ドメイン駆動設計への移行（`generateDisplayNames`のドメイン層配置）
-- テストファーストの姿勢（`display-name-service.test.ts`）
-- Props最適化による可読性向上
+または、`useApproveTeam` の実装を確認して正しい呼び出し方に修正
 
-一方で、**MonitorControlPageの肥大化**と**Barrel exportsの使用**は、CODING_RULES.mdに明確に違反しており、早急な対応が必要です。
-
-上記のリファクタリング項目を優先度順に実施することで、さらに高品質なコードベースを実現できます。
-
-**総合的には、正しい方向に進んでいます。引き続き、CODING_RULES.mdに従った開発を継続してください。**
+**影響範囲**:
+- `app/(auth)/teams/page.tsx`
+- `src/queries/use-teams.ts` (useApproveTeamの実装確認)
 
 ---
 
-_レビュー実施日: 2025-11-27_  
-_レビュアー: システムエンジニア（AI）_  
-_対象ブランチ: `fix/offline-and-other`_  
-_基準ブランチ: `develop`_
+### 🟡 重要度: 中（計画的に対応すべき項目）
+
+#### 6. カスタムフックのJSDocコメント追加
+**問題点**:
+- 新規追加されたフック（`useConfirmSave`, `useTeamFormKeyboard`, `useTeamFormDeletion`）にはコメントがあるが、一部不足している
+- `useMatchAction` にはコメントが不足
+
+**対応内容**:
+各フックのファイルヘッダーとエクスポート関数に詳細な説明を追加
+```typescript
+/**
+ * 試合アクション管理フック
+ * 
+ * MonitorControlPage における試合の保存、確認、次試合への遷移などのアクションを統合管理する
+ * 
+ * @param props.orgId - 組織ID
+ * @param props.activeTournamentId - 大会ID
+ * @param props.activeTournamentType - 大会種別（個人戦/団体戦）
+ * @param props.needsRepMatch - 代表戦が必要かどうか
+ * @param props.handleNextMatch - 次の試合への遷移処理
+ * @param props.handleCreateRepMatch - 代表戦作成処理
+ * 
+ * @returns 試合アクション関連の関数とダイアログ状態
+ * 
+ * @example
+ * ```tsx
+ * const {
+ *   handleSave,
+ *   handleConfirmMatchClick,
+ *   showConfirmDialog,
+ *   isSaving,
+ * } = useMatchAction({
+ *   orgId,
+ *   activeTournamentId,
+ *   activeTournamentType,
+ *   needsRepMatch,
+ *   handleNextMatch,
+ *   handleCreateRepMatch,
+ * });
+ * ```
+ */
+export function useMatchAction({ ... }) {
+  // ...
+}
+```
+
+**影響範囲**:
+- `src/hooks/useMatchAction.ts`
+- `src/hooks/useConfirmSave.ts`
+- `src/hooks/useTeamFormKeyboard.ts`
+- `src/hooks/useTeamFormDeletion.ts`
+- `src/hooks/useMonitorPageData.ts`
+- `src/hooks/useMonitorPageUi.ts`
+
+---
+
+#### 7. displayName生成ロジックのドメインサービス化の完全移行
+**問題点**:
+- `display-name-service.ts` が新規作成されているが、既存の他のファイルでdisplayName生成ロジックが残っている可能性がある
+
+**対応内容**:
+- 全ファイルをgrep検索して、displayName生成ロジックが他に残っていないか確認
+- 残っている場合は `display-name-service.ts` の関数を使用するように統一
+
+```bash
+# 検索コマンド例
+grep -r "displayName.*lastName.*firstName" src/
+grep -r "姓.*名.*表示名" src/
+```
+
+**影響範囲**:
+- プロジェクト全体のdisplayName生成箇所
+
+---
+
+#### 8. LocalRepositoryのメソッドの統一性確認
+**問題点**:
+- `LocalTeamRepository` に `create`, `update`, `delete`, `hardDelete`, `markAsSynced` などが追加されている
+- 他のLocalRepository（`LocalTournamentRepository`, `LocalMatchRepository`）でも同様のメソッドが追加されているか確認が必要
+- インターフェースの統一が望ましい
+
+**対応内容**:
+共通インターフェースを作成
+```typescript
+// src/repositories/local/base-local-repository.interface.ts (新規作成)
+export interface BaseLocalRepository<T, TCreate> {
+  listAll(orgId: string, tournamentId: string): Promise<T[]>;
+  getById(id: string): Promise<T | undefined>;
+  create(orgId: string, tournamentId: string, data: TCreate): Promise<T>;
+  update(id: string, changes: Partial<T>): Promise<number>;
+  delete(id: string): Promise<void>; // 論理削除
+  hardDelete(id: string): Promise<void>; // 物理削除
+  getUnsynced(orgId: string, tournamentId: string): Promise<T[]>;
+  countUnsynced(orgId: string, tournamentId: string): Promise<number>;
+  markAsSynced(id: string): Promise<void>;
+}
+```
+
+各リポジトリで実装
+```typescript
+export class LocalTeamRepository implements BaseLocalRepository<LocalTeam, TeamCreate> {
+  // ...
+}
+```
+
+**影響範囲**:
+- `src/repositories/local/team-repository.ts`
+- `src/repositories/local/tournament-repository.ts`
+- `src/repositories/local/match-repository.ts`
+- `src/repositories/local/match-group-repository.ts`
+- `src/repositories/local/team-match-repository.ts`
+
+---
+
+#### 9. MonitorPreviewコンポーネントのprops型定義
+**問題点**:
+- `MonitorPreview` コンポーネントが新規追加されているが、propsの型が明示的
+- `monitorStatusMode` の型が文字列リテラル型で定義されているが、定数として切り出すべき
+
+**対応内容**:
+```typescript
+// src/types/monitor.ts (新規または既存ファイル)
+export type MonitorStatusMode = "presentation" | "fallback" | "disconnected";
+
+// src/components/molecules/monitor-preview.tsx
+import type { MonitorStatusMode } from "@/types/monitor";
+
+interface MonitorPreviewProps {
+  width?: number;
+  className?: string;
+  monitorStatusMode: MonitorStatusMode;
+}
+```
+
+**影響範囲**:
+- `src/components/molecules/monitor-preview.tsx`
+- `src/types/monitor.ts` または該当するファイル
+
+---
+
+#### 10. TeamFormのpropsインターフェース明示化
+**問題点**:
+- `TeamForm` コンポーネントの `onSave` props の型が複雑なインライン定義になっている
+- `TeamEditData` のような型を明示的に定義すべき
+
+**対応内容**:
+```typescript
+// src/types/team.schema.ts または新規ファイル
+export interface TeamFormData {
+  teamName: string;
+  representativeName: string;
+  representativePhone: string;
+  representativeEmail: string;
+  isApproved: boolean;
+  remarks: string;
+  players: {
+    playerId: string;
+    lastName: string;
+    firstName: string;
+    displayName: string;
+  }[];
+}
+
+// src/components/organisms/team-form.tsx
+interface TeamFormProps {
+  initialData?: TeamFormData;
+  onSave: (data: TeamFormData) => Promise<void>;
+  onCancel: () => void;
+  className?: string;
+}
+```
+
+**影響範囲**:
+- `src/components/organisms/team-form.tsx`
+- `app/(auth)/teams/new/page.tsx`
+- `app/(auth)/teams/edit/[teamId]/page.tsx`
+
+---
+
+### 🟢 重要度: 低（時間があれば対応すべき項目）
+
+#### 11. useConfirmSaveのジェネリクス型の活用改善
+**問題点**:
+- `useConfirmSave<T>` でジェネリクス型を使用しているが、実際の利用箇所で型推論が効くようにできる可能性がある
+
+**対応内容**:
+```typescript
+// より厳密な型推論を実現
+export function useConfirmSave<T extends Record<string, unknown>>({
+  shouldConfirm,
+  onSave,
+  onSuccess,
+}: UseConfirmSaveOptions<T>) {
+  // ...
+}
+```
+
+**影響範囲**:
+- `src/hooks/useConfirmSave.ts`
+
+---
+
+#### 12. KeyboardEventのハンドリングの型安全性向上
+**問題点**:
+- `useTeamFormKeyboard` の `handleKeyDown` で `React.KeyboardEvent<HTMLFormElement>` を使用しているが、より厳密なイベント型の使用が望ましい
+
+**対応内容**:
+```typescript
+import type { KeyboardEvent } from "react";
+
+export function useTeamFormKeyboard({ fieldsLength, addPlayer }: UseTeamFormKeyboardProps) {
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLFormElement>) => {
+    // ...
+  }, [fieldsLength, addPlayer]);
+  
+  return { handleKeyDown };
+}
+```
+
+**影響範囲**:
+- `src/hooks/useTeamFormKeyboard.ts`
+
+---
+
+#### 13. テストコードのカバレッジ向上
+**問題点**:
+- `display-name-service.test.ts`, `useMonitorPageData.test.ts`, `useMonitorPageUi.test.ts` のテストが追加されているのは良いが、他の新規フックのテストがない
+
+**対応内容**:
+以下のフックのテストファイルを作成:
+- `src/hooks/useMatchAction.test.ts`
+- `src/hooks/useConfirmSave.test.ts`
+- `src/hooks/useTeamFormKeyboard.test.ts`
+- `src/hooks/useTeamFormDeletion.test.ts`
+- `src/hooks/useMatchPersistence.test.ts`
+- `src/hooks/useMatchGroupPersistence.test.ts`
+
+**影響範囲**:
+- `src/hooks/` 配下の新規テストファイル
+
+---
+
+#### 14. エラーメッセージの統一と多言語対応の準備
+**問題点**:
+- エラーメッセージが各所でハードコーディングされている
+- 将来的な多言語対応を考慮した設計になっていない
+
+**対応内容**:
+```typescript
+// src/lib/constants/messages.ts (新規作成)
+export const ERROR_MESSAGES = {
+  SYNC: {
+    FAILED: "クラウド同期に失敗しました",
+    OFFLINE: "オフラインのためクラウド同期はされていません",
+    TIMEOUT: "同期がタイムアウトしました",
+  },
+  TEAM: {
+    SAVE_FAILED: "チームの保存に失敗しました",
+    APPROVAL_FAILED: "チームの承認状態の更新に失敗しました",
+  },
+  // ...
+} as const;
+
+export const SUCCESS_MESSAGES = {
+  SYNC: {
+    COMPLETE: "クラウドに同期しました",
+  },
+  TEAM: {
+    CREATED: (teamName: string) => `「${teamName}」を登録しました`,
+  },
+  // ...
+} as const;
+```
+
+使用箇所:
+```typescript
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/lib/constants/messages";
+
+showError(ERROR_MESSAGES.SYNC.FAILED);
+showSuccess(SUCCESS_MESSAGES.TEAM.CREATED(data.teamName));
+```
+
+**影響範囲**:
+- プロジェクト全体のエラーメッセージ・成功メッセージ使用箇所
+
+---
+
+#### 15. setTimeout使用箇所のクリーンアップ処理追加
+**問題点**:
+- `app/(auth)/teams/new/page.tsx` や `app/(auth)/teams/page.tsx` で `setTimeout` が使用されているが、コンポーネントのアンマウント時のクリーンアップが行われていない
+
+**対応内容**:
+```typescript
+// app/(auth)/teams/new/page.tsx
+useEffect(() => {
+  let timeoutId: NodeJS.Timeout;
+
+  const syncInBackground = async () => {
+    timeoutId = setTimeout(() => {
+      syncTeamToCloud(newTeam.teamId, { showSuccessToast: true }).catch((err) => {
+        console.error("Background sync failed:", err);
+      });
+    }, 0);
+  };
+
+  // クリーンアップ
+  return () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
+}, []);
+```
+
+または、カスタムフックとして切り出す:
+```typescript
+// src/hooks/useBackgroundSync.ts
+export function useBackgroundSync(
+  syncFn: () => Promise<void>,
+  dependencies: unknown[]
+) {
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      syncFn().catch(console.error);
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, dependencies);
+}
+```
+
+**影響範囲**:
+- `app/(auth)/teams/new/page.tsx`
+- `app/(auth)/teams/page.tsx`
+
+---
+
+## 📊 統計情報
+
+### ファイル別変更行数（上位10件）
+
+| ファイル | 追加 | 削除 | 合計 |
+|---------|------|------|------|
+| docs/OFFLINE.md | 200+ | 400+ | 600+ |
+| src/components/organisms/tournament-settings-form.tsx | 0 | 348 | 348 |
+| src/hooks/useMonitorPageUi.test.ts | 282 | 0 | 282 |
+| app/(auth)/monitor-control/[matchId]/page.tsx | 100+ | 125+ | 225+ |
+| src/hooks/useTournamentPersistence.ts | 80+ | 141+ | 221+ |
+| src/hooks/useMatchGroupPersistence.ts | 203 | 0 | 203 |
+| src/hooks/useMonitorPageData.test.ts | 196 | 0 | 196 |
+| src/components/organisms/team-form.tsx | 150+ | 46+ | 196+ |
+| src/queries/use-tournaments.ts | 50+ | 56+ | 106+ |
+| src/components/molecules/monitor-preview.tsx | 97 | 0 | 97 |
+
+### 新規追加ファイル（13件）
+
+1. `app/(auth)/teams/new/page.tsx`
+2. `src/components/molecules/monitor-preview.tsx`
+3. `src/domains/team/services/display-name-service.test.ts`
+4. `src/domains/team/services/display-name-service.ts`
+5. `src/hooks/useConfirmSave.ts`
+6. `src/hooks/useMatchAction.ts`
+7. `src/hooks/useMatchGroupPersistence.ts`
+8. `src/hooks/useMatchPersistence.ts`
+9. `src/hooks/useMonitorPageData.test.ts`
+10. `src/hooks/useMonitorPageData.ts`
+11. `src/hooks/useMonitorPageUi.test.ts`
+12. `src/hooks/useMonitorPageUi.ts`
+13. `src/hooks/useTeamFormDeletion.ts`
+14. `src/hooks/useTeamFormKeyboard.ts`
+15. `src/types/team-match.schema.ts`
+
+### 削除ファイル（1件）
+
+1. `src/components/organisms/tournament-settings-form.tsx`
+
+### リネームファイル（1件）
+
+1. `src/components/organisms/team-edit-form.tsx` → `src/components/organisms/team-form.tsx` (68%類似)
+
+---
+
+## 🔍 コーディングルール準拠チェック
+
+### ✅ 準拠している項目
+
+1. **Server Components First**: Page componentは適切にServer Componentとして実装されている
+2. **Zod-First**: 新規スキーマファイル `team-match.schema.ts` でZodスキーマを使用
+3. **Atomic Design**: コンポーネントの階層分離が適切
+4. **状態管理の分離**: TanStack Query, Zustand, useStateの使い分けが適切
+5. **React インポートルール**: 個別インポートが徹底されている
+6. **ファイル命名規則**: kebab-caseが徹底されている
+
+### ⚠️ 改善が必要な項目
+
+1. **重複コード**: 同期処理の実装が複数箇所で重複（項目3参照）
+2. **コメント不足**: 新規フックの一部でJSDocが不足（項目6参照）
+3. **型定義の明示性**: インライン型定義が多い箇所がある（項目10参照）
+4. **エラーハンドリング**: エラーメッセージのハードコーディング（項目14参照）
+
+---
+
+## 📝 追加推奨事項
+
+### 1. データ層アーキテクチャの一貫性確認
+`CODING_RULES.md` で定義されているドメイン層、データ層、リポジトリ層の3層アーキテクチャが、今回の変更で一貫して適用されているか確認が必要です。
+
+### 2. パフォーマンス最適化の検証
+- `useCallback`, `useMemo` の使用が適切か
+- 不要な再レンダリングが発生していないか
+- TanStack QueryのstaleTime設定が適切か
+
+### 3. Firestore セキュリティルールの更新確認
+ローカルファースト設計への移行に伴い、Firestoreのセキュリティルールが適切に更新されているか確認が必要です。
+
+### 4. オフライン対応のエッジケース処理
+- ネットワーク復帰時の自動同期
+- 競合解決の仕組み
+- 長期間オフライン時のデータ整合性
+
+---
+
+## ✅ 承認前チェックリスト
+
+- [ ] 項目1-5（重要度：高）の対応完了
+- [ ] 削除されたファイルへの参照が全て解消されている
+- [ ] 命名の統一性が確保されている
+- [ ] 同期処理の共通化が完了している
+- [ ] 型定義の明示化が完了している
+- [ ] テストコードが追加されている
+- [ ] ビルドエラーがない
+- [ ] Lintエラーがない
+- [ ] 既存機能の動作確認完了
+- [ ] オフライン対応の動作確認完了
+
+---
+
+## 最終コメント
+
+今回のリファクタリングは、全体として**コードの保守性と可読性を大幅に向上させる優れた取り組み**です。特に、以下の点は高く評価できます：
+
+1. カスタムフックへの適切な関数切り出し
+2. テストコードの追加
+3. スキーマの分離による責務の明確化
+4. ローカルファースト設計への移行
+
+一方で、**重要度の高い項目（1-5）については即座に対応が必要**です。特に、削除されたファイルへの参照漏れや命名の不統一は、実行時エラーやメンテナンス性の低下を招く可能性があります。
+
+中程度・低程度の項目についても、計画的に対応することで、長期的なコード品質の維持につながります。
+
+---
+
+**レビュアーサイン**: システムエンジニア（ベテラン）  
+**次回レビュー推奨タイミング**: 重要度高の項目対応後
