@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 import { AuthErrorBoundary } from "@/components/providers/auth-error-boundary";
 import { TournamentProvider } from "@/components/providers/tournament-provider";
 import { QueryProvider } from "@/lib/query-provider";
+import { OfflineIndicator } from "@/components/molecules/offline-indicator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,7 @@ export default function RootLayout({
               <TournamentProvider>
                 <NotificationProvider>
                   {children}
+                  <OfflineIndicator />
                 </NotificationProvider>
               </TournamentProvider>
             </AuthProvider>

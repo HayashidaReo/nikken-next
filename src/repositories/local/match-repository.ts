@@ -42,25 +42,6 @@ export class LocalMatchRepository {
     }
 
     /**
-     * 試合を作成
-     */
-    async create(orgId: string, tournamentId: string, match: Omit<LocalMatch, "matchId" | "organizationId" | "tournamentId" | "isSynced" | "createdAt" | "updatedAt">): Promise<LocalMatch> {
-        const id = crypto.randomUUID();
-        const now = new Date();
-        const newMatch: LocalMatch = {
-            ...match,
-            matchId: id,
-            organizationId: orgId,
-            tournamentId,
-            isSynced: false,
-            createdAt: now,
-            updatedAt: now,
-        };
-        await db.matches.put(newMatch);
-        return newMatch;
-    }
-
-    /**
      * 試合を保存（新規作成または更新）
      */
     async put(match: LocalMatch): Promise<number> {
@@ -75,24 +56,10 @@ export class LocalMatchRepository {
     }
 
     /**
-     * 試合を更新 (PK指定)
+     * 試合を更新
      */
-    async updateByPk(id: number, changes: Partial<LocalMatch>): Promise<number> {
+    async update(id: number, changes: Partial<LocalMatch>): Promise<number> {
         return await db.matches.update(id, changes);
-    }
-
-    /**
-     * 試合を更新 (matchId指定)
-     */
-    async update(matchId: string, changes: Partial<LocalMatch>): Promise<number> {
-        return await db.matches
-            .where("matchId")
-            .equals(matchId)
-            .modify({
-                ...changes,
-                isSynced: false,
-                updatedAt: new Date(),
-            });
     }
 
     /**
@@ -123,20 +90,13 @@ export class LocalMatchRepository {
     }
 
     /**
-     * 同期完了としてマーク
-     */
-    async markAsSynced(matchId: string): Promise<void> {
-        await db.matches
-            .where("matchId")
-            .equals(matchId)
-            .modify({ isSynced: true });
-    }
-
-    /**
-     * matchIdで試合を更新 (非推奨: updateを使用してください)
+     * matchIdで試合を更新
      */
     async updateByMatchId(matchId: string, changes: Partial<LocalMatch>): Promise<number> {
-        return this.update(matchId, changes);
+        return await db.matches
+            .where("matchId")
+            .equals(matchId)
+            .modify(changes);
     }
 
     /**

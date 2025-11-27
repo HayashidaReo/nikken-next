@@ -37,7 +37,6 @@ export function useCreateMatchGroup() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: matchGroupKeys.lists() });
         },
-        networkMode: "always",
     });
 }
 
@@ -53,7 +52,6 @@ export function useUpdateMatchGroup() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: matchGroupKeys.lists() });
         },
-        networkMode: "always",
     });
 }
 
@@ -69,6 +67,5 @@ export function useDeleteMatchGroup() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: matchGroupKeys.lists() });
         },
-        networkMode: "always",
     });
 }

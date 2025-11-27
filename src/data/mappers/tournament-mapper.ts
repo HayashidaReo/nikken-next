@@ -8,7 +8,7 @@ import { tournamentSchema } from "@/types/tournament.schema";
 export interface FirestoreTournamentDoc {
   tournamentId: string;
   tournamentName: string;
-  tournamentDate: Timestamp;
+  tournamentDate: Date;
   tournamentDetail: string;
   location: string;
   defaultMatchTime: number;
@@ -55,7 +55,7 @@ export class TournamentMapper {
     const domainData = {
       tournamentId,
       tournamentName: doc.tournamentName,
-      tournamentDate: doc.tournamentDate.toDate(),
+      tournamentDate: doc.tournamentDate,
       tournamentDetail: doc.tournamentDetail,
       location: doc.location,
       defaultMatchTime: doc.defaultMatchTime,
@@ -92,7 +92,7 @@ export class TournamentMapper {
     return {
       tournamentId: tournament.id,
       tournamentName: tournament.tournamentName,
-      tournamentDate: Timestamp.fromDate(tournament.tournamentDate),
+      tournamentDate: tournament.tournamentDate,
       tournamentDetail: tournament.tournamentDetail,
       location: tournament.location,
       defaultMatchTime: tournament.defaultMatchTime,
@@ -124,7 +124,7 @@ export class TournamentMapper {
       updateDoc.tournamentName = tournament.tournamentName;
     }
     if (tournament.tournamentDate !== undefined) {
-      updateDoc.tournamentDate = Timestamp.fromDate(tournament.tournamentDate);
+      updateDoc.tournamentDate = tournament.tournamentDate;
     }
     if (tournament.tournamentDetail !== undefined) {
       updateDoc.tournamentDetail = tournament.tournamentDetail;

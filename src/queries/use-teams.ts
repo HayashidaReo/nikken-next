@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLiveQuery } from "dexie-react-hooks";
-import { localTeamRepository } from "@/repositories/local/team-repository";
+import { db } from "@/lib/db";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import type { Team, TeamCreate } from "@/types/team.schema";
 import type { TeamFormData } from "@/types/team-form.schema";
@@ -25,7 +25,9 @@ export function useTeams() {
 
   const teams = useLiveQuery(async () => {
     if (!orgId || !activeTournamentId) return [];
-    return await localTeamRepository.listAll(orgId, activeTournamentId);
+    return await db.teams
+      .where({ organizationId: orgId, tournamentId: activeTournamentId })
+      .toArray();
   }, [orgId, activeTournamentId]);
 
   return {
@@ -44,7 +46,10 @@ export function useTeam(teamId: string | null | undefined) {
 
   const team = useLiveQuery(async () => {
     if (!teamId || !orgId || !activeTournamentId) return undefined;
-    return await localTeamRepository.getById(teamId);
+    return await db.teams
+      .where('teamId')
+      .equals(teamId)
+      .first();
   }, [teamId, orgId, activeTournamentId]);
 
   return {
@@ -66,7 +71,19 @@ export function useCreateTeam() {
       if (!orgId || !activeTournamentId) {
         throw new Error("Organization ID and Tournament ID are required");
       }
-      return await localTeamRepository.create(orgId, activeTournamentId, newTeam);
+      const teamId = crypto.randomUUID();
+      const now = new Date();
+      const localTeam = {
+        ...newTeam,
+        teamId,
+        organizationId: orgId,
+        tournamentId: activeTournamentId,
+        isSynced: false,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await db.teams.put(localTeam);
+      return localTeam;
     },
     onSuccess: createdTeam => {
       // 一覧キャッシュを無効化
@@ -77,7 +94,6 @@ export function useCreateTeam() {
         createdTeam
       );
     },
-    networkMode: "always",
   });
 }
 
@@ -93,10 +109,17 @@ export function useUpdateTeam() {
       if (!orgId || !activeTournamentId) {
         throw new Error("Organization ID and Tournament ID are required");
       }
-      await localTeamRepository.update(teamId, patch);
-      const updated = await localTeamRepository.getById(teamId);
-      if (!updated) throw new Error("Updated team not found");
-      return updated;
+      const team = await db.teams.where('teamId').equals(teamId).first();
+      if (!team) throw new Error("Team not found");
+
+      const updatedTeam = {
+        ...team,
+        ...patch,
+        updatedAt: new Date(),
+        isSynced: false,
+      };
+      await db.teams.put(updatedTeam);
+      return updatedTeam;
     },
     onSuccess: updatedTeam => {
       // 一覧キャッシュを無効化
@@ -107,7 +130,6 @@ export function useUpdateTeam() {
         updatedTeam
       );
     },
-    networkMode: "always",
   });
 }
 
@@ -123,7 +145,11 @@ export function useDeleteTeam() {
       if (!orgId || !activeTournamentId) {
         throw new Error("Organization ID and Tournament ID are required");
       }
-      await localTeamRepository.delete(teamId);
+      // Dexie doesn't support deleting by non-primary key directly in one go easily without key
+      // But we can find key first or just use delete on table if key is teamId?
+      // Wait, primary key in db.ts for teams is 'teamId'.
+      // So we can just delete(teamId).
+      await db.teams.delete(teamId);
     },
     onSuccess: (_, deletedTeamId) => {
       // 一覧キャッシュを無効化
@@ -131,30 +157,22 @@ export function useDeleteTeam() {
       // 削除されたチームの詳細キャッシュを削除
       queryClient.removeQueries({ queryKey: teamKeys.detail(deletedTeamId) });
     },
-    networkMode: "always",
   });
 }
 
 /**
  * チーム承認状態変更のMutation（よく使われる操作）
- * 
- * @example
- * ```tsx
- * const { mutate } = useApproveTeam();
- * mutate({ teamId: 'team-123', isApproved: true });
- * ```
  */
 export function useApproveTeam() {
   const { mutate: updateTeam, ...mutation } = useUpdateTeam();
 
   return {
     ...mutation,
-    mutate: ({ teamId, isApproved }: { teamId: string; isApproved: boolean }) => {
+    mutate: (teamId: string, isApproved: boolean) => {
       updateTeam({ teamId, patch: { isApproved } });
     },
   };
 }
-
 
 /**
  * チーム登録用のMutation（API Route経由）

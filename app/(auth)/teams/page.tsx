@@ -1,46 +1,58 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
 import { ShareMenu } from "@/components/molecules/share-menu";
-import { Button } from "@/components/atoms/button";
-import { Plus } from "lucide-react";
 import { TeamStatsSummary } from "@/components/molecules/team-stats-summary";
-import { useTeams, useApproveTeam } from "@/queries/use-teams";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+import { useTeams } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { useTeamPersistence } from "@/hooks/useTeamPersistence";
-import { useToast } from "@/components/providers/notification-provider";
+import type { Team } from "@/types/team.schema";
 
 export default function TeamsPage() {
   const { needsTournamentSelection, isLoading: authLoading, orgId, activeTournamentId } = useAuthContext();
   const { data: teams = [], isLoading: teamsLoading, error } = useTeams();
-  const { syncTeamToCloud } = useTeamPersistence();
-  const approveTeamMutation = useApproveTeam();
-  const { showError } = useToast();
+  const { saveToLocal, syncToCloud } = useTeamPersistence();
+
+  const [syncConfirm, setSyncConfirm] = useState<{
+    isOpen: boolean;
+    team: Team | null;
+  }>({ isOpen: false, team: null });
 
   const handleApprovalChange = async (teamId: string, isApproved: boolean) => {
     const team = teams.find(t => t.teamId === teamId);
     if (!team) return;
 
+    const updatedTeam = { ...team, isApproved };
+
     try {
-      // 1. IndexedDBに保存
-      approveTeamMutation.mutate({ teamId, isApproved });
-
-
-      // 2. バックグラウンドでクラウド同期を試行
-      // setTimeoutを使用してメインスレッドをブロックせずに実行
-      setTimeout(() => {
-        syncTeamToCloud(teamId, { showSuccessToast: true }).catch((err) => {
-          console.error("Background sync failed:", err);
-        });
-      }, 0);
+      await saveToLocal(updatedTeam);
+      setSyncConfirm({ isOpen: true, team: updatedTeam });
     } catch (error) {
-      console.error("Failed to update team approval:", error);
-      showError("チームの承認状態の更新に失敗しました");
+      console.error("Failed to save team locally:", error);
     }
+  };
+
+  const handleSyncConfirm = () => {
+    if (!syncConfirm.team) return;
+
+    syncToCloud(
+      syncConfirm.team,
+      () => {
+        setSyncConfirm({ isOpen: false, team: null });
+      },
+      () => {
+        setSyncConfirm({ isOpen: false, team: null });
+      }
+    );
+  };
+
+  const handleSyncCancel = () => {
+    setSyncConfirm({ isOpen: false, team: null });
   };
 
   const isLoading = authLoading || teamsLoading;
@@ -86,18 +98,10 @@ export default function TeamsPage() {
           <div className="flex items-center gap-4">
             <TeamStatsSummary teams={teams} />
             {orgId && activeTournamentId && (
-              <div className="flex items-center gap-2">
-                <Link href="/teams/new">
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    追加
-                  </Button>
-                </Link>
-                <ShareMenu
-                  itemName="チーム・選手管理ページ"
-                  sharePath={`/teams-form/${orgId}/${activeTournamentId}`}
-                />
-              </div>
+              <ShareMenu
+                itemName="チーム・選手管理ページ"
+                sharePath={`/teams-form/${orgId}/${activeTournamentId}`}
+              />
             )}
           </div>
         </div>
@@ -108,7 +112,15 @@ export default function TeamsPage() {
         />
       </div>
 
-
+      <ConfirmDialog
+        isOpen={syncConfirm.isOpen}
+        onCancel={handleSyncCancel}
+        onConfirm={handleSyncConfirm}
+        title="クラウド同期"
+        message="今の変更をネットワークを経由して全ての端末にも反映させますか？"
+        confirmText="はい"
+        cancelText="いいえ"
+      />
     </MainLayout>
   );
 }
