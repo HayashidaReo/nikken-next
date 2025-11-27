@@ -7,6 +7,7 @@ interface VerticalTextProps {
     text: string;
     variant?: "player" | "team" | "round";
     maxHeight?: number; // px単位
+    debug?: boolean; // デバッグ用背景色表示
     className?: string;
 }
 
@@ -14,6 +15,7 @@ export function VerticalText({
     text,
     variant = "player",
     maxHeight,
+    debug = false,
     className
 }: VerticalTextProps) {
     const variantStyles = {
@@ -63,10 +65,13 @@ export function VerticalText({
             style={{
                 writingMode: "vertical-rl",
                 textOrientation: "upright",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
                 ...(maxHeight && {
                     fontSize: `${fontSizeRem}rem`,
                     maxHeight: `${maxHeight}px`,
                 }),
+                ...(debug && { backgroundColor: "rgba(255, 0, 0, 0.2)" }),
             }}
             className={cn(style.base, className)}
         >

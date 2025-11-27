@@ -85,12 +85,19 @@ export function MonitorGroupResults({
                             )}
 
                             {/* 選手名 (縦書き) */}
-                            <VerticalText text={match.playerA.displayName} variant="player" />
+                            <VerticalText
+                                text={match.playerA.displayName}
+                                variant="player"
+                                maxHeight={250}
+                                debug
+                            />
 
                             {/* ラウンドラベル */}
                             <VerticalText
                                 text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
                                 variant="round"
+                                maxHeight={200}
+                                debug
                             />
                         </div>
 
@@ -100,12 +107,19 @@ export function MonitorGroupResults({
                         {/* 選手B (下) */}
                         <div className={cn("flex items-center gap-4 flex-1 justify-start relative", opacityB)}>
                             {/* 選手名 (縦書き) */}
-                            <VerticalText text={match.playerB.displayName} variant="player" />
+                            <VerticalText
+                                text={match.playerB.displayName}
+                                variant="player"
+                                maxHeight={250}
+                                debug
+                            />
 
                             {/* ラウンドラベル */}
                             <VerticalText
                                 text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
                                 variant="round"
+                                maxHeight={200}
+                                debug
                             />
 
                             {/* 勝者マーク (赤丸) */}
@@ -124,10 +138,20 @@ export function MonitorGroupResults({
             {/* チーム名を一番右に縦に表示 */}
             <div className="flex-shrink-0 flex flex-col gap-8 items-center justify-center h-[700px]">
                 <div className="flex items-center justify-center">
-                    <VerticalText text={teamAName} variant="team" />
+                    <VerticalText
+                        text={teamAName}
+                        variant="team"
+                        maxHeight={500}
+                        debug
+                    />
                 </div>
                 <div className="flex items-center justify-center">
-                    <VerticalText text={teamBName} variant="team" />
+                    <VerticalText
+                        text={teamBName}
+                        variant="team"
+                        maxHeight={500}
+                        debug
+                    />
                 </div>
             </div>
         </div>
