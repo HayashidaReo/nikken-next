@@ -7,6 +7,7 @@ interface VerticalTextProps {
     text: string;
     variant?: "player" | "team" | "round";
     maxHeight?: number; // px単位
+    baseFontSize?: number; // rem単位、カスタムフォントサイズ
     debug?: boolean; // デバッグ用背景色表示
     className?: string;
 }
@@ -15,19 +16,23 @@ export function VerticalText({
     text,
     variant = "player",
     maxHeight,
+    baseFontSize: customBaseFontSize,
     debug = false,
     className
 }: VerticalTextProps) {
     const variantStyles = {
-        player: { base: "text-7xl font-bold text-white tracking-widest", baseFontSize: 4.5, minFontSize: 2.5 },
+        player: { base: "text-7xl font-bold text-white tracking-widest", baseFontSize: 6, minFontSize: 2.5 },
         team: { base: "text-8xl font-bold text-white tracking-widest", baseFontSize: 6, minFontSize: 3 },
-        round: { base: "text-3xl font-medium text-gray-300 tracking-widest", baseFontSize: 1.875, minFontSize: 1 },
+        round: { base: "text-3xl font-medium text-gray-300 tracking-widest", baseFontSize: 2.5, minFontSize: 1 },
     };
 
     const style = variantStyles[variant];
+    // カスタムbaseFontSizeが指定されていればそれを使用、なければvariantのデフォルトを使用
+    const actualBaseFontSize = customBaseFontSize ?? style.baseFontSize;
+
     const elementRef = useRef<HTMLDivElement>(null);
-    const [fontSizeRem, setFontSizeRem] = useState(style.baseFontSize);
-    const currentFontRef = useRef(style.baseFontSize);
+    const [fontSizeRem, setFontSizeRem] = useState(actualBaseFontSize);
+    const currentFontRef = useRef(actualBaseFontSize);
 
     useEffect(() => {
         if (!maxHeight) return;
@@ -37,12 +42,12 @@ export function VerticalText({
 
         const calculateFontSize = () => {
             const scrollHeight = el.scrollHeight;
-            let newFontSize = style.baseFontSize;
+            let newFontSize = actualBaseFontSize;
 
             if (scrollHeight > maxHeight) {
                 // テキストがはみ出している場合、フォントサイズを縮小
                 const scaleFactor = maxHeight / scrollHeight;
-                newFontSize = Math.max(style.minFontSize, style.baseFontSize * scaleFactor);
+                newFontSize = Math.max(style.minFontSize, actualBaseFontSize * scaleFactor);
             }
 
             // 状態を更新（差があれば setState）
@@ -57,7 +62,7 @@ export function VerticalText({
         return () => {
             clearTimeout(timeoutId);
         };
-    }, [maxHeight, style.baseFontSize, style.minFontSize, text]);
+    }, [maxHeight, actualBaseFontSize, style.minFontSize, text]);
 
     return (
         <div

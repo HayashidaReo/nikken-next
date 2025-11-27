@@ -88,7 +88,8 @@ export function MonitorGroupResults({
                             <VerticalText
                                 text={match.playerA.displayName}
                                 variant="player"
-                                maxHeight={250}
+                                baseFontSize={10}
+                                maxHeight={400}
                                 debug
                             />
 
@@ -96,6 +97,7 @@ export function MonitorGroupResults({
                             <VerticalText
                                 text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
                                 variant="round"
+                                baseFontSize={4}
                                 maxHeight={200}
                                 debug
                             />
@@ -110,7 +112,8 @@ export function MonitorGroupResults({
                             <VerticalText
                                 text={match.playerB.displayName}
                                 variant="player"
-                                maxHeight={250}
+                                baseFontSize={10}
+                                maxHeight={400}
                                 debug
                             />
 
@@ -118,6 +121,7 @@ export function MonitorGroupResults({
                             <VerticalText
                                 text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
                                 variant="round"
+                                baseFontSize={4}
                                 maxHeight={200}
                                 debug
                             />
@@ -141,6 +145,7 @@ export function MonitorGroupResults({
                     <VerticalText
                         text={teamAName}
                         variant="team"
+                        baseFontSize={10}
                         maxHeight={500}
                         debug
                     />
@@ -149,6 +154,7 @@ export function MonitorGroupResults({
                     <VerticalText
                         text={teamBName}
                         variant="team"
+                        baseFontSize={10}
                         maxHeight={500}
                         debug
                     />
