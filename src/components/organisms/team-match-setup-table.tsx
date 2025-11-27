@@ -23,6 +23,7 @@ import MatchTable from "@/components/organisms/match-table";
 import { TeamMatchRow } from "@/components/molecules/team-match-row";
 import { getTeamMatchRoundIdByIndex, getTeamMatchRoundLabelById } from "@/lib/constants";
 import { TableRow, TableCell } from "@/components/atoms/table";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useToast } from "@/components/providers/notification-provider";
 import type { TeamMatch } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
@@ -104,7 +105,29 @@ export function TeamMatchSetupTable({
             return;
         }
 
+        // 既存の試合が削除されている場合は確認ダイアログを表示
+        const currentIds = new Set(data.map(d => d.id));
+        const count = Array.from(initialMatchIds).filter((id: string) => !currentIds.has(id)).length;
+
+        if (count > 0) {
+            setDeletedMatchCount(count);
+            setShowSaveConfirm(true);
+            return;
+        }
+
         onSave(data);
+    };
+
+    const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+    const confirmSave = () => {
+        setShowSaveConfirm(false);
+        onSave(data);
+        setDeletedMatchCount(0);
+    };
+
+    const cancelSave = () => {
+        setShowSaveConfirm(false);
     };
 
     const addRow = () => {
@@ -140,6 +163,14 @@ export function TeamMatchSetupTable({
             };
         })
     );
+
+    // 初期データのIDセット（既存試合の削除判定用）
+    const [initialMatchIds] = useState(() => {
+        return new Set(matches.map(m => m.matchId || ""));
+    });
+
+    // 削除された既存試合の数
+    const [deletedMatchCount, setDeletedMatchCount] = useState(0);
 
     const removeRow = (index: number) => {
         setData((prev) => {
@@ -263,6 +294,16 @@ export function TeamMatchSetupTable({
                     </table>
                 ) : null}
             </DragOverlay>
-        </DndContext>
+
+            <ConfirmDialog
+                isOpen={showSaveConfirm}
+                title="試合の削除確認"
+                message={`${deletedMatchCount}件の試合を削除しました。このまま保存しますか？`}
+                onConfirm={confirmSave}
+                onCancel={cancelSave}
+                confirmText="保存する"
+                cancelText="キャンセル"
+            />
+        </DndContext >
     );
 }

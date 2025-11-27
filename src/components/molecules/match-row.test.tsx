@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MatchRow } from "@/components/molecules/match-row";
 import { MasterDataProvider } from "@/components/providers/master-data-provider";
@@ -50,7 +50,7 @@ describe("MatchRow", () => {
         const handleRemove = jest.fn();
         const handleUpdate = jest.fn();
 
-        render(
+        const { container } = render(
             <MasterDataProvider
                 teams={teams as Team[]}
                 courts={[{ courtId: "c1", courtName: "Court 1" }]}
@@ -72,15 +72,20 @@ describe("MatchRow", () => {
             </MasterDataProvider>
         );
 
-        // Delete button is the last button in the row; open confirmation and confirm
-        const buttons = screen.getAllByRole("button");
-        const deleteBtn = buttons[buttons.length - 1];
+        // Find the delete button with Trash2 icon (last button in the row)
+        const buttons = container.querySelectorAll("button");
+        const deleteBtn = Array.from(buttons).find((btn) => {
+            const svg = btn.querySelector("svg");
+            return svg && svg.classList.contains("lucide-trash2");
+        }) as HTMLButtonElement;
+
+        if (!deleteBtn) {
+            throw new Error("Delete button not found");
+        }
+
         await user.click(deleteBtn);
 
-        // Confirm dialog should appear. Click the destructive confirm button (ラベル: 削除)
-        const confirmBtn = await screen.findByRole("button", { name: /削除/ });
-        await user.click(confirmBtn);
-
         expect(handleRemove).toHaveBeenCalledTimes(1);
+        expect(handleRemove).toHaveBeenCalledWith(0);
     });
 });

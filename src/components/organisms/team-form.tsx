@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -33,47 +33,40 @@ import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useToast } from "@/components/providers/notification-provider";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useArrayField } from "@/hooks/useArrayField";
+import { useTeamFormKeyboard } from "@/hooks/useTeamFormKeyboard";
+import { useTeamFormDeletion } from "@/hooks/useTeamFormDeletion";
+import { useConfirmSave } from "@/hooks/useConfirmSave";
 import { createDefaultTeamEditValues } from "@/lib/form-defaults";
-import { formatPlayerFullName } from "@/lib/utils/player-name-utils";
+
+import { teamManagementSchema } from "@/types/team.schema";
+import { DisplayNameService } from "@/domains/team/services/display-name.service";
+
 
 // 編集用のスキーマ
-const teamEditSchema = z.object({
-  teamName: z.string().min(1, "チーム名は必須です"),
-  representativeName: z.string().min(1, "代表者名は必須です"),
-  representativePhone: z.string().min(1, "電話番号は必須です"),
-  representativeEmail: z.email("正しいメールアドレスを入力してください"),
-  isApproved: z.boolean(),
-  remarks: z.string(),
-  players: z.array(
-    z.object({
-      playerId: z.string(),
-      lastName: z.string().min(1, "姓は必須です"),
-      firstName: z.string().min(1, "名は必須です"),
-      displayName: z.string(),
-    })
-  ),
-});
+// 管理画面では代表者情報は任意（ただし入力時は形式チェックあり）
+const teamEditSchema = teamManagementSchema;
 
 type TeamEditData = z.infer<typeof teamEditSchema>;
 
-interface TeamEditFormProps {
-  team: Team;
+interface TeamFormProps {
+  team?: Team;
   onSave: (data: TeamEditData) => Promise<void>;
   onCancel: () => void;
   className?: string;
 }
 
-export function TeamEditForm({
+export function TeamForm({
   team,
   onSave,
   onCancel,
   className,
-}: TeamEditFormProps) {
+}: TeamFormProps) {
+  const isEditMode = !!team;
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { isLoading, handleSubmit: handleFormSubmission } =
     useFormSubmit<TeamEditData>();
   const { confirmNavigation } = useUnsavedChanges(hasUnsavedChanges);
-  const { showWarning, showSuccess } = useToast();
+  const { showWarning } = useToast();
 
   const {
     register,
@@ -84,7 +77,24 @@ export function TeamEditForm({
     formState: { errors, isDirty },
   } = useForm<TeamEditData>({
     resolver: zodResolver(teamEditSchema),
-    defaultValues: createDefaultTeamEditValues(team),
+    defaultValues: team
+      ? createDefaultTeamEditValues(team)
+      : {
+        teamName: "",
+        representativeName: "",
+        representativePhone: "",
+        representativeEmail: "",
+        isApproved: false,
+        remarks: "",
+        players: [
+          {
+            playerId: `player-${Date.now()}`,
+            lastName: "",
+            firstName: "",
+            displayName: "",
+          },
+        ],
+      },
   });
 
   const { fields, addItem, removeItem } = useArrayField(control, "players", {
@@ -105,53 +115,26 @@ export function TeamEditForm({
     setHasUnsavedChanges(isDirty);
   }, [isDirty]);
 
+  // 削除管理フック
+  const { deletedPlayerCount, trackDeletion, resetDeletionCount } = useTeamFormDeletion(
+    team?.players.map(p => p.playerId) || []
+  );
 
   // displayNameを自動生成する関数
   const updateDisplayNames = useCallback(() => {
     const currentValues = getValues();
     const players = currentValues.players || [];
 
-    // 姓でグループ化
-    const lastNameGroups: { [key: string]: number[] } = {};
-    players.forEach((player, index) => {
-      const lastName = player.lastName;
-      if (!lastNameGroups[lastName]) {
-        lastNameGroups[lastName] = [];
-      }
-      lastNameGroups[lastName].push(index);
-    });
+    // DisplayNameServiceを使用して表示名を生成
+    // フォームのplayersデータはPlayer型と互換性があるためキャストして使用
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatedPlayers = DisplayNameService.generateDisplayNames(players as any[]);
 
-    // displayNameを更新
-    Object.entries(lastNameGroups).forEach(([lastName, indices]) => {
-      if (indices.length === 1) {
-        // 重複なし：姓のみ
-        const idx = indices[0];
-        const current = players[idx]?.displayName || "";
-        if (current !== lastName) {
-          setValue(`players.${idx}.displayName`, lastName);
-        }
-      } else {
-        // 重複あり：姓 + 名の一部
-        indices.forEach(index => {
-          const player = players[index] || { firstName: "", displayName: "" };
-          const firstName = player.firstName || "";
-          let displayName = `${lastName} ${firstName.charAt(0)}`;
-
-          // 同じ姓＋名の一部でも重複する場合はフルネーム
-          const sameDisplay = indices.filter(i => {
-            const otherPlayer = players[i] || { firstName: "" };
-            return `${lastName} ${otherPlayer.firstName.charAt(0)}` === displayName;
-          });
-
-          if (sameDisplay.length > 1) {
-            displayName = `${lastName} ${firstName}`;
-          }
-
-          const current = player.displayName || "";
-          if (current !== displayName) {
-            setValue(`players.${index}.displayName`, displayName);
-          }
-        });
+    updatedPlayers.forEach((player, index) => {
+      // 現在の値と比較して変更があれば更新
+      // players[index]が存在することを確認
+      if (players[index] && players[index].displayName !== player.displayName) {
+        setValue(`players.${index}.displayName`, player.displayName);
       }
     });
   }, [getValues, setValue]);
@@ -169,46 +152,38 @@ export function TeamEditForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- updateDisplayNames intentionally omitted on purpose
   }, [watchedPlayers]);
 
-  // 選手を削除（共通hookを使用）
+  // 選手を削除（即座に削除、確認なし）
+  const handleRemovePlayer = (index: number) => {
+    const players = getValues().players || [];
+    const player = players[index];
 
-  // 削除確認ダイアログの state
-  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
+    removeItem(index);
 
-  const requestRemovePlayer = (index: number) => {
-    setDeleteConfirmIndex(index);
-  };
-
-  const confirmRemovePlayer = () => {
-    if (deleteConfirmIndex !== null) {
-      const players = getValues().players || [];
-      const name = formatPlayerFullName(players, deleteConfirmIndex);
-
-      removeItem(deleteConfirmIndex);
-      setDeleteConfirmIndex(null);
-      showSuccess(`${name} を削除しました`);
+    // 削除を追跡
+    if (player) {
+      trackDeletion(player.playerId);
     }
   };
 
-  const cancelRemovePlayer = () => setDeleteConfirmIndex(null);
-
-  // 削除確認ダイアログのメッセージをメモ化してレンダリング内の IIFE を排除
-  const deleteConfirmMessage = useMemo(() => {
-    if (deleteConfirmIndex === null) return "選手を削除しますか？";
-    // `watchedPlayers` は useWatch で監視しているためレンダリングと同期します
-    const players = watchedPlayers || getValues().players || [];
-    const name = formatPlayerFullName(players, deleteConfirmIndex);
-    return `${name} を削除しますか？ この操作は取り消せません。`;
-  }, [deleteConfirmIndex, watchedPlayers, getValues]);
-
-  // displayName の更新は useWatch + useEffect で行うため、個別のハンドラは不要
+  // 保存確認フック
+  const { showConfirmDialog, attemptSave, confirmSave, cancelSave } = useConfirmSave<TeamEditData>({
+    shouldConfirm: () => deletedPlayerCount > 0,
+    onSave: async (data) => {
+      await handleFormSubmission(onSave, data, {
+        onSuccess: () => {
+          setHasUnsavedChanges(false);
+          resetDeletionCount();
+        },
+      });
+    },
+    onSuccess: () => {
+      // 追加の成功時処理があればここに記述
+    },
+  });
 
   // フォーム送信
   const handleFormSubmit = async (data: TeamEditData) => {
-    await handleFormSubmission(onSave, data, {
-      onSuccess: () => {
-        setHasUnsavedChanges(false);
-      },
-    });
+    await attemptSave(data);
   };
 
   const handleCancelClick = () => {
@@ -216,6 +191,12 @@ export function TeamEditForm({
       onCancel();
     }
   };
+
+  // キーボードナビゲーションのハンドリング
+  const { handleKeyDown } = useTeamFormKeyboard({
+    fieldsLength: fields.length,
+    addPlayer,
+  });
 
   return (
     <div className={cn("w-full max-w-4xl mx-auto space-y-6", className)}>
@@ -226,15 +207,21 @@ export function TeamEditForm({
             <ArrowLeft className="w-4 h-4 mr-2" />
             戻る
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900">チーム情報編集</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isEditMode ? "チーム情報編集" : "チーム新規登録"}
+          </h1>
         </div>
         <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading} loadingText="保存中...">
-          保存
+          {isEditMode ? "保存" : "登録"}
         </Button>
       </div>
 
       <TooltipProvider delayDuration={20}>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(handleFormSubmit)}
+          onKeyDown={handleKeyDown}
+          className="space-y-6"
+        >
           {/* 基本情報 */}
           <Card>
             <CardHeader>
@@ -255,7 +242,6 @@ export function TeamEditForm({
                 <FormInput
                   label="代表者名"
                   name="representativeName"
-                  required
                   placeholder="代表者名を入力"
                   register={register}
                   error={errors.representativeName?.message}
@@ -264,7 +250,6 @@ export function TeamEditForm({
                 <FormInput
                   label="電話番号"
                   name="representativePhone"
-                  required
                   type="tel"
                   placeholder="電話番号を入力"
                   register={register}
@@ -274,7 +259,6 @@ export function TeamEditForm({
                 <FormInput
                   label="メールアドレス"
                   name="representativeEmail"
-                  required
                   type="email"
                   placeholder="メールアドレスを入力"
                   register={register}
@@ -358,7 +342,7 @@ export function TeamEditForm({
                       </div>
 
                       <div className="flex items-center justify-center">
-                        <RemoveButton onClick={() => requestRemovePlayer(index)} />
+                        <RemoveButton onClick={() => handleRemovePlayer(index)} />
                       </div>
                     </AnimatedListItem>
                   ))}
@@ -383,14 +367,14 @@ export function TeamEditForm({
       </TooltipProvider>
 
       <ConfirmDialog
-        isOpen={deleteConfirmIndex !== null}
+        isOpen={showConfirmDialog}
         title="選手の削除確認"
-        message={deleteConfirmMessage}
-        onConfirm={confirmRemovePlayer}
-        onCancel={cancelRemovePlayer}
-        confirmText="削除する"
+        message={`${deletedPlayerCount}人の選手を削除しました。このまま保存しますか？`}
+        onConfirm={confirmSave}
+        onCancel={cancelSave}
+        confirmText="保存する"
         cancelText="キャンセル"
-        variant="destructive"
+        variant="default"
       />
     </div>
   );

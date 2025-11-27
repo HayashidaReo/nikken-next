@@ -210,3 +210,10 @@ export const TEXT_MESSAGES = {
   /** パスワードリセットメール送信エラー */
   PASSWORD_RESET_EMAIL_ERROR: "パスワード再設定メールの送信に失敗しました",
 } as const;
+
+// 🔄 同期処理関連定数
+export const SYNC_CONSTANTS = {
+  /** デフォルトの同期タイムアウト時間（ミリ秒） */
+  DEFAULT_SYNC_TIMEOUT: 10000,
+} as const;
+

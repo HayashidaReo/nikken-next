@@ -53,17 +53,25 @@ export function useTournamentsByOrganization(orgId: string | null) {
                 const data = await response.json();
                 const tournaments = data.data || [];
 
-                // ローカルDBを更新
-                // APIから返ってくるISO文字列をDateに変換して保存
-                const localTournaments = tournaments.map((t: Tournament) => ({
-                    ...t,
-                    organizationId: orgId,
-                    tournamentDate: t.tournamentDate ? new Date(t.tournamentDate) : null,
-                    createdAt: t.createdAt ? new Date(t.createdAt) : undefined,
-                    updatedAt: t.updatedAt ? new Date(t.updatedAt) : undefined,
-                }));
+                // 未同期のローカル変更を取得
+                const unsyncedLocalTournaments = await localTournamentRepository.getUnsynced(orgId);
+                const unsyncedIds = new Set(unsyncedLocalTournaments.map(t => t.tournamentId));
 
-                await localTournamentRepository.bulkPut(localTournaments);
+                // ローカルDBを更新
+                // 未同期の項目は上書きしないようにフィルタリング
+                const localTournaments = tournaments
+                    .filter((t: Tournament) => !unsyncedIds.has(t.tournamentId!))
+                    .map((t: Tournament) => ({
+                        ...t,
+                        organizationId: orgId,
+                        tournamentDate: t.tournamentDate ? new Date(t.tournamentDate) : null,
+                        createdAt: t.createdAt ? new Date(t.createdAt) : undefined,
+                        updatedAt: t.updatedAt ? new Date(t.updatedAt) : undefined,
+                    }));
+
+                if (localTournaments.length > 0) {
+                    await localTournamentRepository.bulkPut(localTournaments);
+                }
                 return tournaments;
             } catch {
                 // タイムアウトやネットワークエラーは無視
@@ -128,35 +136,19 @@ export function useCreateTournament() {
                 tournamentType: "individual" | "team";
             };
         }) => {
-            const response = await fetch(`/api/tournaments/${orgId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...tournamentData,
-                    tournamentId, // クライアント生成IDを含める
-                }),
-            });
+            const now = new Date();
+            const newTournament = {
+                ...tournamentData,
+                tournamentId,
+                createdAt: now,
+                updatedAt: now,
+                // LocalTournamentに必要なプロパティを追加
+                organizationId: orgId,
+                isSynced: false,
+            };
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "大会の作成に失敗しました");
-            }
-
-            const result = await response.json();
-
-            // APIから返ってくるISO文字列をDateに変換
-            if (result.data) {
-                result.data = {
-                    ...result.data,
-                    tournamentDate: result.data.tournamentDate ? new Date(result.data.tournamentDate) : null,
-                    createdAt: result.data.createdAt ? new Date(result.data.createdAt) : undefined,
-                    updatedAt: result.data.updatedAt ? new Date(result.data.updatedAt) : undefined,
-                };
-            }
-
-            return result;
+            await localTournamentRepository.create(orgId, newTournament);
+            return newTournament;
         },
         onSuccess: (_, { orgId }) => {
             // 大会一覧キャッシュを無効化してリフレッシュ
@@ -164,6 +156,7 @@ export function useCreateTournament() {
                 queryKey: [...tournamentKeys.lists(), "organization", orgId],
             });
         },
+        networkMode: "always",
     });
 }
 
@@ -183,23 +176,14 @@ export function useUpdateTournamentByOrganization() {
             tournamentId: string;
             patch: Partial<Tournament>;
         }) => {
-            const response = await fetch(
-                `/api/tournaments/${orgId}/${tournamentId}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(patch),
-                }
-            );
+            // 既存のデータを取得してマージする必要があるかもしれないが、
+            // localTournamentRepository.update は Partial を受け取るのでそのまま渡す
+            await localTournamentRepository.update(orgId, tournamentId, patch);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "大会情報の更新に失敗しました");
-            }
-
-            return response.json();
+            // 更新後のデータを取得して返す
+            const updated = await localTournamentRepository.getById(orgId, tournamentId);
+            if (!updated) throw new Error("Updated tournament not found");
+            return updated;
         },
         onSuccess: (_, { orgId, tournamentId }) => {
             // 組織ベースの大会一覧キャッシュを無効化
@@ -211,6 +195,7 @@ export function useUpdateTournamentByOrganization() {
                 queryKey: tournamentKeys.detail(`${orgId}/${tournamentId}`),
             });
         },
+        networkMode: "always",
     });
 }
 
@@ -228,19 +213,7 @@ export function useDeleteTournament() {
             orgId: string;
             tournamentId: string;
         }) => {
-            const response = await fetch(
-                `/api/tournaments/${orgId}/${tournamentId}`,
-                {
-                    method: "DELETE",
-                }
-            );
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "大会の削除に失敗しました");
-            }
-
-            return response.json();
+            await localTournamentRepository.delete(orgId, tournamentId);
         },
         onSuccess: (_, { orgId, tournamentId }) => {
             // 一覧キャッシュを無効化
@@ -250,6 +223,7 @@ export function useDeleteTournament() {
                 queryKey: tournamentKeys.detail(`${orgId}/${tournamentId}`),
             });
         },
+        networkMode: "always",
     });
 }
 
