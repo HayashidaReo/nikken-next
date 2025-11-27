@@ -5,7 +5,8 @@ import { useToast } from "@/components/providers/notification-provider";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
 import type { TeamMatch } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
-import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
+import { createPlayerDirectory } from "@/lib/utils/player-directory";
+import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
 
 interface UseMatchActionProps {
     orgId: string | null;
@@ -103,40 +104,7 @@ export function useMatchAction({
 
             if (currentMatchGroupId) {
                 const playerDirectory = createPlayerDirectory(teams);
-
-                const groupMatches = teamMatches
-                    .filter((m) => m.matchGroupId === currentMatchGroupId)
-                    .sort((a, b) => a.sortOrder - b.sortOrder)
-                    .map((m) => {
-                        const pA = resolveMatchPlayer(m.players.playerA, playerDirectory);
-                        const pB = resolveMatchPlayer(m.players.playerB, playerDirectory);
-                        let matchWinner: "playerA" | "playerB" | "draw" | "none" = "none";
-                        if (m.isCompleted) {
-                            if (pA.score > pB.score) matchWinner = "playerA";
-                            else if (pB.score > pA.score) matchWinner = "playerB";
-                            else matchWinner = "draw";
-                        }
-                        return {
-                            matchId: m.matchId || "",
-                            sortOrder: m.sortOrder,
-                            roundId: m.roundId,
-                            playerA: {
-                                displayName: pA.displayName,
-                                teamName: pA.teamName,
-                                score: pA.score,
-                                hansoku: pA.hansoku,
-                            },
-                            playerB: {
-                                displayName: pB.displayName,
-                                teamName: pB.teamName,
-                                score: pB.score,
-                                hansoku: pB.hansoku,
-                            },
-                            isCompleted: m.isCompleted,
-                            winner: matchWinner,
-                        };
-                    });
-
+                const groupMatches = createMonitorGroupMatches(teamMatches, currentMatchGroupId, playerDirectory);
                 setGroupMatches(groupMatches);
             }
         }
