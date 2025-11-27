@@ -1,25 +1,74 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils/utils";
 
 interface VerticalTextProps {
     text: string;
     variant?: "player" | "team" | "round";
+    maxHeight?: number; // px単位
     className?: string;
 }
 
-export function VerticalText({ text, variant = "player", className }: VerticalTextProps) {
+export function VerticalText({
+    text,
+    variant = "player",
+    maxHeight,
+    className
+}: VerticalTextProps) {
     const variantStyles = {
-        player: "text-5xl font-bold text-white tracking-widest",
-        team: "text-6xl font-bold text-white tracking-widest",
-        round: "text-2xl font-medium text-gray-300 tracking-widest",
+        player: { base: "text-7xl font-bold text-white tracking-widest", baseFontSize: 4.5, minFontSize: 2.5 },
+        team: { base: "text-8xl font-bold text-white tracking-widest", baseFontSize: 6, minFontSize: 3 },
+        round: { base: "text-3xl font-medium text-gray-300 tracking-widest", baseFontSize: 1.875, minFontSize: 1 },
     };
+
+    const style = variantStyles[variant];
+    const elementRef = useRef<HTMLDivElement>(null);
+    const [fontSizeRem, setFontSizeRem] = useState(style.baseFontSize);
+    const currentFontRef = useRef(style.baseFontSize);
+
+    useEffect(() => {
+        if (!maxHeight) return;
+
+        const el = elementRef.current;
+        if (!el) return;
+
+        const calculateFontSize = () => {
+            const scrollHeight = el.scrollHeight;
+            let newFontSize = style.baseFontSize;
+
+            if (scrollHeight > maxHeight) {
+                // テキストがはみ出している場合、フォントサイズを縮小
+                const scaleFactor = maxHeight / scrollHeight;
+                newFontSize = Math.max(style.minFontSize, style.baseFontSize * scaleFactor);
+            }
+
+            // 状態を更新（差があれば setState）
+            if (Math.abs(newFontSize - currentFontRef.current) > 0.01) {
+                currentFontRef.current = newFontSize;
+                setFontSizeRem(newFontSize);
+            }
+        };
+
+        const timeoutId = setTimeout(calculateFontSize, 50);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, [maxHeight, style.baseFontSize, style.minFontSize, text]);
 
     return (
         <div
+            ref={elementRef}
             style={{
                 writingMode: "vertical-rl",
-                textOrientation: "upright"
+                textOrientation: "upright",
+                ...(maxHeight && {
+                    fontSize: `${fontSizeRem}rem`,
+                    maxHeight: `${maxHeight}px`,
+                }),
             }}
-            className={cn(variantStyles[variant], className)}
+            className={cn(style.base, className)}
         >
             {text}
         </div>

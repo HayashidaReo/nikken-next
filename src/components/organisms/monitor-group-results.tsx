@@ -39,7 +39,8 @@ export function MonitorGroupResults({
     const reversedMatches = [...groupMatches].reverse();
 
     // チーム名を取得（全試合で同じはずなので最初の試合から）
-    const teamName = groupMatches[0]?.playerA.teamName || "";
+    const teamAName = groupMatches[0]?.playerA.teamName || "";
+    const teamBName = groupMatches[0]?.playerB.teamName || "";
 
     return (
         <div
@@ -70,10 +71,10 @@ export function MonitorGroupResults({
                     <div
                         key={match.matchId}
                         data-match-id={match.matchId}
-                        className="flex-shrink-0 flex flex-col h-[700px] w-[140px] items-center justify-between py-8"
+                        className="flex-shrink-0 flex flex-col h-[700px] w-[200px] items-center justify-between py-8"
                     >
                         {/* 選手A (上) */}
-                        <div className={cn("flex flex-col items-center flex-1 justify-end relative", opacityA)}>
+                        <div className={cn("flex items-center gap-4 flex-1 justify-end relative", opacityA)}>
                             {/* 勝者マーク (赤丸) */}
                             {isWinnerA && (
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
@@ -85,20 +86,27 @@ export function MonitorGroupResults({
 
                             {/* 選手名 (縦書き) */}
                             <VerticalText text={match.playerA.displayName} variant="player" />
-                        </div>
 
-                        {/* ラウンドラベル */}
-                        <div className="h-16 flex items-center justify-center">
+                            {/* ラウンドラベル */}
                             <VerticalText
                                 text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
                                 variant="round"
                             />
                         </div>
 
+                        {/* 区切り */}
+                        <div className="h-16 w-[1px] bg-gray-700 my-4" />
+
                         {/* 選手B (下) */}
-                        <div className={cn("flex flex-col items-center flex-1 justify-start relative", opacityB)}>
+                        <div className={cn("flex items-center gap-4 flex-1 justify-start relative", opacityB)}>
                             {/* 選手名 (縦書き) */}
                             <VerticalText text={match.playerB.displayName} variant="player" />
+
+                            {/* ラウンドラベル */}
+                            <VerticalText
+                                text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
+                                variant="round"
+                            />
 
                             {/* 勝者マーク (赤丸) */}
                             {isWinnerB && (
@@ -113,9 +121,14 @@ export function MonitorGroupResults({
                 );
             })}
 
-            {/* チーム名を一番右に表示 */}
-            <div className="flex-shrink-0 flex items-center justify-center h-[700px] w-[200px]">
-                <VerticalText text={teamName} variant="team" />
+            {/* チーム名を一番右に縦に表示 */}
+            <div className="flex-shrink-0 flex flex-col gap-8 items-center justify-center h-[700px]">
+                <div className="flex items-center justify-center">
+                    <VerticalText text={teamAName} variant="team" />
+                </div>
+                <div className="flex items-center justify-center">
+                    <VerticalText text={teamBName} variant="team" />
+                </div>
             </div>
         </div>
     );
