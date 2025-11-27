@@ -137,17 +137,24 @@ export function useDeleteTeam() {
 
 /**
  * チーム承認状態変更のMutation（よく使われる操作）
+ * 
+ * @example
+ * ```tsx
+ * const { mutate } = useApproveTeam();
+ * mutate({ teamId: 'team-123', isApproved: true });
+ * ```
  */
 export function useApproveTeam() {
   const { mutate: updateTeam, ...mutation } = useUpdateTeam();
 
   return {
     ...mutation,
-    mutate: (teamId: string, isApproved: boolean) => {
+    mutate: ({ teamId, isApproved }: { teamId: string; isApproved: boolean }) => {
       updateTeam({ teamId, patch: { isApproved } });
     },
   };
 }
+
 
 /**
  * チーム登録用のMutation（API Route経由）

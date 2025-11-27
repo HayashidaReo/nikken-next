@@ -27,7 +27,8 @@ export default function TeamsPage() {
 
     try {
       // 1. IndexedDBに保存
-      approveTeamMutation.mutate(teamId, isApproved);
+      approveTeamMutation.mutate({ teamId, isApproved });
+
 
       // 2. バックグラウンドでクラウド同期を試行
       // setTimeoutを使用してメインスレッドをブロックせずに実行
