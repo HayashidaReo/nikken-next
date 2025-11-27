@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { useMonitorController } from "@/hooks/useMonitorController";
@@ -9,13 +8,11 @@ import { ManualMonitorControlHeader } from "@/components/organisms/manual-monito
 import { FallbackMonitorDialog } from "@/components/molecules";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorPageUi } from "@/hooks/useMonitorPageUi";
+import { useManualMonitorPersistence } from "@/hooks/useManualMonitorPersistence";
 import { useMonitorSync } from "@/hooks/useMonitorSync";
 
 export default function ManualMonitorControlPage() {
     const router = useRouter();
-
-    // モニター同期フック（自動同期を有効化）
-    useMonitorSync();
 
     const {
         initializeMatch,
@@ -46,9 +43,8 @@ export default function ManualMonitorControlPage() {
         teams: [], // 手動モードでは不要
     });
 
-    // 初期化
-    useEffect(() => {
-        // 手動モード用の空データで初期化
+    // 初期化と永続化（保存されたデータがある場合は上書きする）
+    useManualMonitorPersistence(() => {
         initializeMatch(
             {
                 matchId: "manual-match",
@@ -97,7 +93,12 @@ export default function ManualMonitorControlPage() {
                 roundName: "",
             }
         );
-    }, [initializeMatch]);
+    });
+
+    // モニター同期フック（自動同期を有効化）
+    // 永続化キーを指定して、データ送信時（状態変更時）にLocalStorageにも保存する
+    // useManualMonitorPersistence の後に呼び出すことで、初期化・復元後のデータを保存対象とする
+    useMonitorSync({ persistKey: "nikken-manual-monitor-state" });
 
     const handleBackToDashboard = () => {
         router.push("/dashboard/matches");

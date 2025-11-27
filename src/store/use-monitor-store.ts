@@ -12,7 +12,7 @@ import { timerController } from "@/lib/timer-controller";
 
 export type ViewMode = "scoreboard" | "match_result" | "team_result";
 
-interface MonitorState {
+export interface MonitorState {
   // 試合の基本情報（初期データから設定）
   matchId: string | null;
   matchGroupId?: string;
