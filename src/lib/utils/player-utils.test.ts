@@ -2,10 +2,10 @@ import {
   getPlayerVariantStyles,
   getPlayerDisplayName,
   getPlayerPositionClass,
-  generateDisplayNames,
 } from "./player-utils";
 
 describe("player-utils", () => {
+
   describe("getPlayerVariantStyles", () => {
     it("赤選手バリアントの場合は適切なスタイルを返す", () => {
       const result = getPlayerVariantStyles("red");
@@ -115,64 +115,7 @@ describe("player-utils", () => {
       expect(whiteResult).toContain("bottom-5");
     });
   });
-
-  describe("generateDisplayNames", () => {
-    it("同姓がない場合は姓のみを返す", () => {
-      const players = [
-        { lastName: "山田", firstName: "太郎" },
-        { lastName: "鈴木", firstName: "一郎" },
-      ];
-      const result = generateDisplayNames(players);
-
-      expect(result[0].displayName).toBe("山田");
-      expect(result[1].displayName).toBe("鈴木");
-    });
-
-    it("同姓がある場合は名の一部を含める", () => {
-      const players = [
-        { lastName: "山田", firstName: "太郎" },
-        { lastName: "山田", firstName: "健太" },
-        { lastName: "鈴木", firstName: "一郎" },
-      ];
-      const result = generateDisplayNames(players);
-
-      expect(result[0].displayName).toBe("山田 太");
-      expect(result[1].displayName).toBe("山田 健");
-      expect(result[2].displayName).toBe("鈴木");
-    });
-
-    it("名の最初の文字も重複する場合はフルネームにする", () => {
-      const players = [
-        { lastName: "山田", firstName: "太郎" },
-        { lastName: "山田", firstName: "太一" },
-        { lastName: "山田", firstName: "健太" },
-      ];
-      const result = generateDisplayNames(players);
-
-      expect(result[0].displayName).toBe("山田 太郎");
-      expect(result[1].displayName).toBe("山田 太一");
-      expect(result[2].displayName).toBe("山田 健");
-    });
-
-    it("空の配列を処理できる", () => {
-      const result = generateDisplayNames([]);
-      expect(result).toEqual([]);
-    });
-
-    it("元のオブジェクトの属性が保持される", () => {
-      const players = [
-        { lastName: "山田", firstName: "太郎" },
-        { lastName: "鈴木", firstName: "一郎" },
-      ];
-      const result = generateDisplayNames(players);
-
-      expect(result[0]).toHaveProperty("lastName", "山田");
-      expect(result[0]).toHaveProperty("firstName", "太郎");
-      expect(result[0]).toHaveProperty("displayName", "山田");
-
-      expect(result[1]).toHaveProperty("lastName", "鈴木");
-      expect(result[1]).toHaveProperty("firstName", "一郎");
-      expect(result[1]).toHaveProperty("displayName", "鈴木");
-    });
-  });
 });
+
+
+

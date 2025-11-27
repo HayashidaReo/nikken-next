@@ -11,6 +11,7 @@ import { useToast } from "@/components/providers/notification-provider";
 import type { MatchGroupCreate, TeamMatchCreate } from "@/types/match.schema";
 import type { MatchGroupSetupData, TeamMatchSetupData } from "@/types/match-setup";
 import { useMasterData } from "@/components/providers/master-data-provider";
+import { useMatchGroupPersistence } from "@/hooks/useMatchGroupPersistence";
 
 export function MatchGroupSetupManager() {
     const router = useRouter();
@@ -31,6 +32,7 @@ export function MatchGroupSetupManager() {
     const createTeamMatch = useCreateTeamMatch();
     const updateTeamMatch = useUpdateTeamMatch();
     const deleteTeamMatch = useDeleteTeamMatch();
+    const { syncMatchGroupsToCloud, syncTeamMatchesToCloud } = useMatchGroupPersistence();
 
     const handleBack = () => {
         const params = new URLSearchParams(searchParams);
@@ -55,12 +57,15 @@ export function MatchGroupSetupManager() {
         try {
             // 削除
             const toDelete = matchGroups.filter(g => g.matchGroupId && !currentIds.has(g.matchGroupId));
-            for (const group of toDelete) {
-                if (group.matchGroupId) await deleteMatchGroup.mutateAsync(group.matchGroupId);
-            }
+            const deletePromises = toDelete.map(group => {
+                if (group.matchGroupId) return deleteMatchGroup.mutateAsync(group.matchGroupId);
+                return Promise.resolve();
+            });
+            await Promise.all(deletePromises);
 
             // 作成・更新
-            for (const item of data) {
+            const savedGroupIds: string[] = [];
+            const savePromises = data.map(async (item) => {
                 const roundId = resolveRoundId(item);
                 if (!roundId) {
                     throw new Error("ラウンドが選択されていません");
@@ -75,7 +80,9 @@ export function MatchGroupSetupManager() {
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
                     };
-                    await createMatchGroup.mutateAsync(newGroup);
+                    const created = await createMatchGroup.mutateAsync(newGroup);
+                    if (created.matchGroupId) savedGroupIds.push(created.matchGroupId);
+                    return created;
                 } else {
                     // 更新
                     const patch: Partial<MatchGroupCreate> = {
@@ -85,10 +92,25 @@ export function MatchGroupSetupManager() {
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
                     };
-                    await updateMatchGroup.mutateAsync({ matchGroupId: item.id, patch });
+                    const updated = await updateMatchGroup.mutateAsync({ matchGroupId: item.id, patch });
+                    if (updated > 0) savedGroupIds.push(item.id);
+                    return updated;
                 }
-            }
+            });
+            await Promise.all(savePromises);
+
             showSuccess("チーム対戦を保存しました");
+
+            // バックグラウンド同期
+            const deletedIds = toDelete.map(g => g.matchGroupId).filter((id): id is string => !!id);
+            const allAffectedIds = [...savedGroupIds, ...deletedIds];
+
+            setTimeout(() => {
+                syncMatchGroupsToCloud(allAffectedIds, { showSuccessToast: true }).catch(err => {
+                    console.error("Background sync failed:", err);
+                });
+            }, 0);
+
         } catch (error) {
             showError(error instanceof Error ? error.message : "チーム対戦の保存に失敗しました");
         }
@@ -111,16 +133,19 @@ export function MatchGroupSetupManager() {
 
             // 削除
             const toDelete = teamMatches.filter(m => m.matchId && !currentIds.has(m.matchId));
-            for (const match of toDelete) {
-                if (match.matchId) await deleteTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: match.matchId });
-            }
+            const deletePromises = toDelete.map(match => {
+                if (match.matchId) return deleteTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: match.matchId });
+                return Promise.resolve();
+            });
+            await Promise.all(deletePromises);
 
             // 作成・更新
-            for (const item of data) {
+            const savedMatchIds: string[] = [];
+            const savePromises = data.map(async (item) => {
                 const playerA = teamA.players.find(p => p.playerId === item.playerAId);
                 const playerB = teamB.players.find(p => p.playerId === item.playerBId);
 
-                if (!playerA || !playerB) continue; // 無効なデータはスキップ
+                if (!playerA || !playerB) return Promise.resolve(); // 無効なデータはスキップ
 
                 const roundId = resolveRoundId(item);
                 if (!roundId) {
@@ -139,7 +164,9 @@ export function MatchGroupSetupManager() {
                         },
                         isCompleted: false,
                     };
-                    await createTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, match: newMatch });
+                    const created = await createTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, match: newMatch });
+                    if (created.matchId) savedMatchIds.push(created.matchId);
+                    return created;
                 } else {
                     // 更新
                     // 更新時は既存の score / hansoku を保持する
@@ -152,10 +179,26 @@ export function MatchGroupSetupManager() {
                             playerB: { ...playerB, teamId: teamB.teamId, score: existingMatch?.players.playerB.score ?? 0, hansoku: existingMatch?.players.playerB.hansoku ?? 0 },
                         },
                     };
-                    await updateTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: item.id, patch });
+                    const updated = await updateTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: item.id, patch });
+                    if (updated > 0) savedMatchIds.push(item.id);
+                    return updated;
                 }
-            }
+
+            });
+            await Promise.all(savePromises);
+
             showSuccess("個人試合を保存しました");
+
+            // バックグラウンド同期
+            const deletedIds = toDelete.map(m => m.matchId).filter((id): id is string => !!id);
+            const allAffectedIds = [...savedMatchIds, ...deletedIds];
+
+            setTimeout(() => {
+                syncTeamMatchesToCloud(selectedMatchGroupId, allAffectedIds, { showSuccessToast: true }).catch(err => {
+                    console.error("Background sync failed:", err);
+                });
+            }, 0);
+
         } catch (error) {
             showError(error instanceof Error ? error.message : "個人試合の保存に失敗しました");
         }

@@ -3,89 +3,95 @@ import { useToast } from "@/components/providers/notification-provider";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { FirestoreTeamRepository } from "@/repositories/firestore/team-repository";
 import { localTeamRepository } from "@/repositories/local/team-repository";
-import type { LocalTeam } from "@/lib/db";
-import type { Team } from "@/types/team.schema";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { executeSyncWithTimeout } from "@/lib/utils/sync-utils";
 
-interface SaveResult {
-    success: boolean;
-    teamId: string;
-}
 
 export function useTeamPersistence() {
     const { showSuccess, showError } = useToast();
     const { orgId, activeTournamentId } = useAuthContext();
+    const isOnline = useOnlineStatus();
 
-    const teamRepository = useMemo(() => new FirestoreTeamRepository(), []);
+    const firestoreRepository = useMemo(() => new FirestoreTeamRepository(), []);
 
-    // ローカル保存処理
-    const saveToLocal = useCallback(async (
-        team: Team
-    ): Promise<SaveResult> => {
-        if (!orgId || !activeTournamentId) {
-            throw new Error("組織IDまたは大会IDが設定されていません");
-        }
+    // 単一チームの同期処理
+    const syncTeamToCloud = useCallback(async (teamId: string, options?: { showSuccessToast?: boolean }) => {
+        if (!orgId || !activeTournamentId) return;
 
-        try {
-            const localTeam: LocalTeam = {
-                ...team,
-                organizationId: orgId,
-                tournamentId: activeTournamentId,
-                isSynced: false,
-            };
-
-            await localTeamRepository.put(localTeam);
-            showSuccess("端末に保存しました");
-
-            return { success: true, teamId: team.teamId };
-        } catch (error) {
-            showError(error instanceof Error ? error.message : "保存に失敗しました");
-            throw error;
-        }
-    }, [orgId, activeTournamentId, showSuccess, showError]);
-
-    // クラウド同期処理
-    const syncToCloud = useCallback(async (
-        team: Team,
-        onSuccess?: () => void,
-        onError?: (error: unknown) => void
-    ) => {
-        if (!orgId || !activeTournamentId) {
-            showError("組織IDまたは大会IDが設定されていません");
+        // オフラインなら同期しない
+        if (!isOnline) {
+            showError("オフラインのためクラウド同期はされていません");
             return;
         }
 
-        try {
-            // Firestoreに送信
-            await teamRepository.update(orgId, activeTournamentId, team.teamId, {
-                teamName: team.teamName,
-                representativeName: team.representativeName,
-                representativePhone: team.representativePhone,
-                representativeEmail: team.representativeEmail,
-                players: team.players,
-                remarks: team.remarks,
-                isApproved: team.isApproved,
-            });
+        const syncTask = async () => {
+            const localTeam = await localTeamRepository.getById(teamId);
+            if (!localTeam) return;
 
-            // ローカルの同期フラグを更新
-            const localTeam = await localTeamRepository.getById(team.teamId);
-            if (localTeam) {
-                await localTeamRepository.update(team.teamId, { isSynced: true });
+            if (localTeam._deleted) {
+                // 論理削除されている場合はFirestoreから削除
+                await firestoreRepository.delete(orgId, activeTournamentId, teamId);
+                // 同期完了としてマーク
+                await localTeamRepository.markAsSynced(teamId);
+            } else {
+                // 作成または更新
+                await firestoreRepository.create(orgId, activeTournamentId, localTeam);
+                await localTeamRepository.markAsSynced(teamId);
             }
+        };
 
-            showSuccess("クラウドに同期しました");
-            if (onSuccess) onSuccess();
-        } catch (error) {
-            showError(
-                error instanceof Error
-                    ? error.message
-                    : "クラウド同期に失敗しました"
-            );
-            if (onError) onError(error);
+
+        try {
+            await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    if (options?.showSuccessToast) {
+                        showSuccess("クラウドに同期しました");
+                    }
+                },
+                onError: (error) => {
+                    console.error(`Failed to sync team ${teamId}:`, error);
+                    showError("クラウドに同期失敗しました。この端末でのみ変更が反映されています。");
+                },
+            });
+        } catch {
+            // エラーは onError で処理済み
         }
-    }, [orgId, activeTournamentId, teamRepository, showSuccess, showError]);
+
+    }, [orgId, activeTournamentId, firestoreRepository, showError, showSuccess, isOnline]);
+
+    // 全ての未同期チームの同期処理
+    const syncAllTeams = useCallback(async () => {
+        if (!orgId || !activeTournamentId) return;
+
+        try {
+            const unsyncedTeams = await localTeamRepository.getUnsynced(orgId, activeTournamentId);
+            if (unsyncedTeams.length === 0) return;
+
+            let successCount = 0;
+            let failCount = 0;
+
+            await Promise.all(unsyncedTeams.map(async (team) => {
+                try {
+                    await syncTeamToCloud(team.teamId);
+                    successCount++;
+                } catch {
+                    failCount++;
+                }
+            }));
+
+            if (successCount > 0) {
+                showSuccess(`${successCount}件のデータをクラウドと同期しました`);
+            }
+            if (failCount > 0) {
+                showError(`${failCount}件の同期に失敗しました`);
+            }
+        } catch (error) {
+            console.error("Sync all teams failed:", error);
+        }
+    }, [orgId, activeTournamentId, syncTeamToCloud, showSuccess, showError]);
 
     return {
-        saveToLocal,
-        syncToCloud,
+        syncTeamToCloud,
+        syncAllTeams,
     };
 }
