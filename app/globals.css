@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* 固定色設定 - ダークモード・ライトモードに依存しない */
 :root {
