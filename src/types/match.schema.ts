@@ -139,24 +139,6 @@ export const matchGroupSchema = z.object({
 });
 
 /**
- * 団体戦内の個人試合（TeamMatch）スキーマ
- * 基本的にMatchと同じだが、matchGroupIdを持つ
- */
-export const teamMatchSchema = z.object({
-  matchId: z.string().optional(),
-  matchGroupId: z.string().min(1, "チーム対戦IDは必須です"),
-  roundId: z.string().min(1, "ラウンドIDは必須です"),
-  players: z.object({
-    playerA: matchPlayerSchema,
-    playerB: matchPlayerSchema,
-  }),
-  sortOrder: z.number().int().min(0),
-  isCompleted: z.boolean(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-});
-
-/**
  * チーム対戦作成用のスキーマ
  */
 export const matchGroupCreateSchema = matchGroupSchema.omit({
@@ -165,16 +147,8 @@ export const matchGroupCreateSchema = matchGroupSchema.omit({
   updatedAt: true,
 });
 
-/**
- * 団体戦内の個人試合作成用のスキーマ
- */
-export const teamMatchCreateSchema = teamMatchSchema.omit({
-  matchId: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export type MatchGroup = z.infer<typeof matchGroupSchema>;
-export type TeamMatch = z.infer<typeof teamMatchSchema>;
 export type MatchGroupCreate = z.infer<typeof matchGroupCreateSchema>;
-export type TeamMatchCreate = z.infer<typeof teamMatchCreateSchema>;
+
+// TeamMatch関連は team-match.schema.ts に移動
+export type { TeamMatch, TeamMatchCreate } from "./team-match.schema";

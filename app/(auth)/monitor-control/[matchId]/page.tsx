@@ -1,49 +1,40 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ConnectionStatus } from "@/components/organisms/connection-status";
-import { useMonitorStore } from "@/store/use-monitor-store";
+import { useCallback } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
+import { ConnectionStatus } from "@/components/organisms/connection-status";
 import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { FallbackMonitorDialog } from "@/components/molecules";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
-import { useMatchDataWithPriority } from "@/hooks/useMatchDataWithPriority";
 import { useMonitorController } from "@/hooks/useMonitorController";
-import { useTeamMatches } from "@/queries/use-team-matches";
-import { useTeams } from "@/queries/use-teams";
-import { useTournament } from "@/queries/use-tournaments";
-import { useState, useCallback, useMemo } from "react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 import { MonitorControlHeader } from "@/components/organisms/monitor-control-header";
 import { RepMatchSetupDialog } from "@/components/molecules/rep-match-setup-dialog";
 import { useMatchAction } from "@/hooks/useMatchAction";
+import { useMonitorPageData } from "@/hooks/useMonitorPageData";
+import { useMonitorPageUI } from "@/hooks/useMonitorPageUi";
 
 export default function MonitorControlPage() {
   const params = useParams();
   const matchId = params.matchId as string;
 
-  const presentationConnected = useMonitorStore((s) => s.presentationConnected);
-  const fallbackOpen = useMonitorStore((s) => s.fallbackOpen);
-  const monitorStatusMode = presentationConnected ? "presentation" : fallbackOpen ? "fallback" : "disconnected";
-  const isPublic = useMonitorStore((s) => s.isPublic);
-  const togglePublic = useMonitorStore((s) => s.togglePublic);
-
   const { orgId, activeTournamentId, activeTournamentType } = useAuthContext();
 
-  // データ取得ロジック（ストア優先）
-  const { isLoading, hasError, matchFound } = useMatchDataWithPriority(matchId);
-
-  // 団体戦用のデータ取得
-  const matchGroupId = useMonitorStore((s) => s.matchGroupId);
-  const viewMode = useMonitorStore((s) => s.viewMode);
-  const { data: teamMatches } = useTeamMatches(matchGroupId || null);
-  const { data: teams } = useTeams();
-  const { data: tournament } = useTournament(orgId, activeTournamentId);
+  // データ取得ロジック（統合）
+  const {
+    isLoading,
+    hasError,
+    matchFound,
+    teamMatches,
+    teams,
+    tournament,
+  } = useMonitorPageData({ matchId, orgId, activeTournamentId });
 
   // モニター制御ロジック
   const {
@@ -54,20 +45,23 @@ export default function MonitorControlPage() {
     handleFallbackCancel,
   } = useMonitorController();
 
-  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
-
-  const handleMonitorClick = useCallback(() => {
-    if (isPresentationConnected) {
-      setShowDisconnectConfirm(true);
-    } else {
-      handleMonitorAction();
-    }
-  }, [isPresentationConnected, handleMonitorAction]);
-
-  const handleDisconnectConfirm = useCallback(() => {
-    setShowDisconnectConfirm(false);
-    handleMonitorAction();
-  }, [handleMonitorAction]);
+  // UI状態ロジック（統合）
+  const {
+    showDisconnectConfirm,
+    setShowDisconnectConfirm,
+    handleMonitorClick,
+    handleDisconnectConfirm,
+    orderedTeams,
+    monitorStatusMode,
+    isPublic,
+    togglePublic,
+    viewMode,
+  } = useMonitorPageUI({
+    handleMonitorAction,
+    isPresentationConnected,
+    teamMatches,
+    teams,
+  });
 
   // 団体戦コントローラー
   const {
@@ -108,23 +102,6 @@ export default function MonitorControlPage() {
     handleNextMatch,
     handleCreateRepMatch,
   });
-
-  // teamMatchesから正しいチーム順序を取得
-  const orderedTeams = useMemo(() => {
-    if (!teamMatches || teamMatches.length === 0 || !teams) return null;
-
-    // 表示用のチーム順序（teamA/teamB）を決定するために先頭要素を利用する。
-    const firstMatch = teamMatches[0];
-    const teamAId = firstMatch.players.playerA.teamId;
-    const teamBId = firstMatch.players.playerB.teamId;
-
-    const teamA = teams.find(t => t.teamId === teamAId);
-    const teamB = teams.find(t => t.teamId === teamBId);
-
-    if (!teamA || !teamB) return null;
-
-    return { teamA, teamB };
-  }, [teamMatches, teams]);
 
   // キーボードショートカット
   const handleEnterKey = useCallback(() => {
