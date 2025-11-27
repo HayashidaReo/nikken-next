@@ -62,15 +62,8 @@ export function MonitorDisplayContainer({
 
   // モードによる分岐
   if (data.viewMode === "match_result") {
-    // groupMatchesがない場合（個人戦など）はmatchResultから構築
-    const displayMatches = data.groupMatches || (data.matchResult ? [{
-      matchId: data.matchId,
-      sortOrder: 1,
-      playerA: data.matchResult.playerA,
-      playerB: data.matchResult.playerB,
-      isCompleted: true,
-      winner: data.matchResult.winner,
-    }] : []);
+    // groupMatchesがない場合は空配列（個人戦などはこのビューを使用しない前提）
+    const displayMatches = data.groupMatches || [];
 
     return (
       <div

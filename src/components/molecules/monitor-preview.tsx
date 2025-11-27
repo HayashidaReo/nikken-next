@@ -59,15 +59,8 @@ export function MonitorPreview({
         }
 
         if (data.viewMode === "match_result") {
-            // groupMatchesがない場合（個人戦など）はmatchResultから構築
-            const displayMatches = monitorData.groupMatches || (monitorData.matchResult ? [{
-                matchId: monitorData.matchId,
-                sortOrder: 1,
-                playerA: monitorData.matchResult.playerA,
-                playerB: monitorData.matchResult.playerB,
-                isCompleted: true,
-                winner: monitorData.matchResult.winner,
-            }] : []);
+            // groupMatchesがない場合は空配列（個人戦などはこのビューを使用しない前提）
+            const displayMatches = monitorData.groupMatches || [];
 
             return (
                 <div className="w-full h-full flex items-center justify-center">

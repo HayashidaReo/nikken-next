@@ -83,6 +83,7 @@ interface MonitorState {
   setViewMode: (mode: ViewMode) => void;
   setMatchResult: (result: MonitorState["matchResult"]) => void;
   setTeamMatchResults: (results: MonitorData["teamMatchResults"]) => void;
+  setGroupMatches: (groupMatches: MonitorData["groupMatches"]) => void;
   setPresentationConnected: (connected: boolean) => void;
   setPresentationConnection: (conn: PresentationConnection | null) => void;
   setFallbackOpen: (open: boolean) => void;
@@ -282,6 +283,10 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
 
   setTeamMatchResults: (results) => {
     set({ teamMatchResults: results });
+  },
+
+  setGroupMatches: (groupMatches) => {
+    set({ groupMatches });
   },
 
   setPresentationConnected: (connected: boolean) => {

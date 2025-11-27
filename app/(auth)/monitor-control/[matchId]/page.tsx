@@ -101,6 +101,8 @@ export default function MonitorControlPage() {
     needsRepMatch,
     handleNextMatch,
     handleCreateRepMatch,
+    teamMatches,
+    teams,
   });
 
   // キーボードショートカット
