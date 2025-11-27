@@ -9,30 +9,30 @@ export interface TournamentRepository {
   /**
    * 指定したIDの大会を取得する
    */
-  getById(tournamentId: string): Promise<Tournament | null>;
+  getById(orgId: string, tournamentId: string): Promise<Tournament | null>;
 
   /**
    * 全ての大会を一覧取得する（作成日の新しい順）
    */
-  listAll(): Promise<Tournament[]>;
+  listAll(orgId: string): Promise<Tournament[]>;
 
   /**
    * 新しい大会を作成する
    */
-  create(tournament: TournamentCreate): Promise<Tournament>;
+  create(orgId: string, tournament: TournamentCreate): Promise<Tournament>;
 
   /**
    * 大会を更新する
    */
-  update(tournamentId: string, patch: Partial<Tournament>): Promise<Tournament>;
+  update(orgId: string, tournamentId: string, patch: Partial<Tournament>): Promise<Tournament>;
 
   /**
    * 大会を削除する
    */
-  delete(tournamentId: string): Promise<void>;
+  delete(orgId: string, tournamentId: string): Promise<void>;
 
   /**
    * リアルタイムで全大会の変更を購読する
    */
-  listenAll(callback: (tournaments: Tournament[]) => void): () => void;
+  listenAll(orgId: string, callback: (tournaments: Tournament[]) => void): () => void;
 }

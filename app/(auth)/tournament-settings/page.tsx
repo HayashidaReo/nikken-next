@@ -12,7 +12,6 @@ import { TournamentSettingForm } from "@/components/organisms/tournament-form";
 import { TournamentFormPlaceholder } from "@/components/organisms/tournament-form-placeholder";
 import { TournamentSettingsLayout } from "@/components/templates/tournament-settings-layout";
 import { useTournamentSettings } from "@/hooks/useTournamentSettings";
-import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 
 export default function TournamentSettingsPage() {
   const {
@@ -24,15 +23,12 @@ export default function TournamentSettingsPage() {
     selectedTournamentId,
     isAddingNew,
     formData,
-    syncConfirm,
 
     // アクション
     handleSelectTournament,
     handleStartNew,
     handleFormChange,
     handleSave,
-    handleSyncConfirm,
-    handleSyncCancel,
   } = useTournamentSettings();
 
   // 選択されている大会
@@ -131,16 +127,6 @@ export default function TournamentSettingsPage() {
               <TournamentFormPlaceholder />
             )
           }
-        />
-
-        <ConfirmDialog
-          isOpen={syncConfirm.isOpen}
-          onCancel={handleSyncCancel}
-          onConfirm={handleSyncConfirm}
-          title="クラウド同期"
-          message="今の変更をネットワークを経由して全ての端末にも反映させますか？"
-          confirmText="はい"
-          cancelText="いいえ"
         />
       </div>
     </div>

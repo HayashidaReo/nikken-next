@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TeamForm } from "@/components/organisms/team-form";
 import { useCreateTeam } from "@/queries/use-teams";
@@ -9,8 +8,6 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
 import { MainLayout } from "@/components/templates/main-layout";
 import { InfoDisplay } from "@/components/molecules/info-display";
-import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
-import type { Team } from "@/types/team.schema";
 
 export default function TeamCreatePage() {
     const router = useRouter();
@@ -18,10 +15,7 @@ export default function TeamCreatePage() {
     const { needsTournamentSelection } = useAuthContext();
 
     const createTeamMutation = useCreateTeam();
-    const { syncToCloud } = useTeamPersistence();
-
-    const [showSyncDialog, setShowSyncDialog] = useState(false);
-    const [savedTeam, setSavedTeam] = useState<Team | null>(null);
+    const { syncTeamToCloud } = useTeamPersistence();
 
     const handleSave = async (data: {
         teamName: string;
@@ -38,13 +32,22 @@ export default function TeamCreatePage() {
         }[];
     }) => {
         try {
+            // 1. IndexedDBに保存
             const newTeam = await createTeamMutation.mutateAsync(data);
 
             showSuccess(`「${data.teamName}」を登録しました`);
 
-            // 保存したチーム情報を保持してダイアログを表示
-            setSavedTeam(newTeam);
-            setShowSyncDialog(true);
+            // 2. バックグラウンドでクラウド同期を試行
+            // setTimeoutを使用してメインスレッドをブロックせずに実行
+            setTimeout(() => {
+                syncTeamToCloud(newTeam.teamId, { showSuccessToast: true }).catch((err) => {
+                    console.error("Background sync failed:", err);
+                });
+            }, 0);
+
+            // トースト表示のために少し待機してから遷移
+            await new Promise(resolve => setTimeout(resolve, 500));
+            router.push("/teams");
         } catch (error) {
             showError(
                 error instanceof Error
@@ -52,19 +55,6 @@ export default function TeamCreatePage() {
                     : "チームの登録に失敗しました"
             );
         }
-    };
-
-    const handleSyncConfirm = async () => {
-        if (savedTeam) {
-            await syncToCloud(savedTeam);
-        }
-        setShowSyncDialog(false);
-        router.push("/teams");
-    };
-
-    const handleSyncCancel = () => {
-        setShowSyncDialog(false);
-        router.push("/teams");
     };
 
     const handleCancel = () => {
@@ -88,16 +78,6 @@ export default function TeamCreatePage() {
         <MainLayout activeTab="teams">
             <div className="py-8 px-4">
                 <TeamForm onSave={handleSave} onCancel={handleCancel} />
-
-                <ConfirmDialog
-                    isOpen={showSyncDialog}
-                    onCancel={handleSyncCancel}
-                    onConfirm={handleSyncConfirm}
-                    title="クラウド同期"
-                    message="今の変更をネットワークを経由して全ての端末にも反映させますか？"
-                    confirmText="はい"
-                    cancelText="いいえ"
-                />
             </div>
         </MainLayout>
     );

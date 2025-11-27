@@ -34,6 +34,8 @@ export interface LocalTeamMatch extends TeamMatch {
 // ローカルDBに保存するTournament型
 export interface LocalTournament extends Tournament {
     organizationId: string; // クエリ用に追加
+    isSynced: boolean;      // 同期フラグ
+    _deleted?: boolean;     // 論理削除フラグ
 }
 
 // ローカルDBに保存するTeam型
@@ -42,6 +44,7 @@ export interface LocalTeam extends Team {
     isSynced: boolean;
     organizationId: string;
     tournamentId: string;
+    _deleted?: boolean;     // 論理削除フラグ
 }
 
 export class NikkenOfflineDB extends Dexie {

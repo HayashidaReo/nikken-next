@@ -14,9 +14,10 @@ export class LocalTournamentRepository {
      * 組織IDで大会一覧を取得
      */
     async listByOrganization(orgId: string): Promise<LocalTournament[]> {
-        return await db.tournaments
+        const tournaments = await db.tournaments
             .where({ organizationId: orgId })
             .toArray();
+        return tournaments.filter(t => !t._deleted);
     }
 
     /**
@@ -34,10 +35,59 @@ export class LocalTournamentRepository {
     }
 
     /**
-     * 大会を削除
+     * 大会を作成
+     */
+    async create(orgId: string, tournament: LocalTournament): Promise<LocalTournament> {
+        const newTournament: LocalTournament = {
+            ...tournament,
+            organizationId: orgId,
+            isSynced: false,
+            updatedAt: new Date(),
+        };
+        await db.tournaments.put(newTournament);
+        return newTournament;
+    }
+
+    /**
+     * 大会を更新
+     */
+    async update(orgId: string, tournamentId: string, changes: Partial<LocalTournament>): Promise<number> {
+        // プライマリキーが複合キーでない場合、updateにはキーを指定する
+        // db.tsの定義では tournaments: 'tournamentId, organizationId, [organizationId+tournamentId]'
+        // プライマリキーは tournamentId
+        return await db.tournaments.update(tournamentId, {
+            ...changes,
+            isSynced: false,
+            updatedAt: new Date(),
+        });
+    }
+
+    /**
+     * 大会を削除（論理削除）
      */
     async delete(orgId: string, tournamentId: string): Promise<void> {
-        await db.tournaments.where({ organizationId: orgId, tournamentId }).delete();
+        await db.tournaments.update(tournamentId, {
+            _deleted: true,
+            isSynced: false,
+            updatedAt: new Date(),
+        });
+    }
+
+    /**
+     * 未同期の大会を取得
+     */
+    async getUnsynced(orgId: string): Promise<LocalTournament[]> {
+        return await db.tournaments
+            .where({ organizationId: orgId })
+            .filter(t => t.isSynced === false)
+            .toArray();
+    }
+
+    /**
+     * 同期完了としてマーク
+     */
+    async markAsSynced(tournamentId: string): Promise<void> {
+        await db.tournaments.update(tournamentId, { isSynced: true });
     }
 }
 

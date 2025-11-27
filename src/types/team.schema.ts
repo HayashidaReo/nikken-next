@@ -15,14 +15,12 @@ export const playerSchema = z.object({
  */
 const baseTeamSchema = z.object({
   teamName: z.string().min(1, "チーム名（所属名）は必須です"),
-  representativeName: z.string().min(1, "代表者名は必須です"),
-  representativePhone: z.string().min(1, "代表者電話番号は必須です"),
-  representativeEmail: z
-    .string()
-    .min(1, "代表者メールアドレスは必須です")
-    .refine((val) => z.email().safeParse(val).success, {
-      message: "正しいメールアドレスを入力してください",
-    }),
+  representativeName: z.string(),
+  representativePhone: z.string(),
+  representativeEmail: z.union([
+    z.literal(""),
+    z.string().email("正しいメールアドレスを入力してください"),
+  ]),
   players: z.array(playerSchema).min(1, "最低1人の選手を登録してください"),
   remarks: z.string().default(""),
   isApproved: z.boolean().default(false),
@@ -49,12 +47,6 @@ export const teamCreateSchema = baseTeamSchema;
  * 代表者情報は任意入力（入力された場合は形式チェックあり）
  */
 export const teamManagementSchema = baseTeamSchema.extend({
-  representativeName: z.string(),
-  representativePhone: z.string(),
-  representativeEmail: z.union([
-    z.literal(""),
-    z.string().email("正しいメールアドレスを入力してください"),
-  ]),
   players: z.array(
     playerSchema.extend({
       displayName: z.string(),

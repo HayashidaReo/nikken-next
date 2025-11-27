@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { MainLayout } from "@/components/templates/main-layout";
 import { TeamManagementCardList } from "@/components/organisms/team-management-card-list";
@@ -8,54 +7,39 @@ import { ShareMenu } from "@/components/molecules/share-menu";
 import { Button } from "@/components/atoms/button";
 import { Plus } from "lucide-react";
 import { TeamStatsSummary } from "@/components/molecules/team-stats-summary";
-import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
-import { useTeams } from "@/queries/use-teams";
+import { useTeams, useApproveTeam } from "@/queries/use-teams";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { useTeamPersistence } from "@/hooks/useTeamPersistence";
-import type { Team } from "@/types/team.schema";
+import { useToast } from "@/components/providers/notification-provider";
 
 export default function TeamsPage() {
   const { needsTournamentSelection, isLoading: authLoading, orgId, activeTournamentId } = useAuthContext();
   const { data: teams = [], isLoading: teamsLoading, error } = useTeams();
-  const { saveToLocal, syncToCloud } = useTeamPersistence();
-
-  const [syncConfirm, setSyncConfirm] = useState<{
-    isOpen: boolean;
-    team: Team | null;
-  }>({ isOpen: false, team: null });
+  const { syncTeamToCloud } = useTeamPersistence();
+  const approveTeamMutation = useApproveTeam();
+  const { showError } = useToast();
 
   const handleApprovalChange = async (teamId: string, isApproved: boolean) => {
     const team = teams.find(t => t.teamId === teamId);
     if (!team) return;
 
-    const updatedTeam = { ...team, isApproved };
-
     try {
-      await saveToLocal(updatedTeam);
-      setSyncConfirm({ isOpen: true, team: updatedTeam });
+      // 1. IndexedDBに保存
+      approveTeamMutation.mutate(teamId, isApproved);
+
+      // 2. バックグラウンドでクラウド同期を試行
+      // setTimeoutを使用してメインスレッドをブロックせずに実行
+      setTimeout(() => {
+        syncTeamToCloud(teamId, { showSuccessToast: true }).catch((err) => {
+          console.error("Background sync failed:", err);
+        });
+      }, 0);
     } catch (error) {
-      console.error("Failed to save team locally:", error);
+      console.error("Failed to update team approval:", error);
+      showError("チームの承認状態の更新に失敗しました");
     }
-  };
-
-  const handleSyncConfirm = () => {
-    if (!syncConfirm.team) return;
-
-    syncToCloud(
-      syncConfirm.team,
-      () => {
-        setSyncConfirm({ isOpen: false, team: null });
-      },
-      () => {
-        setSyncConfirm({ isOpen: false, team: null });
-      }
-    );
-  };
-
-  const handleSyncCancel = () => {
-    setSyncConfirm({ isOpen: false, team: null });
   };
 
   const isLoading = authLoading || teamsLoading;
@@ -123,15 +107,7 @@ export default function TeamsPage() {
         />
       </div>
 
-      <ConfirmDialog
-        isOpen={syncConfirm.isOpen}
-        onCancel={handleSyncCancel}
-        onConfirm={handleSyncConfirm}
-        title="クラウド同期"
-        message="今の変更をネットワークを経由して全ての端末にも反映させますか？"
-        confirmText="はい"
-        cancelText="いいえ"
-      />
+
     </MainLayout>
   );
 }
