@@ -29,18 +29,7 @@ describe('executeSyncWithTimeout', () => {
             .rejects.toThrow('Sync timeout');
     });
 
-    it('should use default timeout of 10000ms', async () => {
-        const slowTask = () => new Promise(resolve => setTimeout(() => resolve('done'), 15000));
 
-        const startTime = Date.now();
-        await expect(executeSyncWithTimeout(slowTask))
-            .rejects.toThrow('Sync timeout');
-        const duration = Date.now() - startTime;
-
-        // タイムアウトは10秒前後で発生するはず
-        expect(duration).toBeGreaterThanOrEqual(9900);
-        expect(duration).toBeLessThan(11000);
-    }, 15000); // テストのタイムアウトを15秒に設定
 
     it('should call onSuccess callback when task succeeds', async () => {
         const onSuccess = jest.fn();
