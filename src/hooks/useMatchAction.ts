@@ -3,6 +3,10 @@ import { useMonitorStore } from "@/store/use-monitor-store";
 import { useSaveIndividualMatchResult, useSaveTeamMatchResult } from "@/queries/use-match-result";
 import { useToast } from "@/components/providers/notification-provider";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
+import type { TeamMatch } from "@/types/match.schema";
+import type { Team } from "@/types/team.schema";
+import { createPlayerDirectory } from "@/lib/utils/player-directory";
+import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
 
 interface UseMatchActionProps {
     orgId: string | null;
@@ -11,6 +15,8 @@ interface UseMatchActionProps {
     needsRepMatch: boolean;
     handleNextMatch: () => void;
     handleCreateRepMatch: (playerAId: string, playerBId: string) => Promise<void>;
+    teamMatches?: TeamMatch[];
+    teams?: Team[];
 }
 
 export function useMatchAction({
@@ -20,6 +26,8 @@ export function useMatchAction({
     needsRepMatch,
     handleNextMatch,
     handleCreateRepMatch,
+    teamMatches,
+    teams,
 }: UseMatchActionProps) {
     const { showError } = useToast();
     const saveIndividualMatchResultMutation = useSaveIndividualMatchResult();
@@ -30,6 +38,7 @@ export function useMatchAction({
 
     const setMatchResult = useMonitorStore((s) => s.setMatchResult);
     const setViewMode = useMonitorStore((s) => s.setViewMode);
+    const setGroupMatches = useMonitorStore((s) => s.setGroupMatches);
 
     const handleSave = useCallback(async () => {
         try {
@@ -87,8 +96,21 @@ export function useMatchAction({
             playerB: snapshot.playerB,
             winner,
         });
+
+        // 団体戦の場合、グループ内の全試合を取得
+        if (activeTournamentType === "team" && teamMatches && teams) {
+            const store = useMonitorStore.getState();
+            const currentMatchGroupId = store.matchGroupId;
+
+            if (currentMatchGroupId) {
+                const playerDirectory = createPlayerDirectory(teams);
+                const groupMatches = createMonitorGroupMatches(teamMatches, currentMatchGroupId, playerDirectory);
+                setGroupMatches(groupMatches);
+            }
+        }
+
         setViewMode("match_result");
-    }, [handleSave, setMatchResult, setViewMode]);
+    }, [handleSave, setMatchResult, setViewMode, setGroupMatches, activeTournamentType, teamMatches, teams]);
 
     const isSaving = saveIndividualMatchResultMutation.isPending || saveTeamMatchResultMutation.isPending;
 

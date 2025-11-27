@@ -134,6 +134,36 @@ describe("useMonitorStore", () => {
         hansoku: 1,
       });
     });
+
+    it("グループ試合データで正しく初期化される", () => {
+      const { result } = renderHook(() => useMonitorStore());
+      const groupMatches = [
+        {
+          matchId: "m1",
+          sortOrder: 1,
+          playerA: { displayName: "A1", teamName: "T1", score: 0, hansoku: 0 },
+          playerB: { displayName: "B1", teamName: "T2", score: 0, hansoku: 0 },
+          isCompleted: true,
+          winner: "playerA" as const,
+        },
+        {
+          matchId: "m2",
+          sortOrder: 2,
+          playerA: { displayName: "A2", teamName: "T1", score: 0, hansoku: 0 },
+          playerB: { displayName: "B2", teamName: "T2", score: 0, hansoku: 0 },
+          isCompleted: false,
+        },
+      ];
+
+      act(() => {
+        result.current.initializeMatch(mockMatch, "テスト大会", "Aコート", {
+          ...initializeOptions,
+          groupMatches,
+        });
+      });
+
+      expect(result.current.groupMatches).toEqual(groupMatches);
+    });
   });
 
   describe("setPlayerScore", () => {
@@ -391,6 +421,7 @@ describe("useMonitorStore", () => {
         isPublic: true,
         matchResult: undefined,
         teamMatchResults: undefined,
+        groupMatches: undefined,
         timerMode: "countdown",
         viewMode: "scoreboard",
       });

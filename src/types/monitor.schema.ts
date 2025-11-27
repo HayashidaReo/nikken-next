@@ -40,6 +40,15 @@ export const monitorDataSchema = z.object({
         playerB: monitorPlayerSchema,
         winner: z.enum(["playerA", "playerB", "draw", "none"]),
     })).optional(),
+    groupMatches: z.array(z.object({
+        matchId: z.string(),
+        sortOrder: z.number(),
+        roundId: z.string().optional(),
+        playerA: monitorPlayerSchema,
+        playerB: monitorPlayerSchema,
+        isCompleted: z.boolean(),
+        winner: z.enum(["playerA", "playerB", "draw", "none"]).optional(),
+    })).optional(),
 });
 
 /**

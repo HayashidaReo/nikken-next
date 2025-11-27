@@ -60,6 +60,8 @@ export function DashboardContent({
                 const colorA = getTeamColor(winsA, winsB);
                 const colorB = getTeamColor(winsB, winsA);
 
+                const courtName = courts.find(c => c.courtId === group?.courtId)?.courtName || "";
+
                 const titleContent = (
                     <div className="flex flex-col gap-2 w-full">
                         <div className="flex items-center justify-center gap-4 text-2xl font-bold mt-2">
@@ -99,6 +101,8 @@ export function DashboardContent({
                         <TeamMatchListTableMemo
                             matches={teamMatches}
                             tournamentName={titleContent}
+                            rawTournamentName={tournamentName}
+                            courtName={courtName}
                         />
                     </>
                 );
