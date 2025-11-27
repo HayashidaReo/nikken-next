@@ -30,14 +30,9 @@ import type { MonitorControlHeaderProps } from "@/types/monitor.schema";
  * - `PP`: 公開/非公開の切り替え
  * - `Enter`: 現在の状態に応じた主要アクション
  * 
- * @param props - コンポーネントのプロパティ
- * 
- * @see {@link ViewMode} - 表示モードの型定義
- * @see {@link MonitorControlHeaderProps} - プロパティの型定義
- * @see {@link MonitorStateProps} - モニター状態のプロパティ型
- * @see {@link MatchStateProps} - 試合状態のプロパティ型
- * @see {@link MonitorActions} - アクション関数の型定義
+ * @param props - コンポーネントのプロパティ（型定義は monitor.schema.ts を参照）
  */
+
 
 export function MonitorControlHeader({
 
