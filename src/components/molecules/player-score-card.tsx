@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/atoms/card";
+import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { PenaltyDisplay } from "@/components/molecules/penalty-display";
@@ -30,8 +31,12 @@ interface PlayerScoreCardProps {
   titleColor: string;
   onScoreChange: (playerKey: "A" | "B", score: number) => void;
   onHansokuChange: (playerKey: "A" | "B", hansoku: number) => void;
+
   isSelected: boolean;
   className?: string;
+  isManual?: boolean;
+  onNameChange?: (playerKey: "A" | "B", name: string) => void;
+  onTeamNameChange?: (playerKey: "A" | "B", name: string) => void;
 }
 
 const hansokuOptions = [
@@ -51,6 +56,9 @@ export function PlayerScoreCard({
   onHansokuChange,
   isSelected,
   className,
+  isManual = false,
+  onNameChange,
+  onTeamNameChange,
 }: PlayerScoreCardProps) {
   const { playerA: storePlayerA, playerB: storePlayerB } = useMonitorStore();
 
@@ -111,8 +119,27 @@ export function PlayerScoreCard({
           </div>
 
           <div className="col-span-8">
-            <div className="text-lg font-medium text-gray-500">{player.teamName}</div>
-            <div className="text-3xl font-bold">{player.displayName}</div>
+            {isManual ? (
+              <div className="space-y-2 px-4 mt-2">
+                <Input
+                  value={player.teamName}
+                  onChange={(e) => onTeamNameChange?.(playerKey, e.target.value)}
+                  placeholder="チーム名"
+                  className="text-center h-8 text-sm"
+                />
+                <Input
+                  value={player.displayName}
+                  onChange={(e) => onNameChange?.(playerKey, e.target.value)}
+                  placeholder="選手名"
+                  className="text-center font-bold text-lg"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="text-lg font-medium text-gray-500">{player.teamName}</div>
+                <div className="text-3xl font-bold">{player.displayName}</div>
+              </>
+            )}
           </div>
 
           <div className="col-span-1 flex items-center justify-end">

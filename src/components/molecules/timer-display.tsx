@@ -17,8 +17,18 @@ export function TimerDisplay({
     <div
       className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 ${className}`}
     >
-      <SkewedBackground className="pl-50 pr-8">
-        <div className="text-right">
+      {/* スタックレイアウト用のコンテナ: 固定サイズを指定して背景図形を安定させる */}
+      <div className="relative w-[1020px] h-[390px]">
+        {/* レイヤー1: 背景図形 */}
+        <div className="absolute inset-0 z-0">
+          <SkewedBackground className="w-full h-full">
+            {/* SkewedBackgroundはchildrenをラップするが、ここでは背景としてのみ使用するため空要素を渡す */}
+            <div />
+          </SkewedBackground>
+        </div>
+
+        {/* レイヤー2: タイマーテキスト */}
+        <div className="absolute inset-0 z-20 flex items-center justify-end pr-12">
           <div
             className={cn(
               "text-[26rem] leading-[0.9] font-black tracking-tight",
@@ -28,7 +38,7 @@ export function TimerDisplay({
             {formatTime(timeRemaining)}
           </div>
         </div>
-      </SkewedBackground>
+      </div>
     </div>
   );
 }

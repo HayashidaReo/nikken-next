@@ -14,11 +14,13 @@ interface ScoreboardOperatorProps {
   tournamentId: string;
   defaultMatchTime?: number;
   className?: string;
+  isManual?: boolean;
 }
 
 export function ScoreboardOperator({
   defaultMatchTime = 180,
-  className
+  className,
+  isManual = false,
 }: ScoreboardOperatorProps) {
   const {
     courtName,
@@ -35,7 +37,10 @@ export function ScoreboardOperator({
     startTimer,
     stopTimer,
     setTimerMode,
+
     selectedPlayer,
+    setPlayerName,
+    setTeamName,
   } = useMonitorStore();
 
   // キーボードショートカットの有効化
@@ -44,17 +49,19 @@ export function ScoreboardOperator({
   return (
     <div className={cn("w-full mx-auto space-y-4", className)}>
       {/* ヘッダー情報 */}
-      <div className="px-6 lg:px-12">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <MatchHeader
-              tournamentName={tournamentName}
-              courtName={courtName}
-              roundName={roundName}
-            />
+      {!isManual && (
+        <div className="px-6 lg:px-12">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <MatchHeader
+                tournamentName={tournamentName}
+                courtName={courtName}
+                roundName={roundName}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 選手カード領域（左右いっぱいに寄せる） */}
       <div>
@@ -69,7 +76,11 @@ export function ScoreboardOperator({
               onScoreChange={setPlayerScore}
               onHansokuChange={setPlayerHansoku}
               isSelected={selectedPlayer === "playerA"}
+
               className="w-full"
+              isManual={isManual}
+              onNameChange={setPlayerName}
+              onTeamNameChange={setTeamName}
             />
           </div>
 
@@ -90,7 +101,11 @@ export function ScoreboardOperator({
               onScoreChange={setPlayerScore}
               onHansokuChange={setPlayerHansoku}
               isSelected={selectedPlayer === "playerB"}
+
               className="w-full"
+              isManual={isManual}
+              onNameChange={setPlayerName}
+              onTeamNameChange={setTeamName}
             />
           </div>
         </div>

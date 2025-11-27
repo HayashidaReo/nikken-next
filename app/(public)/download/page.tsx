@@ -24,7 +24,7 @@ async function getLatestRelease(): Promise<GitHubRelease | null> {
             "https://api.github.com/repos/HayashidaReo/nikken-next/releases/latest",
             {
                 headers,
-                next: { revalidate: 1800 } // 30分ごとに再検証
+                next: { revalidate: 0 } // 常に最新を取得
             }
         );
 

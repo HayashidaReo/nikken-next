@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
@@ -20,13 +20,10 @@ export function MonitorPreview({
     monitorStatusMode,
 }: MonitorPreviewProps) {
     const data = useMonitorStore();
-    const [scale, setScale] = useState(1);
-    const height = width * (MONITOR_CONSTANTS.BASE_HEIGHT / MONITOR_CONSTANTS.BASE_WIDTH);
 
-    useEffect(() => {
-        // 基準幅に対するスケールを計算
-        setScale(width / MONITOR_CONSTANTS.BASE_WIDTH);
-    }, [width]);
+    // スケールを計算（レンダリング時に直接計算してちらつきを防ぐ）
+    const scale = width / MONITOR_CONSTANTS.BASE_WIDTH;
+    const height = width * (MONITOR_CONSTANTS.BASE_HEIGHT / MONITOR_CONSTANTS.BASE_WIDTH);
 
     // 未接続の場合
     if (monitorStatusMode === "disconnected") {
@@ -93,7 +90,7 @@ export function MonitorPreview({
                     transform: `scale(${scale})`,
                     transformOrigin: "top left",
                 }}
-                className="bg-black text-white"
+                className="bg-black text-white overflow-hidden" // overflow-hiddenを追加してはみ出し防止
             >
                 {renderContent()}
             </div>
