@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorPageUi } from "@/hooks/useMonitorPageUi";
 import { useManualMonitorPersistence } from "@/hooks/useManualMonitorPersistence";
 import { useMonitorSync } from "@/hooks/useMonitorSync";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 export default function ManualMonitorControlPage() {
     const router = useRouter();
@@ -98,7 +99,7 @@ export default function ManualMonitorControlPage() {
     // モニター同期フック（自動同期を有効化）
     // 永続化キーを指定して、データ送信時（状態変更時）にLocalStorageにも保存する
     // useManualMonitorPersistence の後に呼び出すことで、初期化・復元後のデータを保存対象とする
-    useMonitorSync({ persistKey: "nikken-manual-monitor-state" });
+    useMonitorSync({ persistKey: STORAGE_KEYS.MANUAL_MONITOR_STATE });
 
     const handleBackToDashboard = () => {
         router.push("/dashboard");

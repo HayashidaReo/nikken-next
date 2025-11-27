@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import type { MonitorState } from "@/store/use-monitor-store";
 
-const STORAGE_KEY = "nikken-manual-monitor-state";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 type PersistedState = Pick<
     MonitorState,
@@ -40,7 +40,7 @@ export function useManualMonitorPersistence(onInitialize: () => void) {
         onInitialize();
 
         try {
-            const savedData = localStorage.getItem(STORAGE_KEY);
+            const savedData = localStorage.getItem(STORAGE_KEYS.MANUAL_MONITOR_STATE);
             if (savedData) {
                 const parsed: PersistedState = JSON.parse(savedData);
 

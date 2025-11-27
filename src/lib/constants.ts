@@ -192,9 +192,11 @@ export const AUTH_CONSTANTS = {
 } as const;
 
 // 💾 ストレージ関連定数
-export const STORAGE_CONSTANTS = {
+export const STORAGE_KEYS = {
   /** Presentation Connection ID のストレージキー */
   PRESENTATION_CONNECTION_ID: "presentation_connection_id",
+  /** 手動モニター操作画面の状態保存キー */
+  MANUAL_MONITOR_STATE: "nikken-manual-monitor-state",
 } as const;
 
 // 🛣️ ルートパス定数
