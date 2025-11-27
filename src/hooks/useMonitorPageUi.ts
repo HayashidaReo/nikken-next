@@ -3,7 +3,7 @@ import { useMonitorStore } from "@/store/use-monitor-store";
 import type { Team } from "@/types/team.schema";
 import type { TeamMatch } from "@/types/team-match.schema";
 
-interface UseMonitorPageUIProps {
+interface UseMonitorPageUiProps {
     handleMonitorAction: () => void;
     isPresentationConnected: boolean;
     teamMatches: TeamMatch[] | undefined;
@@ -14,12 +14,12 @@ interface UseMonitorPageUIProps {
  * MonitorControlPage用のUI状態ロジックをまとめたフック
  * モニター接続ダイアログ、チーム順序計算などを管理
  */
-export function useMonitorPageUI({
+export function useMonitorPageUi({
     handleMonitorAction,
     isPresentationConnected,
     teamMatches,
     teams,
-}: UseMonitorPageUIProps) {
+}: UseMonitorPageUiProps) {
     // モニター切断確認ダイアログ
     const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
 

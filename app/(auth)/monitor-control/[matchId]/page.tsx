@@ -18,7 +18,7 @@ import { MonitorControlHeader } from "@/components/organisms/monitor-control-hea
 import { RepMatchSetupDialog } from "@/components/molecules/rep-match-setup-dialog";
 import { useMatchAction } from "@/hooks/useMatchAction";
 import { useMonitorPageData } from "@/hooks/useMonitorPageData";
-import { useMonitorPageUI } from "@/hooks/useMonitorPageUi";
+import { useMonitorPageUi } from "@/hooks/useMonitorPageUi";
 
 export default function MonitorControlPage() {
   const params = useParams();
@@ -56,7 +56,7 @@ export default function MonitorControlPage() {
     isPublic,
     togglePublic,
     viewMode,
-  } = useMonitorPageUI({
+  } = useMonitorPageUi({
     handleMonitorAction,
     isPresentationConnected,
     teamMatches,
