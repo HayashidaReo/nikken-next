@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/atoms/button";
 import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
 import {
@@ -11,7 +11,7 @@ import { Trash2, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import type { MatchSetupData } from "@/lib/utils/match-conflict-detection";
 import type { Player } from "@/types/team.schema";
-import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMasterData } from "@/components/providers/master-data-provider";
@@ -37,7 +37,7 @@ export function MatchRow({
     onUpdate,
     onRemove,
 }: MatchRowProps) {
-    const [showConfirm, setShowConfirm] = useState(false);
+
     const { teams, courts, rounds } = useMasterData();
 
     // ドラッグ＆ドロップ機能のセットアップ
@@ -195,28 +195,14 @@ export function MatchRow({
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setShowConfirm(true)}
+                        onClick={() => onRemove(index)}
                         className="text-red-500 hover:text-red-700 h-8"
                     >
                         <Trash2 className="h-5 w-5" aria-hidden />
                     </Button>
                 </TableCell>
             </AnimatedTableRow>
-            {showConfirm && (
-                <ConfirmDialog
-                    isOpen={showConfirm}
-                    title="試合を削除しますか？"
-                    message="この操作は取り消せません。本当にこの試合を削除してよいですか？"
-                    onConfirm={() => {
-                        onRemove(index);
-                        setShowConfirm(false);
-                    }}
-                    onCancel={() => setShowConfirm(false)}
-                    confirmText="削除"
-                    cancelText="キャンセル"
-                    variant="destructive"
-                />
-            )}
+
         </>
     );
 }

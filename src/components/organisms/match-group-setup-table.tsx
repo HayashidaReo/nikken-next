@@ -108,7 +108,11 @@ export function MatchGroupSetupTable({
         }
 
         // 既存の対戦が削除されている場合は確認ダイアログを表示
-        if (deletedGroupCount > 0) {
+        const currentIds = new Set(data.map(d => d.id));
+        const count = Array.from(initialGroupIds).filter((id: string) => !currentIds.has(id)).length;
+
+        if (count > 0) {
+            setDeletedGroupCount(count);
             setShowSaveConfirm(true);
             return;
         }
@@ -145,7 +149,7 @@ export function MatchGroupSetupTable({
     };
 
     // 初期データのIDセット（既存対戦の削除判定用）
-    const [initialGroupIds] = useState<Set<string>>(() => {
+    const [initialGroupIds] = useState(() => {
         return new Set(matchGroups.map(g => g.matchGroupId || ""));
     });
 
@@ -153,14 +157,7 @@ export function MatchGroupSetupTable({
     const [deletedGroupCount, setDeletedGroupCount] = useState(0);
 
     const removeRow = (index: number) => {
-        setData((prev) => {
-            const group = prev[index];
-            // 既存の対戦が削除された場合のみカウント
-            if (group && initialGroupIds.has(group.id)) {
-                setDeletedGroupCount(c => c + 1);
-            }
-            return prev.filter((_, i) => i !== index);
-        });
+        setData((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleDragStart = (event: DragStartEvent) => {

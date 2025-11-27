@@ -204,22 +204,15 @@ export function MatchSetupTable({
   };
 
   // 初期データのIDセット（既存試合の削除判定用）
-  const [initialMatchIds] = useState<Set<string>>(() => {
+  const initialMatchIds = useMemo(() => {
     return new Set(matches.map(m => m.matchId || ""));
-  });
+  }, [matches]);
 
   // 削除された既存試合の数
   const [deletedMatchCount, setDeletedMatchCount] = useState(0);
 
   const removeRow = (index: number) => {
-    setData(prev => {
-      const match = prev[index];
-      // 既存の試合が削除された場合のみカウント
-      if (match && initialMatchIds.has(match.id)) {
-        setDeletedMatchCount(c => c + 1);
-      }
-      return prev.filter((_, i) => i !== index);
-    });
+    setData(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -251,7 +244,11 @@ export function MatchSetupTable({
 
   const handleSave = () => {
     // 既存の試合が削除されている場合は確認ダイアログを表示
-    if (deletedMatchCount > 0) {
+    const currentIds = new Set(data.map(d => d.id));
+    const count = Array.from(initialMatchIds).filter(id => !currentIds.has(id)).length;
+
+    if (count > 0) {
+      setDeletedMatchCount(count);
       setShowSaveConfirm(true);
       return;
     }
