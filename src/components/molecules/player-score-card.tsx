@@ -34,7 +34,7 @@ interface PlayerScoreCardProps {
 
   isSelected: boolean;
   className?: string;
-  isEditable?: boolean;
+  isManual?: boolean;
   onNameChange?: (playerKey: "A" | "B", name: string) => void;
   onTeamNameChange?: (playerKey: "A" | "B", name: string) => void;
 }
@@ -56,7 +56,7 @@ export function PlayerScoreCard({
   onHansokuChange,
   isSelected,
   className,
-  isEditable = false,
+  isManual = false,
   onNameChange,
   onTeamNameChange,
 }: PlayerScoreCardProps) {
@@ -119,7 +119,7 @@ export function PlayerScoreCard({
           </div>
 
           <div className="col-span-8">
-            {isEditable ? (
+            {isManual ? (
               <div className="space-y-2 px-4">
                 <Input
                   value={player.teamName}

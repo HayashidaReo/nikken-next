@@ -14,13 +14,13 @@ interface ScoreboardOperatorProps {
   tournamentId: string;
   defaultMatchTime?: number;
   className?: string;
-  isEditable?: boolean;
+  isManual?: boolean;
 }
 
 export function ScoreboardOperator({
   defaultMatchTime = 180,
   className,
-  isEditable = false,
+  isManual = false,
 }: ScoreboardOperatorProps) {
   const {
     courtName,
@@ -49,17 +49,19 @@ export function ScoreboardOperator({
   return (
     <div className={cn("w-full mx-auto space-y-4", className)}>
       {/* ヘッダー情報 */}
-      <div className="px-6 lg:px-12">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <MatchHeader
-              tournamentName={tournamentName}
-              courtName={courtName}
-              roundName={roundName}
-            />
+      {!isManual && (
+        <div className="px-6 lg:px-12">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <MatchHeader
+                tournamentName={tournamentName}
+                courtName={courtName}
+                roundName={roundName}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 選手カード領域（左右いっぱいに寄せる） */}
       <div>
@@ -76,7 +78,7 @@ export function ScoreboardOperator({
               isSelected={selectedPlayer === "playerA"}
 
               className="w-full"
-              isEditable={isEditable}
+              isManual={isManual}
               onNameChange={setPlayerName}
               onTeamNameChange={setTeamName}
             />
@@ -101,7 +103,7 @@ export function ScoreboardOperator({
               isSelected={selectedPlayer === "playerB"}
 
               className="w-full"
-              isEditable={isEditable}
+              isManual={isManual}
               onNameChange={setPlayerName}
               onTeamNameChange={setTeamName}
             />

@@ -118,7 +118,7 @@ export default function ManualMonitorControlPage() {
                     organizationId=""
                     tournamentId=""
                     defaultMatchTime={180}
-                    isEditable={true}
+                    isManual={true}
                 />
 
                 <FallbackMonitorDialog
