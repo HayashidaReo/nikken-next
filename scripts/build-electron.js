@@ -31,4 +31,19 @@ console.log("Compiling Electron main process...");
 execSync("npx tsc electron/main.ts --outDir dist --esModuleInterop --skipLibCheck", { stdio: "inherit", cwd: rootDir });
 execSync("npx tsc electron/preload.ts --outDir dist --esModuleInterop --skipLibCheck", { stdio: "inherit", cwd: rootDir });
 
+// Workaround for electron-builder excluding node_modules in extraResources
+// We copy node_modules to a different name so electron-builder doesn't ignore it
+console.log("Preparing standalone node_modules for packaging...");
+const standaloneNodeModules = path.join(standaloneDir, "node_modules");
+const standaloneModules = path.join(standaloneDir, "standalone_modules");
+
+if (fs.existsSync(standaloneNodeModules)) {
+    if (fs.existsSync(standaloneModules)) {
+        fs.rmSync(standaloneModules, { recursive: true, force: true });
+    }
+    // Use cpSync for recursive copy (Node 16.7+)
+    fs.cpSync(standaloneNodeModules, standaloneModules, { recursive: true });
+    console.log("Copied .next/standalone/node_modules to standalone_modules");
+}
+
 console.log("Electron build preparation complete.");

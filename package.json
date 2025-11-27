@@ -27,8 +27,22 @@
     "appId": "com.nikken.next",
     "productName": "Nikken Next",
     "files": [
-      "dist/**/*",
-      ".next/standalone/**/*"
+      "dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": "app_standalone",
+        "filter": [
+          "**/*",
+          "!node_modules/**",
+          "!standalone_modules/**"
+        ]
+      },
+      {
+        "from": ".next/standalone/standalone_modules",
+        "to": "app_standalone/node_modules"
+      }
     ],
     "directories": {
       "output": "release"
@@ -42,7 +56,9 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["universal"]
+          "arch": [
+            "universal"
+          ]
         }
       ],
       "category": "public.app-category.sports",

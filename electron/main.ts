@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog } from "electron";
 import path from "path";
-import { spawn, ChildProcess } from "child_process";
+import { fork, ChildProcess } from "child_process";
 import fs from "fs";
 import { autoUpdater } from "electron-updater";
 
@@ -75,45 +75,95 @@ function createWindow() {
     });
 }
 
-async function startServer() {
-    if (isDev) return; // In dev, we assume the user runs `next dev` separately or via concurrently
-
-    const serverPath = path.join(process.resourcesPath, ".next/standalone/server.js");
-
-    // Check if server file exists (for debugging)
-    if (!fs.existsSync(serverPath)) {
-        console.error("Server file not found at:", serverPath);
-        // Fallback for development testing of the build
-        const localServerPath = path.join(__dirname, "../.next/standalone/server.js");
-        if (fs.existsSync(localServerPath)) {
-            console.log("Found server at local path:", localServerPath);
-            serverProcess = spawn("node", [localServerPath], {
-                env: { ...process.env, PORT: String(PORT), HOSTNAME: "localhost" },
-                cwd: path.dirname(localServerPath)
-            });
-            return;
+async function checkServerReady(url: string, timeout = 10000): Promise<boolean> {
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+        try {
+            const res = await fetch(url);
+            if (res.ok) return true;
+        } catch {
         }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    return false;
+}
+
+async function startServer() {
+    if (isDev) return;
+
+    // Use app_standalone directory in Resources
+    const serverPath = path.join(process.resourcesPath, "app_standalone", "server.js");
+    log.info("Starting server from:", serverPath);
+
+    if (!fs.existsSync(serverPath)) {
+        const msg = `Server file not found at: ${serverPath}`;
+        log.error(msg);
+        dialog.showErrorBox("Error", msg);
         return;
     }
 
-    serverProcess = spawn("node", [serverPath], {
+    // Debug: Check if node_modules exists
+    const standaloneDir = path.dirname(serverPath);
+    const nodeModulesPath = path.join(standaloneDir, "node_modules");
+    if (fs.existsSync(nodeModulesPath)) {
+        log.info("node_modules found in standalone directory");
+        // Optional: Log first few entries to verify
+        try {
+            const modules = fs.readdirSync(nodeModulesPath).slice(0, 5);
+            log.info("node_modules contents (first 5):", modules);
+        } catch (e) {
+            log.error("Failed to read node_modules:", e);
+        }
+    } else {
+        log.error("node_modules NOT found in standalone directory!");
+        // List contents of standalone dir
+        try {
+            const contents = fs.readdirSync(standaloneDir);
+            log.info("Standalone dir contents:", contents);
+        } catch (e) {
+            log.error("Failed to read standalone dir:", e);
+        }
+    }
+
+    serverProcess = fork(serverPath, [], {
         env: { ...process.env, PORT: String(PORT), HOSTNAME: "localhost" },
-        cwd: path.dirname(serverPath)
+        cwd: path.dirname(serverPath),
+        silent: true,
     });
 
     serverProcess.stdout?.on("data", (data: Buffer) => {
-        console.log(`Server: ${data}`);
+        log.info(`Server: ${data}`);
     });
 
     serverProcess.stderr?.on("data", (data: Buffer) => {
-        console.error(`Server Error: ${data}`);
+        log.error(`Server Error: ${data}`);
+    });
+
+    serverProcess.on("error", (err) => {
+        log.error("Failed to start server process:", err);
+        dialog.showErrorBox("Server Error", `Failed to start server: ${err.message}`);
+    });
+
+    serverProcess.on("exit", (code, signal) => {
+        if (code !== 0 && code !== null) {
+            log.error(`Server process exited with code ${code} and signal ${signal}`);
+        }
     });
 }
 
 app.whenReady().then(async () => {
     await startServer();
-    // Give the server a moment to start
-    setTimeout(createWindow, 1000);
+
+    const serverUrl = `http://localhost:${PORT}`;
+    const isReady = isDev ? true : await checkServerReady(serverUrl);
+
+    if (!isReady) {
+        log.error("Server failed to start within timeout");
+        dialog.showErrorBox("Error", "Failed to connect to the application server.");
+        return;
+    }
+
+    createWindow();
 
     // Setup Auto Updater
     setupAutoUpdater();
