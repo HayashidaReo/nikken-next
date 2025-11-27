@@ -43,6 +43,7 @@ export const monitorDataSchema = z.object({
     groupMatches: z.array(z.object({
         matchId: z.string(),
         sortOrder: z.number(),
+        roundId: z.string().optional(),
         playerA: monitorPlayerSchema,
         playerB: monitorPlayerSchema,
         isCompleted: z.boolean(),

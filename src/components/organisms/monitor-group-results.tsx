@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import type { MonitorData } from "@/types/monitor.schema";
+import { getTeamMatchRoundLabelById } from "@/lib/constants";
+import { VerticalText } from "@/components/atoms/vertical-text";
 
 interface MonitorGroupResultsProps {
     groupMatches: NonNullable<MonitorData["groupMatches"]>;
@@ -33,6 +35,12 @@ export function MonitorGroupResults({
         }
     }, [currentMatchId]);
 
+    // 順序を逆にする（右から左へ表示）
+    const reversedMatches = [...groupMatches].reverse();
+
+    // チーム名を取得（全試合で同じはずなので最初の試合から）
+    const teamName = groupMatches[0]?.playerA.teamName || "";
+
     return (
         <div
             ref={containerRef}
@@ -41,7 +49,7 @@ export function MonitorGroupResults({
                 className
             )}
         >
-            {groupMatches.map((match) => {
+            {reversedMatches.map((match) => {
                 const isCompleted = match.isCompleted;
                 const isWinnerA = match.winner === "playerA";
                 const isWinnerB = match.winner === "playerB";
@@ -76,30 +84,21 @@ export function MonitorGroupResults({
                             )}
 
                             {/* 選手名 (縦書き) */}
-                            <div className="writing-vertical-rl text-5xl font-bold text-white tracking-widest mb-6">
-                                {match.playerA.displayName}
-                            </div>
-
-                            {/* チーム名 (縦書き) */}
-                            <div className="writing-vertical-rl text-2xl font-medium text-gray-400 tracking-widest">
-                                {match.playerA.teamName}
-                            </div>
+                            <VerticalText text={match.playerA.displayName} variant="player" />
                         </div>
 
-                        {/* 区切り */}
-                        <div className="h-16 w-[1px] bg-gray-700 my-4" />
+                        {/* ラウンドラベル */}
+                        <div className="h-16 flex items-center justify-center">
+                            <VerticalText
+                                text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
+                                variant="round"
+                            />
+                        </div>
 
                         {/* 選手B (下) */}
                         <div className={cn("flex flex-col items-center flex-1 justify-start relative", opacityB)}>
-                            {/* チーム名 (縦書き) */}
-                            <div className="writing-vertical-rl text-2xl font-medium text-gray-400 tracking-widest mb-6">
-                                {match.playerB.teamName}
-                            </div>
-
                             {/* 選手名 (縦書き) */}
-                            <div className="writing-vertical-rl text-5xl font-bold text-white tracking-widest">
-                                {match.playerB.displayName}
-                            </div>
+                            <VerticalText text={match.playerB.displayName} variant="player" />
 
                             {/* 勝者マーク (赤丸) */}
                             {isWinnerB && (
@@ -113,6 +112,11 @@ export function MonitorGroupResults({
                     </div>
                 );
             })}
+
+            {/* チーム名を一番右に表示 */}
+            <div className="flex-shrink-0 flex items-center justify-center h-[700px] w-[200px]">
+                <VerticalText text={teamName} variant="team" />
+            </div>
         </div>
     );
 }
