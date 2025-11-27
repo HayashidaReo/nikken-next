@@ -14,11 +14,13 @@ interface ScoreboardOperatorProps {
   tournamentId: string;
   defaultMatchTime?: number;
   className?: string;
+  isEditable?: boolean;
 }
 
 export function ScoreboardOperator({
   defaultMatchTime = 180,
-  className
+  className,
+  isEditable = false,
 }: ScoreboardOperatorProps) {
   const {
     courtName,
@@ -35,7 +37,10 @@ export function ScoreboardOperator({
     startTimer,
     stopTimer,
     setTimerMode,
+
     selectedPlayer,
+    setPlayerName,
+    setTeamName,
   } = useMonitorStore();
 
   // キーボードショートカットの有効化
@@ -69,7 +74,11 @@ export function ScoreboardOperator({
               onScoreChange={setPlayerScore}
               onHansokuChange={setPlayerHansoku}
               isSelected={selectedPlayer === "playerA"}
+
               className="w-full"
+              isEditable={isEditable}
+              onNameChange={setPlayerName}
+              onTeamNameChange={setTeamName}
             />
           </div>
 
@@ -90,7 +99,11 @@ export function ScoreboardOperator({
               onScoreChange={setPlayerScore}
               onHansokuChange={setPlayerHansoku}
               isSelected={selectedPlayer === "playerB"}
+
               className="w-full"
+              isEditable={isEditable}
+              onNameChange={setPlayerName}
+              onTeamNameChange={setTeamName}
             />
           </div>
         </div>
