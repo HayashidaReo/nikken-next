@@ -101,7 +101,7 @@ export default function ManualMonitorControlPage() {
     useMonitorSync({ persistKey: "nikken-manual-monitor-state" });
 
     const handleBackToDashboard = () => {
-        router.push("/dashboard/matches");
+        router.push("/dashboard");
     };
 
     return (

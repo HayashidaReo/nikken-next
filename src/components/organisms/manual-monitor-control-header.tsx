@@ -42,7 +42,7 @@ export function ManualMonitorControlHeader({
             <div className="flex items-center justify-start gap-4">
                 <Button variant="outline" onClick={onBackToDashboard}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    戻る
+                    アプリへ
                 </Button>
                 <h1 className="text-xl font-bold text-gray-900">手動モニター操作</h1>
             </div>
