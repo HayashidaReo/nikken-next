@@ -100,7 +100,83 @@ macOSでアプリを配布し、自動アップデートを機能させるには
 - **公証**: `electron-builder` が `notarize` ブロックの設定と復元されたAPIキーを使用して、Appleの公証サーバーにアプリを送信します。
 - **Entitlements**: `entitlements.mac.plist` に定義された権限（カメラ、マイク、JITなど）がアプリに付与されます。
 
-## 5. 実装ステップ
+## 5. ローカルでのビルドと実行
+
+### ビルドコマンド
+
+#### 1. アプリケーションのビルド
+Next.jsアプリとElectronメインプロセスをビルドします。
+```bash
+npm run electron:build
+```
+
+このコマンドは以下を実行します：
+- Next.jsアプリを`standalone`モードでビルド
+- `public`と`.next/static`フォルダをコピー
+- Electronのメインプロセス（`electron/main.ts`）とプリロードスクリプトをコンパイル
+
+#### 2. インストーラーの作成
+
+**署名なし（テスト用）:**
+```bash
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run electron:pack
+```
+
+**署名あり（`.env`に証明書情報を設定済みの場合）:**
+```bash
+source .env.local && npm run electron:pack
+```
+
+**macOSとWindowsの両方をビルド:**
+```bash
+# 署名なし
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run electron:pack -- --mac --win
+
+# 署名あり
+source .env && npm run electron:pack -- --mac --win
+```
+
+**注意**: 
+- macOS上でWindowsインストーラーをビルドする場合、`wine`が必要になる場合があります。ただし、基本的なNSISインストーラーであれば`wine`なしでもビルド可能です。
+- 署名なしのビルドは開発・テスト用です。配布する場合は必ず署名してください。
+
+#### 3. 生成されるファイル
+
+ビルドが成功すると、`release`ディレクトリに以下のファイルが生成されます：
+
+- **macOS**: `Nikken Next-{version}-universal.dmg`
+- **Windows**: `Nikken Next Setup {version}.exe`
+
+### アプリの実行方法
+
+#### macOS
+1. `release`ディレクトリ内の`.dmg`ファイルをダブルクリック
+2. DMGウィンドウが開いたら、アプリアイコンを「Applications」フォルダにドラッグ＆ドロップ
+3. Finderで「アプリケーション」フォルダを開き、「Nikken Next」をダブルクリック
+
+**初回起動時の警告について:**
+- コード署名していない場合、「開発元が未確認」という警告が表示されます
+- 右クリック（またはControlキー+クリック）して「開く」を選択すると起動できます
+- または、システム設定 > プライバシーとセキュリティ から「このまま開く」を選択
+
+#### Windows
+1. `release`ディレクトリ内の`.exe`ファイルをダブルクリック
+2. インストーラーの指示に従ってインストール
+3. インストール完了後、スタートメニューまたはデスクトップから「Nikken Next」を起動
+
+### 開発モードでの実行
+
+インストーラーを作成せずに開発モードで実行する場合：
+```bash
+npm run electron:dev
+```
+
+このコマンドは以下を実行します：
+- Next.js開発サーバーを起動（`http://localhost:3000`）
+- Electronアプリを起動し、開発サーバーに接続
+- ホットリロードが有効
+
+## 6. 実装ステップ
 
 1.  **ワークフロー作成**: `.github/workflows/release.yml` を更新し、コミットメッセージによるバージョン制御と自動リリースを実装。
 2.  **Package.json更新**: `repository` フィールドが正しく設定されていることを確認。
