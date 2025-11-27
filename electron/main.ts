@@ -102,26 +102,14 @@ async function startServer() {
         return;
     }
 
-    // Debug: Check if node_modules exists
-    const standaloneDir = path.dirname(serverPath);
-    const nodeModulesPath = path.join(standaloneDir, "node_modules");
-    if (fs.existsSync(nodeModulesPath)) {
-        log.info("node_modules found in standalone directory");
-        // Optional: Log first few entries to verify
-        try {
-            const modules = fs.readdirSync(nodeModulesPath).slice(0, 5);
-            log.info("node_modules contents (first 5):", modules);
-        } catch (e) {
-            log.error("Failed to read node_modules:", e);
-        }
-    } else {
-        log.error("node_modules NOT found in standalone directory!");
-        // List contents of standalone dir
-        try {
-            const contents = fs.readdirSync(standaloneDir);
-            log.info("Standalone dir contents:", contents);
-        } catch (e) {
-            log.error("Failed to read standalone dir:", e);
+    // Debug: Check if node_modules exists (only in dev or if explicitly enabled)
+    if (isDev) {
+        const standaloneDir = path.dirname(serverPath);
+        const nodeModulesPath = path.join(standaloneDir, "node_modules");
+        if (fs.existsSync(nodeModulesPath)) {
+            log.info("node_modules found in standalone directory");
+        } else {
+            log.error("node_modules NOT found in standalone directory!");
         }
     }
 

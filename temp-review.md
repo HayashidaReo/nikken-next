@@ -1,62 +1,56 @@
-# コードレビュー報告書
+# コードレビュー結果
 
-**対象:** `develop` ブランチと `feature/next-monitor` ブランチの差分
-**レビュアー:** システムエンジニア（ベテラン）
+ベテランシステムエンジニアとして、現在の `feature/electron` ブランチと `develop` ブランチの差分を確認しました。
+全体的に、Electronの導入、自動リリースフローの構築、ダウンロードページの実装といった複雑な機能が、設計思想（Server Components First, Atomic Design）を守りつつ適切に実装されています。
 
-## 1. 全体総評
+特に、`electron-builder` の設定やGitHub Actionsのワークフロー構築は非常に手堅く行われており、macOSのコード署名対応も考慮されている点は高く評価できます。
 
-今回の変更は、モニター操作画面の堅牢性を高めるための重要なアーキテクチャ変更を含んでいます。特に、タイマー処理をメインスレッドから Web Worker に移行し、状態同期をグローバルな Provider に移動した判断は、ブラウザの制約（タブ非アクティブ時のスロットリングなど）や画面遷移時の状態保持という課題に対して、非常に適切かつモダンなアプローチです。
+さらなる品質向上のため、以下のリファクタリング項目を提案します。
 
-コード品質は全体的に高く、TypeScript の型安全性、コンポーネントの責務分離、定数の管理などが徹底されています。
+## リファクタリング項目
 
-## 2. アーキテクチャ・設計の評価
+### 1. 【重要度: 中】Electronメインプロセスのデバッグコード整理
+**対象ファイル**: `electron/main.ts`
 
-### 良い点
-*   **Web Worker の導入 (`public/timer-worker.js`, `src/lib/timer-controller.ts`)**:
-    *   `setInterval` をメインスレッドから分離したことで、UI の負荷やブラウザのバックグラウンド抑制の影響を受けずに正確な時間を刻めるようになりました。
-    *   `TimerController` をシングルトンとして実装し、Store と Worker のブリッジ役とした設計は、React コンポーネントの再レンダリングからタイマーロジックを保護する良いパターンです。
-*   **グローバル同期プロバイダー (`MonitorSyncProvider`)**:
-    *   `useMonitorSync` を個別の画面 (`ScoreboardOperator`) から `app/(auth)/layout.tsx` に移動したことで、「操作画面を離れても同期を継続したい」という要件を完璧に満たしています。
-*   **Zustand Store の改修**:
-    *   Store から `setInterval` のロジックを排除し、外部（Worker）からの `tick` イベントを受け取る受動的な設計に変更したことで、Store が純粋な状態保持に専念できています。
+`startServer` 関数内に、`node_modules` の存在確認やディレクトリ内容のログ出力など、デバッグ用のコードが残っています。これらは開発時には有用ですが、本番環境（ユーザーのPC）ではログを汚染する可能性があります。
 
-### 懸念点・改善の余地
-*   **Worker ファイルの配置**: `public/timer-worker.js` に配置されていますが、将来的にベースパス（`basePath`）が設定された環境にデプロイする場合、パス解決（`/timer-worker.js`）が失敗する可能性があります。
-*   **Store の肥大化**: `useMonitorStore` が、タイマー状態、試合情報、選手情報、UI状態（モーダルなど）をすべて抱え込んでいます。現時点では許容範囲ですが、これ以上機能が増える場合は Slice パターンによる分割を検討すべきです。
+**提案**:
+- デバッグログは `if (isDev)` ブロックで囲むか、削除してください。
+- エラー発生時のみ詳細な情報をログに出力するように変更してください。
 
-## 3. ファイル別詳細レビュー
+### 2. 【重要度: 中】未使用変数の適切な処理
+**対象ファイル**: `src/queries/use-team-matches.ts`
 
-### `src/store/use-monitor-store.ts`
-*   **評価**: 適切
-*   **コメント**: `handleTick` アクションの追加により、外部からの状態更新が明確になりました。`timerController` との連携もスムーズです。
+`useUpdateTeamMatch` と `useDeleteTeamMatch` フックにおいて、`matchGroupId` が未使用のため `eslint-disable` で警告を抑制しています。
 
-### `src/lib/timer-controller.ts`
-*   **評価**: 優秀
-*   **コメント**: Worker との通信をカプセル化し、型安全なインターフェースを提供しています。シングルトンパターンの適用も適切です。
+**提案**:
+- 可能であれば引数から `matchGroupId` を削除してください。
+- インターフェースの都合上削除できない場合は、変数名を `_matchGroupId` のようにアンダースコア始まりに変更し、`eslint-disable` を削除してください（TypeScriptの標準的な未使用変数の扱い方です）。
 
-### `app/(auth)/layout.tsx` & `src/components/providers/monitor-sync-provider.tsx`
-*   **評価**: 適切
-*   **コメント**: 認証済みルート全体で同期を保証する配置は正解です。これにより、ダッシュボードや設定画面に移動しても、裏でモニター同期が継続されます。
+### 3. 【重要度: 低】型定義のファイル分離
+**対象ファイル**: `app/(public)/download/page.tsx`
 
-### `src/hooks/useTeamMatchController.ts`
-*   **評価**: 良好だがリファクタリング余地あり
-*   **コメント**: `handleNextMatch` や `handleCreateRepMatch` がやや長大です。特に `resolvePlayer` のようなロジックは、他の箇所でも使われている可能性があるため、`src/lib/utils` やドメインヘルパーへの切り出しを推奨します。
+`GitHubRelease` 型がページコンポーネントファイル内に定義されています。現在は一箇所でのみ使用されていますが、将来的に他の場所（例: 更新履歴ページなど）で使用する可能性があります。
 
-### `src/components/molecules/timer-control.tsx`
-*   **評価**: 良好
-*   **コメント**: モード切替時のデフォルト時間設定ロジックが UI 側にありますが、UX の観点からは許容範囲です。
+**提案**:
+- `src/types/github.ts` などのファイルを作成し、型定義を移動してください。
+- これにより、`src/types/` ディレクトリに型を集約するというルール（Zod-Firstではない外部API型ですが）に準拠できます。
 
-## 4. リファクタリング提案（優先度順）
+### 4. 【重要度: 低】ビルドスクリプトの最適化検討
+**対象ファイル**: `scripts/build-electron.js`
 
-1.  **Worker パスの堅牢化 (低リスク・中効果)**
-    *   `new Worker("/timer-worker.js")` を、環境変数や設定ファイルからベースパスを参照できる形にするか、ユーティリティ関数を通すようにする。
-2.  **Store の Slice 分割 (中リスク・高効果)**
-    *   `useMonitorStore` を `createTimerSlice`, `createMatchSlice`, `createUISlice` のように分割し、メンテナンス性を向上させる。
-3.  **ドメインロジックの抽出 (低リスク・中効果)**
-    *   `useTeamMatchController.ts` 内の選手解決ロジックなどを純粋関数として切り出す。
+`node_modules` を `standalone_modules` にリネームしてコピーする処理 (`fs.cpSync`) は、`node_modules` のサイズによってはビルド時間を大きく増加させる要因になります。
 
-## 5. 結論
+**提案**:
+- 現時点ではASARの制限回避として機能していますが、将来的に `electron-builder` の `extraResources` 設定や `files` 設定を調整し、必要なファイルのみを効率的に配置する方法を再検討してください。
+- （今回は修正不要ですが、技術的負債として認識しておいてください）
 
-実装は要件を十分に満たしており、品質も高いレベルにあります。上記の「リファクタリング提案」は、将来の保守性を高めるためのプラスアルファの提案であり、現在のマージをブロックするものではありません。
+---
 
-**承認 (Approve)** とします。
+## 良い点（Good）
+
+- **UI実装**: ダウンロードページ (`app/(public)/download/content.tsx`) が `framer-motion` を活用してリッチに作られており、かつ `"use client"` の分離が適切です。
+- **設定の堅牢性**: `package.json` の `build` 設定が、macOS (x64/arm64) と Windows の両方に対応しており、コード署名や公証の設定も網羅されています。
+- **ドキュメント**: `docs/ELECTRON_RELEASE_WORKFLOW.md` が非常に詳細で、チームメンバーがリリース手順を理解しやすくなっています。
+
+以上の項目を確認し、対応をお願いします。
