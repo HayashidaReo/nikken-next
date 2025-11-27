@@ -70,7 +70,6 @@ export function MonitorGroupResults({
                                 gridLayoutClass,
                                 "relative z-10 w-full",
                                 isCurrentMatch && [
-                                    "border-4 border-white/60",
                                     "shadow-[0_0_40px_rgba(255,255,255,0.4)]",
                                     "bg-white/5",
                                     "rounded-lg",
