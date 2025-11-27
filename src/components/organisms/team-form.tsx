@@ -39,7 +39,8 @@ import { useConfirmSave } from "@/hooks/useConfirmSave";
 import { createDefaultTeamEditValues } from "@/lib/form-defaults";
 
 import { teamManagementSchema } from "@/types/team.schema";
-import { generateDisplayNames } from "@/domains/team/services/display-name-service";
+import { DisplayNameService } from "@/domains/team/services/display-name.service";
+
 
 // 編集用のスキーマ
 // 管理画面では代表者情報は任意（ただし入力時は形式チェックあり）
@@ -124,10 +125,17 @@ export function TeamForm({
     const currentValues = getValues();
     const players = currentValues.players || [];
 
-    const updates = generateDisplayNames(players);
+    // DisplayNameServiceを使用して表示名を生成
+    // フォームのplayersデータはPlayer型と互換性があるためキャストして使用
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatedPlayers = DisplayNameService.generateDisplayNames(players as any[]);
 
-    updates.forEach(({ index, displayName }) => {
-      setValue(`players.${index}.displayName`, displayName);
+    updatedPlayers.forEach((player, index) => {
+      // 現在の値と比較して変更があれば更新
+      // players[index]が存在することを確認
+      if (players[index] && players[index].displayName !== player.displayName) {
+        setValue(`players.${index}.displayName`, player.displayName);
+      }
     });
   }, [getValues, setValue]);
 
