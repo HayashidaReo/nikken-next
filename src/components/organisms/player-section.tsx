@@ -27,10 +27,17 @@ export function PlayerSection({
   const scorePositionClass = getPlayerPositionClass(variant);
 
   // 選手名のフォントサイズを自動調整
-  const { fontSizeRem, elementRef } = useResponsiveFont({
+  const { fontSizeRem: playerFontSize, elementRef: playerRef } = useResponsiveFont({
     baseFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE,
     minFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE,
     maxWidth: RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH,
+  });
+
+  // チーム名のフォントサイズを自動調整
+  const { fontSizeRem: teamFontSize, elementRef: teamRef } = useResponsiveFont({
+    baseFontSize: RESPONSIVE_FONT_CONSTANTS.TEAM.BASE_FONT_SIZE,
+    minFontSize: RESPONSIVE_FONT_CONSTANTS.TEAM.MIN_FONT_SIZE,
+    maxWidth: RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH,
   });
 
   return (
@@ -40,14 +47,23 @@ export function PlayerSection({
       {/* 左側：チーム名と選手名 */}
       <div className="flex items-center h-full">
         <div className="flex-1">
-          <div className="text-7xl font-bold mb-2 opacity-90 py-4">
+          {/* チーム名は最大横幅を超過するとフォント自動縮小 */}
+          <div
+            ref={teamRef}
+            style={{
+              fontSize: `${teamFontSize}rem`,
+              maxWidth: `${RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH}px`,
+              height: `${RESPONSIVE_FONT_CONSTANTS.TEAM.HEIGHT}px`,
+            }}
+            className="font-bold mb-2 opacity-90 py-4 whitespace-nowrap flex items-center"
+          >
             {player.teamName || "チーム名未設定"}
           </div>
           {/* 選手名は最大横幅を超過するとフォント自動縮小 */}
           <div
-            ref={elementRef}
+            ref={playerRef}
             style={{
-              fontSize: `${fontSizeRem}rem`,
+              fontSize: `${playerFontSize}rem`,
               maxWidth: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}px`,
               height: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.HEIGHT}px`,
             }}
