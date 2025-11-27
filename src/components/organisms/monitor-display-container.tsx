@@ -4,8 +4,7 @@ import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
 import { useBuzzer } from "@/hooks/useBuzzer";
-import { MatchResultView } from "./match-result-view";
-import { TeamResultView } from "./team-result-view";
+import { MonitorGroupResults } from "./monitor-group-results";
 
 interface MonitorDisplayContainerProps {
   className?: string;
@@ -62,26 +61,9 @@ export function MonitorDisplayContainer({
 
   // モードによる分岐
   if (data.viewMode === "match_result") {
-    return (
-      <div
-        className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
-      >
-        <div
-          style={{
-            width: MONITOR_CONSTANTS.BASE_WIDTH,
-            height: MONITOR_CONSTANTS.BASE_HEIGHT,
-            transform: `scale(${scale})`,
-            transformOrigin: "center",
-          }}
-          className="bg-black flex-shrink-0"
-        >
-          <MatchResultView data={data} />
-        </div>
-      </div>
-    );
-  }
+    // groupMatchesがない場合は空配列（個人戦などはこのビューを使用しない前提）
+    const displayMatches = data.groupMatches || [];
 
-  if (data.viewMode === "team_result") {
     return (
       <div
         className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
@@ -93,9 +75,13 @@ export function MonitorDisplayContainer({
             transform: `scale(${scale})`,
             transformOrigin: "center",
           }}
-          className="bg-black flex-shrink-0"
+          className="bg-black flex-shrink-0 flex items-center justify-center"
         >
-          <TeamResultView data={data} />
+          <MonitorGroupResults
+            groupMatches={displayMatches}
+            currentMatchId={data.matchId}
+            className="w-full h-full"
+          />
         </div>
       </div>
     );

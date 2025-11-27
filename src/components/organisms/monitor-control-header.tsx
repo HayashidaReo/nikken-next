@@ -49,7 +49,6 @@ export function MonitorControlHeader({
         onSave,
         onConfirmMatch,
         onNextMatch,
-        onShowTeamResult,
     } = actions;
     return (
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-4">
@@ -97,15 +96,10 @@ export function MonitorControlHeader({
                         </Button>
                     )}
                     {activeTournamentType === "team" && viewMode === "match_result" && isAllFinished && (
-                        <Button onClick={onShowTeamResult} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
-                            最終結果を表示
+                        <Button onClick={onBackToDashboard} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
+                            一覧へ戻る
                             <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
                             <ChevronRight className="w-4 h-4" />
-                        </Button>
-                    )}
-                    {activeTournamentType === "team" && viewMode === "team_result" && (
-                        <Button onClick={onBackToDashboard} variant="outline">
-                            一覧へ戻る
                         </Button>
                     )}
                     <Button onClick={onMonitorAction} variant={isPresentationConnected ? "destructive" : "outline"}>

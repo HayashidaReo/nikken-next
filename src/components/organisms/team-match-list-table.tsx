@@ -2,6 +2,7 @@
 
 import { memo, useMemo, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useMonitorStore } from "@/store/use-monitor-store";
 import { TableRow } from "@/components/atoms/table";
 import ScoreCell from "@/components/molecules/score-cell";
 import PlayerCell from "@/components/molecules/player-cell";
@@ -11,17 +12,21 @@ import MatchTable from "@/components/organisms/match-table";
 import type { TeamMatch } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
+import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
 import { getTeamMatchRoundLabelById } from "@/lib/constants";
 import { useMasterData } from "@/components/providers/master-data-provider";
 
 interface TeamMatchListTableProps {
     matches: TeamMatch[];
     tournamentName: ReactNode;
+    rawTournamentName: string;
+    courtName: string;
     className?: string;
 }
 
-export function TeamMatchListTable({ matches, tournamentName, className }: TeamMatchListTableProps) {
+export function TeamMatchListTable({ matches, tournamentName, rawTournamentName, courtName, className }: TeamMatchListTableProps) {
     const router = useRouter();
+    const initializeMatch = useMonitorStore((s) => s.initializeMatch);
     const { teams } = useMasterData();
 
     const teamsArray = useMemo(() => Array.from(teams.values()), [teams]);
@@ -78,6 +83,14 @@ export function TeamMatchListTable({ matches, tournamentName, className }: TeamM
                         <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} />
                         <ActionCell
                             onMonitor={() => {
+                                initializeMatch(match, rawTournamentName, courtName, {
+                                    resolvedPlayers: {
+                                        playerA,
+                                        playerB,
+                                    },
+                                    roundName,
+                                    groupMatches: createMonitorGroupMatches(matches, match.matchGroupId, playerDirectory),
+                                });
                                 router.push(`/monitor-control/${match.matchId}`);
                             }}
                         />

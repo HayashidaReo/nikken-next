@@ -17,7 +17,6 @@ export function MonitorDisplay({ className }: MonitorDisplayProps) {
     playerA,
     playerB,
     timeRemaining,
-    isPublic,
   } = useMonitorStore();
 
   // 反則状態を表示用に変換
@@ -37,22 +36,6 @@ export function MonitorDisplay({ className }: MonitorDisplayProps) {
         return "";
     }
   };
-
-  if (!isPublic) {
-    return (
-      <div
-        className={cn(
-          "min-h-screen bg-gradient-to-b from-blue-900 to-blue-800 flex items-center justify-center text-white",
-          className
-        )}
-      >
-        <div className="text-center">
-          <div className="text-6xl font-bold mb-8">準備中</div>
-          <div className="text-2xl opacity-80">しばらくお待ちください</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div

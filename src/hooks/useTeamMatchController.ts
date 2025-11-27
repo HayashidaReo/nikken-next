@@ -79,7 +79,6 @@ export function useTeamMatchController({
     const currentSortOrder = useMonitorStore((s) => s.sortOrder);
     const setViewMode = useMonitorStore((s) => s.setViewMode);
     const setTeamMatchResults = useMonitorStore((s) => s.setTeamMatchResults);
-    const setPublic = useMonitorStore((s) => s.setPublic);
     const initializeMatch = useMonitorStore((s) => s.initializeMatch);
     const roundName = useMonitorStore((s) => s.roundName);
     const tournamentName = useMonitorStore((s) => s.tournamentName);
@@ -209,14 +208,11 @@ export function useTeamMatchController({
                     defaultMatchTime: tournament?.defaultMatchTime,
                 });
 
-                // 非公開にする
-                setPublic(false);
-
                 // URLを更新して次の試合へ遷移（ルーター経由で遷移することでフックを再実行させる）
                 router.push(`/monitor-control/${nextMatch.matchId}`);
             }
         }
-    }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, setPublic, router, tournament, tournamentName, courtName, roundName, resolvePlayer]);
+    }, [activeTournamentType, teamMatches, teams, currentSortOrder, initializeMatch, router, tournament, tournamentName, courtName, roundName, resolvePlayer]);
 
     const handleBackToDashboard = useCallback(() => {
         if (activeTournamentType === "team" && matchGroupId) {
@@ -266,10 +262,10 @@ export function useTeamMatchController({
 
         // 最終結果を表示ボタンが表示されている場合 -> 最終結果を表示
         if (viewMode === "match_result" && isAllFinished) {
-            handleShowTeamResult();
+            handleBackToDashboard();
             return;
         }
-    }, [activeTournamentType, viewMode, isAllFinished, handleShowTeamResult]);
+    }, [activeTournamentType, viewMode, isAllFinished, handleBackToDashboard]);
 
     /**
      * 代表戦を作成して開始する
@@ -277,9 +273,10 @@ export function useTeamMatchController({
      * @param playerBId - チームBの代表選手ID
      */
     const handleCreateRepMatch = useCallback(async (playerAId: string, playerBId: string) => {
-        if (!matchGroupId || !teams) return;
+        if (!matchGroupId || !teams || !tournament) return;
 
         const { localTeamMatchRepository } = await import("@/repositories/local/team-match-repository");
+        const { localMatchGroupRepository } = await import("@/repositories/local/match-group-repository");
 
         // チーム情報を取得
         const teamA = teams.find(t => t.players.some(p => p.playerId === playerAId));
@@ -289,6 +286,13 @@ export function useTeamMatchController({
             console.error("Team not found");
             return;
         }
+
+        // matchGroupからcourtIdを取得
+        const matchGroup = await localMatchGroupRepository.getById(matchGroupId);
+
+        const court = matchGroup?.courtId
+            ? tournament.courts.find(c => c.courtId === matchGroup.courtId)
+            : undefined;
 
         try {
             // 代表戦のTeamMatchを作成
@@ -322,7 +326,7 @@ export function useTeamMatchController({
             const playerB = resolvePlayer(playerBId, teamB.teamId);
 
             // 代表戦を初期化して開始
-            initializeMatch(repMatch, tournamentName, courtName, {
+            initializeMatch(repMatch, tournament.tournamentName, court?.courtName || "", {
                 resolvedPlayers: {
                     playerA: {
                         ...repMatch.players.playerA,
@@ -339,15 +343,12 @@ export function useTeamMatchController({
                 defaultMatchTime: tournament?.defaultMatchTime,
             });
 
-            // 非公開にする
-            setPublic(false);
-
             // URLを更新
             router.push(`/monitor-control/${repMatch.matchId}`);
         } catch (error) {
             console.error("Failed to create representative match:", error);
         }
-    }, [matchGroupId, teams, resolvePlayer, initializeMatch, tournamentName, courtName, tournament, setPublic, router, orgId, tournamentId]);
+    }, [matchGroupId, teams, tournament, resolvePlayer, initializeMatch, router, orgId, tournamentId]);
 
     return {
         isAllFinished,
