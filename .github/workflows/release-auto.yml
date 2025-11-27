@@ -140,3 +140,11 @@ jobs:
           APPLE_API_KEY: ./AuthKey.p8
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      
+      - name: Publish and Mark as Latest
+        run: |
+          VERSION=${{ steps.calc_version.outputs.new_version }}
+          # --draft=false を追加して、下書き状態を解除（公開）します
+          gh release edit "v${VERSION}" --draft=false --latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
