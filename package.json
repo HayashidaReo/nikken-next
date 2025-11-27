@@ -149,5 +149,8 @@
   },
   "volta": {
     "node": "20.19.5"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.30.2"
   }
 }
