@@ -31,6 +31,7 @@ export function PlayerSection({
     baseFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE,
     minFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE,
     maxWidth: RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH,
+    textContent: playerName, // 変更検知用
   });
 
   // チーム名のフォントサイズを自動調整
@@ -38,6 +39,7 @@ export function PlayerSection({
     baseFontSize: RESPONSIVE_FONT_CONSTANTS.TEAM.BASE_FONT_SIZE,
     minFontSize: RESPONSIVE_FONT_CONSTANTS.TEAM.MIN_FONT_SIZE,
     maxWidth: RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH,
+    textContent: player.teamName, // 変更検知用
   });
 
   return (

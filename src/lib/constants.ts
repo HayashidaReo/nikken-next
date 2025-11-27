@@ -47,7 +47,7 @@ export const RESPONSIVE_FONT_CONSTANTS = {
     /** ベースフォントサイズ（rem） */
     BASE_FONT_SIZE: 16,
     /** 最小フォントサイズ（rem） */
-    MIN_FONT_SIZE: 8,
+    MIN_FONT_SIZE: 4,
     /** 自動調整の最大横幅（px） */
     MAX_WIDTH: 950,
     /** 選手名領域の高さ（px） */
@@ -58,7 +58,7 @@ export const RESPONSIVE_FONT_CONSTANTS = {
     /** ベースフォントサイズ（rem） - text-7xl相当 */
     BASE_FONT_SIZE: 4.5,
     /** 最小フォントサイズ（rem） */
-    MIN_FONT_SIZE: 2.5,
+    MIN_FONT_SIZE: 2,
     /** 自動調整の最大横幅（px） */
     MAX_WIDTH: 900,
     /** チーム名領域の高さ（px） */
