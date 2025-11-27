@@ -57,15 +57,19 @@ export class FirestoreTeamRepository implements TeamRepository {
   async create(orgId: string, tournamentId: string, team: TeamCreate): Promise<Team> {
     const collectionRef = this.getCollectionRef(orgId, tournamentId);
 
-    // ドキュメントIDを生成
-    const docRef = doc(collectionRef);
-    const teamId = docRef.id;
+    // teamId が指定されている場合はそれを使用、なければ生成
+    const teamWithId = team as TeamCreate & { teamId?: string };
+    const teamId = teamWithId.teamId || doc(collectionRef).id;
+    const docRef = doc(collectionRef, teamId);
 
     // ドキュメントIDをフィールドに含めて保存
     const firestoreDoc: FirestoreTeamCreateDoc =
       TeamMapper.toFirestoreForCreate({ ...team, id: teamId });
 
-    await setDoc(docRef, firestoreDoc);
+    // 既存のデータがあればマージ、なければ作成 (Upsert)
+    // 同期処理でクライアント生成IDを使用する場合に対応
+    await setDoc(docRef, firestoreDoc, { merge: true });
+
     const snap: DocumentSnapshot<DocumentData> = await getDoc(docRef);
     const data = snap.data() as FirestoreTeamDoc | undefined;
     if (!data) throw new Error("Created document has no data");

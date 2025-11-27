@@ -37,6 +37,7 @@ export function useCreateTeamMatch() {
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });
         },
+        networkMode: "always",
     });
 }
 
@@ -45,14 +46,14 @@ export function useUpdateTeamMatch() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        mutationFn: ({ matchGroupId, matchId, patch }: { matchGroupId: string; matchId: string; patch: Partial<TeamMatchCreate> }) => {
+        mutationFn: ({ matchId, patch }: { matchGroupId: string; matchId: string; patch: Partial<TeamMatchCreate> }) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
             return localTeamMatchRepository.updateByMatchId(matchId, patch);
         },
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });
         },
+        networkMode: "always",
     });
 }
 
@@ -61,14 +62,14 @@ export function useDeleteTeamMatch() {
     const { orgId, activeTournamentId } = useAuthContext();
 
     return useMutation({
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        mutationFn: ({ matchGroupId, matchId }: { matchGroupId: string; matchId: string }) => {
+        mutationFn: ({ matchId }: { matchGroupId: string; matchId: string }) => {
             if (!orgId || !activeTournamentId) throw new Error("Org/Tournament ID required");
             return localTeamMatchRepository.deleteByMatchId(matchId);
         },
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });
         },
+        networkMode: "always",
     });
 }
 

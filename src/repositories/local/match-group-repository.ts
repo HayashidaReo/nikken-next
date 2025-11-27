@@ -49,17 +49,24 @@ export class LocalMatchGroupRepository {
         return newGroup;
     }
 
-    async updateById(id: number, changes: Partial<LocalMatchGroup>): Promise<number> {
+    async updateByPk(id: number, changes: Partial<LocalMatchGroup>): Promise<number> {
         return await db.matchGroups.update(id, changes);
     }
 
-    async update(matchGroupId: string, changes: Partial<LocalMatchGroup>): Promise<void> {
-        await db.matchGroups.where({ matchGroupId }).modify({
+    async update(matchGroupId: string, changes: Partial<LocalMatchGroup>): Promise<number> {
+        return await db.matchGroups.where({ matchGroupId }).modify({
             ...changes,
             isSynced: false,
             updatedAt: new Date(),
         });
     }
+
+    async markAsSynced(matchGroupId: string): Promise<void> {
+        await db.matchGroups
+            .where({ matchGroupId })
+            .modify({ isSynced: true });
+    }
+
 
     async getUnsynced(orgId: string, tournamentId: string): Promise<LocalMatchGroup[]> {
         return await db.matchGroups
