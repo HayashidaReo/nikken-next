@@ -11,6 +11,7 @@ import {
   useUpdateMatch,
   useDeleteMatches
 } from "@/queries/use-matches";
+import { useMatchPersistence } from "@/hooks/useMatchPersistence";
 import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
@@ -43,6 +44,7 @@ export default function MatchSetupPage() {
   const createMatchesMutation = useCreateMatches();
   const updateMatchMutation = useUpdateMatch();
   const deleteMatchesMutation = useDeleteMatches();
+  const { syncMatchesToCloud } = useMatchPersistence();
 
   const handleSave = async (matchSetupData: MatchSetupData[]) => {
     try {
@@ -134,6 +136,7 @@ export default function MatchSetupPage() {
       }
 
       // 新規試合を作成
+      let createdMatchIds: string[] = [];
       if (matchesToCreate.length > 0) {
         const newMatches: MatchCreate[] = matchesToCreate.map(setupData => {
           const playerA = findPlayerInfo(setupData.playerATeamId, setupData.playerAId, teams);
@@ -174,12 +177,27 @@ export default function MatchSetupPage() {
           };
         });
 
-        await createMatchesMutation.mutateAsync(newMatches);
+        const createdMatches = await createMatchesMutation.mutateAsync(newMatches);
+        createdMatchIds = createdMatches.map(m => m.matchId).filter((id): id is string => !!id);
       }
 
       const totalCount = matchesToUpdate.length + matchesToCreate.length + matchesToDelete.length;
       if (totalCount > 0) {
         showSuccess(`${totalCount}件の変更を保存しました`);
+
+        // バックグラウンドでクラウド同期
+        const allAffectedMatchIds = [
+          ...matchesToUpdate.map(m => m.matchId),
+          ...createdMatchIds,
+          ...matchesToDelete
+        ];
+
+        setTimeout(() => {
+          syncMatchesToCloud(allAffectedMatchIds, { showSuccessToast: true }).catch(err => {
+            console.error("Background sync failed:", err);
+          });
+        }, 0);
+
       } else {
         showSuccess("変更はありませんでした");
       }

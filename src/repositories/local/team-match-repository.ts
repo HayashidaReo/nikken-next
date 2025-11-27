@@ -69,7 +69,7 @@ export class LocalTeamMatchRepository {
         return newMatch;
     }
 
-    async updateByMatchId(matchId: string, changes: Partial<LocalTeamMatch>): Promise<void> {
+    async updateByMatchId(matchId: string, changes: Partial<LocalTeamMatch>): Promise<LocalTeamMatch | undefined> {
         const match = await db.teamMatches.where({ matchId }).first();
         if (match && match.id) {
             await db.teamMatches.update(match.id, {
@@ -77,7 +77,9 @@ export class LocalTeamMatchRepository {
                 isSynced: false,
                 updatedAt: new Date(),
             });
+            return this.getById(matchId);
         }
+        return undefined;
     }
 
     async deleteByMatchId(matchId: string): Promise<void> {

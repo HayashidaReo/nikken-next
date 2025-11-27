@@ -37,6 +37,7 @@ export function useCreateTeamMatch() {
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });
         },
+        networkMode: "always",
     });
 }
 
@@ -52,6 +53,7 @@ export function useUpdateTeamMatch() {
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });
         },
+        networkMode: "always",
     });
 }
 
@@ -67,6 +69,7 @@ export function useDeleteTeamMatch() {
         onSuccess: (_, { matchGroupId }) => {
             queryClient.invalidateQueries({ queryKey: teamMatchKeys.lists(matchGroupId) });
         },
+        networkMode: "always",
     });
 }
 
