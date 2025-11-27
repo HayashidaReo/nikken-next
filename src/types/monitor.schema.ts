@@ -53,3 +53,83 @@ export type MonitorMessage =
 
 export type MonitorPlayer = z.infer<typeof monitorPlayerSchema>;
 export type MonitorData = z.infer<typeof monitorDataSchema>;
+
+// ========================================
+// MonitorControlHeader用の型定義
+// ========================================
+
+/**
+ * モニター接続状態の型
+ * - presentation: Presentation API経由で接続中
+ * - fallback: BroadcastChannel経由で接続中（フォールバック）
+ * - disconnected: 未接続
+ */
+export type MonitorStatusMode = "presentation" | "fallback" | "disconnected";
+
+/**
+ * モニターの状態に関するプロパティ
+ */
+export interface MonitorStateProps {
+    /** モニターが公開状態かどうか */
+    isPublic: boolean;
+    /** モニター接続状態 */
+    monitorStatusMode: MonitorStatusMode;
+    /** Presentation API経由で接続中かどうか */
+    isPresentationConnected: boolean;
+}
+
+/**
+ * 試合の状態に関するプロパティ
+ */
+export interface MatchStateProps {
+    /** 大会種別（individual または team） */
+    activeTournamentType: string | null | undefined;
+    /** 現在の表示モード */
+    viewMode: "scoreboard" | "match_result" | "team_result";
+    /** 全ての試合が完了したかどうか（団体戦用） */
+    isAllFinished: boolean;
+    /** 保存処理中かどうか */
+    isSaving: boolean;
+}
+
+/**
+ * MonitorControlHeaderで使用するアクション関数の型定義
+ */
+export interface MonitorActions {
+    /** 公開/非公開を切り替える */
+    onTogglePublic: () => void;
+    /** ダッシュボードに戻る */
+    onBackToDashboard: () => void;
+    /** モニター接続/切断アクション */
+    onMonitorAction: () => void;
+    /** 保存アクション（個人戦用） */
+    onSave: () => void;
+    /** 試合確定アクション（団体戦用） */
+    onConfirmMatch: () => void;
+    /** 次の試合へ進むアクション（団体戦用） */
+    onNextMatch: () => void;
+    /** 最終結果を表示するアクション（団体戦用） */
+    onShowTeamResult: () => void;
+}
+
+/**
+ * MonitorControlHeaderコンポーネントのプロパティ
+ * 
+ * @example
+ * ```tsx
+ * <MonitorControlHeader
+ *   monitorState={{ isPublic, monitorStatusMode, isPresentationConnected }}
+ *   matchState={{ activeTournamentType, viewMode, isAllFinished, isSaving }}
+ *   actions={{ onTogglePublic, onBackToDashboard, ... }}
+ * />
+ * ```
+ */
+export interface MonitorControlHeaderProps {
+    /** モニター状態関連のプロパティ */
+    monitorState: MonitorStateProps;
+    /** 試合状態関連のプロパティ */
+    matchState: MatchStateProps;
+    /** アクション関数群 */
+    actions: MonitorActions;
+}
+

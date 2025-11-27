@@ -2,8 +2,8 @@ import { ArrowLeft, Monitor, Unplug, Save, ChevronRight } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
-import { ViewMode } from "@/store/use-monitor-store";
 import { MonitorPreview } from "@/components/molecules/monitor-preview";
+import type { MonitorControlHeaderProps } from "@/types/monitor.schema";
 
 /**
  * モニター操作画面のヘッダーコンポーネント
@@ -33,38 +33,14 @@ import { MonitorPreview } from "@/components/molecules/monitor-preview";
  * @param props - コンポーネントのプロパティ
  * 
  * @see {@link ViewMode} - 表示モードの型定義
- * @see {@link ConnectionStatus} - モニター接続状態を表示するコンポーネント
+ * @see {@link MonitorControlHeaderProps} - プロパティの型定義
+ * @see {@link MonitorStateProps} - モニター状態のプロパティ型
+ * @see {@link MatchStateProps} - 試合状態のプロパティ型
+ * @see {@link MonitorActions} - アクション関数の型定義
  */
-interface MonitorStateProps {
-    isPublic: boolean;
-    monitorStatusMode: "presentation" | "fallback" | "disconnected";
-    isPresentationConnected: boolean;
-}
-
-interface MatchStateProps {
-    activeTournamentType: string | null | undefined;
-    viewMode: ViewMode;
-    isAllFinished: boolean;
-    isSaving: boolean;
-}
-
-interface MonitorActions {
-    onTogglePublic: () => void;
-    onBackToDashboard: () => void;
-    onMonitorAction: () => void;
-    onSave: () => void;
-    onConfirmMatch: () => void;
-    onNextMatch: () => void;
-    onShowTeamResult: () => void;
-}
-
-interface MonitorControlHeaderProps {
-    monitorState: MonitorStateProps;
-    matchState: MatchStateProps;
-    actions: MonitorActions;
-}
 
 export function MonitorControlHeader({
+
     monitorState,
     matchState,
     actions,
