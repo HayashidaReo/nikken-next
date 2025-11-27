@@ -3,8 +3,9 @@ import { useToast } from "@/components/providers/notification-provider";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { FirestoreTournamentRepository } from "@/repositories/firestore/tournament-repository";
 import { localTournamentRepository } from "@/repositories/local/tournament-repository";
-
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { executeSyncWithTimeout } from "@/lib/utils/sync-utils";
+
 
 export function useTournamentPersistence() {
     const { showSuccess, showError } = useToast();
@@ -39,20 +40,23 @@ export function useTournamentPersistence() {
             }
         };
 
-        try {
-            // 10秒のタイムアウト
-            await Promise.race([
-                syncTask(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-            ]);
 
-            if (options?.showSuccessToast) {
-                showSuccess("クラウドに同期しました");
-            }
-        } catch (error) {
-            console.error(`Failed to sync tournament ${tournamentId}:`, error);
-            showError("クラウドに同期失敗しました。この端末でのみ変更が反映されています。");
+        try {
+            await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    if (options?.showSuccessToast) {
+                        showSuccess("クラウドに同期しました");
+                    }
+                },
+                onError: (error) => {
+                    console.error(`Failed to sync tournament ${tournamentId}:`, error);
+                    showError("クラウドに同期失敗しました。この端末でのみ変更が反映されています。");
+                },
+            });
+        } catch {
+            // エラーは onError で処理済み
         }
+
     }, [orgId, firestoreRepository, showError, showSuccess, isOnline]);
 
     // 全ての未同期大会の同期処理

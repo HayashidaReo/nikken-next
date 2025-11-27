@@ -6,6 +6,7 @@ import { FirestoreTeamMatchRepository } from "@/repositories/firestore/team-matc
 import { localMatchGroupRepository } from "@/repositories/local/match-group-repository";
 import { localTeamMatchRepository } from "@/repositories/local/team-match-repository";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { executeSyncWithTimeout } from "@/lib/utils/sync-utils";
 
 export function useMatchGroupPersistence() {
     const { showSuccess, showError } = useToast();
@@ -38,17 +39,19 @@ export function useMatchGroupPersistence() {
         };
 
         try {
-            await Promise.race([
-                syncTask(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-            ]);
-
-            if (options?.showSuccessToast) {
-                showSuccess("クラウドに同期しました");
-            }
-        } catch (error) {
-            console.error(`Failed to sync match group ${matchGroupId}:`, error);
-            showError("クラウドに同期失敗しました");
+            await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    if (options?.showSuccessToast) {
+                        showSuccess("クラウドに同期しました");
+                    }
+                },
+                onError: (error) => {
+                    console.error(`Failed to sync match group ${matchGroupId}:`, error);
+                    showError("クラウドに同期失敗しました");
+                },
+            });
+        } catch {
+            // エラーは onError で処理済み
         }
     }, [orgId, activeTournamentId, firestoreGroupRepository, showError, showSuccess, isOnline]);
 
@@ -87,10 +90,15 @@ export function useMatchGroupPersistence() {
         };
 
         try {
-            const result = await Promise.race([
-                syncTask(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-            ]) as { successCount: number, failCount: number };
+            const result = await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    // 成功時の処理は下のresult判定で実施
+                },
+                onError: (error) => {
+                    console.error("Failed to sync match groups:", error);
+                    showError("クラウドへの同期に失敗しました");
+                },
+            }) as { successCount: number, failCount: number };
 
             if (options?.showSuccessToast && result.successCount > 0) {
                 showSuccess("クラウドに同期しました");
@@ -98,9 +106,8 @@ export function useMatchGroupPersistence() {
             if (result.failCount > 0) {
                 showError(`${result.failCount}件の同期に失敗しました`);
             }
-        } catch (error) {
-            console.error("Failed to sync match groups:", error);
-            showError("クラウドへの同期に失敗しました");
+        } catch {
+            // エラーは onError で処理済み
         }
     }, [orgId, activeTournamentId, firestoreGroupRepository, showError, showSuccess, isOnline]);
 
@@ -128,17 +135,19 @@ export function useMatchGroupPersistence() {
         };
 
         try {
-            await Promise.race([
-                syncTask(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-            ]);
-
-            if (options?.showSuccessToast) {
-                showSuccess("クラウドに同期しました");
-            }
-        } catch (error) {
-            console.error(`Failed to sync team match ${matchId}:`, error);
-            showError("クラウドに同期失敗しました");
+            await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    if (options?.showSuccessToast) {
+                        showSuccess("クラウドに同期しました");
+                    }
+                },
+                onError: (error) => {
+                    console.error(`Failed to sync team match ${matchId}:`, error);
+                    showError("クラウドに同期失敗しました");
+                },
+            });
+        } catch {
+            // エラーは onError で処理済み
         }
     }, [orgId, activeTournamentId, firestoreTeamMatchRepository, showError, showSuccess, isOnline]);
 
@@ -177,10 +186,15 @@ export function useMatchGroupPersistence() {
         };
 
         try {
-            const result = await Promise.race([
-                syncTask(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-            ]) as { successCount: number, failCount: number };
+            const result = await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    // 成功時の処理は下のresult判定で実施
+                },
+                onError: (error) => {
+                    console.error("Failed to sync team matches:", error);
+                    showError("クラウドへの同期に失敗しました");
+                },
+            }) as { successCount: number, failCount: number };
 
             if (options?.showSuccessToast && result.successCount > 0) {
                 showSuccess("クラウドに同期しました");
@@ -188,9 +202,8 @@ export function useMatchGroupPersistence() {
             if (result.failCount > 0) {
                 showError(`${result.failCount}件の同期に失敗しました`);
             }
-        } catch (error) {
-            console.error("Failed to sync team matches:", error);
-            showError("クラウドへの同期に失敗しました");
+        } catch {
+            // エラーは onError で処理済み
         }
     }, [orgId, activeTournamentId, firestoreTeamMatchRepository, showError, showSuccess, isOnline]);
 

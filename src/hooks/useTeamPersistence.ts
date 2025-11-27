@@ -3,8 +3,9 @@ import { useToast } from "@/components/providers/notification-provider";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { FirestoreTeamRepository } from "@/repositories/firestore/team-repository";
 import { localTeamRepository } from "@/repositories/local/team-repository";
-
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { executeSyncWithTimeout } from "@/lib/utils/sync-utils";
+
 
 export function useTeamPersistence() {
     const { showSuccess, showError } = useToast();
@@ -39,20 +40,23 @@ export function useTeamPersistence() {
             }
         };
 
-        try {
-            // 10秒のタイムアウト
-            await Promise.race([
-                syncTask(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-            ]);
 
-            if (options?.showSuccessToast) {
-                showSuccess("クラウドに同期しました");
-            }
-        } catch (error) {
-            console.error(`Failed to sync team ${teamId}:`, error);
-            showError("クラウドに同期失敗しました。この端末でのみ変更が反映されています。");
+        try {
+            await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    if (options?.showSuccessToast) {
+                        showSuccess("クラウドに同期しました");
+                    }
+                },
+                onError: (error) => {
+                    console.error(`Failed to sync team ${teamId}:`, error);
+                    showError("クラウドに同期失敗しました。この端末でのみ変更が反映されています。");
+                },
+            });
+        } catch {
+            // エラーは onError で処理済み
         }
+
     }, [orgId, activeTournamentId, firestoreRepository, showError, showSuccess, isOnline]);
 
     // 全ての未同期チームの同期処理

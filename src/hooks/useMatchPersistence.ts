@@ -4,6 +4,7 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 import { FirestoreMatchRepository } from "@/repositories/firestore/match-repository";
 import { localMatchRepository } from "@/repositories/local/match-repository";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { executeSyncWithTimeout } from "@/lib/utils/sync-utils";
 
 export function useMatchPersistence() {
     const { showSuccess, showError } = useToast();
@@ -40,18 +41,19 @@ export function useMatchPersistence() {
         };
 
         try {
-            // 10秒のタイムアウト
-            await Promise.race([
-                syncTask(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-            ]);
-
-            if (options?.showSuccessToast) {
-                showSuccess("クラウドに同期しました");
-            }
-        } catch (error) {
-            console.error(`Failed to sync match ${matchId}:`, error);
-            showError("クラウドに同期失敗しました。この端末でのみ変更が反映されています。");
+            await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    if (options?.showSuccessToast) {
+                        showSuccess("クラウドに同期しました");
+                    }
+                },
+                onError: (error) => {
+                    console.error(`Failed to sync match ${matchId}:`, error);
+                    showError("クラウドに同期失敗しました。この端末でのみ変更が反映されています。");
+                },
+            });
+        } catch {
+            // エラーは onError で処理済み
         }
     }, [orgId, activeTournamentId, firestoreRepository, showError, showSuccess, isOnline]);
 
@@ -92,11 +94,15 @@ export function useMatchPersistence() {
         };
 
         try {
-            // 10秒のタイムアウト
-            const result = await Promise.race([
-                syncTask(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-            ]) as { successCount: number, failCount: number };
+            const result = await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    // 成功時の処理は下のresult判定で実施
+                },
+                onError: (error) => {
+                    console.error("Failed to sync matches:", error);
+                    showError("クラウドへの同期に失敗しました");
+                },
+            }) as { successCount: number, failCount: number };
 
             if (options?.showSuccessToast && result.successCount > 0) {
                 showSuccess("クラウドに同期しました");
@@ -104,9 +110,8 @@ export function useMatchPersistence() {
             if (result.failCount > 0) {
                 showError(`${result.failCount}件の同期に失敗しました`);
             }
-        } catch (error) {
-            console.error("Failed to sync matches:", error);
-            showError("クラウドへの同期に失敗しました");
+        } catch {
+            // エラーは onError で処理済み
         }
     }, [orgId, activeTournamentId, firestoreRepository, showError, showSuccess, isOnline]);
 

@@ -81,7 +81,9 @@ async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedD
         const localTournament: LocalTournament = {
             ...tournament,
             organizationId: orgId,
+            isSynced: true, // ダウンロード直後は同期済み
         };
+
         // 試合データを保存 (個人戦)
         await localTournamentRepository.put(localTournament);
         if (matches.length > 0) {
