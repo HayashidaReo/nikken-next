@@ -93,7 +93,7 @@ export function MatchGroupSetupManager() {
                         sortOrder: item.sortOrder,
                     };
                     const updated = await updateMatchGroup.mutateAsync({ matchGroupId: item.id, patch });
-                    if (updated?.matchGroupId) savedGroupIds.push(updated.matchGroupId);
+                    if (updated > 0) savedGroupIds.push(item.id);
                     return updated;
                 }
             });
@@ -180,9 +180,10 @@ export function MatchGroupSetupManager() {
                         },
                     };
                     const updated = await updateTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, matchId: item.id, patch });
-                    if (updated?.matchId) savedMatchIds.push(updated.matchId);
+                    if (updated > 0) savedMatchIds.push(item.id);
                     return updated;
                 }
+
             });
             await Promise.all(savePromises);
 
