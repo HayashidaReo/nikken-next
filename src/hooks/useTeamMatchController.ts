@@ -262,10 +262,10 @@ export function useTeamMatchController({
 
         // 最終結果を表示ボタンが表示されている場合 -> 最終結果を表示
         if (viewMode === "match_result" && isAllFinished) {
-            handleShowTeamResult();
+            handleBackToDashboard();
             return;
         }
-    }, [activeTournamentType, viewMode, isAllFinished, handleShowTeamResult]);
+    }, [activeTournamentType, viewMode, isAllFinished, handleBackToDashboard]);
 
     /**
      * 代表戦を作成して開始する

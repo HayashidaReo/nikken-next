@@ -6,7 +6,6 @@ import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
 import { MonitorGroupResults } from "@/components/organisms/monitor-group-results";
-import { TeamResultView } from "@/components/organisms/team-result-view";
 import { cn } from "@/lib/utils/utils";
 
 interface MonitorPreviewProps {
@@ -71,10 +70,6 @@ export function MonitorPreview({
                     />
                 </div>
             );
-        }
-
-        if (data.viewMode === "team_result") {
-            return <TeamResultView data={monitorData} />;
         }
 
         return <MonitorLayout data={monitorData} />;
