@@ -57,7 +57,8 @@
         {
           "target": "dmg",
           "arch": [
-            "universal"
+            "x64",
+            "arm64"
           ]
         }
       ],
@@ -65,7 +66,8 @@
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist"
+      "entitlementsInherit": "entitlements.mac.plist",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "win": {
       "target": [

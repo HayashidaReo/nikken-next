@@ -144,7 +144,8 @@ source .env && npm run electron:pack -- --mac --win
 
 ビルドが成功すると、`release`ディレクトリに以下のファイルが生成されます：
 
-- **macOS**: `Nikken Next-{version}-universal.dmg`
+- **macOS (Apple Silicon)**: `Nikken Next-{version}-arm64.dmg`
+- **macOS (Intel)**: `Nikken Next-{version}-x64.dmg`
 - **Windows**: `Nikken Next Setup {version}.exe`
 
 ### アプリの実行方法

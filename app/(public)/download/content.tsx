@@ -1,18 +1,19 @@
 "use client";
 
 import { Button } from "@/components/atoms/button";
-import { Download, Monitor, Laptop, CheckCircle2 } from "lucide-react";
+import { Download, Monitor, Laptop, CheckCircle2, Command } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { GitHubRelease } from "./page";
 
 type DownloadContentProps = {
     release: GitHubRelease | null;
-    macUrl?: string;
+    macArmUrl?: string;
+    macIntelUrl?: string;
     winUrl?: string;
 };
 
-export function DownloadContent({ release, macUrl, winUrl }: DownloadContentProps) {
+export function DownloadContent({ release, macArmUrl, macIntelUrl, winUrl }: DownloadContentProps) {
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -77,15 +78,24 @@ export function DownloadContent({ release, macUrl, winUrl }: DownloadContentProp
                                         <h3 className="text-2xl font-bold mb-2">macOS</h3>
                                         <p className="text-white/50">MacBook Air, Pro, iMac 向け</p>
                                     </div>
-                                    <div className="mt-auto">
-                                        {macUrl ? (
+                                    <div className="mt-auto space-y-3">
+                                        {macArmUrl ? (
                                             <Button asChild className="w-full h-12 bg-white text-black hover:bg-white/90 transition-all font-medium text-base" size="lg">
-                                                <Link href={macUrl} className="flex items-center justify-center gap-2">
+                                                <Link href={macArmUrl} className="flex items-center justify-center gap-2">
                                                     <Download className="h-4 w-4" />
-                                                    macOS 版をダウンロード
+                                                    Apple Silicon (M1/M2/M3/M4/M5)
                                                 </Link>
                                             </Button>
-                                        ) : (
+                                        ) : null}
+                                        {macIntelUrl ? (
+                                            <Button asChild variant="outline" className="w-full h-12 border-white/10 bg-transparent !text-white hover:!bg-white/10 transition-colors" size="lg">
+                                                <Link href={macIntelUrl} className="flex items-center justify-center gap-2">
+                                                    <Command className="h-4 w-4" />
+                                                    Intel チップ
+                                                </Link>
+                                            </Button>
+                                        ) : null}
+                                        {!macArmUrl && !macIntelUrl && (
                                             <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
                                                 インストーラーが見つかりませんでした
                                             </div>
