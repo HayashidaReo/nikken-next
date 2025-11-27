@@ -44,7 +44,7 @@ export function ManualMonitorControlHeader({
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     アプリへ
                 </Button>
-                <h1 className="text-xl font-bold text-gray-900">手動モニター操作</h1>
+                <h1 className="text-xl font-bold text-gray-900">手動モニター操作画面</h1>
             </div>
 
             {/* モニタープレビュー */}

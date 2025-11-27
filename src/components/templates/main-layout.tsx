@@ -22,12 +22,12 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  activeTab?: "matches" | "match-setup" | "teams" | "download";
+  activeTab?: "matches" | "match-setup" | "teams" | "manual-monitor" | "download";
   className?: string;
 }
 
 interface HeaderProps {
-  activeTab?: "matches" | "match-setup" | "teams" | "download";
+  activeTab?: "matches" | "match-setup" | "teams" | "manual-monitor" | "download";
 }
 
 function Header({ activeTab }: HeaderProps) {
@@ -77,6 +77,7 @@ function Header({ activeTab }: HeaderProps) {
     { label: "試合一覧", href: "/dashboard", value: "matches" },
     { label: "試合の組み合わせ設定", href: "/match-setup", value: "match-setup" },
     { label: "チーム・選手管理", href: "/teams", value: "teams" },
+    { label: "手動モニター", href: "/manual-monitor-control", value: "manual-monitor" },
     { label: "ダウンロード", href: "/download", value: "download" },
   ];
 
