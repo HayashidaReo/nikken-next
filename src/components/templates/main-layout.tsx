@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X, WifiOff } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/atoms/button";
 import {
@@ -18,15 +18,16 @@ import { AUTH_CONSTANTS, ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useToast } from "@/components/providers/notification-provider";
 import { HeaderTournamentSelector } from "@/components/molecules/header-tournament-selector";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  activeTab?: "matches" | "match-setup" | "teams";
+  activeTab?: "matches" | "match-setup" | "teams" | "download";
   className?: string;
 }
 
 interface HeaderProps {
-  activeTab?: "matches" | "match-setup" | "teams";
+  activeTab?: "matches" | "match-setup" | "teams" | "download";
 }
 
 function Header({ activeTab }: HeaderProps) {
@@ -35,6 +36,7 @@ function Header({ activeTab }: HeaderProps) {
   const { showSuccess, showError } = useToast();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const isOnline = useOnlineStatus();
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
@@ -75,6 +77,7 @@ function Header({ activeTab }: HeaderProps) {
     { label: "試合一覧", href: "/dashboard", value: "matches" },
     { label: "試合の組み合わせ設定", href: "/match-setup", value: "match-setup" },
     { label: "チーム・選手管理", href: "/teams", value: "teams" },
+    { label: "ダウンロード", href: "/download", value: "download" },
   ];
 
   return (
@@ -90,6 +93,20 @@ function Header({ activeTab }: HeaderProps) {
               <span className="text-lg font-semibold text-gray-900 hidden md:block">
                 拳法大会管理
               </span>
+              {!isOnline && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center justify-center text-red-600 ml-2">
+                        <WifiOff className="w-5 h-5" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>オフラインモード</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </Link>
 
             {/* PC用ナビゲーション */}

@@ -81,7 +81,9 @@ async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedD
         const localTournament: LocalTournament = {
             ...tournament,
             organizationId: orgId,
+            isSynced: true, // ダウンロード直後は同期済み
         };
+
         // 試合データを保存 (個人戦)
         await localTournamentRepository.put(localTournament);
         if (matches.length > 0) {
@@ -225,7 +227,7 @@ export const syncService = {
                 await matchRepository.delete(orgId, tournamentId, id);
             },
             async (match) => {
-                if (match.id) await localMatchRepository.update(match.id, { isSynced: true });
+                if (match.matchId) await localMatchRepository.markAsSynced(match.matchId);
             },
             async (id) => {
                 await localMatchRepository.hardDelete(id);
@@ -251,7 +253,7 @@ export const syncService = {
                 await matchGroupRepository.delete(orgId, tournamentId, id);
             },
             async (group) => {
-                if (group.id) await localMatchGroupRepository.updateById(group.id, { isSynced: true });
+                if (group.matchGroupId) await localMatchGroupRepository.markAsSynced(group.matchGroupId);
             },
             async (id) => {
                 await localMatchGroupRepository.hardDelete(id);
@@ -279,8 +281,9 @@ export const syncService = {
                 await teamMatchRepository.delete(orgId, tournamentId, teamMatch.matchGroupId, id);
             },
             async (teamMatch) => {
-                if (teamMatch.id) await localTeamMatchRepository.update(teamMatch.id, { isSynced: true });
+                if (teamMatch.matchId) await localTeamMatchRepository.markAsSynced(teamMatch.matchId);
             },
+
             async (id) => {
                 await localTeamMatchRepository.hardDelete(id);
             }

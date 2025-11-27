@@ -15,6 +15,7 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
     // Turbopack の設定
     turbopack: {},
+    output: "standalone",
 };
 
 // 3. PWAモードの時だけ withSerwist でラップし、それ以外は素の config を返す

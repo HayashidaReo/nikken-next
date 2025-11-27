@@ -28,16 +28,19 @@ import type { TournamentRepository } from "@/repositories/tournament-repository"
 
 /**
  * Firestore 実装の TournamentRepository
+ * 組織階層構造に対応
  */
 export class FirestoreTournamentRepository implements TournamentRepository {
-  private collectionRef: CollectionReference<DocumentData>;
-
-  constructor() {
-    this.collectionRef = collection(db, "tournaments");
+  /**
+   * 特定の組織のtournamentsコレクション参照を取得
+   */
+  private getCollectionRef(orgId: string): CollectionReference<DocumentData> {
+    return collection(db, `organizations/${orgId}/tournaments`);
   }
 
-  async getById(tournamentId: string): Promise<Tournament | null> {
-    const docRef = doc(this.collectionRef, tournamentId);
+  async getById(orgId: string, tournamentId: string): Promise<Tournament | null> {
+    const collectionRef = this.getCollectionRef(orgId);
+    const docRef = doc(collectionRef, tournamentId);
     const snap: DocumentSnapshot<DocumentData> = await getDoc(docRef);
     if (!snap.exists()) return null;
     const data = snap.data() as FirestoreTournamentDoc | undefined;
@@ -45,22 +48,27 @@ export class FirestoreTournamentRepository implements TournamentRepository {
     return TournamentMapper.toDomain({ ...data, id: snap.id });
   }
 
-  async listAll(): Promise<Tournament[]> {
-    const q = query(this.collectionRef, orderBy("createdAt", "desc"));
+  async listAll(orgId: string): Promise<Tournament[]> {
+    const collectionRef = this.getCollectionRef(orgId);
+    const q = query(collectionRef, orderBy("createdAt", "desc"));
     const snaps: QuerySnapshot<DocumentData> = await getDocs(q);
     return tournamentDocsToTournaments(snaps.docs);
   }
 
-  async create(tournamentCreate: TournamentCreate): Promise<Tournament> {
-    // ドキュメントIDを生成
-    const docRef = doc(this.collectionRef);
-    const tournamentId = docRef.id;
+  async create(orgId: string, tournament: TournamentCreate): Promise<Tournament> {
+    const collectionRef = this.getCollectionRef(orgId);
+
+    // tournamentId が指定されている場合はそれを使用、なければ生成
+    const tournamentWithId = tournament as TournamentCreate & { tournamentId?: string };
+    const tournamentId = tournamentWithId.tournamentId || doc(collectionRef).id;
+    const docRef = doc(collectionRef, tournamentId);
 
     // ドキュメントIDをフィールドに含めて保存
     const createDoc: FirestoreTournamentCreateDoc =
-      TournamentMapper.toFirestoreCreate({ ...tournamentCreate, id: tournamentId });
+      TournamentMapper.toFirestoreCreate({ ...tournament, id: tournamentId });
 
-    await setDoc(docRef, createDoc);
+    // 同期処理でクライアント生成IDを使用する場合に対応するため merge: true
+    await setDoc(docRef, createDoc, { merge: true });
 
     // 作成されたドキュメントを取得して返す
     const createdSnap = await getDoc(docRef);
@@ -73,10 +81,12 @@ export class FirestoreTournamentRepository implements TournamentRepository {
   }
 
   async update(
+    orgId: string,
     tournamentId: string,
     patch: Partial<Tournament>
   ): Promise<Tournament> {
-    const docRef = doc(this.collectionRef, tournamentId);
+    const collectionRef = this.getCollectionRef(orgId);
+    const docRef = doc(collectionRef, tournamentId);
     const updateDoc = TournamentMapper.toFirestoreUpdate(patch);
 
     await firestoreUpdateDoc(docRef, updateDoc);
@@ -91,13 +101,15 @@ export class FirestoreTournamentRepository implements TournamentRepository {
     return TournamentMapper.toDomain({ ...data, id: updatedSnap.id });
   }
 
-  async delete(tournamentId: string): Promise<void> {
-    const docRef = doc(this.collectionRef, tournamentId);
+  async delete(orgId: string, tournamentId: string): Promise<void> {
+    const collectionRef = this.getCollectionRef(orgId);
+    const docRef = doc(collectionRef, tournamentId);
     await deleteDoc(docRef);
   }
 
-  listenAll(callback: (tournaments: Tournament[]) => void): Unsubscribe {
-    const q = query(this.collectionRef, orderBy("createdAt", "desc"));
+  listenAll(orgId: string, callback: (tournaments: Tournament[]) => void): Unsubscribe {
+    const collectionRef = this.getCollectionRef(orgId);
+    const q = query(collectionRef, orderBy("createdAt", "desc"));
     return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
       const tournaments = tournamentDocsToTournaments(snapshot.docs);
       callback(tournaments);

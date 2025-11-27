@@ -1,180 +1,97 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useToast } from "@/components/providers/notification-provider";
-import { useAuth } from "@/hooks/useAuth";
-import {
-    useCreateTournament,
-    useUpdateTournamentByOrganization,
-} from "@/queries/use-tournaments";
+import { useAuthContext } from "@/hooks/useAuthContext";
+import { FirestoreTournamentRepository } from "@/repositories/firestore/tournament-repository";
 import { localTournamentRepository } from "@/repositories/local/tournament-repository";
-import type { LocalTournament } from "@/lib/db";
-import type { Tournament, TournamentFormData } from "@/types/tournament.schema";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { executeSyncWithTimeout } from "@/lib/utils/sync-utils";
 
-interface SaveResult {
-    success: boolean;
-    mode: "create" | "update";
-    tournamentId: string;
-}
 
 export function useTournamentPersistence() {
     const { showSuccess, showError } = useToast();
-    const { user } = useAuth();
-    const orgId = user?.uid || null;
+    const { orgId } = useAuthContext();
+    const isOnline = useOnlineStatus();
 
-    const { mutate: createTournament } = useCreateTournament();
-    const { mutate: updateTournament } = useUpdateTournamentByOrganization();
+    const firestoreRepository = useMemo(() => new FirestoreTournamentRepository(), []);
 
-    // ローカル保存処理
-    const saveToLocal = useCallback(async (
-        formData: TournamentFormData,
-        selectedTournamentId: string | null
-    ): Promise<SaveResult> => {
-        if (!orgId) {
-            throw new Error("組織IDが設定されていません");
-        }
-
-        try {
-            if (!selectedTournamentId) {
-                // 新規作成: クライアント側でIDを生成
-                const tournamentId = crypto.randomUUID();
-
-                // createdAt, updatedAt は新規作成時に自動生成されるため除外
-                const dataForCreate = { ...formData };
-                delete dataForCreate.createdAt;
-                delete dataForCreate.updatedAt;
-                delete (dataForCreate as Partial<TournamentFormData>).tournamentId;
-
-                const newTournament: LocalTournament = {
-                    ...dataForCreate,
-                    tournamentId,
-                    organizationId: orgId,
-                    tournamentDate: dataForCreate.tournamentDate as Date,
-                    tournamentType: dataForCreate.tournamentType as "individual" | "team",
-                    rounds: dataForCreate.rounds || [],
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                };
-
-                await localTournamentRepository.put(newTournament);
-                showSuccess("端末に保存しました");
-
-                return { success: true, mode: "create", tournamentId };
-            } else {
-                // 更新: 既存IDでローカル保存
-                const dataForUpdate = { ...formData };
-                delete dataForUpdate.createdAt;
-                delete dataForUpdate.updatedAt;
-                delete (dataForUpdate as Partial<TournamentFormData>).tournamentId;
-
-                // 既存データのcreatedAtを保持するために取得
-                const existing = await localTournamentRepository.getById(orgId, selectedTournamentId);
-                const createdAt = existing?.createdAt || new Date();
-
-                const updatedTournament: LocalTournament = {
-                    ...dataForUpdate,
-                    tournamentId: selectedTournamentId,
-                    organizationId: orgId,
-                    tournamentDate: dataForUpdate.tournamentDate as Date,
-                    tournamentType: dataForUpdate.tournamentType as "individual" | "team",
-                    rounds: dataForUpdate.rounds || [],
-                    createdAt: createdAt,
-                    updatedAt: new Date(),
-                };
-
-                await localTournamentRepository.put(updatedTournament);
-                showSuccess("端末に保存しました");
-
-                return { success: true, mode: "update", tournamentId: selectedTournamentId };
-            }
-        } catch (error) {
-            showError(error instanceof Error ? error.message : "保存に失敗しました");
-            throw error;
-        }
-    }, [orgId, showSuccess, showError]);
-
-    // クラウド同期処理
-    const syncToCloud = useCallback((
-        formData: TournamentFormData,
-        selectedTournamentId: string | null,
-        mode: "create" | "update",
-        onSuccess?: (result: { data: Tournament }) => void,
-        onError?: (error: unknown) => void
-    ) => {
+    // 単一大会の同期処理
+    const syncTournamentToCloud = useCallback(async (tournamentId: string, options?: { showSuccessToast?: boolean }) => {
         if (!orgId) return;
 
-        if (mode === "create") {
-            // 新規作成の同期
-            if (!selectedTournamentId) return;
-
-            // createdAt, updatedAt はサーバー側で再生成される可能性があるため除外
-            const dataForCreate = { ...formData };
-            delete dataForCreate.createdAt;
-            delete dataForCreate.updatedAt;
-            delete (dataForCreate as Partial<TournamentFormData>).tournamentId;
-
-            createTournament(
-                {
-                    orgId,
-                    tournamentId: selectedTournamentId, // クライアント生成IDを渡す
-                    tournamentData: {
-                        ...dataForCreate,
-                        tournamentDate: dataForCreate.tournamentDate as Date,
-                        tournamentType: dataForCreate.tournamentType as "individual" | "team",
-                        rounds: dataForCreate.rounds || [],
-                    },
-                },
-                {
-                    onSuccess: async (result) => {
-                        showSuccess("クラウドに同期しました");
-                        if (onSuccess) onSuccess(result);
-                    },
-                    onError: error => {
-                        showError(
-                            error instanceof Error
-                                ? error.message
-                                : "クラウド同期に失敗しました"
-                        );
-                        if (onError) onError(error);
-                    },
-                }
-            );
-        } else {
-            // 更新の同期
-            if (!selectedTournamentId) return;
-
-            const dataForUpdate = { ...formData };
-            delete dataForUpdate.createdAt;
-            delete dataForUpdate.updatedAt;
-            delete (dataForUpdate as Partial<TournamentFormData>).tournamentId;
-
-            updateTournament(
-                {
-                    orgId,
-                    tournamentId: selectedTournamentId,
-                    patch: {
-                        ...dataForUpdate,
-                        tournamentDate: dataForUpdate.tournamentDate as Date,
-                        tournamentType: dataForUpdate.tournamentType as "individual" | "team",
-                        rounds: dataForUpdate.rounds || [],
-                    },
-                },
-                {
-                    onSuccess: (result) => {
-                        showSuccess("クラウドに同期しました");
-                        if (onSuccess) onSuccess(result);
-                    },
-                    onError: error => {
-                        showError(
-                            error instanceof Error ? error.message : "クラウド同期に失敗しました"
-                        );
-                        if (onError) onError(error);
-                    },
-                }
-            );
+        // オフラインなら同期しない
+        if (!isOnline) {
+            showError("オフラインのためクラウド同期はされていません");
+            return;
         }
-    }, [orgId, createTournament, updateTournament, showSuccess, showError]);
+
+        const syncTask = async () => {
+            const localTournament = await localTournamentRepository.getById(orgId, tournamentId);
+            if (!localTournament) return;
+
+            if (localTournament._deleted) {
+                // 論理削除されている場合はFirestoreから削除
+                await firestoreRepository.delete(orgId, tournamentId);
+                // 物理削除してクリーンアップ
+                await localTournamentRepository.hardDelete(tournamentId);
+            } else {
+                // 作成または更新
+                await firestoreRepository.create(orgId, localTournament);
+                await localTournamentRepository.markAsSynced(tournamentId);
+            }
+        };
+
+
+        try {
+            await executeSyncWithTimeout(syncTask, {
+                onSuccess: () => {
+                    if (options?.showSuccessToast) {
+                        showSuccess("クラウドに同期しました");
+                    }
+                },
+                onError: (error) => {
+                    console.error(`Failed to sync tournament ${tournamentId}:`, error);
+                    showError("クラウドに同期失敗しました。この端末でのみ変更が反映されています。");
+                },
+            });
+        } catch {
+            // エラーは onError で処理済み
+        }
+
+    }, [orgId, firestoreRepository, showError, showSuccess, isOnline]);
+
+    // 全ての未同期大会の同期処理
+    const syncAllTournaments = useCallback(async () => {
+        if (!orgId) return;
+
+        try {
+            const unsyncedTournaments = await localTournamentRepository.getUnsynced(orgId);
+            if (unsyncedTournaments.length === 0) return;
+
+            let successCount = 0;
+            let failCount = 0;
+
+            await Promise.all(unsyncedTournaments.map(async (tournament) => {
+                try {
+                    await syncTournamentToCloud(tournament.tournamentId);
+                    successCount++;
+                } catch {
+                    failCount++;
+                }
+            }));
+
+            if (successCount > 0) {
+                showSuccess(`${successCount}件の大会データをクラウドと同期しました`);
+            }
+            if (failCount > 0) {
+                showError(`${failCount}件の大会同期に失敗しました`);
+            }
+        } catch (error) {
+            console.error("Sync all tournaments failed:", error);
+        }
+    }, [orgId, syncTournamentToCloud, showSuccess, showError]);
 
     return {
-        saveToLocal,
-        syncToCloud,
+        syncTournamentToCloud,
+        syncAllTournaments,
     };
 }

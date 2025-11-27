@@ -6,6 +6,7 @@ import { MatchRow } from "@/components/molecules/match-row";
 import { SaveControls } from "@/components/molecules/match-setup-controls";
 import { ConflictSummary } from "@/components/molecules/conflict-summary";
 import { Button } from "@/components/atoms/button";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { TableRow, TableCell } from "@/components/atoms/table";
@@ -202,6 +203,14 @@ export function MatchSetupTable({
     setData(prev => [...prev, newRow]);
   };
 
+  // 初期データのIDセット（既存試合の削除判定用）
+  const initialMatchIds = useMemo(() => {
+    return new Set(matches.map(m => m.matchId || ""));
+  }, [matches]);
+
+  // 削除された既存試合の数
+  const [deletedMatchCount, setDeletedMatchCount] = useState(0);
+
   const removeRow = (index: number) => {
     setData(prev => prev.filter((_, i) => i !== index));
   };
@@ -231,8 +240,30 @@ export function MatchSetupTable({
     setActiveId(null);
   };
 
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
   const handleSave = () => {
+    // 既存の試合が削除されている場合は確認ダイアログを表示
+    const currentIds = new Set(data.map(d => d.id));
+    const count = Array.from(initialMatchIds).filter(id => !currentIds.has(id)).length;
+
+    if (count > 0) {
+      setDeletedMatchCount(count);
+      setShowSaveConfirm(true);
+      return;
+    }
     onSave(data);
+  };
+
+  const confirmSave = () => {
+    setShowSaveConfirm(false);
+    onSave(data);
+    // 保存後はカウントをリセット（親コンポーネントで再レンダリングされるはずだが念のため）
+    setDeletedMatchCount(0);
+  };
+
+  const cancelSave = () => {
+    setShowSaveConfirm(false);
   };
 
   // 赤枠がある場合は保存ボタンを無効化
@@ -350,6 +381,16 @@ export function MatchSetupTable({
           </table>
         ) : null}
       </DragOverlay>
+
+      <ConfirmDialog
+        isOpen={showSaveConfirm}
+        title="試合の削除確認"
+        message={`${deletedMatchCount}件の試合を削除しました。このまま保存しますか？`}
+        onConfirm={confirmSave}
+        onCancel={cancelSave}
+        confirmText="保存する"
+        cancelText="キャンセル"
+      />
     </DndContext>
   );
 }
