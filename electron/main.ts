@@ -120,7 +120,10 @@ async function startServer() {
     });
 
     serverProcess.stdout?.on("data", (data: Buffer) => {
-        log.info(`Server: ${data}`);
+        const msg = data.toString();
+        if (isDev || msg.toLowerCase().includes("error")) {
+            log.info(`Server: ${msg}`);
+        }
     });
 
     serverProcess.stderr?.on("data", (data: Buffer) => {
