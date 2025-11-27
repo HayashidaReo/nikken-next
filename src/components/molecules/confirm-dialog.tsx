@@ -53,7 +53,14 @@ export function ConfirmDialog({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-sm text-gray-600 text-center">
-            <p>{message}</p>
+            <p>
+              {message.split(/<br\s*\/?>/gi).map((line, index, array) => (
+                <span key={index}>
+                  {line}
+                  {index < array.length - 1 && <br />}
+                </span>
+              ))}
+            </p>
           </div>
 
           <div className="flex gap-3 pt-4">
