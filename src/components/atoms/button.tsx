@@ -62,14 +62,18 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         data-no-hover={disableHover ? "true" : "false"}
         {...props}
       >
-        {isLoading && (
-          <span className="mr-2 inline-flex items-center">
-            <Spinner size="sm" color="white" />
-          </span>
-        )}
-        {isLoading && loadingText ? loadingText : children}
-        {isLoading && !loadingText && (
-          <span className="sr-only">読み込み中</span>
+        {asChild ? (
+          children
+        ) : (
+          <>
+            {isLoading && (
+              <span className="mr-2 inline-flex items-center">
+                <Spinner size="sm" color="white" />
+              </span>
+            )}
+            {isLoading && loadingText ? loadingText : children}
+            {isLoading && !loadingText && <span className="sr-only">読み込み中</span>}
+          </>
         )}
       </Comp>
     );
