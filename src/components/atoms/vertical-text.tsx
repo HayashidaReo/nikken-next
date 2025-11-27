@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils/utils";
 
 interface VerticalTextProps {
@@ -34,7 +34,7 @@ export function VerticalText({
     const [fontSizeRem, setFontSizeRem] = useState(actualBaseFontSize);
     const currentFontRef = useRef(actualBaseFontSize);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!maxHeight) return;
 
         const el = elementRef.current;
@@ -57,11 +57,7 @@ export function VerticalText({
             }
         };
 
-        const timeoutId = setTimeout(calculateFontSize, 50);
-
-        return () => {
-            clearTimeout(timeoutId);
-        };
+        calculateFontSize();
     }, [maxHeight, actualBaseFontSize, style.minFontSize, text]);
 
     return (
