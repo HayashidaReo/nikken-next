@@ -18,10 +18,12 @@ import { useMasterData } from "@/components/providers/master-data-provider";
 interface TeamMatchListTableProps {
     matches: TeamMatch[];
     tournamentName: ReactNode;
+    rawTournamentName: string;
+    courtName: string;
     className?: string;
 }
 
-export function TeamMatchListTable({ matches, tournamentName, className }: TeamMatchListTableProps) {
+export function TeamMatchListTable({ matches, tournamentName, rawTournamentName, courtName, className }: TeamMatchListTableProps) {
     const router = useRouter();
     const initializeMatch = useMonitorStore((s) => s.initializeMatch);
     const { teams } = useMasterData();
@@ -80,7 +82,7 @@ export function TeamMatchListTable({ matches, tournamentName, className }: TeamM
                         <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} />
                         <ActionCell
                             onMonitor={() => {
-                                initializeMatch(match, tournamentName as string, "", {
+                                initializeMatch(match, rawTournamentName, courtName, {
                                     resolvedPlayers: {
                                         playerA,
                                         playerB,
