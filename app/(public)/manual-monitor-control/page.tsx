@@ -9,9 +9,14 @@ import { ManualMonitorControlHeader } from "@/components/organisms/manual-monito
 import { FallbackMonitorDialog } from "@/components/molecules";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorPageUi } from "@/hooks/useMonitorPageUi";
+import { useMonitorSync } from "@/hooks/useMonitorSync";
 
 export default function ManualMonitorControlPage() {
     const router = useRouter();
+
+    // モニター同期フック（自動同期を有効化）
+    useMonitorSync();
+
     const {
         initializeMatch,
         isPublic,
