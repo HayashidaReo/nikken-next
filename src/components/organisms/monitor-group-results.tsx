@@ -14,10 +14,10 @@ interface MonitorGroupResultsProps {
 
 export function MonitorGroupResults({
     groupMatches,
+    currentMatchId,
     className,
 }: MonitorGroupResultsProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-
     const reversedMatches = [...groupMatches].reverse();
     const teamAName = groupMatches[0]?.playerA.teamName || "";
     const teamBName = groupMatches[0]?.playerB.teamName || "";
@@ -44,6 +44,7 @@ export function MonitorGroupResults({
                 const isWinnerA = match.winner === "playerA";
                 const isWinnerB = match.winner === "playerB";
                 const isDraw = match.winner === "draw";
+                const isCurrentMatch = match.matchId === currentMatchId;
 
                 const getOpacity = (isWinner: boolean) => {
                     if (!isCompleted) return "opacity-40 grayscale";
@@ -56,10 +57,25 @@ export function MonitorGroupResults({
                 const opacityB = getOpacity(isWinnerB);
 
                 return (
-                    <div key={match.matchId} className="relative">
+                    <div
+                        key={match.matchId}
+                        className={cn(
+                            "relative transition-all duration-500",
+                            isCurrentMatch && "scale-105"
+                        )}
+                    >
                         <div
                             data-match-id={match.matchId}
-                            className={cn(gridLayoutClass, "relative z-10 w-full")}
+                            className={cn(
+                                gridLayoutClass,
+                                "relative z-10 w-full",
+                                isCurrentMatch && [
+                                    "border-4 border-white/60",
+                                    "shadow-[0_0_40px_rgba(255,255,255,0.4)]",
+                                    "bg-white/5",
+                                    "rounded-lg",
+                                ]
+                            )}
                         >
                             {/* --- 4/10: 選手A (上) --- */}
                             <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA)}>
