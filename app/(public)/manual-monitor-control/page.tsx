@@ -111,10 +111,6 @@ export default function ManualMonitorControlPage() {
                         onTogglePublic: togglePublic,
                         onBackToDashboard: handleBackToDashboard,
                         onMonitorAction: handleMonitorClick,
-                        onSave: () => { }, // 手動モードでは使用しない
-                        onConfirmMatch: () => { }, // 手動モードでは使用しない
-                        onNextMatch: () => { }, // 手動モードでは使用しない
-                        onShowTeamResult: () => { }, // 手動モードでは使用しない
                     }}
                 />
 

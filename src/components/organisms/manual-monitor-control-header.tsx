@@ -14,10 +14,22 @@ import type { MonitorControlHeaderProps } from "@/types/monitor.schema";
  * 手動モード用の簡略化されたヘッダーUIを提供します。
  * 試合進行ボタンや保存ボタンを除外し、モニター接続と公開設定のみを表示します。
  */
+interface ManualMonitorControlHeaderProps {
+    monitorState: Pick<MonitorControlHeaderProps["monitorState"], "isPublic" | "monitorStatusMode" | "isPresentationConnected">;
+    actions: Pick<MonitorControlHeaderProps["actions"], "onTogglePublic" | "onBackToDashboard" | "onMonitorAction">;
+}
+
+/**
+ * 手動モニター操作画面のヘッダーコンポーネント
+ * 
+ * @description
+ * 手動モード用の簡略化されたヘッダーUIを提供します。
+ * 試合進行ボタンや保存ボタンを除外し、モニター接続と公開設定のみを表示します。
+ */
 export function ManualMonitorControlHeader({
     monitorState,
     actions,
-}: Pick<MonitorControlHeaderProps, "monitorState" | "actions">) {
+}: ManualMonitorControlHeaderProps) {
     const { isPublic, monitorStatusMode, isPresentationConnected } = monitorState;
     const {
         onTogglePublic,
