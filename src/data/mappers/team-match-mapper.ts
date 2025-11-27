@@ -1,6 +1,8 @@
 import { Timestamp } from "firebase/firestore";
-import type { TeamMatch, MatchPlayer } from "@/types/match.schema";
-import { teamMatchSchema, matchPlayerSchema } from "@/types/match.schema";
+import type { TeamMatch } from "@/types/team-match.schema";
+import type { MatchPlayer } from "@/types/match.schema";
+import { teamMatchSchema } from "@/types/team-match.schema";
+import { matchPlayerSchema } from "@/types/match.schema";
 import { FirestoreMatchPlayerDoc } from "./match-mapper";
 
 // TeamMatch用のFirestoreドキュメント型定義
