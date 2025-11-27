@@ -6,9 +6,9 @@ export {
   getPlayerVariantStyles,
   getPlayerDisplayName,
   getPlayerPositionClass,
+  generateDisplayNames,
   type PlayerVariant,
 } from "./player-utils";
-
 
 // Penalty-related utilities
 export {

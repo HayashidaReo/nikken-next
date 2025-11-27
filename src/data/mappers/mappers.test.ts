@@ -501,7 +501,6 @@ describe("TeamMapper", () => {
 
 describe("TournamentMapper", () => {
   const mockTimestamp = Timestamp.fromDate(new Date("2024-01-01T00:00:00Z"));
-  const mockTournamentDateTimestamp = Timestamp.fromDate(new Date("2024-01-15"));
   const mockCourt = {
     courtId: "court-001",
     courtName: "Aコート",
@@ -510,7 +509,7 @@ describe("TournamentMapper", () => {
   const mockFirestoreTournament: FirestoreTournamentDoc = {
     tournamentId: "tournament-001",
     tournamentName: "第1回テスト大会",
-    tournamentDate: mockTournamentDateTimestamp,
+    tournamentDate: new Date("2024-01-15"),
     tournamentDetail: "テスト大会の詳細情報",
     location: "テスト会場",
     defaultMatchTime: 180,
@@ -593,12 +592,11 @@ describe("TournamentMapper", () => {
 
     it("tournamentDate を正しく処理する", () => {
       const specificDate = new Date("2024-06-15");
-      const timestamp = Timestamp.fromDate(specificDate);
       const result = TournamentMapper.toDomain({
         ...mockFirestoreTournament,
-        tournamentDate: timestamp,
+        tournamentDate: specificDate,
       });
-      expect(result.tournamentDate.getTime()).toBe(specificDate.getTime());
+      expect(result.tournamentDate).toEqual(specificDate);
     });
 
     it("Timestamp を正しく Date に変換する", () => {
@@ -801,12 +799,7 @@ describe("TournamentMapper", () => {
       const partialTournament = { tournamentDate: newDate };
 
       const result = TournamentMapper.toFirestoreUpdate(partialTournament);
-      // toFirestoreUpdate は Date を Timestamp に変換するため、
-      // Timestamp オブジェクトであることを確認
-      expect(result.tournamentDate).toHaveProperty("seconds");
-      expect(result.tournamentDate).toHaveProperty("nanoseconds");
-      // toDate() で元の日付に戻せることを確認
-      expect((result.tournamentDate as Timestamp).toDate().getTime()).toBe(newDate.getTime());
+      expect(result.tournamentDate).toEqual(newDate);
     });
 
     it("tournamentDetail の更新も正しく処理される", () => {

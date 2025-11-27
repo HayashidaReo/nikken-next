@@ -2,7 +2,7 @@ import type { TeamFormData } from "@/types/team-form.schema";
 import type { OrganizationCreateWithAccount } from "@/types/organization.schema";
 import { z } from "zod";
 
-// 大会設定フォーム用のスキーマ
+// 大会設定フォーム用のスキーマ（tournament-settings-form.tsx から）
 export const tournamentSettingsSchema = z.object({
   tournamentName: z.string().min(1, "大会名は必須です"),
   tournamentDate: z.string().min(1, "開催日は必須です"), // フォームでは文字列として扱う

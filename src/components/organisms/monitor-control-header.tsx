@@ -2,8 +2,8 @@ import { ArrowLeft, Monitor, Unplug, Save, ChevronRight } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
-import { MonitorPreview } from "@/components/molecules/monitor-preview";
-import type { MonitorControlHeaderProps } from "@/types/monitor.schema";
+import { ConnectionStatus } from "@/components/organisms/connection-status";
+import { ViewMode } from "@/store/use-monitor-store";
 
 /**
  * モニター操作画面のヘッダーコンポーネント
@@ -30,43 +30,71 @@ import type { MonitorControlHeaderProps } from "@/types/monitor.schema";
  * - `PP`: 公開/非公開の切り替え
  * - `Enter`: 現在の状態に応じた主要アクション
  * 
- * @param props - コンポーネントのプロパティ（型定義は monitor.schema.ts を参照）
+ * @param props - コンポーネントのプロパティ
+ * 
+ * @see {@link ViewMode} - 表示モードの型定義
+ * @see {@link ConnectionStatus} - モニター接続状態を表示するコンポーネント
  */
-
+interface MonitorControlHeaderProps {
+    /** モニター表示の公開状態 */
+    isPublic: boolean;
+    /** 公開/非公開を切り替えるコールバック */
+    onTogglePublic: () => void;
+    /** モニター接続状態（"presentation" | "fallback" | "disconnected"） */
+    monitorStatusMode: "presentation" | "fallback" | "disconnected";
+    /** Presentation APIでの接続状態 */
+    isPresentationConnected: boolean;
+    /** 大会種別（"team" | "individual" | null） */
+    activeTournamentType: string | null | undefined;
+    /** 現在の表示モード */
+    viewMode: ViewMode;
+    /** 団体戦の全試合が終了しているか */
+    isAllFinished: boolean;
+    /** 保存処理中かどうか */
+    isSaving: boolean;
+    /** ダッシュボードへ戻るコールバック */
+    onBackToDashboard: () => void;
+    /** モニター接続/切断のコールバック */
+    onMonitorAction: () => void;
+    /** 試合結果を保存するコールバック（個人戦用） */
+    onSave: () => void;
+    /** 試合確定のコールバック（団体戦用） */
+    onConfirmMatch: () => void;
+    /** 次の試合へ進むコールバック（団体戦用） */
+    onNextMatch: () => void;
+    /** 団体戦結果を表示するコールバック（団体戦用） */
+    onShowTeamResult: () => void;
+}
 
 export function MonitorControlHeader({
-
-    monitorState,
-    matchState,
-    actions,
+    isPublic,
+    onTogglePublic,
+    monitorStatusMode,
+    isPresentationConnected,
+    activeTournamentType,
+    viewMode,
+    isAllFinished,
+    isSaving,
+    onBackToDashboard,
+    onMonitorAction,
+    onSave,
+    onConfirmMatch,
+    onNextMatch,
+    onShowTeamResult,
 }: MonitorControlHeaderProps) {
-    const { isPublic, monitorStatusMode, isPresentationConnected } = monitorState;
-    const { activeTournamentType, viewMode, isAllFinished, isSaving } = matchState;
-    const {
-        onTogglePublic,
-        onBackToDashboard,
-        onMonitorAction,
-        onSave,
-        onConfirmMatch,
-        onNextMatch,
-        onShowTeamResult,
-    } = actions;
     return (
-        <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-4">
-            <div className="flex items-center justify-start gap-4">
+        <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
                 <Button variant="outline" onClick={onBackToDashboard}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     戻る
                 </Button>
-                <h1 className="text-xl font-bold text-gray-900">モニター操作画面</h1>
+                <div className="ml-2">
+                    <ConnectionStatus mode={monitorStatusMode} error={null} />
+                </div>
             </div>
 
-            {/* モニタープレビュー */}
-            <div className="flex justify-center">
-                <MonitorPreview width={200} monitorStatusMode={monitorStatusMode} />
-            </div>
-
-            <div className="flex items-center justify-end gap-4">
+            <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                     <SwitchLabel
                         id="public-toggle-header"
@@ -117,7 +145,7 @@ export function MonitorControlHeader({
                         ) : (
                             <>
                                 <Monitor className="w-4 h-4 mr-2" />
-                                表示用モニターに接続
+                                表示用モニターを開く
                             </>
                         )}
                     </Button>

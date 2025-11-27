@@ -1,49 +1,42 @@
-import React from 'react';
-import { Blocks } from 'react-loader-spinner';
-
-/**
- * Spinner - ローディングインジケーター (Atom)
- *
- * 最小単位のUI要素として、おしゃれなスピナーを表示します。
- * react-loader-spinnerのThreeDotsアニメーションを使用。
- * サイズをpropsで制御可能で、さまざまな場所で再利用できます。
- */
+import { cn } from "@/lib/utils";
 
 interface SpinnerProps {
-  /** スピナーのサイズ */
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  /** カスタムクラス名 */
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  color?: "blue" | "white" | "gray" | "green" | "red";
   className?: string;
-  /** スピナーの色（デフォルトはprimary色） */
-  color?: string;
 }
 
-const sizeConfig = {
-  xs: { height: 30, width: 30 },
-  sm: { height: 40, width: 40 },
-  md: { height: 60, width: 60 },
-  lg: { height: 80, width: 80 },
-  xl: { height: 100, width: 100 },
-};
+export function Spinner({
+  size = "md",
+  color = "blue",
+  className,
+}: SpinnerProps) {
+  const sizeClasses = {
+    xs: "h-3 w-3 border",
+    sm: "h-4 w-4 border",
+    md: "h-6 w-6 border-2",
+    lg: "h-8 w-8 border-2",
+    xl: "h-12 w-12 border-2",
+  };
 
-export const Spinner: React.FC<SpinnerProps> = ({
-  size = 'md',
-  className = '',
-  color = 'hsl(var(--primary))'
-}) => {
-  const { height, width } = sizeConfig[size];
+  const colorClasses = {
+    blue: "border-blue-600",
+    white: "border-white",
+    gray: "border-gray-600",
+    green: "border-green-600",
+    red: "border-red-600",
+  };
 
   return (
-    <div className={className} role="status" aria-label="読み込み中">
-      <Blocks
-        height={height}
-        width={width}
-        color={color}
-        ariaLabel="blocks-loading"
-        wrapperStyle={{}}
-        wrapperClass="blocks-wrapper"
-        visible={true}
-      />
-    </div>
+    <div
+      className={cn(
+        "animate-spin rounded-full border-t-transparent",
+        sizeClasses[size],
+        colorClasses[color],
+        className
+      )}
+      role="status"
+      aria-label="読み込み中"
+    />
   );
-};
+}

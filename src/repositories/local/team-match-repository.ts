@@ -48,26 +48,8 @@ export class LocalTeamMatchRepository {
             .count();
     }
 
-    async markAsSynced(matchId: string): Promise<void> {
-        await db.teamMatches
-            .where("matchId")
-            .equals(matchId)
-            .modify({ isSynced: true });
-    }
-
-    async updateByPk(id: number, changes: Partial<LocalTeamMatch>): Promise<number> {
+    async update(id: number, changes: Partial<LocalTeamMatch>): Promise<number> {
         return await db.teamMatches.update(id, changes);
-    }
-
-    async update(matchId: string, changes: Partial<LocalTeamMatch>): Promise<number> {
-        return await db.teamMatches
-            .where("matchId")
-            .equals(matchId)
-            .modify({
-                ...changes,
-                isSynced: false,
-                updatedAt: new Date(),
-            });
     }
 
     async create(orgId: string, tournamentId: string, matchGroupId: string, match: Omit<LocalTeamMatch, "matchId" | "matchGroupId" | "organizationId" | "tournamentId" | "isSynced" | "createdAt" | "updatedAt">): Promise<LocalTeamMatch> {
@@ -87,8 +69,15 @@ export class LocalTeamMatchRepository {
         return newMatch;
     }
 
-    async updateByMatchId(matchId: string, changes: Partial<LocalTeamMatch>): Promise<number> {
-        return this.update(matchId, changes);
+    async updateByMatchId(matchId: string, changes: Partial<LocalTeamMatch>): Promise<void> {
+        const match = await db.teamMatches.where({ matchId }).first();
+        if (match && match.id) {
+            await db.teamMatches.update(match.id, {
+                ...changes,
+                isSynced: false,
+                updatedAt: new Date(),
+            });
+        }
     }
 
     async deleteByMatchId(matchId: string): Promise<void> {
