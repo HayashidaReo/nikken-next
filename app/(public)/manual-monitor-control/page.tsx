@@ -8,9 +8,7 @@ import { ManualMonitorControlHeader } from "@/components/organisms/manual-monito
 import { FallbackMonitorDialog } from "@/components/molecules";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorPageUi } from "@/hooks/useMonitorPageUi";
-import { useManualMonitorPersistence } from "@/hooks/useManualMonitorPersistence";
-import { useMonitorSync } from "@/hooks/useMonitorSync";
-import { STORAGE_KEYS } from "@/lib/constants";
+import { useManualMonitorState } from "@/hooks/useManualMonitorState";
 
 export default function ManualMonitorControlPage() {
     const router = useRouter();
@@ -44,8 +42,8 @@ export default function ManualMonitorControlPage() {
         teams: [], // 手動モードでは不要
     });
 
-    // 初期化と永続化（保存されたデータがある場合は上書きする）
-    useManualMonitorPersistence(() => {
+    // 初期化・復元・同期・保存を一括管理
+    useManualMonitorState(() => {
         initializeMatch(
             {
                 matchId: "manual-match",
@@ -95,11 +93,6 @@ export default function ManualMonitorControlPage() {
             }
         );
     });
-
-    // モニター同期フック（自動同期を有効化）
-    // 永続化キーを指定して、データ送信時（状態変更時）にLocalStorageにも保存する
-    // useManualMonitorPersistence の後に呼び出すことで、初期化・復元後のデータを保存対象とする
-    useMonitorSync({ persistKey: STORAGE_KEYS.MANUAL_MONITOR_STATE });
 
     const handleBackToDashboard = () => {
         router.push("/dashboard");

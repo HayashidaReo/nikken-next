@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import type { MonitorState } from "@/store/use-monitor-store";
-
 import { STORAGE_KEYS } from "@/lib/constants";
+import { useMonitorSync } from "@/hooks/useMonitorSync";
 
 type PersistedState = Pick<
     MonitorState,
@@ -16,10 +16,18 @@ type PersistedState = Pick<
 >;
 
 /**
- * 手動モニター操作画面の状態をLocalStorageに永続化するフック
+ * 手動モニター操作画面の状態管理フック
+ * 
+ * @description
+ * 以下の機能を提供します：
+ * 1. 初回マウント時のデータ初期化
+ * 2. LocalStorageからの状態復元（永続化データの読み込み）
+ * 3. 状態変更時の自動同期（Presentation API / BroadcastChannel）
+ * 4. 状態変更時のLocalStorageへの自動保存
+ * 
  * @param onInitialize 初期化処理を実行するコールバック関数
  */
-export function useManualMonitorPersistence(onInitialize: () => void) {
+export function useManualMonitorState(onInitialize: () => void) {
     const {
         setPlayerScore,
         setPlayerHansoku,
@@ -32,11 +40,11 @@ export function useManualMonitorPersistence(onInitialize: () => void) {
 
     const isInitialized = useRef(false);
 
-    // 初期化：LocalStorageからデータを読み込む
+    // 1. & 2. 初期化と復元
     useEffect(() => {
         if (isInitialized.current) return;
 
-        // 1. まずデフォルトの初期化を実行
+        // まずデフォルトの初期化を実行
         onInitialize();
 
         try {
@@ -44,8 +52,7 @@ export function useManualMonitorPersistence(onInitialize: () => void) {
             if (savedData) {
                 const parsed: PersistedState = JSON.parse(savedData);
 
-                // 2. 保存されたデータがあれば上書き
-
+                // 保存されたデータがあれば上書き
                 // 選手情報
                 setPlayerName("A", parsed.playerA.displayName);
                 setTeamName("A", parsed.playerA.teamName);
@@ -70,7 +77,7 @@ export function useManualMonitorPersistence(onInitialize: () => void) {
             isInitialized.current = true;
         }
     }, [
-        onInitialize, // 依存配列に追加
+        onInitialize,
         setPlayerName,
         setTeamName,
         setPlayerScore,
@@ -79,4 +86,8 @@ export function useManualMonitorPersistence(onInitialize: () => void) {
         setTimerMode,
         setPublic,
     ]);
+
+    // 3. & 4. 同期と保存
+    // useManualMonitorState の内部で呼び出すことで、初期化・復元後のデータを保存対象とする
+    useMonitorSync({ persistKey: STORAGE_KEYS.MANUAL_MONITOR_STATE });
 }
