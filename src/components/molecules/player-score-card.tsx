@@ -120,7 +120,7 @@ export function PlayerScoreCard({
 
           <div className="col-span-8">
             {isManual ? (
-              <div className="space-y-2 px-4">
+              <div className="space-y-2 px-4 mt-2">
                 <Input
                   value={player.teamName}
                   onChange={(e) => onTeamNameChange?.(playerKey, e.target.value)}
