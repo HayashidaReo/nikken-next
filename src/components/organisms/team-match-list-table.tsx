@@ -15,9 +15,8 @@ import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-di
 import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
 import { getTeamMatchRoundLabelById } from "@/lib/constants";
 import { useMasterData } from "@/components/providers/master-data-provider";
-import { Button } from "@/components/atoms/button";
-import { Edit2 } from "lucide-react";
 import { TeamMatchEditDialog } from "./team-match-edit-dialog";
+import { MatchActionMenu } from "@/components/molecules/match-action-menu";
 
 interface TeamMatchListTableProps {
     matches: TeamMatch[];
@@ -66,7 +65,7 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                     { key: "playerBName", label: "選手B名", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.playerBName },
                     { key: "winReason", label: "決着", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.winReason, className: "text-center" },
                     { key: "action", label: "モニター", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
-                    { key: "edit", label: "編集", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.edit, className: "text-center" },
+                    { key: "edit", label: "", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.edit, className: "text-center" },
                 ]}
                 className={className}
             >
@@ -126,14 +125,7 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                             />
                             <TableCell className="p-2 text-center">
                                 <div className="flex items-center justify-center h-full">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => setEditingMatch(match)}
-                                    >
-                                        <Edit2 className="h-4 w-4" />
-                                    </Button>
+                                    <MatchActionMenu onEdit={() => setEditingMatch(match)} />
                                 </div>
                             </TableCell>
                         </TableRow>
