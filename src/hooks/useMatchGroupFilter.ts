@@ -6,6 +6,7 @@ export const useMatchGroupFilter = (matchGroups: MatchGroup[]) => {
     const { courts, rounds } = useMasterData();
     const [selectedCourtIds, setSelectedCourtIds] = useState<string[]>([]);
     const [selectedRoundIds, setSelectedRoundIds] = useState<string[]>([]);
+    const [selectedStatusValues, setSelectedStatusValues] = useState<string[]>([]);
 
     // 選択肢の生成
     const courtOptions = useMemo(() => {
@@ -28,6 +29,11 @@ export const useMatchGroupFilter = (matchGroups: MatchGroup[]) => {
             .sort((a, b) => a.label.localeCompare(b.label, "ja"));
     }, [matchGroups, rounds]);
 
+    const statusOptions = useMemo(() => [
+        { value: "incomplete", label: "未試合" },
+        { value: "completed", label: "終了" },
+    ], []);
+
     // フィルタリング処理
     const filteredMatchGroups = useMemo(() => {
         return matchGroups.filter((group) => {
@@ -35,17 +41,24 @@ export const useMatchGroupFilter = (matchGroups: MatchGroup[]) => {
                 selectedCourtIds.length === 0 || selectedCourtIds.includes(group.courtId);
             const roundMatch =
                 selectedRoundIds.length === 0 || selectedRoundIds.includes(group.roundId);
-            return courtMatch && roundMatch;
+            const statusMatch =
+                selectedStatusValues.length === 0 ||
+                (selectedStatusValues.includes("completed") && group.isCompleted) ||
+                (selectedStatusValues.includes("incomplete") && !group.isCompleted);
+            return courtMatch && roundMatch && statusMatch;
         });
-    }, [matchGroups, selectedCourtIds, selectedRoundIds]);
+    }, [matchGroups, selectedCourtIds, selectedRoundIds, selectedStatusValues]);
 
     return {
         selectedCourtIds,
         setSelectedCourtIds,
         selectedRoundIds,
         setSelectedRoundIds,
+        selectedStatusValues,
+        setSelectedStatusValues,
         courtOptions,
         roundOptions,
+        statusOptions,
         filteredMatchGroups,
     };
 };

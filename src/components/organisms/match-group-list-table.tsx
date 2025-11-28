@@ -26,8 +26,11 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
         setSelectedCourtIds,
         selectedRoundIds,
         setSelectedRoundIds,
+        selectedStatusValues,
+        setSelectedStatusValues,
         courtOptions,
         roundOptions,
+        statusOptions,
         filteredMatchGroups,
     } = useMatchGroupFilter(matchGroups);
 
@@ -35,7 +38,19 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
         <MatchTable
             title={tournamentName}
             columns={[
-                { key: "status", label: "", width: 40, className: "text-center" },
+                {
+                    key: "status",
+                    label: (
+                        <MultiSelectDropdown
+                            label="終了"
+                            options={statusOptions}
+                            selectedValues={selectedStatusValues}
+                            onSelectionChange={setSelectedStatusValues}
+                        />
+                    ),
+                    width: 60,
+                    className: "text-center",
+                },
                 {
                     key: "court",
                     label: (
