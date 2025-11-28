@@ -66,14 +66,14 @@ interface UseTeamMatchControllerProps {
 }
 
 export function useTeamMatchController({
-    matchId,
+    matchId = "",
     activeTournamentType,
     teamMatches,
     teams,
     tournament,
-    orgId,
-    tournamentId,
-}: UseTeamMatchControllerProps) {
+    orgId = null,
+    tournamentId = null,
+}: Partial<UseTeamMatchControllerProps> = {}) {
     const router = useRouter();
     const matchGroupId = useMonitorStore((s) => s.matchGroupId);
     const currentSortOrder = useMonitorStore((s) => s.sortOrder);
@@ -353,6 +353,21 @@ export function useTeamMatchController({
         }
     }, [matchGroupId, teams, tournament, resolvePlayer, initializeMatch, router, orgId, tournamentId]);
 
+    const handleSaveMatchResult = useCallback(async (result: Partial<TeamMatch> & { matchId: string }) => {
+        const { localTeamMatchRepository } = await import("@/repositories/local/team-match-repository");
+
+        try {
+            await localTeamMatchRepository.update(result.matchId, result);
+
+            // ストアのteamMatchResultsを更新
+            if (activeTournamentType === "team" && teamMatches && teams) {
+                handleShowTeamResult();
+            }
+        } catch (error) {
+            console.error("Failed to save match result:", error);
+        }
+    }, [activeTournamentType, teamMatches, teams, handleShowTeamResult]);
+
     return {
         isAllFinished,
         needsRepMatch,
@@ -361,5 +376,6 @@ export function useTeamMatchController({
         handleBackToDashboard,
         handleEnterKey,
         handleCreateRepMatch,
+        handleSaveMatchResult,
     };
 }

@@ -78,13 +78,13 @@ export const TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
  * - コート名なし
  */
 export const TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS = {
-    round: 12,
-    playerATeam: 15,
-    playerAName: 15,
-    score: 15,
-    playerBTeam: 15,
-    playerBName: 15,
+    round: 15,
+    playerAName: 20,
+    score: 20,
+    playerBName: 20,
+    winReason: 10,
     action: 10,
+    edit: 5,
 } as const;
 
 const UI_CONSTANTS = {
