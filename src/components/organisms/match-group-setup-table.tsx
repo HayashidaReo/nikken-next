@@ -62,6 +62,7 @@ export function MatchGroupSetupTable({
                 teamAId: g.teamAId,
                 teamBId: g.teamBId,
                 sortOrder: g.sortOrder,
+                isCompleted: g.isCompleted ?? false,
             };
         })
     );
@@ -144,6 +145,7 @@ export function MatchGroupSetupTable({
                 teamAId: "",
                 teamBId: "",
                 sortOrder: maxSortOrder + 1,
+                isCompleted: false,
             },
         ]);
     };

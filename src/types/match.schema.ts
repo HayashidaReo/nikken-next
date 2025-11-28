@@ -157,6 +157,7 @@ export const matchGroupSchema = z.object({
   sortOrder: z.number().int().min(0),
   teamAId: z.string().min(1, "チームAは必須です"),
   teamBId: z.string().min(1, "チームBは必須です"),
+  isCompleted: z.boolean(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });

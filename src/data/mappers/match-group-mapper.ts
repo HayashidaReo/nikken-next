@@ -9,6 +9,7 @@ export interface FirestoreMatchGroupDoc {
     sortOrder: number;
     teamAId: string;
     teamBId: string;
+    isCompleted: boolean;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -31,6 +32,7 @@ export class MatchGroupMapper {
             sortOrder: doc.sortOrder,
             teamAId: doc.teamAId,
             teamBId: doc.teamBId,
+            isCompleted: doc.isCompleted ?? false,
             createdAt: doc.createdAt.toDate(),
             updatedAt: doc.updatedAt.toDate(),
         };
@@ -54,6 +56,7 @@ export class MatchGroupMapper {
             sortOrder: group.sortOrder,
             teamAId: group.teamAId,
             teamBId: group.teamBId,
+            isCompleted: group.isCompleted ?? false,
         };
     }
 
@@ -67,6 +70,7 @@ export class MatchGroupMapper {
         if (group.sortOrder !== undefined) data.sortOrder = group.sortOrder;
         if (group.teamAId) data.teamAId = group.teamAId;
         if (group.teamBId) data.teamBId = group.teamBId;
+        if (group.isCompleted !== undefined) data.isCompleted = group.isCompleted;
         return data;
     }
 }

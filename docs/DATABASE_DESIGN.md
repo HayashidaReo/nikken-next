@@ -106,6 +106,7 @@
 | `matchGroupId` | String    | チーム試合ID                                           |
 | `courtId`      | String    | コートID（tournamentsのcourts配列内のcourtIdと対応）   |
 | `roundId`      | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応） |
+| `isCompleted`  | Boolean   | 試合完了フラグ                                         |
 | `sortOrder`    | number    | 表示順序                                               |
 | `teamAId`      | String    | チームAのID                                            |
 | `teamBId`      | String    | チームBのID                                            |

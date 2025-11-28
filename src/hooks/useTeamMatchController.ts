@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { TeamMatch } from "@/types/match.schema";
@@ -352,6 +352,19 @@ export function useTeamMatchController({
             console.error("Failed to create representative match:", error);
         }
     }, [matchGroupId, teams, tournament, resolvePlayer, initializeMatch, router, orgId, tournamentId]);
+
+    useEffect(() => {
+        const updateMatchGroupCompletion = async () => {
+            if (activeTournamentType === "team" && matchGroupId && isAllFinished) {
+                const { localMatchGroupRepository } = await import("@/repositories/local/match-group-repository");
+                const group = await localMatchGroupRepository.getById(matchGroupId);
+                if (group && !group.isCompleted) {
+                    await localMatchGroupRepository.update(matchGroupId, { isCompleted: true });
+                }
+            }
+        };
+        updateMatchGroupCompletion();
+    }, [activeTournamentType, matchGroupId, isAllFinished]);
 
     const handleSaveMatchResult = useCallback(async (result: Partial<TeamMatch> & { matchId: string }) => {
         const { localTeamMatchRepository } = await import("@/repositories/local/team-match-repository");

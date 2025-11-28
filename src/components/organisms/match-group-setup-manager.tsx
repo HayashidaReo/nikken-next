@@ -79,6 +79,7 @@ export function MatchGroupSetupManager() {
                         teamAId: item.teamAId,
                         teamBId: item.teamBId,
                         sortOrder: item.sortOrder,
+                        isCompleted: false,
                     };
                     const created = await createMatchGroup.mutateAsync(newGroup);
                     if (created.matchGroupId) savedGroupIds.push(created.matchGroupId);
