@@ -28,7 +28,7 @@ export class LocalMatchGroupRepository {
      * 
      * 以下の2行で、親（MatchGroup）と子（TeamMatch）を同時に論理削除しています。
      * 1. db.matchGroups... -> 親（対戦グループ）を削除済みマーク
-     * 2. db.teamMatches... -> そのグループに紐づく子（個人対戦）も全て削除済みマーク（カスケード削除）
+     * 2. db.teamMatches... -> そのグループに紐づく子（個人対戦）も全て削除済みマーク
      */
     async delete(matchGroupId: string): Promise<void> {
         await db.transaction('rw', db.matchGroups, db.teamMatches, async () => {
@@ -43,7 +43,7 @@ export class LocalMatchGroupRepository {
      * 
      * 以下の2行で、親（MatchGroup）と子（TeamMatch）を同時に物理削除しています。
      * 1. db.matchGroups... -> 親（対戦グループ）を完全削除
-     * 2. db.teamMatches... -> そのグループに紐づく子（個人対戦）も全て完全削除（カスケード削除）
+     * 2. db.teamMatches... -> そのグループに紐づく子（個人対戦）も全て完全削除
      */
     async hardDelete(matchGroupId: string): Promise<void> {
         await db.transaction('rw', db.matchGroups, db.teamMatches, async () => {
