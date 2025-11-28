@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 import { AuthErrorBoundary } from "@/components/providers/auth-error-boundary";
 import { TournamentProvider } from "@/components/providers/tournament-provider";
 import { QueryProvider } from "@/lib/query-provider";
+import { PwaUnregister } from "@/components/pwa-unregister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,15 +18,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const isPwaEnabled = process.env.ENABLE_PWA === "true";
+
 export const metadata: Metadata = {
   title: "Nikken Next App",
   description: "日本拳法大会運営支援アプリ",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Nikken",
-  },
+  ...(isPwaEnabled
+    ? {
+      manifest: "/manifest.json",
+      appleWebApp: {
+        capable: true,
+        statusBarStyle: "default",
+        title: "Nikken next",
+      },
+    }
+    : {}),
 };
 
 
@@ -39,6 +46,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {!isPwaEnabled && <PwaUnregister />}
         <QueryProvider>
           <AuthErrorBoundary>
             <AuthProvider>
