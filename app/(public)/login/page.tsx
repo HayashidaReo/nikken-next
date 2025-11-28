@@ -3,10 +3,22 @@
 import { AuthLayout } from "@/components/templates/auth-layout";
 import { LoginForm } from "@/components/organisms/login-form";
 import { useGuestGuard } from "@/hooks/useAuth";
+import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 
 export default function LoginPage() {
   // useGuestGuard を使用して認証状態をチェック
-  useGuestGuard();
+  const { isLoading } = useGuestGuard();
+
+  // 認証チェック中はローディング表示
+  if (isLoading) {
+    return (
+      <LoadingIndicator
+        message="認証状態を確認中..."
+        size="lg"
+        fullScreen={true}
+      />
+    );
+  }
 
   return (
     <AuthLayout>
