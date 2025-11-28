@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/atoms/button";
 import { Label } from "@/components/atoms/label";
-import { SearchableSelect } from "@/components/molecules/searchable-select";
+
 import { PenaltyDisplay } from "@/components/molecules/penalty-display";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
@@ -261,35 +261,35 @@ export function TeamMatchEditDialog({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-3">
                                 <Label className="text-sm font-bold text-slate-900">勝者</Label>
-                                <SearchableSelect
+                                <select
                                     value={winner || "none"}
-                                    onValueChange={(v) => setWinner(v as "playerA" | "playerB" | "draw" | "none")}
-                                    options={[
-                                        { value: "playerA", label: `${playerAName}` },
-                                        { value: "playerB", label: `${playerBName}` },
-                                        { value: "draw", label: "引き分け" },
-                                        { value: "none", label: "なし" },
-                                    ]}
-                                    placeholder="勝者を選択"
-                                    className="w-full"
-                                />
+                                    onChange={(e) => setWinner(e.target.value as "playerA" | "playerB" | "draw" | "none")}
+                                    className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
+                                >
+                                    <option value="none">なし</option>
+                                    <option value="playerA">{playerAName}</option>
+                                    <option value="playerB">{playerBName}</option>
+                                    <option value="draw">引き分け</option>
+                                </select>
                             </div>
 
                             <div className="space-y-3">
                                 <Label className="text-sm font-bold text-slate-900">決着理由</Label>
-                                <SearchableSelect
+                                <select
                                     value={winReason || "none"}
-                                    onValueChange={(v) => setWinReason(v as WinReason)}
-                                    options={winReasonEnum.options.map((reason) => ({
-                                        value: reason,
-                                        label: reason === "ippon" ? "一本" :
-                                            reason === "hantei" ? "判定" :
-                                                reason === "hansoku" ? "反則" :
-                                                    reason === "fusen" ? "不戦" : "なし"
-                                    }))}
-                                    placeholder="決着理由を選択"
-                                    className="w-full"
-                                />
+                                    onChange={(e) => setWinReason(e.target.value as WinReason)}
+                                    className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
+                                >
+                                    <option value="none">なし</option>
+                                    {winReasonEnum.options.filter(reason => reason !== "none").map((reason) => (
+                                        <option key={reason} value={reason}>
+                                            {reason === "ippon" ? "一本" :
+                                                reason === "hantei" ? "判定" :
+                                                    reason === "hansoku" ? "反則" :
+                                                        reason === "fusen" ? "不戦" : "なし"}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     </div>
