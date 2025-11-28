@@ -140,6 +140,8 @@
 | `players.playerA.hansoku`     | Number    | 選手Aの反則状態（0:"none", 1:"yellow", 2:"red", 3:"red_yellow", 4:"red_red"） |
 | `players.playerB`             | Map       | 選手Bの情報（playerAと同様の構造）                                            |
 | `isCompleted`                 | Boolean   | 試合完了フラグ                                                                |
+| `winner`                      | String    | 勝者 ("playerA", "playerB", "draw", "")                                     |
+| `winReason`                   | String    | 決着理由 ("ippon", "hantei", "hansoku", "fusen", "")                        |
 | `createdAt`                   | Timestamp | 組み合わせ作成日時                                                            |
 | `updatedAt`                   | Timestamp | 最終編集日時                                                                  |
 
@@ -172,5 +174,7 @@
 | `players.playerA.hansoku`     | Number    | 選手Aの反則状態（0:"none", 1:"yellow", 2:"red", 3:"red_yellow", 4:"red_red"） |
 | `players.playerB`             | Map       | 選手Bの情報（playerAと同様の構造）                                            |
 | `isCompleted`                 | Boolean   | 試合完了フラグ                                                                |
+| `winner`                      | String    | 勝者 ("playerA", "playerB", "draw", null)                                     |
+| `winReason`                   | String    | 決着理由 ("ippon", "hantei", "hansoku", "fusen", null)                        |
 | `createdAt`                   | Timestamp | 組み合わせ作成日時                                                            |
 | `updatedAt`                   | Timestamp | 最終編集日時                                                                  |
