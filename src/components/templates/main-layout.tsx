@@ -14,7 +14,7 @@ import {
 } from "@/components/atoms/tooltip";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { cn } from "@/lib/utils/utils";
-import { AUTH_CONSTANTS, ROUTES } from "@/lib/constants";
+import { APP_INFO, AUTH_CONSTANTS, ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useToast } from "@/components/providers/notification-provider";
 import { HeaderTournamentSelector } from "@/components/molecules/header-tournament-selector";
@@ -85,15 +85,17 @@ function Header({ activeTab }: HeaderProps) {
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* 左側：ロゴとタイトル + ナビゲーション */}
+          {/* 左側：タイトル + バージョン */}
           <div className="flex items-center gap-8">
             <Link href="/dashboard" className="flex items-center space-x-3 flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center">
-                <span className="text-white font-bold text-sm">拳</span>
+              <div className="hidden md:flex flex-col">
+                <span className="text-lg font-semibold text-gray-900 leading-none">
+                  拳法大会管理
+                </span>
+                <span className="text-xs text-gray-500 mt-0.5">
+                  v{APP_INFO.VERSION}
+                </span>
               </div>
-              <span className="text-lg font-semibold text-gray-900 hidden md:block">
-                拳法大会管理
-              </span>
               {!isOnline && (
                 <TooltipProvider>
                   <Tooltip>

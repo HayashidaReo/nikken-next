@@ -30,7 +30,11 @@ export function useMatchGroupPersistence() {
             if (!localGroup) return;
 
             if (localGroup._deleted) {
+                // サブコレクション（teamMatches）を先に削除
+                await firestoreTeamMatchRepository.deleteAllInGroup(orgId, activeTournamentId, matchGroupId);
+                // 親ドキュメント（matchGroup）を削除
                 await firestoreGroupRepository.delete(orgId, activeTournamentId, matchGroupId);
+                // ローカルデータを物理削除（teamMatchesも連動して削除されるようにLocalMatchGroupRepository.hardDeleteを修正済み）
                 await localMatchGroupRepository.hardDelete(matchGroupId);
             } else {
                 await firestoreGroupRepository.update(orgId, activeTournamentId, matchGroupId, localGroup);
@@ -53,7 +57,7 @@ export function useMatchGroupPersistence() {
         } catch {
             // エラーは onError で処理済み
         }
-    }, [orgId, activeTournamentId, firestoreGroupRepository, showError, showSuccess, isOnline]);
+    }, [orgId, activeTournamentId, isOnline, showError, firestoreTeamMatchRepository, firestoreGroupRepository, showSuccess]);
 
     // 複数MatchGroupの同期
     const syncMatchGroupsToCloud = useCallback(async (matchGroupIds: string[], options?: { showSuccessToast?: boolean }) => {
@@ -74,7 +78,11 @@ export function useMatchGroupPersistence() {
                     if (!localGroup) return;
 
                     if (localGroup._deleted) {
+                        // サブコレクション（teamMatches）を先に削除
+                        await firestoreTeamMatchRepository.deleteAllInGroup(orgId, activeTournamentId, groupId);
+                        // 親ドキュメント（matchGroup）を削除
                         await firestoreGroupRepository.delete(orgId, activeTournamentId, groupId);
+                        // ローカルデータを物理削除
                         await localMatchGroupRepository.hardDelete(groupId);
                     } else {
                         await firestoreGroupRepository.update(orgId, activeTournamentId, groupId, localGroup);
@@ -109,7 +117,7 @@ export function useMatchGroupPersistence() {
         } catch {
             // エラーは onError で処理済み
         }
-    }, [orgId, activeTournamentId, firestoreGroupRepository, showError, showSuccess, isOnline]);
+    }, [orgId, activeTournamentId, firestoreGroupRepository, firestoreTeamMatchRepository, showError, showSuccess, isOnline]);
 
 
     // TeamMatchの同期

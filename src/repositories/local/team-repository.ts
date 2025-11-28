@@ -6,7 +6,11 @@ export class LocalTeamRepository {
         const teams = await db.teams
             .where({ organizationId: orgId, tournamentId })
             .toArray();
-        return teams.filter(t => !t._deleted);
+
+        // 日本語ロケールでソート（完全な読み仮名順ではありませんが、文字コード順より自然になります）
+        return teams
+            .filter(t => !t._deleted)
+            .sort((a, b) => a.teamName.localeCompare(b.teamName, 'ja'));
     }
 
     async getById(teamId: string): Promise<LocalTeam | undefined> {
