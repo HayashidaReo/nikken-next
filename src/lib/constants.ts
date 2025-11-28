@@ -136,6 +136,24 @@ export const TEAM_MATCH_CONSTANTS = {
   REP_MATCH_ROUND_ID: '6',
 } as const;
 
+// 🏟️ 試合グループステータス定数
+export const MATCH_GROUP_STATUS = {
+  /** 未試合 */
+  INCOMPLETE: "incomplete",
+  /** 終了 */
+  COMPLETED: "completed",
+} as const;
+
+export const MATCH_GROUP_STATUS_LABELS = {
+  [MATCH_GROUP_STATUS.INCOMPLETE]: "未試合",
+  [MATCH_GROUP_STATUS.COMPLETED]: "終了",
+} as const;
+
+export const MATCH_GROUP_STATUS_OPTIONS = [
+  { value: MATCH_GROUP_STATUS.INCOMPLETE, label: MATCH_GROUP_STATUS_LABELS[MATCH_GROUP_STATUS.INCOMPLETE] },
+  { value: MATCH_GROUP_STATUS.COMPLETED, label: MATCH_GROUP_STATUS_LABELS[MATCH_GROUP_STATUS.COMPLETED] },
+] as const;
+
 // 🥋 ペナルティ関連定数
 export const PENALTY_CONSTANTS = {
   /** ペナルティカードサイズ */
