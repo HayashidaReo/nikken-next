@@ -50,12 +50,12 @@ describe("PenaltyDisplay", () => {
             expect(redCards).toHaveLength(1);
         });
 
-        it("renders red and yellow for hansokuCount 3 (red + yellow)", () => {
+        it("renders yellow and red for hansokuCount 3 (yellow + red)", () => {
             const { container } = render(<PenaltyDisplay hansokuCount={3} />);
-            const redCards = container.querySelectorAll(".bg-red-600");
             const yellowCards = container.querySelectorAll(".bg-yellow-400");
-            expect(redCards).toHaveLength(1);
+            const redCards = container.querySelectorAll(".bg-red-600");
             expect(yellowCards).toHaveLength(1);
+            expect(redCards).toHaveLength(1);
         });
 
         it("renders two red cards for hansokuCount 4 (red + red)", () => {

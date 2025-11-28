@@ -72,7 +72,7 @@ export const getPenaltyCards = (hansokuLevel: HansokuLevel): PenaltyCard[] => {
     case HANSOKU_LEVELS.RED:
       return [{ type: "red" }];
     case HANSOKU_LEVELS.RED_YELLOW:
-      return [{ type: "red" }, { type: "yellow" }];
+      return [{ type: "yellow" }, { type: "red" }];
     case HANSOKU_LEVELS.RED_RED:
       return [{ type: "red" }, { type: "red" }];
     default:

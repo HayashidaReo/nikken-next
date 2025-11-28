@@ -25,7 +25,7 @@ describe("penalty-utils", () => {
 
     it("レッド+イエローの場合は赤カードと黄色カードを返す", () => {
       const result = getPenaltyCards(HANSOKU_LEVELS.RED_YELLOW);
-      expect(result).toEqual([{ type: "red" }, { type: "yellow" }]);
+      expect(result).toEqual([{ type: "yellow" }, { type: "red" }]);
     });
 
     it("レッド2枚の場合は赤カード2枚を返す", () => {
