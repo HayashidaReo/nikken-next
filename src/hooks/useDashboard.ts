@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMatches } from "@/queries/use-matches";
 import { useMatchGroups } from "@/queries/use-match-groups";
@@ -12,7 +13,7 @@ import { useToast } from "@/components/providers/notification-provider";
 
 export function useDashboard() {
     const { user } = useAuthStore();
-    const { activeTournamentId, activeTournamentType } = useActiveTournament();
+    const { activeTournamentId, activeTournamentType, setActiveTournament } = useActiveTournament();
     const { showSuccess, showError } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -31,6 +32,13 @@ export function useDashboard() {
     const { data: teams = [] } = useTeams();
     const { data: matchGroups = [] } = useMatchGroups();
     const { data: teamMatches = [] } = useTeamMatches(matchGroupId);
+
+    // トーナメントデータが取得できた際、activeTournamentTypeが実際のtournamentTypeと異なる場合は同期
+    useEffect(() => {
+        if (tournament && activeTournamentId && tournament.tournamentType !== activeTournamentType) {
+            setActiveTournament(activeTournamentId, tournament.tournamentType);
+        }
+    }, [tournament, activeTournamentId, activeTournamentType, setActiveTournament]);
 
     // 大会種別に応じたローディング・エラー状態の判定
     // AuthLayoutで認証チェック済みのため、authLoadingは考慮不要
