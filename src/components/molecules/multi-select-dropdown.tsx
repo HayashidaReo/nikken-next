@@ -9,18 +9,52 @@ import {
     shouldOpenAbove,
 } from "./searchable-select.constants";
 
+/**
+ * マルチセレクトドロップダウンのオプション型
+ */
 export interface MultiSelectOption {
+    /** オプションの値 */
     value: string;
+    /** オプションの表示ラベル */
     label: string;
 }
 
 interface MultiSelectDropdownProps {
+    /** ドロップダウンのヘッダーラベル */
     label: string;
+    /** 選択可能なオプションのリスト */
     options: MultiSelectOption[];
+    /** 現在選択されている値の配列 */
     selectedValues: string[];
+    /** 選択状態が変更された時のコールバック */
     onSelectionChange: (values: string[]) => void;
+    /** 追加のCSSクラス名 */
     className?: string;
 }
+
+/**
+ * 複数選択可能なドロップダウンコンポーネント
+ * 
+ * @description
+ * - テーブルヘッダーなどでフィルタリング用途に使用
+ * - "すべて選択"チェックボックスを提供
+ * - 選択中はラベルが青色で表示され、フィルターアイコンが塗りつぶされる
+ * - Portalを使用してz-index問題を回避
+ * - スクロール追従機能付き
+ * 
+ * @example
+ * ```tsx
+ * <MultiSelectDropdown
+ *   label="コート名"
+ *   options={[
+ *     { value: "court1", label: "コート1" },
+ *     { value: "court2", label: "コート2" }
+ *   ]}
+ *   selectedValues={selectedCourtIds}
+ *   onSelectionChange={setSelectedCourtIds}
+ * />
+ * ```
+ */
 
 export function MultiSelectDropdown({
     label,

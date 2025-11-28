@@ -10,6 +10,25 @@ interface SearchBarProps {
     className?: string;
 }
 
+/**
+ * チーム名やその他のテキスト検索に使用する検索バーコンポーネント
+ * 
+ * @description
+ * - 検索アイコン（先頭）を常に表示
+ * - クリアボタン（後尾）は入力時のみ表示
+ * - アクセシビリティ対応（クリアボタンにaria-label付与）
+ * 
+ * @example
+ * ```tsx
+ * const [query, setQuery] = useState("");
+ * <SearchBar 
+ *   value={query} 
+ *   onChange={setQuery} 
+ *   placeholder="チーム名を検索..." 
+ * />
+ * ```
+ */
+
 export const SearchBar = ({ value, onChange, placeholder = "検索...", className }: SearchBarProps) => {
     return (
         <Input
