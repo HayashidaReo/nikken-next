@@ -116,6 +116,13 @@ export class FirestoreTeamMatchRepository implements TeamMatchRepository {
         await deleteDoc(docRef);
     }
 
+    async deleteAllInGroup(orgId: string, tournamentId: string, matchGroupId: string): Promise<void> {
+        const collectionRef = this.getCollectionRef(orgId, tournamentId, matchGroupId);
+        const snapshot = await getDocs(collectionRef);
+        const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+    }
+
     listenAll(orgId: string, tournamentId: string, matchGroupId: string, onChange: (matches: TeamMatch[]) => void): () => void {
         const collectionRef = this.getCollectionRef(orgId, tournamentId, matchGroupId);
         const q = query(collectionRef, orderBy("sortOrder", "asc"));

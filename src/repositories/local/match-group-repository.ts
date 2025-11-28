@@ -23,11 +23,15 @@ export class LocalMatchGroupRepository {
     }
 
     async delete(matchGroupId: string): Promise<void> {
-        await db.matchGroups.where({ matchGroupId }).modify({ _deleted: true, isSynced: false });
+        await db.transaction('rw', db.matchGroups, db.teamMatches, async () => {
+            await db.matchGroups.where({ matchGroupId }).modify({ _deleted: true, isSynced: false });
+        });
     }
 
     async hardDelete(matchGroupId: string): Promise<void> {
-        await db.matchGroups.where({ matchGroupId }).delete();
+        await db.transaction('rw', db.matchGroups, db.teamMatches, async () => {
+            await db.matchGroups.where({ matchGroupId }).delete();
+        });
     }
 
     async deleteByTournament(orgId: string, tournamentId: string): Promise<void> {
