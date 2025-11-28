@@ -1,4 +1,5 @@
 import { db, LocalMatch, LocalTournament, LocalMatchGroup, LocalTeamMatch, LocalTeam } from '@/lib/db';
+import { FirestoreTournamentRepository } from '@/repositories/firestore/tournament-repository';
 import { FirestoreMatchRepository } from '@/repositories/firestore/match-repository';
 import { FirestoreMatchGroupRepository } from '@/repositories/firestore/match-group-repository';
 import { FirestoreTeamMatchRepository } from '@/repositories/firestore/team-match-repository';
@@ -8,7 +9,6 @@ import { localTournamentRepository } from '@/repositories/local/tournament-repos
 import { localMatchGroupRepository } from '@/repositories/local/match-group-repository';
 import { localTeamMatchRepository } from '@/repositories/local/team-match-repository';
 import { localTeamRepository } from '@/repositories/local/team-repository';
-import { tournamentSchema } from '@/types/tournament.schema';
 import type { Match, MatchGroup, TeamMatch, MatchCreateWithId } from '@/types/match.schema';
 import type { Tournament } from '@/types/tournament.schema';
 import type { Team } from '@/types/team.schema';
@@ -26,14 +26,12 @@ interface FetchedData {
     teams: Team[];
 }
 
+const tournamentRepository = new FirestoreTournamentRepository();
+
 async function fetchFromFirestore(orgId: string, tournamentId: string): Promise<FetchedData> {
     // Tournament
-    const tournamentRes = await fetch(`/api/tournaments/${orgId}/${tournamentId}`);
-    if (!tournamentRes.ok) throw new Error("大会データの取得に失敗しました");
-    const { tournament: rawTournament } = await tournamentRes.json();
-
-    // Zodスキーマを使って検証＆型変換（文字列日付 -> Dateオブジェクト）
-    const tournament = tournamentSchema.parse(rawTournament);
+    const tournament = await tournamentRepository.getById(orgId, tournamentId);
+    if (!tournament) throw new Error("大会データの取得に失敗しました");
 
     const tournamentType = tournament.tournamentType || 'individual';
 
@@ -220,6 +218,8 @@ export const syncService = {
                     players: match.players,
                     sortOrder: match.sortOrder,
                     isCompleted: match.isCompleted,
+                    winner: match.winner,
+                    winReason: match.winReason,
                 };
                 await matchRepository.save(orgId, tournamentId, matchData);
             },

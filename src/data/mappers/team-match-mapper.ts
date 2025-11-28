@@ -16,6 +16,8 @@ export interface FirestoreTeamMatchDoc {
         playerB: FirestoreMatchPlayerDoc;
     };
     isCompleted: boolean;
+    winner?: "playerA" | "playerB" | "draw" | "none" | null;
+    winReason?: "ippon" | "hantei" | "hansoku" | "fusen" | "none" | null;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -41,6 +43,8 @@ export class TeamMatchMapper {
                 playerB: this.playerToDomain(doc.players.playerB),
             },
             isCompleted: doc.isCompleted,
+            winner: doc.winner || "none",
+            winReason: doc.winReason || "none",
             createdAt: doc.createdAt.toDate(),
             updatedAt: doc.updatedAt.toDate(),
         };
@@ -78,6 +82,8 @@ export class TeamMatchMapper {
                 playerB: this.playerToFirestore(match.players.playerB),
             },
             isCompleted: false,
+            winner: "none",
+            winReason: "none",
         };
     }
 
@@ -91,6 +97,8 @@ export class TeamMatchMapper {
         }
         if (match.sortOrder !== undefined) data.sortOrder = match.sortOrder;
         if (match.isCompleted !== undefined) data.isCompleted = match.isCompleted;
+        if (match.winner !== undefined) data.winner = match.winner;
+        if (match.winReason !== undefined) data.winReason = match.winReason;
         if (match.players) {
             data.players = {
                 playerA: this.playerToFirestore(match.players.playerA),

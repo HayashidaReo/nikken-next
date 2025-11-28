@@ -65,6 +65,8 @@ export default function ManualMonitorControlPage() {
                     },
                 },
                 isCompleted: false,
+                winner: "none",
+                winReason: "none",
                 createdAt: new Date(),
                 updatedAt: new Date(),
             },

@@ -6,6 +6,7 @@ export interface MatchGroupSetupData {
     teamAId: string;
     teamBId: string;
     sortOrder: number;
+    isCompleted: boolean;
 }
 
 export interface TeamMatchSetupData {

@@ -7,7 +7,7 @@ const nextDir = path.join(rootDir, ".next");
 const standaloneDir = path.join(nextDir, "standalone");
 
 console.log("Building Next.js app...");
-execSync("npm run build", { stdio: "inherit", cwd: rootDir });
+execSync("npm run build:no-pwa", { stdio: "inherit", cwd: rootDir });
 
 console.log("Copying public folder...");
 const publicDir = path.join(rootDir, "public");

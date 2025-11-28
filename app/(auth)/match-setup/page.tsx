@@ -174,6 +174,8 @@ export default function MatchSetupPage() {
             },
             // 新規作成時は試合未完了
             isCompleted: false,
+            winner: "none",
+            winReason: "none",
           };
         });
 

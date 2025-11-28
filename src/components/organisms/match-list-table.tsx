@@ -13,6 +13,7 @@ import type { Match } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
 import { useMasterData } from "@/components/providers/master-data-provider";
+import { WIN_REASON_LABELS } from "@/lib/constants";
 
 interface MatchListTableProps {
   matches: Match[];
@@ -29,9 +30,19 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
   const teamsArray = useMemo(() => Array.from(teams.values()), [teams]);
   const playerDirectory = useMemo(() => createPlayerDirectory(teamsArray), [teamsArray]);
 
-  const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean) => {
+  const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean, winner: "playerA" | "playerB" | "draw" | "none" | null | undefined, isPlayerA: boolean) => {
+    if (!isCompleted) return SCORE_COLORS.unplayed;
+
+    if (winner) {
+      if (winner === "draw") return SCORE_COLORS.draw;
+      if (isPlayerA && winner === "playerA") return SCORE_COLORS.win;
+      if (!isPlayerA && winner === "playerB") return SCORE_COLORS.win;
+      return SCORE_COLORS.loss;
+    }
+
+    // Fallback to score comparison if winner is not set (legacy data)
     if (playerScore === 0 && opponentScore === 0) {
-      return isCompleted ? SCORE_COLORS.draw : SCORE_COLORS.unplayed;
+      return SCORE_COLORS.draw;
     }
     if (playerScore > opponentScore) return SCORE_COLORS.win;
     if (playerScore === opponentScore) return SCORE_COLORS.draw;
@@ -58,8 +69,12 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
         const playerB = resolveMatchPlayer(match.players.playerB, playerDirectory);
         const courtName = courts.get(match.courtId)?.courtName || "";
         const roundName = rounds.get(match.roundId)?.roundName || "";
-        const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted);
-        const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted);
+        const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted, match.winner, true);
+        const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted, match.winner, false);
+
+        const winReasonLabel = match.winReason && match.winReason !== "none"
+          ? WIN_REASON_LABELS[match.winReason]
+          : "";
 
 
         return (
@@ -79,6 +94,9 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
               playerBHansoku={playerB.hansoku as HansokuLevel}
               isCompleted={match.isCompleted}
             />
+            {winReasonLabel && (
+              <div className="text-[10px] text-gray-500 text-center -mt-1">{winReasonLabel}</div>
+            )}
             <PlayerCell text={playerB.teamName} title={playerB.teamName} colorClass={playerBColor} />
             <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} />
             <ActionCell

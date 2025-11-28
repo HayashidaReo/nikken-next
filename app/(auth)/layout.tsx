@@ -6,6 +6,7 @@ import { ROUTES } from "@/lib/constants";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
 import { MonitorSyncProvider } from "@/components/providers/monitor-sync-provider";
+import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 
 export default function AuthLayout({
     children,
@@ -14,6 +15,8 @@ export default function AuthLayout({
 }) {
     const router = useRouter();
     const { user, isInitialized, isLoading } = useAuthStore();
+    // ログイン時に自動的に大会データを取得・同期する
+    useTournamentsByOrganization(user?.uid ?? null);
 
     useEffect(() => {
         // 初期化が完了し、ローディング中でない場合のみチェック

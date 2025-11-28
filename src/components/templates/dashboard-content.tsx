@@ -9,6 +9,7 @@ import type { Court, Round } from "@/types/tournament.schema";
 import { MasterDataProvider } from "@/components/providers/master-data-provider";
 import { SCORE_COLORS } from "@/lib/ui-constants";
 import { cn } from "@/lib/utils/utils";
+import { calculateTeamMatchWins } from "@/domains/match/team-match-logic";
 
 interface DashboardContentProps {
     tournamentType: "individual" | "team";
@@ -43,12 +44,7 @@ export function DashboardContent({
                 const teamB = teams.find((t) => t.teamId === group?.teamBId)?.teamName || "";
 
                 // 勝利数の集計
-                let winsA = 0;
-                let winsB = 0;
-                teamMatches.forEach((m) => {
-                    if (m.players.playerA.score > m.players.playerB.score) winsA++;
-                    else if (m.players.playerB.score > m.players.playerA.score) winsB++;
-                });
+                const { winsA, winsB } = calculateTeamMatchWins(teamMatches);
 
                 // 色の決定ロジック
                 const getTeamColor = (myWins: number, opponentWins: number) => {

@@ -64,6 +64,7 @@ export class LocalMatchGroupRepository {
             organizationId: orgId,
             tournamentId,
             isSynced: false,
+            isCompleted: false,
             createdAt: now,
             updatedAt: now,
         };

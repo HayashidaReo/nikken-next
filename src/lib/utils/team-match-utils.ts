@@ -1,4 +1,4 @@
-import type { TeamMatch } from "@/types/match.schema";
+import type { TeamMatch, WinReason } from "@/types/match.schema";
 import type { MonitorData } from "@/types/monitor.schema";
 import { PlayerDirectoryMaps, resolveMatchPlayer } from "@/lib/utils/player-directory";
 
@@ -22,10 +22,17 @@ export function createMonitorGroupMatches(
             const pA = resolveMatchPlayer(m.players.playerA, playerDirectory);
             const pB = resolveMatchPlayer(m.players.playerB, playerDirectory);
             let winner: "playerA" | "playerB" | "draw" | "none" = "none";
+            let winReason: WinReason = "none";
             if (m.isCompleted) {
-                if (pA.score > pB.score) winner = "playerA";
-                else if (pB.score > pA.score) winner = "playerB";
-                else winner = "draw";
+                if (m.winner) {
+                    winner = m.winner;
+                    winReason = m.winReason || "none";
+                } else {
+                    if (pA.score > pB.score) winner = "playerA";
+                    else if (pB.score > pA.score) winner = "playerB";
+                    else winner = "draw";
+                    winReason = "ippon"; // デフォルト
+                }
             }
             return {
                 matchId: m.matchId || "",
@@ -45,6 +52,7 @@ export function createMonitorGroupMatches(
                 },
                 isCompleted: m.isCompleted,
                 winner,
+                winReason,
             };
         });
 }

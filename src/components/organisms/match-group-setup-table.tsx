@@ -62,6 +62,7 @@ export function MatchGroupSetupTable({
                 teamAId: g.teamAId,
                 teamBId: g.teamBId,
                 sortOrder: g.sortOrder,
+                isCompleted: g.isCompleted ?? false,
             };
         })
     );
@@ -182,6 +183,7 @@ export function MatchGroupSetupTable({
                 teamAId: "",
                 teamBId: "",
                 sortOrder: maxSortOrder + 1,
+                isCompleted: false,
             },
         ]);
     };
@@ -218,7 +220,8 @@ export function MatchGroupSetupTable({
         { key: "round", label: "ラウンド", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.round },
         { key: "teamA", label: "チームA", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.teamA },
         { key: "teamB", label: "チームB", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.teamB },
-        { key: "action", label: "操作", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
+        { key: "action", label: "削除", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
+        { key: "details", label: "詳細", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.details, className: "text-center" },
     ];
 
     return (
