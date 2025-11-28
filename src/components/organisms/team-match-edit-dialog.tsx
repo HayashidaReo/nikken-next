@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/atoms/button";
 import { Label } from "@/components/atoms/label";
 import {
@@ -10,8 +9,7 @@ import {
 } from "@/components/atoms/card";
 import type { TeamMatch, WinReason } from "@/types/match.schema";
 import { winReasonEnum } from "@/types/match.schema";
-import { useTeamMatchController } from "@/hooks/useTeamMatchController";
-import { createMatchResultUpdateObject } from "@/domains/match/team-match-logic";
+import { useTeamMatchEditForm } from "@/hooks/useTeamMatchEditForm";
 import { SearchableSelect } from "../molecules/searchable-select";
 import { ModalDialog } from "../molecules/modal-dialog";
 import { ScoreSelector } from "../molecules/score-selector";
@@ -36,61 +34,37 @@ export function TeamMatchEditDialog({
     playerATeamName,
     playerBTeamName,
 }: TeamMatchEditDialogProps) {
-    const { handleSaveMatchResult } = useTeamMatchController();
+    const { formState, setters, actions } = useTeamMatchEditForm({
+        match,
+        isOpen,
+        onClose,
+    });
 
-    const [winner, setWinner] = useState<"playerA" | "playerB" | "draw" | "none" | null>(match.winner);
-    const [winReason, setWinReason] = useState<WinReason | null>(match.winReason);
-    const [playerAScore, setPlayerAScore] = useState(match.players.playerA.score);
-    const [playerBScore, setPlayerBScore] = useState(match.players.playerB.score);
-    const [playerAHansoku, setPlayerAHansoku] = useState(match.players.playerA.hansoku);
-    const [playerBHansoku, setPlayerBHansoku] = useState(match.players.playerB.hansoku);
-    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const {
+        winner,
+        winReason,
+        playerAScore,
+        playerBScore,
+        playerAHansoku,
+        playerBHansoku,
+        showResetConfirm,
+    } = formState;
 
-    useEffect(() => {
-        if (isOpen) {
-            setWinner(match.winner);
-            setWinReason(match.winReason);
-            setPlayerAScore(match.players.playerA.score);
-            setPlayerBScore(match.players.playerB.score);
-            setPlayerAHansoku(match.players.playerA.hansoku);
-            setPlayerBHansoku(match.players.playerB.hansoku);
-        }
-        // matchを依存配列から外して、編集中にリセットされないようにする
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen]);
+    const {
+        setWinner,
+        setWinReason,
+        setPlayerAScore,
+        setPlayerBScore,
+        setPlayerAHansoku,
+        setPlayerBHansoku,
+    } = setters;
 
-    const handleSave = async () => {
-        const updateObject = createMatchResultUpdateObject(match, {
-            playerAScore,
-            playerBScore,
-            playerAHansoku: playerAHansoku ?? 0,
-            playerBHansoku: playerBHansoku ?? 0,
-            winner: winner || "none",
-            winReason: winReason || "none",
-            isCompleted: true,
-        });
-        await handleSaveMatchResult(updateObject);
-        onClose();
-    };
-
-    const handleResetClick = () => {
-        setShowResetConfirm(true);
-    };
-
-    const executeReset = async () => {
-        const updateObject = createMatchResultUpdateObject(match, {
-            playerAScore: 0,
-            playerBScore: 0,
-            playerAHansoku: 0,
-            playerBHansoku: 0,
-            winner: "none",
-            winReason: "none",
-            isCompleted: false,
-        });
-        await handleSaveMatchResult(updateObject);
-        setShowResetConfirm(false);
-        onClose();
-    };
+    const {
+        handleSave,
+        handleResetClick,
+        executeReset,
+        closeResetConfirm,
+    } = actions;
 
     const winnerOptions = [
         { value: "none", label: "なし" },
@@ -206,7 +180,7 @@ export function TeamMatchEditDialog({
                 </CardContent>
             </ModalDialog>
 
-            <ModalDialog isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} className="max-w-md">
+            <ModalDialog isOpen={showResetConfirm} onClose={closeResetConfirm} className="max-w-md">
                 <CardHeader>
                     <CardTitle>試合結果のリセット</CardTitle>
                 </CardHeader>
@@ -216,7 +190,7 @@ export function TeamMatchEditDialog({
                         この操作は取り消せません。
                     </p>
                     <div className="flex gap-3 pt-4">
-                        <Button variant="outline" onClick={() => setShowResetConfirm(false)} className="flex-1">キャンセル</Button>
+                        <Button variant="outline" onClick={closeResetConfirm} className="flex-1">キャンセル</Button>
                         <Button variant="destructive" onClick={executeReset} className="flex-1">リセットする</Button>
                     </div>
                 </CardContent>
