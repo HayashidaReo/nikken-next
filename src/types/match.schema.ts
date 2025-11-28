@@ -135,7 +135,7 @@ export const matchUpdateRequestSchema = z.object({
     }),
   }),
   winner: z.enum(["playerA", "playerB", "draw", "none"]).nullable(),
-  winReason: z.string().nullable(),
+  winReason: winReasonEnum.nullable(),
 });
 
 // TypeScriptの型を自動導出
