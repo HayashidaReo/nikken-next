@@ -81,6 +81,7 @@ export function TeamMatchEditDialog({
             winner: winner || "none",
             winReason: winReason || "none",
         });
+        onClose();
     };
 
     const handleResetClick = () => {
@@ -146,7 +147,7 @@ export function TeamMatchEditDialog({
                                                 <Button
                                                     key={opt.value}
                                                     variant={playerAScore === opt.value ? "default" : "outline"}
-                                                    className={`h-12 w-12 text-lg font-bold ${playerAScore === opt.value ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}
+                                                    className={`h-12 w-12 text-lg font-bold ${playerAScore === opt.value ? "bg-blue-600 text-white" : "bg-white text-slate-700"}`}
                                                     onClick={() => setPlayerAScore(opt.value)}
                                                 >
                                                     {opt.label}
@@ -157,11 +158,11 @@ export function TeamMatchEditDialog({
 
                                     <div className="space-y-2 flex flex-col items-center">
                                         <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">反則</Label>
-                                        <div className="flex items-center gap-3 h-24">
-                                            <div className="flex items-center justify-center min-w-[40px]">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="flex items-center justify-center">
                                                 <PenaltyDisplay hansokuCount={(playerAHansoku ?? 0) as HansokuLevel} variant="medium" />
                                             </div>
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex gap-1">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -210,7 +211,7 @@ export function TeamMatchEditDialog({
                                                 <Button
                                                     key={opt.value}
                                                     variant={playerBScore === opt.value ? "default" : "outline"}
-                                                    className={`h-12 w-12 text-lg font-bold ${playerBScore === opt.value ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}
+                                                    className={`h-12 w-12 text-lg font-bold ${playerBScore === opt.value ? "bg-blue-600 text-white hover:bg-slate-900" : "bg-white text-slate-700"}`}
                                                     onClick={() => setPlayerBScore(opt.value)}
                                                 >
                                                     {opt.label}
@@ -220,11 +221,11 @@ export function TeamMatchEditDialog({
                                     </div>
                                     <div className="space-y-2 flex flex-col items-center">
                                         <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">反則</Label>
-                                        <div className="flex items-center gap-3 h-24">
-                                            <div className="flex items-center justify-center min-w-[40px]">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="flex items-center justify-center">
                                                 <PenaltyDisplay hansokuCount={(playerBHansoku ?? 0) as HansokuLevel} variant="medium" />
                                             </div>
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex gap-1">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -294,7 +295,7 @@ export function TeamMatchEditDialog({
                         <Button variant="ghost" onClick={handleResetClick} className="h-12 px-8 text-red-500 hover:text-red-700 hover:bg-red-50">リセット</Button>
                         <div className="flex gap-2">
                             <Button variant="outline" onClick={onClose} className="h-12 px-8 bg-white hover:bg-slate-50 text-slate-700 border-slate-200">キャンセル</Button>
-                            <Button onClick={handleSave} className="h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white">保存する</Button>
+                            <Button onClick={handleSave} className="h-12 px-8 bg-blue-600 text-white">保存する</Button>
                         </div>
                     </DialogFooter>
                 </DialogContent>
