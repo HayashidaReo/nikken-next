@@ -123,11 +123,20 @@ export class FirestoreTeamMatchRepository implements TeamMatchRepository {
 
         if (snapshot.empty) return;
 
-        const batch = writeBatch(db);
-        snapshot.docs.forEach(doc => {
-            batch.delete(doc.ref);
-        });
-        await batch.commit();
+        const CHUNK_SIZE = 500;
+        const chunks = [];
+
+        for (let i = 0; i < snapshot.docs.length; i += CHUNK_SIZE) {
+            chunks.push(snapshot.docs.slice(i, i + CHUNK_SIZE));
+        }
+
+        for (const chunk of chunks) {
+            const batch = writeBatch(db);
+            chunk.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        }
     }
 
     listenAll(orgId: string, tournamentId: string, matchGroupId: string, onChange: (matches: TeamMatch[]) => void): () => void {
