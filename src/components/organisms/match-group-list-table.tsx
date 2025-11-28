@@ -9,6 +9,8 @@ import { Button } from "@/components/atoms/button";
 import { ArrowRight, Check } from "lucide-react";
 import type { MatchGroup } from "@/types/match.schema";
 import { useMasterData } from "@/components/providers/master-data-provider";
+import { MultiSelectDropdown } from "@/components/molecules/multi-select-dropdown";
+import { useMatchGroupFilter } from "@/hooks/useMatchGroupFilter";
 
 interface MatchGroupListTableProps {
     matchGroups: MatchGroup[];
@@ -19,14 +21,45 @@ interface MatchGroupListTableProps {
 export function MatchGroupListTable({ matchGroups, tournamentName, className }: MatchGroupListTableProps) {
     const router = useRouter();
     const { teams, courts, rounds } = useMasterData();
+    const {
+        selectedCourtIds,
+        setSelectedCourtIds,
+        selectedRoundIds,
+        setSelectedRoundIds,
+        courtOptions,
+        roundOptions,
+        filteredMatchGroups,
+    } = useMatchGroupFilter(matchGroups);
 
     return (
         <MatchTable
             title={tournamentName}
             columns={[
                 { key: "status", label: "", width: 40, className: "text-center" },
-                { key: "court", label: "コート名", width: 150 },
-                { key: "round", label: "回戦", width: 100 },
+                {
+                    key: "court",
+                    label: (
+                        <MultiSelectDropdown
+                            label="コート名"
+                            options={courtOptions}
+                            selectedValues={selectedCourtIds}
+                            onSelectionChange={setSelectedCourtIds}
+                        />
+                    ),
+                    width: 150,
+                },
+                {
+                    key: "round",
+                    label: (
+                        <MultiSelectDropdown
+                            label="回戦"
+                            options={roundOptions}
+                            selectedValues={selectedRoundIds}
+                            onSelectionChange={setSelectedRoundIds}
+                        />
+                    ),
+                    width: 100,
+                },
                 { key: "teamA", label: "チームA", width: 200 },
                 { key: "vs", label: "", width: 50, className: "text-center" },
                 { key: "teamB", label: "チームB", width: 200 },
@@ -34,7 +67,7 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
             ]}
             className={className}
         >
-            {matchGroups.map((group) => {
+            {filteredMatchGroups.map((group) => {
                 const courtName = courts.get(group.courtId)?.courtName || "";
                 const roundName = rounds.get(group.roundId)?.roundName || "";
                 const teamAName = teams.get(group.teamAId)?.teamName || "不明なチーム";
