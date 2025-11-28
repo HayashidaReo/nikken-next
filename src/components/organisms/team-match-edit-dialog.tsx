@@ -17,6 +17,8 @@ import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import type { TeamMatch, WinReason } from "@/types/match.schema";
 import { winReasonEnum } from "@/types/match.schema";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
+import { SCORE_OPTIONS } from "@/lib/constants";
+import { createMatchResultUpdateObject } from "@/domains/match/team-match-logic";
 
 interface TeamMatchEditDialogProps {
     isOpen: boolean;
@@ -61,26 +63,16 @@ export function TeamMatchEditDialog({
     }, [isOpen]);
 
     const handleSave = async () => {
-        await handleSaveMatchResult({
-            matchId: match.matchId || "",
-            roundId: match.roundId,
-            sortOrder: match.sortOrder,
-            players: {
-                playerA: {
-                    ...match.players.playerA,
-                    score: playerAScore,
-                    hansoku: playerAHansoku,
-                },
-                playerB: {
-                    ...match.players.playerB,
-                    score: playerBScore,
-                    hansoku: playerBHansoku,
-                },
-            },
-            isCompleted: true, // 編集保存時は完了扱いとする
+        const updateObject = createMatchResultUpdateObject(match, {
+            playerAScore,
+            playerBScore,
+            playerAHansoku: playerAHansoku ?? 0,
+            playerBHansoku: playerBHansoku ?? 0,
             winner: winner || "none",
             winReason: winReason || "none",
+            isCompleted: true,
         });
+        await handleSaveMatchResult(updateObject);
         onClose();
     };
 
@@ -89,35 +81,19 @@ export function TeamMatchEditDialog({
     };
 
     const executeReset = async () => {
-        await handleSaveMatchResult({
-            matchId: match.matchId || "",
-            roundId: match.roundId,
-            sortOrder: match.sortOrder,
-            players: {
-                playerA: {
-                    ...match.players.playerA,
-                    score: 0,
-                    hansoku: 0,
-                },
-                playerB: {
-                    ...match.players.playerB,
-                    score: 0,
-                    hansoku: 0,
-                },
-            },
-            isCompleted: false,
+        const updateObject = createMatchResultUpdateObject(match, {
+            playerAScore: 0,
+            playerBScore: 0,
+            playerAHansoku: 0,
+            playerBHansoku: 0,
             winner: "none",
             winReason: "none",
+            isCompleted: false,
         });
+        await handleSaveMatchResult(updateObject);
         setShowResetConfirm(false);
         onClose();
     };
-
-    const scoreOptions = [
-        { value: 0, label: "0" },
-        { value: 1, label: "1" },
-        { value: 2, label: "2" },
-    ];
 
     return (
         <>
@@ -143,7 +119,7 @@ export function TeamMatchEditDialog({
                                     <div className="space-y-2 text-center">
                                         <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">スコア</Label>
                                         <div className="flex justify-center gap-1">
-                                            {scoreOptions.map((opt) => (
+                                            {SCORE_OPTIONS.map((opt) => (
                                                 <Button
                                                     key={opt.value}
                                                     variant={playerAScore === opt.value ? "default" : "outline"}
@@ -208,7 +184,7 @@ export function TeamMatchEditDialog({
                                     <div className="space-y-2 text-center">
                                         <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">スコア</Label>
                                         <div className="flex justify-center gap-1">
-                                            {scoreOptions.map((opt) => (
+                                            {SCORE_OPTIONS.map((opt) => (
                                                 <Button
                                                     key={opt.value}
                                                     variant={playerBScore === opt.value ? "default" : "outline"}

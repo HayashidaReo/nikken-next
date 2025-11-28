@@ -1,4 +1,4 @@
-import { TeamMatch } from "@/types/match.schema";
+import { TeamMatch, WinReason } from "@/types/match.schema";
 import { Team } from "@/types/team.schema";
 import { TEAM_MATCH_CONSTANTS } from "@/lib/constants";
 
@@ -95,4 +95,45 @@ export function analyzeTeamMatchStatus(
     }
 
     return { isAllFinished, needsRepMatch };
+}
+
+/**
+ * 試合結果保存用のオブジェクトを作成する
+ * 
+ * @param match - 元の試合データ
+ * @param result - 更新する結果データ
+ * @returns 保存用の試合データオブジェクト
+ */
+export function createMatchResultUpdateObject(
+    match: TeamMatch,
+    result: {
+        playerAScore: number;
+        playerBScore: number;
+        playerAHansoku: number;
+        playerBHansoku: number;
+        winner: "playerA" | "playerB" | "draw" | "none";
+        winReason: WinReason;
+        isCompleted: boolean;
+    }
+) {
+    return {
+        matchId: match.matchId || "",
+        roundId: match.roundId,
+        sortOrder: match.sortOrder,
+        players: {
+            playerA: {
+                ...match.players.playerA,
+                score: result.playerAScore,
+                hansoku: result.playerAHansoku,
+            },
+            playerB: {
+                ...match.players.playerB,
+                score: result.playerBScore,
+                hansoku: result.playerBHansoku,
+            },
+        },
+        isCompleted: result.isCompleted,
+        winner: result.winner,
+        winReason: result.winReason,
+    };
 }

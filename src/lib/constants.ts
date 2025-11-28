@@ -149,6 +149,12 @@ export const SCORE_CONSTANTS = {
   RED_HANSOKU_DIVISOR: 2,
 } as const;
 
+export const SCORE_OPTIONS = [
+  { value: 0, label: "0" },
+  { value: 1, label: "1" },
+  { value: 2, label: "2" },
+];
+
 // 🔴 反則ルール関連定数
 export const HANSOKU_CONSTANTS = {
   /** 最小反則数 */
