@@ -81,6 +81,7 @@ export function MonitorControlHeader({
                 </div>
 
                 <div className="flex items-center gap-3">
+                    {/* 団体戦: 試合確定ボタン */}
                     {activeTournamentType === "team" && viewMode === "scoreboard" && (
                         <Button onClick={onConfirmMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
                             試合確定
@@ -88,6 +89,15 @@ export function MonitorControlHeader({
                             <ChevronRight className="w-4 h-4" />
                         </Button>
                     )}
+                    {/* 個人戦: 試合確定ボタン */}
+                    {activeTournamentType !== "team" && viewMode === "scoreboard" && (
+                        <Button onClick={onConfirmMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
+                            試合確定
+                            <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
+                    )}
+                    {/* 団体戦: 次の試合へボタン */}
                     {activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished && (
                         <Button onClick={onNextMatch} variant="default" className="bg-green-600 hover:bg-green-700 gap-2">
                             次の試合へ
@@ -95,7 +105,16 @@ export function MonitorControlHeader({
                             <ChevronRight className="w-4 h-4" />
                         </Button>
                     )}
+                    {/* 団体戦: 一覧へ戻るボタン（全試合終了時） */}
                     {activeTournamentType === "team" && viewMode === "match_result" && isAllFinished && (
+                        <Button onClick={onBackToDashboard} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
+                            一覧へ戻る
+                            <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
+                    )}
+                    {/* 個人戦: 一覧へ戻るボタン（試合確定後） */}
+                    {activeTournamentType !== "team" && viewMode === "match_result" && (
                         <Button onClick={onBackToDashboard} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
                             一覧へ戻る
                             <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
@@ -116,7 +135,7 @@ export function MonitorControlHeader({
                         )}
                     </Button>
 
-                    {activeTournamentType !== "team" && (
+                    {activeTournamentType !== "team" && viewMode === "scoreboard" && (
                         <div className="flex items-center gap-2">
                             <Button onClick={onSave} size="sm" disabled={isSaving}>
                                 <Save className="w-4 h-4 mr-2" />

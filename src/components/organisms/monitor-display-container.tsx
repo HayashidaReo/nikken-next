@@ -5,6 +5,7 @@ import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
 import { useBuzzer } from "@/hooks/useBuzzer";
 import { MonitorGroupResults } from "./monitor-group-results";
+import { MonitorIndividualMatchResult } from "./monitor-individual-match-result";
 
 interface MonitorDisplayContainerProps {
   className?: string;
@@ -61,30 +62,58 @@ export function MonitorDisplayContainer({
 
   // モードによる分岐
   if (data.viewMode === "match_result") {
-    // groupMatchesがない場合は空配列（個人戦などはこのビューを使用しない前提）
-    const displayMatches = data.groupMatches || [];
-
-    return (
-      <div
-        className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
-      >
+    // groupMatchesがある場合は団体戦の結果表示
+    if (data.groupMatches && data.groupMatches.length > 0) {
+      return (
         <div
-          style={{
-            width: MONITOR_CONSTANTS.BASE_WIDTH,
-            height: MONITOR_CONSTANTS.BASE_HEIGHT,
-            transform: `scale(${scale})`,
-            transformOrigin: "center",
-          }}
-          className="bg-black flex-shrink-0 flex items-center justify-center"
+          className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
         >
-          <MonitorGroupResults
-            groupMatches={displayMatches}
-            currentMatchId={data.matchId}
-            className="w-full h-full"
-          />
+          <div
+            style={{
+              width: MONITOR_CONSTANTS.BASE_WIDTH,
+              height: MONITOR_CONSTANTS.BASE_HEIGHT,
+              transform: `scale(${scale})`,
+              transformOrigin: "center",
+            }}
+            className="bg-black flex-shrink-0 flex items-center justify-center"
+          >
+            <MonitorGroupResults
+              groupMatches={data.groupMatches}
+              currentMatchId={data.matchId}
+              className="w-full h-full"
+            />
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+
+    // 個人戦の結果表示（matchResultがある場合）
+    if (data.matchResult) {
+      return (
+        <div
+          className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
+        >
+          <div
+            style={{
+              width: MONITOR_CONSTANTS.BASE_WIDTH,
+              height: MONITOR_CONSTANTS.BASE_HEIGHT,
+              transform: `scale(${scale})`,
+              transformOrigin: "center",
+            }}
+            className="bg-black flex-shrink-0 flex items-center justify-center"
+          >
+            <MonitorIndividualMatchResult
+              playerA={data.matchResult.playerA}
+              playerB={data.matchResult.playerB}
+              roundName={data.roundName}
+              winner={data.matchResult.winner}
+              isCompleted={true}
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+      );
+    }
   }
 
   return (
