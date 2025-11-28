@@ -1,13 +1,41 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { MatchGroup } from "@/types/match.schema";
 import { useMasterData } from "@/components/providers/master-data-provider";
-import { MATCH_GROUP_STATUS_OPTIONS } from "@/lib/constants";
+import { MATCH_GROUP_STATUS_OPTIONS, MATCH_GROUP_STATUS } from "@/lib/constants";
+import { useSessionStorage } from "./useSessionStorage";
+
+const FILTER_STORAGE_KEY = "nikken-match-group-filters";
+
+interface MatchGroupFilters {
+    courtIds: string[];
+    roundIds: string[];
+    statusValues: string[];
+}
 
 export const useMatchGroupFilter = (matchGroups: MatchGroup[]) => {
     const { courts, rounds } = useMasterData();
-    const [selectedCourtIds, setSelectedCourtIds] = useState<string[]>([]);
-    const [selectedRoundIds, setSelectedRoundIds] = useState<string[]>([]);
-    const [selectedStatusValues, setSelectedStatusValues] = useState<string[]>([]);
+
+    // SessionStorageからフィルター状態を復元
+    const [filters, setFilters] = useSessionStorage<MatchGroupFilters>(
+        FILTER_STORAGE_KEY,
+        {
+            courtIds: [],
+            roundIds: [],
+            statusValues: [],
+        }
+    );
+
+    const setSelectedCourtIds = (courtIds: string[]) => {
+        setFilters(prev => ({ ...prev, courtIds }));
+    };
+
+    const setSelectedRoundIds = (roundIds: string[]) => {
+        setFilters(prev => ({ ...prev, roundIds }));
+    };
+
+    const setSelectedStatusValues = (statusValues: string[]) => {
+        setFilters(prev => ({ ...prev, statusValues }));
+    };
 
     // 選択肢の生成
     const courtOptions = useMemo(() => {
@@ -36,23 +64,23 @@ export const useMatchGroupFilter = (matchGroups: MatchGroup[]) => {
     const filteredMatchGroups = useMemo(() => {
         return matchGroups.filter((group) => {
             const courtMatch =
-                selectedCourtIds.length === 0 || selectedCourtIds.includes(group.courtId);
+                filters.courtIds.length === 0 || filters.courtIds.includes(group.courtId);
             const roundMatch =
-                selectedRoundIds.length === 0 || selectedRoundIds.includes(group.roundId);
+                filters.roundIds.length === 0 || filters.roundIds.includes(group.roundId);
             const statusMatch =
-                selectedStatusValues.length === 0 ||
-                (selectedStatusValues.includes("completed") && group.isCompleted) ||
-                (selectedStatusValues.includes("incomplete") && !group.isCompleted);
+                filters.statusValues.length === 0 ||
+                (filters.statusValues.includes(MATCH_GROUP_STATUS.COMPLETED) && group.isCompleted) ||
+                (filters.statusValues.includes(MATCH_GROUP_STATUS.INCOMPLETE) && !group.isCompleted);
             return courtMatch && roundMatch && statusMatch;
         });
-    }, [matchGroups, selectedCourtIds, selectedRoundIds, selectedStatusValues]);
+    }, [matchGroups, filters.courtIds, filters.roundIds, filters.statusValues]);
 
     return {
-        selectedCourtIds,
+        selectedCourtIds: filters.courtIds,
         setSelectedCourtIds,
-        selectedRoundIds,
+        selectedRoundIds: filters.roundIds,
         setSelectedRoundIds,
-        selectedStatusValues,
+        selectedStatusValues: filters.statusValues,
         setSelectedStatusValues,
         courtOptions,
         roundOptions,
