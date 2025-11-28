@@ -218,6 +218,8 @@ export const syncService = {
                     players: match.players,
                     sortOrder: match.sortOrder,
                     isCompleted: match.isCompleted,
+                    winner: match.winner,
+                    winReason: match.winReason,
                 };
                 await matchRepository.save(orgId, tournamentId, matchData);
             },

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Match, TeamMatch } from "@/types/match.schema";
+import type { Match, TeamMatch, WinReason } from "@/types/match.schema";
 import type { ResolvedMatchPlayer } from "@/lib/utils/player-directory";
 import type { MonitorData, MonitorPlayer } from "@/types/monitor.schema";
 import { SCORE_CONSTANTS, HANSOKU_CONSTANTS } from "@/lib/constants";
@@ -47,6 +47,7 @@ export interface MonitorState {
     playerA: MonitorPlayer;
     playerB: MonitorPlayer;
     winner: "playerA" | "playerB" | "draw" | "none";
+    winReason: WinReason | null;
   };
   teamMatchResults?: MonitorData["teamMatchResults"];
   groupMatches?: MonitorData["groupMatches"];

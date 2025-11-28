@@ -100,6 +100,7 @@ export function useMatchAction({
             playerA: snapshot.playerA,
             playerB: snapshot.playerB,
             winner,
+            winReason: "ippon",
         });
 
         // 団体戦の場合、グループ内の全試合を取得
@@ -125,6 +126,7 @@ export function useMatchAction({
             playerA: snapshot.playerA,
             playerB: snapshot.playerB,
             winner,
+            winReason: reason,
         });
 
         // 団体戦の場合、グループ内の全試合を取得

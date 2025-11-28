@@ -29,6 +29,8 @@ const mockMatch: Match = {
   updatedAt: new Date(),
   sortOrder: 1,
   isCompleted: false,
+  winner: "none",
+  winReason: "none",
 };
 
 const resolvedPlayers = {
@@ -145,6 +147,7 @@ describe("useMonitorStore", () => {
           playerB: { displayName: "B1", teamName: "T2", score: 0, hansoku: 0 },
           isCompleted: true,
           winner: "playerA" as const,
+          winReason: "ippon" as const,
         },
         {
           matchId: "m2",
@@ -152,6 +155,8 @@ describe("useMonitorStore", () => {
           playerA: { displayName: "A2", teamName: "T1", score: 0, hansoku: 0 },
           playerB: { displayName: "B2", teamName: "T2", score: 0, hansoku: 0 },
           isCompleted: false,
+          winner: "none" as const,
+          winReason: "none" as const,
         },
       ];
 

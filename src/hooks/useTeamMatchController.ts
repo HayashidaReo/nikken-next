@@ -157,6 +157,7 @@ export function useTeamMatchController({
                             hansoku: m.players.playerB.hansoku,
                         },
                         winner: w,
+                        winReason: m.winReason || "none",
                     };
                 });
 
@@ -318,6 +319,8 @@ export function useTeamMatchController({
                         },
                     },
                     isCompleted: false,
+                    winner: "none",
+                    winReason: "none",
                 }
             );
 

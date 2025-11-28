@@ -163,6 +163,8 @@ export function MatchGroupSetupManager() {
                             playerB: { ...playerB, teamId: teamB.teamId, score: 0, hansoku: 0 },
                         },
                         isCompleted: false,
+                        winner: "none",
+                        winReason: "none",
                     };
                     const created = await createTeamMatch.mutateAsync({ matchGroupId: selectedMatchGroupId, match: newMatch });
                     if (created.matchId) savedMatchIds.push(created.matchId);

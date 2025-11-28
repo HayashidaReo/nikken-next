@@ -15,6 +15,8 @@ export interface FirestoreMatchDoc {
         playerB: FirestoreMatchPlayerDoc;
     };
     isCompleted: boolean; // 試合完了フラグ
+    winner?: "playerA" | "playerB" | "draw" | "none" | null;
+    winReason?: "ippon" | "hantei" | "hansoku" | "fusen" | "none" | null;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -67,6 +69,8 @@ export class MatchMapper {
                 playerB: this.playerToDomain(doc.players.playerB),
             },
             isCompleted: doc.isCompleted,
+            winner: doc.winner || "none",
+            winReason: doc.winReason || "none",
             createdAt,
             updatedAt,
         };
@@ -135,6 +139,8 @@ export class MatchMapper {
                 playerB: this.playerToFirestore(match.players.playerB),
             },
             isCompleted: false, // 組み合わせ作成時は必ずfalse
+            winner: "none",
+            winReason: "none",
         };
     }
 
@@ -164,6 +170,12 @@ export class MatchMapper {
         }
         if (match.isCompleted !== undefined) {
             firestoreData.isCompleted = match.isCompleted;
+        }
+        if (match.winner !== undefined) {
+            firestoreData.winner = match.winner;
+        }
+        if (match.winReason !== undefined) {
+            firestoreData.winReason = match.winReason;
         }
 
         // updatedAtは自動で設定されるため、ここでは設定しない
