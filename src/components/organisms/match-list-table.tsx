@@ -105,7 +105,7 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
               <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} />
               <TableCell className="p-2 text-center">
                 <div className="flex items-center justify-center h-full">
-                  <span className="text-lg font-medium text-gray-600">{winReasonLabel || "-"}</span>
+                  <span className="text-sm font-medium text-gray-600">{winReasonLabel || "-"}</span>
                 </div>
               </TableCell>
               <ActionCell
