@@ -9,10 +9,11 @@ import PlayerCell from "@/components/molecules/player-cell";
 import ActionCell from "@/components/molecules/action-cell";
 import { SCORE_COLORS, MATCH_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import MatchTable from "@/components/organisms/match-table";
-import type { Match, WinReason } from "@/types/match.schema";
+import type { Match } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
 import { useMasterData } from "@/components/providers/master-data-provider";
+import { WIN_REASON_LABELS } from "@/lib/constants";
 
 interface MatchListTableProps {
   matches: Match[];
@@ -71,17 +72,9 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
         const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted, match.winner, true);
         const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted, match.winner, false);
 
-        const getWinReasonLabel = (reason: WinReason | null | undefined) => {
-          if (!reason) return "";
-          switch (reason) {
-            case "ippon": return "一本";
-            case "hantei": return "判定";
-            case "hansoku": return "反則";
-            case "fusen": return "不戦";
-            default: return reason;
-          }
-        };
-        const winReasonLabel = getWinReasonLabel(match.winReason);
+        const winReasonLabel = match.winReason && match.winReason !== "none"
+          ? WIN_REASON_LABELS[match.winReason]
+          : "";
 
 
         return (

@@ -9,11 +9,11 @@ import PlayerCell from "@/components/molecules/player-cell";
 import ActionCell from "@/components/molecules/action-cell";
 import { SCORE_COLORS, TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import MatchTable from "@/components/organisms/match-table";
-import type { TeamMatch, WinReason } from "@/types/match.schema";
+import type { TeamMatch } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
 import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
-import { getTeamMatchRoundLabelById } from "@/lib/constants";
+import { getTeamMatchRoundLabelById, WIN_REASON_LABELS } from "@/lib/constants";
 import { useMasterData } from "@/components/providers/master-data-provider";
 import { TeamMatchEditDialog } from "./team-match-edit-dialog";
 import { MatchActionMenu } from "@/components/molecules/match-action-menu";
@@ -75,17 +75,9 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                     const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted, match.winner, true);
                     const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted, match.winner, false);
 
-                    const getWinReasonLabel = (reason: WinReason | null | undefined) => {
-                        if (!reason || reason === "none") return "";
-                        switch (reason) {
-                            case "ippon": return "一本";
-                            case "hantei": return "判定";
-                            case "hansoku": return "反則";
-                            case "fusen": return "不戦";
-                            default: return reason;
-                        }
-                    };
-                    const winReasonLabel = getWinReasonLabel(match.winReason);
+                    const winReasonLabel = match.winReason && match.winReason !== "none"
+                        ? WIN_REASON_LABELS[match.winReason]
+                        : "";
                     // 定数からラウンド名を取得、それでもなければID
                     const roundName = getTeamMatchRoundLabelById(match.roundId) || match.roundId;
 

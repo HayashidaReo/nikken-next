@@ -1,5 +1,6 @@
 "use client";
 
+import { WIN_REASON_LABELS } from "@/lib/constants";
 import { Button } from "@/components/atoms/button";
 import { Label } from "@/components/atoms/label";
 import {
@@ -75,13 +76,12 @@ export function TeamMatchEditDialog({
 
     const winReasonOptions = [
         { value: "none", label: "なし" },
-        ...winReasonEnum.options.filter(reason => reason !== "none").map((reason) => ({
-            value: reason,
-            label: reason === "ippon" ? "一本" :
-                reason === "hantei" ? "判定" :
-                    reason === "hansoku" ? "反則" :
-                        reason === "fusen" ? "不戦" : "なし"
-        }))
+        ...winReasonEnum.options
+            .filter(reason => reason !== "none")
+            .map((reason) => ({
+                value: reason,
+                label: WIN_REASON_LABELS[reason]
+            }))
     ];
 
     return (

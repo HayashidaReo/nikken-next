@@ -2,6 +2,17 @@
  * アプリケーション共通定数定義
  */
 
+import type { WinReason } from "@/types/match.schema";
+
+// 🏆 決着理由ラベル定数
+export const WIN_REASON_LABELS: Record<WinReason, string> = {
+  ippon: "一本",
+  hantei: "判定",
+  hansoku: "反則",
+  fusen: "不戦",
+  none: "なし",
+} as const;
+
 // ⏰ 時間関連定数
 export const TIME_CONSTANTS = {
   /** 秒から分への変換基準 */
