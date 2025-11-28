@@ -158,11 +158,12 @@ export function TeamMatchEditDialog({
 
                                     <div className="space-y-2 flex flex-col items-center">
                                         <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">反則</Label>
-                                        <div className="flex flex-col items-center gap-2">
+                                        <div className="grid grid-cols-3 items-center w-full">
+                                            <div></div>
                                             <div className="flex items-center justify-center">
                                                 <PenaltyDisplay hansokuCount={(playerAHansoku ?? 0) as HansokuLevel} variant="medium" />
                                             </div>
-                                            <div className="flex gap-1">
+                                            <div className="flex flex-col gap-1 justify-start">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -221,11 +222,12 @@ export function TeamMatchEditDialog({
                                     </div>
                                     <div className="space-y-2 flex flex-col items-center">
                                         <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">反則</Label>
-                                        <div className="flex flex-col items-center gap-2">
+                                        <div className="grid grid-cols-3 items-center w-full">
+                                            <div></div>
                                             <div className="flex items-center justify-center">
                                                 <PenaltyDisplay hansokuCount={(playerBHansoku ?? 0) as HansokuLevel} variant="medium" />
                                             </div>
-                                            <div className="flex gap-1">
+                                            <div className="flex flex-col gap-1 justify-start">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
