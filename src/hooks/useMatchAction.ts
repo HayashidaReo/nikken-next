@@ -91,8 +91,11 @@ export function useMatchAction({
         const snapshot = useMonitorStore.getState().getMonitorSnapshot();
         const winner: Winner = determineWinner(snapshot.playerA.score, snapshot.playerB.score, true);
 
+        // 引き分けの場合はwinReasonをnoneに、それ以外はipponに設定
+        const winReason: WinReason = winner === "draw" ? "none" : "ippon";
+
         // 1. 保存
-        await handleSave({ winner, winReason: "ippon" });
+        await handleSave({ winner, winReason });
 
         // 2. 結果表示モードへ
         // 常に試合結果を表示する
@@ -100,7 +103,7 @@ export function useMatchAction({
             playerA: snapshot.playerA,
             playerB: snapshot.playerB,
             winner,
-            winReason: "ippon",
+            winReason,
         });
 
         // 団体戦の場合、グループ内の全試合を取得
