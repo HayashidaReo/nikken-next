@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/atoms/button";
 import { Label } from "@/components/atoms/label";
-
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/atoms/card";
 import { PenaltyDisplay } from "@/components/molecules/penalty-display";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
@@ -19,6 +17,8 @@ import { winReasonEnum } from "@/types/match.schema";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 import { SCORE_OPTIONS } from "@/lib/constants";
 import { createMatchResultUpdateObject } from "@/domains/match/team-match-logic";
+import { SearchableSelect } from "../molecules/searchable-select";
+import { DialogOverlay } from "../molecules/dialog-overlay";
 
 interface TeamMatchEditDialogProps {
     isOpen: boolean;
@@ -95,15 +95,32 @@ export function TeamMatchEditDialog({
         onClose();
     };
 
+    const winnerOptions = [
+        { value: "none", label: "なし" },
+        { value: "playerA", label: playerAName },
+        { value: "playerB", label: playerBName },
+        { value: "draw", label: "引き分け" },
+    ];
+
+    const winReasonOptions = [
+        { value: "none", label: "なし" },
+        ...winReasonEnum.options.filter(reason => reason !== "none").map((reason) => ({
+            value: reason,
+            label: reason === "ippon" ? "一本" :
+                reason === "hantei" ? "判定" :
+                    reason === "hansoku" ? "反則" :
+                        reason === "fusen" ? "不戦" : "なし"
+        }))
+    ];
+
     return (
         <>
-            <Dialog open={isOpen} onOpenChange={onClose}>
-                <DialogContent className="sm:max-w-[700px] bg-white p-0 overflow-hidden gap-0">
-                    <DialogHeader className="border-b border-slate-100 p-6 bg-white">
-                        <DialogTitle className="text-xl font-bold text-center text-slate-900">試合結果の編集</DialogTitle>
-                    </DialogHeader>
-
-                    <div className="p-8 space-y-8 bg-white">
+            <DialogOverlay isOpen={isOpen && !showResetConfirm} onClose={onClose}>
+                <Card className="w-full max-w-3xl mx-4">
+                    <CardHeader className="text-center border-b border-slate-100 p-6 bg-white">
+                        <CardTitle className="text-xl font-bold text-slate-900">試合結果の編集</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-8 space-y-8 bg-white">
                         {/* スコア入力エリア */}
                         <div className="grid grid-cols-[1fr_auto_1fr] gap-8 items-start">
                             {/* 選手A */}
@@ -237,65 +254,58 @@ export function TeamMatchEditDialog({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-3">
                                 <Label className="text-sm font-bold text-slate-900">勝者</Label>
-                                <select
+                                <SearchableSelect
                                     value={winner || "none"}
-                                    onChange={(e) => setWinner(e.target.value as "playerA" | "playerB" | "draw" | "none")}
-                                    className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
-                                >
-                                    <option value="none">なし</option>
-                                    <option value="playerA">{playerAName}</option>
-                                    <option value="playerB">{playerBName}</option>
-                                    <option value="draw">引き分け</option>
-                                </select>
+                                    onValueChange={(val) => setWinner(val as "playerA" | "playerB" | "draw" | "none")}
+                                    options={winnerOptions}
+                                    placeholder="勝者を選択してください"
+                                    searchPlaceholder="勝者で検索..."
+                                    className="h-10"
+                                />
                             </div>
 
                             <div className="space-y-3">
                                 <Label className="text-sm font-bold text-slate-900">決着理由</Label>
-                                <select
+                                <SearchableSelect
                                     value={winReason || "none"}
-                                    onChange={(e) => setWinReason(e.target.value as WinReason)}
-                                    className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
-                                >
-                                    <option value="none">なし</option>
-                                    {winReasonEnum.options.filter(reason => reason !== "none").map((reason) => (
-                                        <option key={reason} value={reason}>
-                                            {reason === "ippon" ? "一本" :
-                                                reason === "hantei" ? "判定" :
-                                                    reason === "hansoku" ? "反則" :
-                                                        reason === "fusen" ? "不戦" : "なし"}
-                                        </option>
-                                    ))}
-                                </select>
+                                    onValueChange={(val) => setWinReason(val as WinReason)}
+                                    options={winReasonOptions}
+                                    placeholder="決着理由を選択してください"
+                                    searchPlaceholder="決着理由で検索..."
+                                    className="h-10"
+                                />
                             </div>
                         </div>
-                    </div>
-                    <DialogFooter className="border-t border-slate-100 p-6 bg-slate-50 flex justify-between items-center w-full sm:justify-between">
-                        <Button variant="ghost" onClick={handleResetClick} className="h-12 px-8 text-red-500 hover:text-red-700 hover:bg-red-50">リセット</Button>
-                        <div className="flex gap-2">
-                            <Button variant="outline" onClick={onClose} className="h-12 px-8 bg-white hover:bg-slate-50 text-slate-700 border-slate-200">キャンセル</Button>
-                            <Button onClick={handleSave} className="h-12 px-8 bg-blue-600 text-white">保存する</Button>
-                        </div>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
-            <Dialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
-                <DialogContent className="sm:max-w-[400px] bg-white">
-                    <DialogHeader>
-                        <DialogTitle>試合結果のリセット</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4">
+                        {/* ボタン */}
+                        <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                            <Button variant="ghost" onClick={handleResetClick} className="h-12 px-8 text-red-500 hover:text-red-700 hover:bg-red-50">リセット</Button>
+                            <div className="flex gap-2">
+                                <Button variant="outline" onClick={onClose} className="h-12 px-8 bg-white hover:bg-slate-50 text-slate-700 border-slate-200">キャンセル</Button>
+                                <Button onClick={handleSave} className="h-12 px-8 bg-blue-600 text-white">保存する</Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </DialogOverlay>
+
+            <DialogOverlay isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)}>
+                <Card className="w-full max-w-md mx-4">
+                    <CardHeader>
+                        <CardTitle>試合結果のリセット</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                         <p className="text-slate-600">
                             試合結果をリセットしてもよろしいですか？<br />
                             この操作は取り消せません。
                         </p>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowResetConfirm(false)}>キャンセル</Button>
-                        <Button variant="destructive" onClick={executeReset}>リセットする</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                        <div className="flex gap-3 pt-4">
+                            <Button variant="outline" onClick={() => setShowResetConfirm(false)} className="flex-1">キャンセル</Button>
+                            <Button variant="destructive" onClick={executeReset} className="flex-1">リセットする</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </DialogOverlay>
         </>
     );
 }
