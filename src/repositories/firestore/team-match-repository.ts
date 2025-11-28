@@ -12,6 +12,7 @@ import {
     DocumentSnapshot,
     DocumentData,
     Timestamp,
+    writeBatch,
 } from "firebase/firestore";
 import type { Unsubscribe } from "firebase/firestore";
 
@@ -119,8 +120,14 @@ export class FirestoreTeamMatchRepository implements TeamMatchRepository {
     async deleteAllInGroup(orgId: string, tournamentId: string, matchGroupId: string): Promise<void> {
         const collectionRef = this.getCollectionRef(orgId, tournamentId, matchGroupId);
         const snapshot = await getDocs(collectionRef);
-        const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-        await Promise.all(deletePromises);
+
+        if (snapshot.empty) return;
+
+        const batch = writeBatch(db);
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
     }
 
     listenAll(orgId: string, tournamentId: string, matchGroupId: string, onChange: (matches: TeamMatch[]) => void): () => void {
