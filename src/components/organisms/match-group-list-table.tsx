@@ -11,6 +11,7 @@ import type { MatchGroup } from "@/types/match.schema";
 import { useMasterData } from "@/components/providers/master-data-provider";
 import { MultiSelectDropdown } from "@/components/molecules/multi-select-dropdown";
 import { useMatchGroupFilter } from "@/hooks/useMatchGroupFilter";
+import { MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 
 interface MatchGroupListTableProps {
     matchGroups: MatchGroup[];
@@ -48,7 +49,7 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
                             onSelectionChange={setSelectedStatusValues}
                         />
                     ),
-                    width: 60,
+                    width: MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS.status,
                     className: "text-center",
                 },
                 {
@@ -61,7 +62,7 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
                             onSelectionChange={setSelectedCourtIds}
                         />
                     ),
-                    width: 150,
+                    width: MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS.court,
                 },
                 {
                     key: "round",
@@ -73,12 +74,12 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
                             onSelectionChange={setSelectedRoundIds}
                         />
                     ),
-                    width: 100,
+                    width: MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS.round,
                 },
-                { key: "teamA", label: "チームA", width: 200 },
-                { key: "vs", label: "", width: 50, className: "text-center" },
-                { key: "teamB", label: "チームB", width: 200 },
-                { key: "action", label: "詳細", width: 100, className: "text-center" },
+                { key: "teamA", label: "チームA", width: MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS.teamA },
+                { key: "vs", label: "", width: MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS.vs, className: "text-center" },
+                { key: "teamB", label: "チームB", width: MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS.teamB },
+                { key: "action", label: "詳細", width: MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
             ]}
             className={className}
         >

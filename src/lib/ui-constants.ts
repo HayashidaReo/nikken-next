@@ -88,6 +88,21 @@ export const TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS = {
     edit: 4,
 } as const;
 
+/**
+ * MatchGroupListTable の列幅の割合（%）
+ * - 団体戦一覧（match-group-list-table）用
+ * - 合計は 100% になるように設計
+ */
+export const MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS = {
+    status: 6,          // 終了ステータス
+    court: 16,          // コート名
+    round: 18,          // 回戦
+    teamA: 23,          // チームA
+    vs: 6,              // VS表示
+    teamB: 23,          // チームB
+    action: 8,         // 詳細ボタン
+} as const;
+
 const UI_CONSTANTS = {
     SCORE_COLORS,
     MATCH_TABLE_COLUMN_WIDTHS,

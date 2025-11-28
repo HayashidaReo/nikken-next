@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import type { MatchGroup } from "@/types/match.schema";
 import { useMasterData } from "@/components/providers/master-data-provider";
+import { MATCH_GROUP_STATUS_OPTIONS } from "@/lib/constants";
 
 export const useMatchGroupFilter = (matchGroups: MatchGroup[]) => {
     const { courts, rounds } = useMasterData();
@@ -29,10 +30,7 @@ export const useMatchGroupFilter = (matchGroups: MatchGroup[]) => {
             .sort((a, b) => a.label.localeCompare(b.label, "ja"));
     }, [matchGroups, rounds]);
 
-    const statusOptions = useMemo(() => [
-        { value: "incomplete", label: "未試合" },
-        { value: "completed", label: "終了" },
-    ], []);
+    const statusOptions = [...MATCH_GROUP_STATUS_OPTIONS];
 
     // フィルタリング処理
     const filteredMatchGroups = useMemo(() => {
