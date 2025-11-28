@@ -29,7 +29,7 @@ export const metadata: Metadata = {
       appleWebApp: {
         capable: true,
         statusBarStyle: "default",
-        title: "Nikken next",
+        title: "Nikken Next",
       },
     }
     : {}),
