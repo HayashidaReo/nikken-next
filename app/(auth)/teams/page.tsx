@@ -39,11 +39,11 @@ export default function TeamsPage() {
       // setTimeoutを使用してメインスレッドをブロックせずに実行
       setTimeout(() => {
         syncTeamToCloud(teamId, { showSuccessToast: true }).catch((err) => {
-          console.error("Background sync failed:", err);
+          console.error("バックグラウンド同期に失敗:", err);
         });
       }, 0);
     } catch (error) {
-      console.error("Failed to update team approval:", error);
+      console.error("チーム承認状態の更新に失敗:", error);
       showError("チームの承認状態の更新に失敗しました");
     }
   };
