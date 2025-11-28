@@ -19,6 +19,21 @@ export function resolvePlayerInfo(teams: Team[] | undefined, playerId: string, t
 }
 
 /**
+ * チーム戦の勝利数を計算する
+ * @param matches - 試合データの配列
+ * @returns チームAとチームBの勝利数
+ */
+export function calculateTeamMatchWins(matches: TeamMatch[]) {
+    let winsA = 0;
+    let winsB = 0;
+    matches.forEach((m) => {
+        if (m.winner === "playerA") winsA++;
+        else if (m.winner === "playerB") winsB++;
+    });
+    return { winsA, winsB };
+}
+
+/**
  * 団体戦の進行状況を分析する
  * 
  * @param teamMatches - 団体戦の全試合データ
@@ -55,22 +70,25 @@ export function analyzeTeamMatchStatus(
 
     // 5試合目の時（またはそれ以降の判定が必要な時）
     if (currentMatch?.roundId === TEAM_MATCH_CONSTANTS.LAST_REGULAR_MATCH_ROUND_ID) {
-        let winsA = 0;
-        let winsB = 0;
-
-        completedRegularMatches.forEach((m) => {
-            let scoreA = m.players.playerA.score;
-            let scoreB = m.players.playerB.score;
-
-            // 現在の試合については、スナップショット（最新状態）を使用する
+        // 現在の試合のスナップショットを反映した試合リストを作成
+        const effectiveMatches = completedRegularMatches.map(m => {
             if (m.matchId === currentMatchId) {
-                scoreA = currentMatchSnapshot.playerA.score;
-                scoreB = currentMatchSnapshot.playerB.score;
-            }
+                const scoreA = currentMatchSnapshot.playerA.score;
+                const scoreB = currentMatchSnapshot.playerB.score;
+                let winner: "playerA" | "playerB" | "draw" | "none" = "none";
+                if (scoreA > scoreB) winner = "playerA";
+                else if (scoreB > scoreA) winner = "playerB";
+                else winner = "draw";
 
-            if (scoreA > scoreB) winsA++;
-            else if (scoreB > scoreA) winsB++;
+                return {
+                    ...m,
+                    winner,
+                };
+            }
+            return m;
         });
+
+        const { winsA, winsB } = calculateTeamMatchWins(effectiveMatches);
 
         // 同点の場合
         if (winsA === winsB) {
