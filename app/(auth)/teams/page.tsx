@@ -13,6 +13,8 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
 import { useTeamPersistence } from "@/hooks/useTeamPersistence";
 import { useToast } from "@/components/providers/notification-provider";
+import { SearchBar } from "@/components/molecules/search-bar";
+import { useTeamFilter } from "@/hooks/useTeamFilter";
 
 export default function TeamsPage() {
   const { needsTournamentSelection, isLoading: authLoading, orgId, activeTournamentId } = useAuthContext();
@@ -20,6 +22,9 @@ export default function TeamsPage() {
   const { syncTeamToCloud } = useTeamPersistence();
   const approveTeamMutation = useApproveTeam();
   const { showError } = useToast();
+
+  // チーム検索ロジックをカスタムフックに委譲
+  const { searchQuery, setSearchQuery, filteredTeams } = useTeamFilter(teams);
 
   const handleApprovalChange = async (teamId: string, isApproved: boolean) => {
     const team = teams.find(t => t.teamId === teamId);
@@ -82,7 +87,15 @@ export default function TeamsPage() {
     <MainLayout activeTab="teams">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">チーム・選手管理</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-gray-900">チーム・選手管理</h1>
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="チーム名を検索..."
+              className="w-128"
+            />
+          </div>
           <div className="flex items-center gap-4">
             <TeamStatsSummary teams={teams} />
             {orgId && activeTournamentId && (
@@ -103,7 +116,7 @@ export default function TeamsPage() {
         </div>
 
         <TeamManagementCardList
-          teams={teams}
+          teams={filteredTeams}
           onApprovalChange={handleApprovalChange}
         />
       </div>
