@@ -8,16 +8,14 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/atoms/card";
-import { PenaltyDisplay } from "@/components/molecules/penalty-display";
-import { ChevronUp, ChevronDown } from "lucide-react";
-import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import type { TeamMatch, WinReason } from "@/types/match.schema";
 import { winReasonEnum } from "@/types/match.schema";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
-import { SCORE_OPTIONS } from "@/lib/constants";
 import { createMatchResultUpdateObject } from "@/domains/match/team-match-logic";
 import { SearchableSelect } from "../molecules/searchable-select";
 import { ModalDialog } from "../molecules/modal-dialog";
+import { ScoreSelector } from "../molecules/score-selector";
+import { PenaltySelector } from "../molecules/penalty-selector";
 
 interface TeamMatchEditDialogProps {
     isOpen: boolean;
@@ -131,53 +129,14 @@ export function TeamMatchEditDialog({
                             </div>
 
                             <div className="bg-slate-50 p-6 rounded-xl space-y-6 border border-slate-100">
-                                <div className="space-y-2 text-center">
-                                    <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">スコア</Label>
-                                    <div className="flex justify-center gap-1">
-                                        {SCORE_OPTIONS.map((opt) => (
-                                            <Button
-                                                key={opt.value}
-                                                variant={playerAScore === opt.value ? "default" : "outline"}
-                                                className={`h-12 w-12 text-lg font-bold ${playerAScore === opt.value ? "bg-blue-600 text-white" : "bg-white text-slate-700"}`}
-                                                onClick={() => setPlayerAScore(opt.value)}
-                                            >
-                                                {opt.label}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2 flex flex-col items-center">
-                                    <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">反則</Label>
-                                    <div className="grid grid-cols-3 items-center w-full">
-                                        <div></div>
-                                        <div className="flex items-center justify-center">
-                                            <PenaltyDisplay hansokuCount={(playerAHansoku ?? 0) as HansokuLevel} variant="medium" />
-                                        </div>
-                                        <div className="flex flex-col gap-1 justify-start">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-7 w-7 rounded-full hover:bg-slate-100 border border-slate-200"
-                                                onClick={() => setPlayerAHansoku(Math.min((playerAHansoku ?? 0) + 1, 4))}
-                                                disabled={(playerAHansoku ?? 0) >= 4}
-                                                type="button"
-                                            >
-                                                <ChevronUp className="h-4 w-4 text-slate-600" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-7 w-7 rounded-full hover:bg-slate-100 border border-slate-200"
-                                                onClick={() => setPlayerAHansoku(Math.max((playerAHansoku ?? 0) - 1, 0))}
-                                                disabled={(playerAHansoku ?? 0) <= 0}
-                                                type="button"
-                                            >
-                                                <ChevronDown className="h-4 w-4 text-slate-600" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <ScoreSelector
+                                    value={playerAScore}
+                                    onChange={setPlayerAScore}
+                                />
+                                <PenaltySelector
+                                    value={playerAHansoku ?? 0}
+                                    onChange={setPlayerAHansoku}
+                                />
                             </div>
                         </div>
 
@@ -196,52 +155,14 @@ export function TeamMatchEditDialog({
                             </div>
 
                             <div className="bg-slate-50 p-6 rounded-xl space-y-6 border border-slate-100">
-                                <div className="space-y-2 text-center">
-                                    <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">スコア</Label>
-                                    <div className="flex justify-center gap-1">
-                                        {SCORE_OPTIONS.map((opt) => (
-                                            <Button
-                                                key={opt.value}
-                                                variant={playerBScore === opt.value ? "default" : "outline"}
-                                                className={`h-12 w-12 text-lg font-bold ${playerBScore === opt.value ? "bg-blue-600 text-white hover:bg-slate-900" : "bg-white text-slate-700"}`}
-                                                onClick={() => setPlayerBScore(opt.value)}
-                                            >
-                                                {opt.label}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="space-y-2 flex flex-col items-center">
-                                    <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider">反則</Label>
-                                    <div className="grid grid-cols-3 items-center w-full">
-                                        <div></div>
-                                        <div className="flex items-center justify-center">
-                                            <PenaltyDisplay hansokuCount={(playerBHansoku ?? 0) as HansokuLevel} variant="medium" />
-                                        </div>
-                                        <div className="flex flex-col gap-1 justify-start">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-7 w-7 rounded-full hover:bg-slate-100 border border-slate-200"
-                                                onClick={() => setPlayerBHansoku(Math.min((playerBHansoku ?? 0) + 1, 4))}
-                                                disabled={(playerBHansoku ?? 0) >= 4}
-                                                type="button"
-                                            >
-                                                <ChevronUp className="h-4 w-4 text-slate-600" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-7 w-7 rounded-full hover:bg-slate-100 border border-slate-200"
-                                                onClick={() => setPlayerBHansoku(Math.max((playerBHansoku ?? 0) - 1, 0))}
-                                                disabled={(playerBHansoku ?? 0) <= 0}
-                                                type="button"
-                                            >
-                                                <ChevronDown className="h-4 w-4 text-slate-600" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <ScoreSelector
+                                    value={playerBScore}
+                                    onChange={setPlayerBScore}
+                                />
+                                <PenaltySelector
+                                    value={playerBHansoku ?? 0}
+                                    onChange={setPlayerBHansoku}
+                                />
                             </div>
                         </div>
                     </div>
