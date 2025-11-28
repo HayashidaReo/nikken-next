@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
@@ -94,6 +94,7 @@ export default function MonitorControlPage() {
     setShowConfirmDialog,
     showRepMatchDialog,
     isSaving,
+    handleSpecialWin,
   } = useMatchAction({
     orgId,
     activeTournamentId,
@@ -111,6 +112,40 @@ export default function MonitorControlPage() {
   }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick]);
 
   useKeyboardShortcuts({ onEnter: handleEnterKey });
+
+  // 特別な決着の確認ダイアログ状態
+  const [specialWinConfirm, setSpecialWinConfirm] = useState<{
+    isOpen: boolean;
+    playerKey: "A" | "B";
+    action: "fusen" | "hantei" | "hansoku";
+  }>({
+    isOpen: false,
+    playerKey: "A",
+    action: "fusen",
+  });
+
+  const handleSpecialWinClick = useCallback((playerKey: "A" | "B", action: "fusen" | "hantei" | "hansoku") => {
+    setSpecialWinConfirm({ isOpen: true, playerKey, action });
+  }, []);
+
+  const handleSpecialWinExecute = useCallback(async () => {
+    const { playerKey, action } = specialWinConfirm;
+    setSpecialWinConfirm((prev) => ({ ...prev, isOpen: false }));
+
+    let winner: "playerA" | "playerB";
+    if (action === "fusen") {
+      // 不戦敗: 相手の勝ち
+      winner = playerKey === "A" ? "playerB" : "playerA";
+    } else if (action === "hantei") {
+      // 判定勝ち: 本人の勝ち
+      winner = playerKey === "A" ? "playerA" : "playerB";
+    } else {
+      // 反則負け: 相手の勝ち
+      winner = playerKey === "A" ? "playerB" : "playerA";
+    }
+
+    await handleSpecialWin(winner, action);
+  }, [specialWinConfirm, handleSpecialWin]);
 
   // ローディング状態
   if (isLoading) {
@@ -197,6 +232,17 @@ export default function MonitorControlPage() {
     );
   }
 
+  const getSpecialWinTitle = () => {
+    const { action, playerKey } = specialWinConfirm;
+    const playerName = playerKey === "A" ? "選手A" : "選手B"; // 実際の名前があればそれが良いが、ここでは簡易的に
+    switch (action) {
+      case "fusen": return `${playerName}の不戦敗`;
+      case "hantei": return `${playerName}の判定勝ち`;
+      case "hansoku": return `${playerName}の反則負け`;
+      default: return "";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -227,6 +273,7 @@ export default function MonitorControlPage() {
           organizationId={orgId || ""}
           tournamentId={activeTournamentId || ""}
           defaultMatchTime={tournament?.defaultMatchTime}
+          onSpecialWinAction={handleSpecialWinClick}
         />
         <FallbackMonitorDialog
           isOpen={showFallbackDialog}
@@ -252,6 +299,15 @@ export default function MonitorControlPage() {
           confirmText="解除する"
           cancelText="キャンセル"
           variant="destructive"
+        />
+        <ConfirmDialog
+          isOpen={specialWinConfirm.isOpen}
+          title={getSpecialWinTitle()}
+          message="この結果で確定しますか？"
+          onConfirm={handleSpecialWinExecute}
+          onCancel={() => setSpecialWinConfirm((prev) => ({ ...prev, isOpen: false }))}
+          confirmText="確定する"
+          cancelText="キャンセル"
         />
         {/* 代表戦設定ダイアログ */}
         {orderedTeams && (

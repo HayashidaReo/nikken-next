@@ -3,7 +3,7 @@ import { useMonitorStore } from "@/store/use-monitor-store";
 import { useSaveIndividualMatchResult, useSaveTeamMatchResult } from "@/queries/use-match-result";
 import { useToast } from "@/components/providers/notification-provider";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
-import type { TeamMatch } from "@/types/match.schema";
+import type { TeamMatch, WinReason } from "@/types/match.schema";
 import type { Team } from "@/types/team.schema";
 import { createPlayerDirectory } from "@/lib/utils/player-directory";
 import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
@@ -40,7 +40,9 @@ export function useMatchAction({
     const setViewMode = useMonitorStore((s) => s.setViewMode);
     const setGroupMatches = useMonitorStore((s) => s.setGroupMatches);
 
-    const handleSave = useCallback(async () => {
+    // overrides: 特別な決着（不戦敗、判定勝ち、反則負け）の場合に、
+    // スコアに基づく自動判定ではなく、明示的な勝者と決着理由を指定するために使用する
+    const handleSave = useCallback(async (overrides?: { winner?: Winner, winReason?: WinReason }) => {
         try {
             const store = useMonitorStore.getState();
             const matchId = store.matchId;
@@ -56,6 +58,8 @@ export function useMatchAction({
                     playerA: { score: snapshot.playerA.score, hansoku: snapshot.playerA.hansoku },
                     playerB: { score: snapshot.playerB.score, hansoku: snapshot.playerB.hansoku },
                 },
+                winner: overrides?.winner ?? (snapshot.matchResult?.winner || "none"),
+                winReason: overrides?.winReason ?? (snapshot.matchResult?.winReason || "none"),
             };
 
             // 大会種別に応じて保存先を切り替え
@@ -83,14 +87,40 @@ export function useMatchAction({
 
     const handleConfirmMatchExecute = useCallback(async () => {
         setShowConfirmDialog(false);
-        // 1. 保存
-        await handleSave();
 
-        // 2. 結果表示モードへ
         const snapshot = useMonitorStore.getState().getMonitorSnapshot();
         const winner: Winner = determineWinner(snapshot.playerA.score, snapshot.playerB.score, true);
 
+        // 1. 保存
+        await handleSave({ winner, winReason: "ippon" });
+
+        // 2. 結果表示モードへ
         // 常に試合結果を表示する
+        setMatchResult({
+            playerA: snapshot.playerA,
+            playerB: snapshot.playerB,
+            winner,
+        });
+
+        // 団体戦の場合、グループ内の全試合を取得
+        if (activeTournamentType === "team" && teamMatches && teams) {
+            const store = useMonitorStore.getState();
+            const currentMatchGroupId = store.matchGroupId;
+
+            if (currentMatchGroupId) {
+                const playerDirectory = createPlayerDirectory(teams);
+                const groupMatches = createMonitorGroupMatches(teamMatches, currentMatchGroupId, playerDirectory);
+                setGroupMatches(groupMatches);
+            }
+        }
+
+        setViewMode("match_result");
+    }, [handleSave, setMatchResult, setViewMode, setGroupMatches, activeTournamentType, teamMatches, teams]);
+
+    const handleSpecialWin = useCallback(async (winner: "playerA" | "playerB", reason: WinReason) => {
+        await handleSave({ winner, winReason: reason });
+
+        const snapshot = useMonitorStore.getState().getMonitorSnapshot();
         setMatchResult({
             playerA: snapshot.playerA,
             playerB: snapshot.playerB,
@@ -146,5 +176,6 @@ export function useMatchAction({
         showRepMatchDialog,
         setShowRepMatchDialog,
         isSaving,
+        handleSpecialWin,
     };
 }

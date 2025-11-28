@@ -9,7 +9,7 @@ import PlayerCell from "@/components/molecules/player-cell";
 import ActionCell from "@/components/molecules/action-cell";
 import { SCORE_COLORS, TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import MatchTable from "@/components/organisms/match-table";
-import type { TeamMatch } from "@/types/match.schema";
+import type { TeamMatch, WinReason } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 import { createPlayerDirectory, resolveMatchPlayer } from "@/lib/utils/player-directory";
 import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
@@ -32,9 +32,18 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
     const teamsArray = useMemo(() => Array.from(teams.values()), [teams]);
     const playerDirectory = useMemo(() => createPlayerDirectory(teamsArray), [teamsArray]);
 
-    const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean) => {
+    const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean, winner: "playerA" | "playerB" | "draw" | "none" | null | undefined, isPlayerA: boolean) => {
+        if (!isCompleted) return SCORE_COLORS.unplayed;
+
+        if (winner && winner !== "none") {
+            if (winner === "draw") return SCORE_COLORS.draw;
+            if (isPlayerA && winner === "playerA") return SCORE_COLORS.win;
+            if (!isPlayerA && winner === "playerB") return SCORE_COLORS.win;
+            return SCORE_COLORS.loss;
+        }
+
         if (playerScore === 0 && opponentScore === 0) {
-            return isCompleted ? SCORE_COLORS.draw : SCORE_COLORS.unplayed;
+            return SCORE_COLORS.draw;
         }
         if (playerScore > opponentScore) return SCORE_COLORS.win;
         if (playerScore === opponentScore) return SCORE_COLORS.draw;
@@ -58,8 +67,20 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
             {matches.map((match) => {
                 const playerA = resolveMatchPlayer(match.players.playerA, playerDirectory);
                 const playerB = resolveMatchPlayer(match.players.playerB, playerDirectory);
-                const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted);
-                const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted);
+                const playerAColor = getPlayerTextColor(playerA.score, playerB.score, match.isCompleted, match.winner, true);
+                const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted, match.winner, false);
+
+                const getWinReasonLabel = (reason: WinReason | null | undefined) => {
+                    if (!reason) return "";
+                    switch (reason) {
+                        case "ippon": return "一本";
+                        case "hantei": return "判定";
+                        case "hansoku": return "反則";
+                        case "fusen": return "不戦";
+                        default: return reason;
+                    }
+                };
+                const winReasonLabel = getWinReasonLabel(match.winReason);
                 // 定数からラウンド名を取得、それでもなければID
                 const roundName = getTeamMatchRoundLabelById(match.roundId) || match.roundId;
 
@@ -79,6 +100,9 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                             playerBHansoku={playerB.hansoku as HansokuLevel}
                             isCompleted={match.isCompleted}
                         />
+                        {winReasonLabel && (
+                            <div className="text-[10px] text-gray-500 text-center -mt-1">{winReasonLabel}</div>
+                        )}
                         <PlayerCell text={playerB.teamName} title={playerB.teamName} colorClass={playerBColor} />
                         <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} />
                         <ActionCell

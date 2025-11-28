@@ -15,12 +15,14 @@ interface ScoreboardOperatorProps {
   defaultMatchTime?: number;
   className?: string;
   isManual?: boolean;
+  onSpecialWinAction?: (playerKey: "A" | "B", action: "fusen" | "hantei" | "hansoku") => void;
 }
 
 export function ScoreboardOperator({
   defaultMatchTime = 180,
   className,
   isManual = false,
+  onSpecialWinAction,
 }: ScoreboardOperatorProps) {
   const {
     courtName,
@@ -81,6 +83,7 @@ export function ScoreboardOperator({
               isManual={isManual}
               onNameChange={setPlayerName}
               onTeamNameChange={setTeamName}
+              onSpecialWinAction={onSpecialWinAction}
             />
           </div>
 
@@ -106,6 +109,7 @@ export function ScoreboardOperator({
               isManual={isManual}
               onNameChange={setPlayerName}
               onTeamNameChange={setTeamName}
+              onSpecialWinAction={onSpecialWinAction}
             />
           </div>
         </div>
