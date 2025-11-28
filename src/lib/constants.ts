@@ -2,6 +2,17 @@
  * アプリケーション共通定数定義
  */
 
+import type { WinReason } from "@/types/match.schema";
+
+// 🏆 決着理由ラベル定数
+export const WIN_REASON_LABELS: Record<WinReason, string> = {
+  ippon: "一本",
+  hantei: "判定",
+  hansoku: "反則",
+  fusen: "不戦",
+  none: "なし",
+} as const;
+
 // ⏰ 時間関連定数
 export const TIME_CONSTANTS = {
   /** 秒から分への変換基準 */
@@ -149,6 +160,12 @@ export const SCORE_CONSTANTS = {
   RED_HANSOKU_DIVISOR: 2,
 } as const;
 
+export const SCORE_OPTIONS = [
+  { value: 0, label: "0" },
+  { value: 1, label: "1" },
+  { value: 2, label: "2" },
+];
+
 // 🔴 反則ルール関連定数
 export const HANSOKU_CONSTANTS = {
   /** 最小反則数 */
@@ -230,3 +247,8 @@ export const SYNC_CONSTANTS = {
   DEFAULT_SYNC_TIMEOUT: 10000,
 } as const;
 
+// 📱 アプリケーション情報定数
+export const APP_INFO = {
+  /** アプリケーションバージョン */
+  VERSION: process.env.NEXT_PUBLIC_APP_VERSION || "0.0.0",
+} as const;

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2 } from "lucide-react";
+import { ArrowRight, GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
 import { AnimatedTableRow } from "@/components/atoms/animated-table-row";
@@ -138,24 +138,25 @@ export function MatchGroupRow({
                 />
             </TableCell>
             <TableCell className="py-2 px-3 text-center">
-                <div className="flex items-center justify-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onSelect(row)}
-                        disabled={!row.teamAId || !row.teamBId}
-                    >
-                        詳細設定
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onRemove(index)}
-                        className="text-red-500 hover:text-red-700 h-8"
-                    >
-                        <Trash2 className="h-5 w-5" />
-                    </Button>
-                </div>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRemove(index)}
+                    className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                >
+                    <Trash2 className="h-5 w-5" />
+                </Button>
+            </TableCell>
+            <TableCell className="py-2 px-3 text-center">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSelect(row)}
+                    disabled={!row.teamAId || !row.teamBId}
+                    className="h-8 w-8 p-0"
+                >
+                    <ArrowRight className="h-4 w-4" />
+                </Button>
             </TableCell>
         </AnimatedTableRow>
     );

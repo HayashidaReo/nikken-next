@@ -97,3 +97,22 @@ export function determineWinner(
     if (isCompleted) return "draw";
     return "none";
 }
+
+/**
+ * 反則更新時の影響を計算する
+ * 
+ * @param currentHansoku - 現在の反則数
+ * @param newHansoku - 新しい反則数
+ * @param opponentScore - 相手の現在のスコア
+ * @returns 更新後の相手スコアと試合終了フラグ
+ */
+export function calculateHansokuEffects(
+    currentHansoku: number,
+    newHansoku: number,
+    opponentScore: number
+): { newOpponentScore: number; isMatchEnded: boolean } {
+    const scoreChange = calculateOpponentScoreChange(currentHansoku, newHansoku);
+    const newOpponentScore = updateOpponentScore(opponentScore, scoreChange);
+    const matchEnded = isMatchEnded(newHansoku, newOpponentScore);
+    return { newOpponentScore, isMatchEnded: matchEnded };
+}

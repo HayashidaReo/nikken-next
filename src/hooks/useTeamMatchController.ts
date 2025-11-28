@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { TeamMatch } from "@/types/match.schema";
@@ -66,14 +66,14 @@ interface UseTeamMatchControllerProps {
 }
 
 export function useTeamMatchController({
-    matchId,
+    matchId = "",
     activeTournamentType,
     teamMatches,
     teams,
     tournament,
-    orgId,
-    tournamentId,
-}: UseTeamMatchControllerProps) {
+    orgId = null,
+    tournamentId = null,
+}: Partial<UseTeamMatchControllerProps> = {}) {
     const router = useRouter();
     const matchGroupId = useMonitorStore((s) => s.matchGroupId);
     const currentSortOrder = useMonitorStore((s) => s.sortOrder);
@@ -157,6 +157,7 @@ export function useTeamMatchController({
                             hansoku: m.players.playerB.hansoku,
                         },
                         winner: w,
+                        winReason: m.winReason || "none",
                     };
                 });
 
@@ -318,6 +319,8 @@ export function useTeamMatchController({
                         },
                     },
                     isCompleted: false,
+                    winner: "none",
+                    winReason: "none",
                 }
             );
 
@@ -350,6 +353,34 @@ export function useTeamMatchController({
         }
     }, [matchGroupId, teams, tournament, resolvePlayer, initializeMatch, router, orgId, tournamentId]);
 
+    useEffect(() => {
+        const updateMatchGroupCompletion = async () => {
+            if (activeTournamentType === "team" && matchGroupId && isAllFinished) {
+                const { localMatchGroupRepository } = await import("@/repositories/local/match-group-repository");
+                const group = await localMatchGroupRepository.getById(matchGroupId);
+                if (group && !group.isCompleted) {
+                    await localMatchGroupRepository.update(matchGroupId, { isCompleted: true });
+                }
+            }
+        };
+        updateMatchGroupCompletion();
+    }, [activeTournamentType, matchGroupId, isAllFinished]);
+
+    const handleSaveMatchResult = useCallback(async (result: Partial<TeamMatch> & { matchId: string }) => {
+        const { localTeamMatchRepository } = await import("@/repositories/local/team-match-repository");
+
+        try {
+            await localTeamMatchRepository.update(result.matchId, result);
+
+            // ストアのteamMatchResultsを更新
+            if (activeTournamentType === "team" && teamMatches && teams) {
+                handleShowTeamResult();
+            }
+        } catch (error) {
+            console.error("Failed to save match result:", error);
+        }
+    }, [activeTournamentType, teamMatches, teams, handleShowTeamResult]);
+
     return {
         isAllFinished,
         needsRepMatch,
@@ -358,5 +389,6 @@ export function useTeamMatchController({
         handleBackToDashboard,
         handleEnterKey,
         handleCreateRepMatch,
+        handleSaveMatchResult,
     };
 }

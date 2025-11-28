@@ -6,7 +6,7 @@ import { TableRow, TableCell } from "@/components/atoms/table";
 import PlayerCell from "@/components/molecules/player-cell";
 import MatchTable from "@/components/organisms/match-table";
 import { Button } from "@/components/atoms/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import type { MatchGroup } from "@/types/match.schema";
 import { useMasterData } from "@/components/providers/master-data-provider";
 
@@ -24,6 +24,7 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
         <MatchTable
             title={tournamentName}
             columns={[
+                { key: "status", label: "", width: 40, className: "text-center" },
                 { key: "court", label: "コート名", width: 150 },
                 { key: "round", label: "回戦", width: 100 },
                 { key: "teamA", label: "チームA", width: 200 },
@@ -41,6 +42,15 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
 
                 return (
                     <TableRow key={group.matchGroupId}>
+                        <TableCell className="p-2 text-center">
+                            <div className="flex items-center justify-center">
+                                {group.isCompleted ? (
+                                    <Check className="h-5 w-5 text-green-500" />
+                                ) : (
+                                    <Check className="h-5 w-5 text-gray-300" />
+                                )}
+                            </div>
+                        </TableCell>
                         <PlayerCell text={courtName} title={courtName} />
                         <PlayerCell text={roundName} title={roundName} />
                         <PlayerCell text={teamAName} title={teamAName} />

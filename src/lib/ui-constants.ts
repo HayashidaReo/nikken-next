@@ -52,10 +52,11 @@ export const MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
 export const MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS = {
     drag: 3,           // ドラッグハンドル
     courtName: 20,      // コート名
-    round: 18,         // ラウンド
+    round: 19,         // ラウンド
     teamA: 24,         // チームA
     teamB: 24,         // チームB
-    action: 11,        // 操作ボタン
+    action: 5,        // 削除ボタン
+    details: 5,       // 詳細ボタン
 } as const;
 
 /**
@@ -78,13 +79,13 @@ export const TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
  * - コート名なし
  */
 export const TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS = {
-    round: 12,
-    playerATeam: 15,
-    playerAName: 15,
-    score: 15,
-    playerBTeam: 15,
-    playerBName: 15,
-    action: 10,
+    round: 15,
+    playerAName: 16,
+    score: 30,
+    playerBName: 16,
+    winReason: 10,
+    action: 9,
+    edit: 4,
 } as const;
 
 const UI_CONSTANTS = {

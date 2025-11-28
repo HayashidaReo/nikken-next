@@ -1,4 +1,4 @@
-import { TeamMatch } from "@/types/match.schema";
+import { TeamMatch, WinReason } from "@/types/match.schema";
 import { Team } from "@/types/team.schema";
 import { TEAM_MATCH_CONSTANTS } from "@/lib/constants";
 
@@ -16,6 +16,21 @@ export function resolvePlayerInfo(teams: Team[] | undefined, playerId: string, t
         displayName: player?.displayName || playerId,
         teamName: team?.teamName || teamId,
     };
+}
+
+/**
+ * チーム戦の勝利数を計算する
+ * @param matches - 試合データの配列
+ * @returns チームAとチームBの勝利数
+ */
+export function calculateTeamMatchWins(matches: TeamMatch[]) {
+    let winsA = 0;
+    let winsB = 0;
+    matches.forEach((m) => {
+        if (m.winner === "playerA") winsA++;
+        else if (m.winner === "playerB") winsB++;
+    });
+    return { winsA, winsB };
 }
 
 /**
@@ -55,22 +70,25 @@ export function analyzeTeamMatchStatus(
 
     // 5試合目の時（またはそれ以降の判定が必要な時）
     if (currentMatch?.roundId === TEAM_MATCH_CONSTANTS.LAST_REGULAR_MATCH_ROUND_ID) {
-        let winsA = 0;
-        let winsB = 0;
-
-        completedRegularMatches.forEach((m) => {
-            let scoreA = m.players.playerA.score;
-            let scoreB = m.players.playerB.score;
-
-            // 現在の試合については、スナップショット（最新状態）を使用する
+        // 現在の試合のスナップショットを反映した試合リストを作成
+        const effectiveMatches = completedRegularMatches.map(m => {
             if (m.matchId === currentMatchId) {
-                scoreA = currentMatchSnapshot.playerA.score;
-                scoreB = currentMatchSnapshot.playerB.score;
-            }
+                const scoreA = currentMatchSnapshot.playerA.score;
+                const scoreB = currentMatchSnapshot.playerB.score;
+                let winner: "playerA" | "playerB" | "draw" | "none" = "none";
+                if (scoreA > scoreB) winner = "playerA";
+                else if (scoreB > scoreA) winner = "playerB";
+                else winner = "draw";
 
-            if (scoreA > scoreB) winsA++;
-            else if (scoreB > scoreA) winsB++;
+                return {
+                    ...m,
+                    winner,
+                };
+            }
+            return m;
         });
+
+        const { winsA, winsB } = calculateTeamMatchWins(effectiveMatches);
 
         // 同点の場合
         if (winsA === winsB) {
@@ -95,4 +113,45 @@ export function analyzeTeamMatchStatus(
     }
 
     return { isAllFinished, needsRepMatch };
+}
+
+/**
+ * 試合結果保存用のオブジェクトを作成する
+ * 
+ * @param match - 元の試合データ
+ * @param result - 更新する結果データ
+ * @returns 保存用の試合データオブジェクト
+ */
+export function createMatchResultUpdateObject(
+    match: TeamMatch,
+    result: {
+        playerAScore: number;
+        playerBScore: number;
+        playerAHansoku: number;
+        playerBHansoku: number;
+        winner: "playerA" | "playerB" | "draw" | "none";
+        winReason: WinReason;
+        isCompleted: boolean;
+    }
+) {
+    return {
+        matchId: match.matchId || "",
+        roundId: match.roundId,
+        sortOrder: match.sortOrder,
+        players: {
+            playerA: {
+                ...match.players.playerA,
+                score: result.playerAScore,
+                hansoku: result.playerAHansoku,
+            },
+            playerB: {
+                ...match.players.playerB,
+                score: result.playerBScore,
+                hansoku: result.playerBHansoku,
+            },
+        },
+        isCompleted: result.isCompleted,
+        winner: result.winner,
+        winReason: result.winReason,
+    };
 }

@@ -1,6 +1,11 @@
 // @ts-check
 import withSerwistInit from "@serwist/next";
 
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const packageJson = require("./package.json");
+
 // 1. 環境変数をチェックしてスイッチ判定を行う
 const isPwaEnabled = process.env.ENABLE_PWA === "true";
 
@@ -16,6 +21,9 @@ const nextConfig = {
     // Turbopack の設定
     turbopack: {},
     output: "standalone",
+    env: {
+        NEXT_PUBLIC_APP_VERSION: packageJson.version,
+    },
 };
 
 // 3. PWAモードの時だけ withSerwist でラップし、それ以外は素の config を返す

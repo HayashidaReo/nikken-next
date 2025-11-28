@@ -219,7 +219,7 @@ describe("usePresentation", () => {
         matchId: "snap-1",
         tournamentName: "Snap Tournament",
         courtName: "Court 1",
-        round: "Final",
+        roundName: "Final",
         playerA: { displayName: "A", teamName: "T", score: 1, hansoku: 0 },
         playerB: { displayName: "B", teamName: "T", score: 2, hansoku: 0 },
         timeRemaining: 90,

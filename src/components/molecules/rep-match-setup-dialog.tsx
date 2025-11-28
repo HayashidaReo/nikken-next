@@ -3,13 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/atoms/button";
 import {
-    Card,
     CardContent,
     CardHeader,
     CardTitle,
 } from "@/components/atoms/card";
 import { Users } from "lucide-react";
-import { DialogOverlay } from "./dialog-overlay";
+import { ModalDialog } from "./modal-dialog";
 import { Team } from "@/types/team.schema";
 import { SearchableSelect } from "./searchable-select";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
@@ -73,7 +72,6 @@ export function RepMatchSetupDialog({
                 handleConfirm();
             }
         };
-
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isOpen, isValid, handleConfirm]);
@@ -91,66 +89,64 @@ export function RepMatchSetupDialog({
     }));
 
     return (
-        <DialogOverlay isOpen={isOpen} onClose={handleCancel}>
-            <Card className="w-full max-w-2xl mx-4">
-                <CardHeader className="text-center">
-                    <div className="flex justify-center mb-4">
-                        <div className="p-3 rounded-full bg-purple-100">
-                            <Users className="h-8 w-8 text-purple-600" />
-                        </div>
+        <ModalDialog isOpen={isOpen} onClose={handleCancel} className="max-w-2xl">
+            <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                    <div className="p-3 rounded-full bg-purple-100">
+                        <Users className="h-8 w-8 text-purple-600" />
                     </div>
-                    <CardTitle className="text-xl">代表戦の選手を選択</CardTitle>
-                    <p className="text-sm text-gray-600 mt-2">
-                        5試合が同点で終了しました。代表戦を行う選手を各チームから選択してください。
-                    </p>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {/* Team A 選手選択 */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-red-600">
-                            {teamA.teamName} の代表選手
-                        </label>
-                        <SearchableSelect
-                            value={selectedPlayerA}
-                            onValueChange={setSelectedPlayerA}
-                            options={teamAOptions}
-                            placeholder="選手を選択してください"
-                            searchPlaceholder="選手名で検索..."
-                            className="h-10"
-                        />
-                    </div>
+                </div>
+                <CardTitle className="text-xl">代表戦の選手を選択</CardTitle>
+                <p className="text-sm text-gray-600 mt-2">
+                    5試合が同点で終了しました。代表戦を行う選手を各チームから選択してください。
+                </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {/* Team A 選手選択 */}
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-red-600">
+                        {teamA.teamName} の代表選手
+                    </label>
+                    <SearchableSelect
+                        value={selectedPlayerA}
+                        onValueChange={setSelectedPlayerA}
+                        options={teamAOptions}
+                        placeholder="選手を選択してください"
+                        searchPlaceholder="選手名で検索..."
+                        className="h-10"
+                    />
+                </div>
 
-                    {/* Team B 選手選択 */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-blue-600">
-                            {teamB.teamName} の代表選手
-                        </label>
-                        <SearchableSelect
-                            value={selectedPlayerB}
-                            onValueChange={setSelectedPlayerB}
-                            options={teamBOptions}
-                            placeholder="選手を選択してください"
-                            searchPlaceholder="選手名で検索..."
-                            className="h-10"
-                        />
-                    </div>
+                {/* Team B 選手選択 */}
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-blue-600">
+                        {teamB.teamName} の代表選手
+                    </label>
+                    <SearchableSelect
+                        value={selectedPlayerB}
+                        onValueChange={setSelectedPlayerB}
+                        options={teamBOptions}
+                        placeholder="選手を選択してください"
+                        searchPlaceholder="選手名で検索..."
+                        className="h-10"
+                    />
+                </div>
 
-                    {/* ボタン */}
-                    <div className="flex gap-3 pt-4">
-                        <Button variant="outline" onClick={handleCancel} className="flex-1">
-                            キャンセル
-                        </Button>
-                        <Button
-                            onClick={handleConfirm}
-                            className="flex-1 bg-purple-600 hover:bg-purple-700 gap-2"
-                            disabled={!isValid}
-                        >
-                            代表戦を開始
-                            {isValid && <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-        </DialogOverlay>
+                {/* ボタン */}
+                <div className="flex gap-3 pt-4">
+                    <Button variant="outline" onClick={handleCancel} className="flex-1">
+                        キャンセル
+                    </Button>
+                    <Button
+                        onClick={handleConfirm}
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 gap-2"
+                        disabled={!isValid}
+                    >
+                        代表戦を開始
+                        {isValid && <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />}
+                    </Button>
+                </div>
+            </CardContent>
+        </ModalDialog>
     );
 }

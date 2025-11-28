@@ -22,12 +22,34 @@ export class LocalMatchGroupRepository {
         await db.matchGroups.bulkPut(matchGroups);
     }
 
+    /**
+     * 論理削除
+     * オフライン同期のために、レコード自体は残して _deleted フラグを立てる。
+     * 
+     * 以下の2行で、親（MatchGroup）と子（TeamMatch）を同時に論理削除しています。
+     * 1. db.matchGroups... -> 親（対戦グループ）を削除済みマーク
+     * 2. db.teamMatches... -> そのグループに紐づく子（個人対戦）も全て削除済みマーク
+     */
     async delete(matchGroupId: string): Promise<void> {
-        await db.matchGroups.where({ matchGroupId }).modify({ _deleted: true, isSynced: false });
+        await db.transaction('rw', db.matchGroups, db.teamMatches, async () => {
+            await db.matchGroups.where({ matchGroupId }).modify({ _deleted: true, isSynced: false });
+            await db.teamMatches.where({ matchGroupId }).modify({ _deleted: true, isSynced: false });
+        });
     }
 
+    /**
+     * 物理削除
+     * クラウド同期完了後など、完全にデータを消去する場合に使用する。
+     * 
+     * 以下の2行で、親（MatchGroup）と子（TeamMatch）を同時に物理削除しています。
+     * 1. db.matchGroups... -> 親（対戦グループ）を完全削除
+     * 2. db.teamMatches... -> そのグループに紐づく子（個人対戦）も全て完全削除
+     */
     async hardDelete(matchGroupId: string): Promise<void> {
-        await db.matchGroups.where({ matchGroupId }).delete();
+        await db.transaction('rw', db.matchGroups, db.teamMatches, async () => {
+            await db.matchGroups.where({ matchGroupId }).delete();
+            await db.teamMatches.where({ matchGroupId }).delete();
+        });
     }
 
     async deleteByTournament(orgId: string, tournamentId: string): Promise<void> {
@@ -42,6 +64,7 @@ export class LocalMatchGroupRepository {
             organizationId: orgId,
             tournamentId,
             isSynced: false,
+            isCompleted: false,
             createdAt: now,
             updatedAt: now,
         };

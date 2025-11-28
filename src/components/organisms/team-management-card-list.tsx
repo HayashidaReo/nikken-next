@@ -203,8 +203,8 @@ export function TeamManagementCardList({
       if (a.isApproved !== b.isApproved) {
         return a.isApproved ? 1 : -1;
       }
-      // 同じ承認状態の場合は登録日順
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      // 同じ承認状態の場合はチーム名順（あいうえお順）
+      return a.teamName.localeCompare(b.teamName, 'ja');
     });
   }, [teams]);
 

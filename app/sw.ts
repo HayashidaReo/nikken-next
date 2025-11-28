@@ -22,6 +22,7 @@ const serwist = new Serwist({
         { url: "/teams", revision: null },
         { url: "/tournament-settings", revision: null },
         { url: "/monitor-display", revision: null },
+        { url: "/manual-monitor-control", revision: null },
         { url: "/not-found", revision: null },
     ],
     skipWaiting: true,
@@ -45,6 +46,7 @@ const serwist = new Serwist({
 
                 const publicRoutes = [
                     "/monitor-display",
+                    "/manual-monitor-control",
                     "/not-found"
                 ];
 

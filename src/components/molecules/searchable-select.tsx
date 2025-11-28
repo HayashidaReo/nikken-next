@@ -540,7 +540,10 @@ export function SearchableSelect({
                                 key={option.value}
                                 role="option"
                                 aria-selected={isSelected}
-                                onClick={() => handleSelect(option)}
+                                onMouseDown={(e) => {
+                                    e.preventDefault(); // フォーカス移動を防ぐ
+                                    handleSelect(option);
+                                }}
                                 onMouseEnter={() => handleMouseEnter(index)}
                                 className={itemClasses}
                             >

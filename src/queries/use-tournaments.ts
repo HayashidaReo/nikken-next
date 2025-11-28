@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Tournament } from "@/types/tournament.schema";
 import { useLiveQuery } from "dexie-react-hooks";
 import { localTournamentRepository } from "@/repositories/local/tournament-repository";
+import { FirestoreTournamentRepository } from "@/repositories/firestore/tournament-repository";
 
 /**
  * Query Keys for Tournament entities
@@ -38,20 +39,10 @@ export function useTournamentsByOrganization(orgId: string | null) {
         queryFn: async () => {
             if (!orgId) return null;
 
-            // タイムアウト付きでフェッチ (5秒)
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-
+            // Firestoreから直接取得
+            const tournamentRepository = new FirestoreTournamentRepository();
             try {
-                const response = await fetch(`/api/tournaments/${orgId}`, { signal: controller.signal });
-
-                if (!response.ok) {
-                    // オフラインやサーバーエラーの場合は無視してローカルデータを使用
-                    return null;
-                }
-
-                const data = await response.json();
-                const tournaments = data.data || [];
+                const tournaments = await tournamentRepository.listAll(orgId);
 
                 // 未同期のローカル変更を取得
                 const unsyncedLocalTournaments = await localTournamentRepository.getUnsynced(orgId);
@@ -64,20 +55,19 @@ export function useTournamentsByOrganization(orgId: string | null) {
                     .map((t: Tournament) => ({
                         ...t,
                         organizationId: orgId,
-                        tournamentDate: t.tournamentDate ? new Date(t.tournamentDate) : null,
-                        createdAt: t.createdAt ? new Date(t.createdAt) : undefined,
-                        updatedAt: t.updatedAt ? new Date(t.updatedAt) : undefined,
+                        tournamentDate: t.tournamentDate ? new Date(t.tournamentDate) : new Date(),
+                        createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
+                        updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(),
+                        isSynced: true,
                     }));
 
                 if (localTournaments.length > 0) {
                     await localTournamentRepository.bulkPut(localTournaments);
                 }
                 return tournaments;
-            } catch {
-                // タイムアウトやネットワークエラーは無視
+            } catch (error) {
+                console.error("Failed to sync tournaments:", error);
                 return null;
-            } finally {
-                clearTimeout(timeoutId);
             }
         },
         enabled: !!orgId,

@@ -1,12 +1,10 @@
 import { create } from "zustand";
-import type { Match, TeamMatch } from "@/types/match.schema";
+import type { Match, TeamMatch, WinReason } from "@/types/match.schema";
 import type { ResolvedMatchPlayer } from "@/lib/utils/player-directory";
 import type { MonitorData, MonitorPlayer } from "@/types/monitor.schema";
 import { SCORE_CONSTANTS, HANSOKU_CONSTANTS } from "@/lib/constants";
 import {
-  calculateOpponentScoreChange,
-  updateOpponentScore,
-  isMatchEnded,
+  calculateHansokuEffects,
 } from "@/domains/match/match-logic";
 import { timerController } from "@/lib/timer-controller";
 
@@ -47,6 +45,7 @@ export interface MonitorState {
     playerA: MonitorPlayer;
     playerB: MonitorPlayer;
     winner: "playerA" | "playerB" | "draw" | "none";
+    winReason: WinReason | null;
   };
   teamMatchResults?: MonitorData["teamMatchResults"];
   groupMatches?: MonitorData["groupMatches"];
@@ -238,12 +237,12 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     const opponent =
       player === "A" ? currentState.playerB : currentState.playerA;
 
-    // 相手のスコア変動を計算
-    const scoreChange = calculateOpponentScoreChange(
+    // 反則更新時の影響を計算
+    const { newOpponentScore, isMatchEnded } = calculateHansokuEffects(
       currentPlayer.hansoku,
-      hansoku
+      hansoku,
+      opponent.score
     );
-    const newOpponentScore = updateOpponentScore(opponent.score, scoreChange);
 
     if (player === "A") {
       set({
@@ -258,7 +257,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     }
 
     // 試合終了判定
-    if (isMatchEnded(hansoku, newOpponentScore)) {
+    if (isMatchEnded) {
       get().stopTimer();
     }
   },

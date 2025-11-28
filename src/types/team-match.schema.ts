@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { matchPlayerSchema } from "./match.schema";
+import { matchPlayerSchema, winReasonEnum } from "./match.schema";
 
 /**
  * 団体戦内の個人試合（TeamMatch）スキーマ
@@ -15,6 +15,8 @@ export const teamMatchSchema = z.object({
     }),
     sortOrder: z.number().int().min(0),
     isCompleted: z.boolean(),
+    winner: z.enum(["playerA", "playerB", "draw", "none"]).nullable(), // 勝者
+    winReason: winReasonEnum.nullable(), // 決着理由
     createdAt: z.date().optional(),
     updatedAt: z.date().optional(),
 });

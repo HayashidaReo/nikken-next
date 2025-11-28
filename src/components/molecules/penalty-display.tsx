@@ -29,7 +29,7 @@ export function PenaltyDisplay({
     // カードのサイズ定義
     const cardSizeClasses: Record<NonNullable<PenaltyDisplayProps['variant']>, string> = {
         compact: "w-3 h-4",
-        medium: "w-4 h-5.5",
+        medium: "w-4 h-6",
         normal: "w-16 h-24",
     };
 

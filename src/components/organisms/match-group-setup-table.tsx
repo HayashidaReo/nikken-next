@@ -62,6 +62,7 @@ export function MatchGroupSetupTable({
                 teamAId: g.teamAId,
                 teamBId: g.teamBId,
                 sortOrder: g.sortOrder,
+                isCompleted: g.isCompleted ?? false,
             };
         })
     );
@@ -81,6 +82,49 @@ export function MatchGroupSetupTable({
                 [data[index].id]: prev[data[index].id].filter(f => f !== field)
             }));
         }
+    };
+
+
+
+    const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+    const [showTeamChangeConfirm, setShowTeamChangeConfirm] = useState(false);
+
+    // 削除された既存対戦の数
+    const [deletedGroupCount, setDeletedGroupCount] = useState(0);
+    // チーム変更があった既存対戦の数
+    const [changedTeamGroupCount, setChangedTeamGroupCount] = useState(0);
+
+    const checkDeleteAndSave = () => {
+        // 既存の対戦が削除されている場合は確認ダイアログを表示
+        const currentIds = new Set(data.map(d => d.id));
+        const count = Array.from(initialGroupIds).filter((id: string) => !currentIds.has(id)).length;
+
+        if (count > 0) {
+            setDeletedGroupCount(count);
+            setShowSaveConfirm(true);
+            return;
+        }
+
+        onSave(data);
+    };
+
+    const confirmTeamChange = () => {
+        setShowTeamChangeConfirm(false);
+        checkDeleteAndSave();
+    };
+
+    const cancelTeamChange = () => {
+        setShowTeamChangeConfirm(false);
+    };
+
+    const confirmSave = () => {
+        setShowSaveConfirm(false);
+        onSave(data);
+        setDeletedGroupCount(0);
+    };
+
+    const cancelSave = () => {
+        setShowSaveConfirm(false);
     };
 
     const handleSave = () => {
@@ -107,29 +151,24 @@ export function MatchGroupSetupTable({
             return;
         }
 
-        // 既存の対戦が削除されている場合は確認ダイアログを表示
-        const currentIds = new Set(data.map(d => d.id));
-        const count = Array.from(initialGroupIds).filter((id: string) => !currentIds.has(id)).length;
+        // チーム変更のチェック
+        const changedGroups = data.filter(row => {
+            // 新規作成行はスキップ
+            if (row.id.startsWith("group-")) return false;
 
-        if (count > 0) {
-            setDeletedGroupCount(count);
-            setShowSaveConfirm(true);
+            const original = matchGroups.find(g => g.matchGroupId === row.id);
+            if (!original) return false;
+
+            return original.teamAId !== row.teamAId || original.teamBId !== row.teamBId;
+        });
+
+        if (changedGroups.length > 0) {
+            setChangedTeamGroupCount(changedGroups.length);
+            setShowTeamChangeConfirm(true);
             return;
         }
 
-        onSave(data);
-    };
-
-    const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-
-    const confirmSave = () => {
-        setShowSaveConfirm(false);
-        onSave(data);
-        setDeletedGroupCount(0);
-    };
-
-    const cancelSave = () => {
-        setShowSaveConfirm(false);
+        checkDeleteAndSave();
     };
 
     const addRow = () => {
@@ -144,6 +183,7 @@ export function MatchGroupSetupTable({
                 teamAId: "",
                 teamBId: "",
                 sortOrder: maxSortOrder + 1,
+                isCompleted: false,
             },
         ]);
     };
@@ -152,9 +192,6 @@ export function MatchGroupSetupTable({
     const [initialGroupIds] = useState(() => {
         return new Set(matchGroups.map(g => g.matchGroupId || ""));
     });
-
-    // 削除された既存対戦の数
-    const [deletedGroupCount, setDeletedGroupCount] = useState(0);
 
     const removeRow = (index: number) => {
         setData((prev) => prev.filter((_, i) => i !== index));
@@ -183,7 +220,8 @@ export function MatchGroupSetupTable({
         { key: "round", label: "ラウンド", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.round },
         { key: "teamA", label: "チームA", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.teamA },
         { key: "teamB", label: "チームB", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.teamB },
-        { key: "action", label: "操作", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
+        { key: "action", label: "削除", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
+        { key: "details", label: "詳細", width: MATCH_GROUP_SETUP_TABLE_COLUMN_WIDTHS.details, className: "text-center" },
     ];
 
     return (
@@ -246,6 +284,17 @@ export function MatchGroupSetupTable({
                     </table>
                 ) : null}
             </DragOverlay>
+
+            <ConfirmDialog
+                isOpen={showTeamChangeConfirm}
+                title="チーム変更の確認"
+                message={`${changedTeamGroupCount}件の対戦でチームが変更されています。保存すると、登録済みの選手情報との整合性が取れなくなる可能性があります。保存してもよろしいですか？`}
+                onConfirm={confirmTeamChange}
+                onCancel={cancelTeamChange}
+                confirmText="保存する"
+                cancelText="キャンセル"
+                variant="destructive"
+            />
 
             <ConfirmDialog
                 isOpen={showSaveConfirm}

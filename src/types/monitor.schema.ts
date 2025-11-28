@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { winReasonEnum } from "./match.schema";
 
 /**
  * モニター表示用の選手情報スキーマ
@@ -30,7 +31,8 @@ export const monitorDataSchema = z.object({
     matchResult: z.object({
         playerA: monitorPlayerSchema,
         playerB: monitorPlayerSchema,
-        winner: z.enum(["playerA", "playerB", "draw", "none"]),
+        winner: z.enum(["playerA", "playerB", "draw", "none"]).nullable(),
+        winReason: winReasonEnum.nullable(),
     }).optional(),
     teamMatchResults: z.array(z.object({
         matchId: z.string(),
@@ -38,7 +40,8 @@ export const monitorDataSchema = z.object({
         roundId: z.string().optional(),
         playerA: monitorPlayerSchema,
         playerB: monitorPlayerSchema,
-        winner: z.enum(["playerA", "playerB", "draw", "none"]),
+        winner: z.enum(["playerA", "playerB", "draw", "none"]).nullable(),
+        winReason: winReasonEnum.nullable(),
     })).optional(),
     groupMatches: z.array(z.object({
         matchId: z.string(),
@@ -47,7 +50,8 @@ export const monitorDataSchema = z.object({
         playerA: monitorPlayerSchema,
         playerB: monitorPlayerSchema,
         isCompleted: z.boolean(),
-        winner: z.enum(["playerA", "playerB", "draw", "none"]).optional(),
+        winner: z.enum(["playerA", "playerB", "draw", "none"]).nullable(),
+        winReason: winReasonEnum.nullable(),
     })).optional(),
 });
 

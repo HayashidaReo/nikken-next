@@ -37,6 +37,7 @@ interface PlayerScoreCardProps {
   isManual?: boolean;
   onNameChange?: (playerKey: "A" | "B", name: string) => void;
   onTeamNameChange?: (playerKey: "A" | "B", name: string) => void;
+  onSpecialWinAction?: (playerKey: "A" | "B", action: "fusen" | "hantei" | "hansoku") => void;
 }
 
 const hansokuOptions = [
@@ -59,6 +60,7 @@ export function PlayerScoreCard({
   isManual = false,
   onNameChange,
   onTeamNameChange,
+  onSpecialWinAction,
 }: PlayerScoreCardProps) {
   const { playerA: storePlayerA, playerB: storePlayerB } = useMonitorStore();
 
@@ -211,6 +213,38 @@ export function PlayerScoreCard({
             ))}
           </div>
         </div>
+
+        {/* 特別な決着ボタン */}
+        {!isManual && onSpecialWinAction && (
+          <div className="pt-2 border-t mt-4">
+            <div className="grid grid-cols-3 gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-[10px] px-1 h-8 bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
+                onClick={() => onSpecialWinAction(playerKey, "fusen")}
+              >
+                不戦敗
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-[10px] px-1 h-8 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                onClick={() => onSpecialWinAction(playerKey, "hantei")}
+              >
+                判定勝ち
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-[10px] px-1 h-8 bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                onClick={() => onSpecialWinAction(playerKey, "hansoku")}
+              >
+                反則負け
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

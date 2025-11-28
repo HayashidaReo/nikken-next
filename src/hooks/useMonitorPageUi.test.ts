@@ -163,6 +163,8 @@ describe("useMonitorPageUi", () => {
                     },
                     sortOrder: 0,
                     isCompleted: false,
+                    winner: "none",
+                    winReason: "none",
                 },
             ];
 
@@ -203,6 +205,8 @@ describe("useMonitorPageUi", () => {
                     },
                     sortOrder: 0,
                     isCompleted: false,
+                    winner: "none",
+                    winReason: "none",
                 },
             ];
 

@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { localMatchRepository } from "@/repositories/local/match-repository";
 import { localTeamMatchRepository } from "@/repositories/local/team-match-repository";
 import { LocalMatch, LocalTeamMatch } from "@/lib/db";
+import type { WinReason } from "@/types/match.schema";
 
 export interface SaveMatchResultRequest {
     matchId: string;
@@ -17,6 +18,8 @@ export interface SaveMatchResultRequest {
             hansoku: number;
         };
     };
+    winner: "playerA" | "playerB" | "draw" | "none" | null;
+    winReason: WinReason | null;
 }
 
 /**
@@ -48,6 +51,8 @@ export function useSaveIndividualMatchResult() {
                     },
                 },
                 isCompleted: true,
+                winner: request.winner,
+                winReason: request.winReason,
                 updatedAt: new Date(),
                 isSynced: false,
             };
@@ -87,6 +92,8 @@ export function useSaveTeamMatchResult() {
                     },
                 },
                 isCompleted: true,
+                winner: request.winner,
+                winReason: request.winReason,
                 updatedAt: new Date(),
                 isSynced: false,
             };

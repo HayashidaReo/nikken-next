@@ -46,6 +46,23 @@ export const matchPlayerSchema = z.object({
  * 試合エンティティのZodスキーマ
  * データベース設計の matches コレクションに対応
  */
+/**
+ * 決着理由の列挙型
+ */
+export const winReasonEnum = z.enum([
+  "ippon",   // 一本
+  "hantei",  // 判定
+  "hansoku", // 反則
+  "fusen",   // 不戦
+  "none",    // なし
+]);
+
+export type WinReason = z.infer<typeof winReasonEnum>;
+
+/**
+ * 試合エンティティのZodスキーマ
+ * データベース設計の matches コレクションに対応
+ */
 export const matchSchema = z.object({
   matchId: z.string().optional(), // Firestoreで自動生成
   courtId: z.string().min(1, "コートIDは必須です"),
@@ -56,6 +73,8 @@ export const matchSchema = z.object({
   }),
   sortOrder: z.number().int().min(0), // 表示順序（昇順で並び替え）
   isCompleted: z.boolean(), // 試合完了フラグ（組み合わせ作成時はfalse、モニター保存時はtrue）
+  winner: z.enum(["playerA", "playerB", "draw", "none"]).nullable(), // 勝者
+  winReason: winReasonEnum.nullable(), // 決着理由
   createdAt: z.date().optional(), // Firestoreで自動設定
   updatedAt: z.date().optional(), // Firestoreで自動設定
 });
@@ -94,6 +113,8 @@ export const matchUpdateSchema = z.object({
       hansoku: z.number().min(0).max(4),
     }),
   }),
+  winner: z.enum(["playerA", "playerB", "draw", "none"]).nullable(),
+  winReason: z.string().nullable(),
 });
 
 /**
@@ -113,6 +134,8 @@ export const matchUpdateRequestSchema = z.object({
       hansoku: z.number().min(0).max(4),
     }),
   }),
+  winner: z.enum(["playerA", "playerB", "draw", "none"]).nullable(),
+  winReason: winReasonEnum.nullable(),
 });
 
 // TypeScriptの型を自動導出
@@ -134,6 +157,7 @@ export const matchGroupSchema = z.object({
   sortOrder: z.number().int().min(0),
   teamAId: z.string().min(1, "チームAは必須です"),
   teamBId: z.string().min(1, "チームBは必須です"),
+  isCompleted: z.boolean(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });

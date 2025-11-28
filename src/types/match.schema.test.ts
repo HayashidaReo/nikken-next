@@ -26,6 +26,8 @@ describe("Match Schema Validation", () => {
       },
     },
     isCompleted: false,
+    winner: "none",
+    winReason: "none",
     createdAt: new Date(),
     updatedAt: new Date(),
   };
