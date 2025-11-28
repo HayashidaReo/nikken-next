@@ -12,6 +12,7 @@ import { InfoDisplay } from "@/components/molecules/info-display";
 import { FallbackMonitorDialog } from "@/components/molecules";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorController } from "@/hooks/useMonitorController";
+import { useMonitorStore } from "@/store/use-monitor-store";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 import { MonitorControlHeader } from "@/components/organisms/monitor-control-header";
@@ -25,6 +26,9 @@ export default function MonitorControlPage() {
   const matchId = params.matchId as string;
 
   const { orgId, activeTournamentId, activeTournamentType } = useAuthContext();
+
+  const playerA = useMonitorStore((s) => s.playerA);
+  const playerB = useMonitorStore((s) => s.playerB);
 
   // データ取得ロジック（統合）
   const {
@@ -234,7 +238,7 @@ export default function MonitorControlPage() {
 
   const getSpecialWinTitle = () => {
     const { action, playerKey } = specialWinConfirm;
-    const playerName = playerKey === "A" ? "選手A" : "選手B"; // 実際の名前があればそれが良いが、ここでは簡易的に
+    const playerName = playerKey === "A" ? playerA.displayName : playerB.displayName;
     switch (action) {
       case "fusen": return `${playerName}の不戦敗`;
       case "hantei": return `${playerName}の判定勝ち`;
@@ -303,11 +307,12 @@ export default function MonitorControlPage() {
         <ConfirmDialog
           isOpen={specialWinConfirm.isOpen}
           title={getSpecialWinTitle()}
-          message="この結果で確定しますか？"
+          message="この結果で確定し、試合を終了しますか？"
           onConfirm={handleSpecialWinExecute}
           onCancel={() => setSpecialWinConfirm((prev) => ({ ...prev, isOpen: false }))}
           confirmText="確定する"
           cancelText="キャンセル"
+          confirmShortcut="Enter"
         />
         {/* 代表戦設定ダイアログ */}
         {orderedTeams && (
