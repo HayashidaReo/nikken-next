@@ -110,9 +110,6 @@ export default function MonitorControlPage() {
     teams,
   });
 
-  // キーボードショートカット
-
-
   // 特別な決着の確認ダイアログ状態
   const [specialWinConfirm, setSpecialWinConfirm] = useState<{
     isOpen: boolean;
