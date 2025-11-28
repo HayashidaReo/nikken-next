@@ -113,7 +113,25 @@ export function useMatchAction({
 
             if (currentMatchGroupId) {
                 const playerDirectory = createPlayerDirectory(teams);
-                const groupMatches = createMonitorGroupMatches(teamMatches, currentMatchGroupId, playerDirectory);
+
+                // 現在の試合結果を反映した一時的なteamMatchesを作成
+                const updatedTeamMatches = teamMatches.map(m => {
+                    if (m.matchId === store.matchId) {
+                        return {
+                            ...m,
+                            players: {
+                                playerA: { ...m.players.playerA, score: snapshot.playerA.score, hansoku: snapshot.playerA.hansoku },
+                                playerB: { ...m.players.playerB, score: snapshot.playerB.score, hansoku: snapshot.playerB.hansoku },
+                            },
+                            isCompleted: true,
+                            winner,
+                            winReason,
+                        };
+                    }
+                    return m;
+                });
+
+                const groupMatches = createMonitorGroupMatches(updatedTeamMatches, currentMatchGroupId, playerDirectory);
                 setGroupMatches(groupMatches);
             }
         }
@@ -139,7 +157,25 @@ export function useMatchAction({
 
             if (currentMatchGroupId) {
                 const playerDirectory = createPlayerDirectory(teams);
-                const groupMatches = createMonitorGroupMatches(teamMatches, currentMatchGroupId, playerDirectory);
+
+                // 現在の試合結果を反映した一時的なteamMatchesを作成
+                const updatedTeamMatches = teamMatches.map(m => {
+                    if (m.matchId === store.matchId) {
+                        return {
+                            ...m,
+                            players: {
+                                playerA: { ...m.players.playerA, score: snapshot.playerA.score, hansoku: snapshot.playerA.hansoku },
+                                playerB: { ...m.players.playerB, score: snapshot.playerB.score, hansoku: snapshot.playerB.hansoku },
+                            },
+                            isCompleted: true,
+                            winner,
+                            winReason: reason,
+                        };
+                    }
+                    return m;
+                });
+
+                const groupMatches = createMonitorGroupMatches(updatedTeamMatches, currentMatchGroupId, playerDirectory);
                 setGroupMatches(groupMatches);
             }
         }
