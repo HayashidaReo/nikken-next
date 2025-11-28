@@ -111,11 +111,7 @@ export default function MonitorControlPage() {
   });
 
   // キーボードショートカット
-  const handleEnterKey = useCallback(() => {
-    teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick);
-  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick]);
 
-  useKeyboardShortcuts({ onEnter: handleEnterKey });
 
   // 特別な決着の確認ダイアログ状態
   const [specialWinConfirm, setSpecialWinConfirm] = useState<{
@@ -150,6 +146,17 @@ export default function MonitorControlPage() {
 
     await handleSpecialWin(winner, action);
   }, [specialWinConfirm, handleSpecialWin]);
+
+  // キーボードショートカット
+  const handleEnterKey = useCallback(() => {
+    if (specialWinConfirm.isOpen) {
+      handleSpecialWinExecute();
+      return;
+    }
+    teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick);
+  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick, specialWinConfirm.isOpen, handleSpecialWinExecute]);
+
+  useKeyboardShortcuts({ onEnter: handleEnterKey });
 
   // ローディング状態
   if (isLoading) {
