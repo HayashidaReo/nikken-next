@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import { Input } from "@/components/atoms/input";
 import { Search, X } from "lucide-react";
 
