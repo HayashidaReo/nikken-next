@@ -3,7 +3,7 @@
 import { memo, useMemo, ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { TableRow } from "@/components/atoms/table";
+import { TableRow, TableCell } from "@/components/atoms/table";
 import ScoreCell from "@/components/molecules/score-cell";
 import PlayerCell from "@/components/molecules/player-cell";
 import ActionCell from "@/components/molecules/action-cell";
@@ -77,7 +77,7 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                     const playerBColor = getPlayerTextColor(playerB.score, playerA.score, match.isCompleted, match.winner, false);
 
                     const getWinReasonLabel = (reason: WinReason | null | undefined) => {
-                        if (!reason) return "";
+                        if (!reason || reason === "none") return "";
                         switch (reason) {
                             case "ippon": return "一本";
                             case "hantei": return "判定";
@@ -92,8 +92,8 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
 
                     return (
                         <TableRow key={match.matchId}>
-                            <PlayerCell text={roundName} title={roundName} />
-                            <PlayerCell text={playerA.displayName} title={playerA.displayName} colorClass={playerAColor} />
+                            <PlayerCell text={roundName} title={roundName} className="text-lg font-medium" />
+                            <PlayerCell text={playerA.displayName} title={playerA.displayName} colorClass={playerAColor} className="text-lg font-bold" />
                             <ScoreCell
                                 playerAScore={playerA.score}
                                 playerBScore={playerB.score}
@@ -105,10 +105,12 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                                 playerBHansoku={playerB.hansoku as HansokuLevel}
                                 isCompleted={match.isCompleted}
                             />
-                            <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} />
-                            <div className="flex items-center justify-center h-full">
-                                <span className="text-sm text-gray-600">{winReasonLabel || "-"}</span>
-                            </div>
+                            <PlayerCell text={playerB.displayName} title={playerB.displayName} colorClass={playerBColor} className="text-lg font-bold" />
+                            <TableCell className="p-2 text-center">
+                                <div className="flex items-center justify-center h-full">
+                                    <span className="text-lg font-medium text-gray-600">{winReasonLabel || "-"}</span>
+                                </div>
+                            </TableCell>
                             <ActionCell
                                 onMonitor={() => {
                                     initializeMatch(match, rawTournamentName, courtName, {
@@ -122,16 +124,18 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                                     router.push(`/monitor-control/${match.matchId}`);
                                 }}
                             />
-                            <div className="flex items-center justify-center h-full px-2">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => setEditingMatch(match)}
-                                >
-                                    <Edit2 className="h-4 w-4" />
-                                </Button>
-                            </div>
+                            <TableCell className="p-2 text-center">
+                                <div className="flex items-center justify-center h-full">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => setEditingMatch(match)}
+                                    >
+                                        <Edit2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </TableCell>
                         </TableRow>
                     );
                 })}
