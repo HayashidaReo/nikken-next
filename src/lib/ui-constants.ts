@@ -79,12 +79,12 @@ export const TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
  */
 export const TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS = {
     round: 15,
-    playerAName: 20,
-    score: 20,
-    playerBName: 20,
+    playerAName: 16,
+    score: 30,
+    playerBName: 16,
     winReason: 10,
-    action: 10,
-    edit: 5,
+    action: 9,
+    edit: 4,
 } as const;
 
 const UI_CONSTANTS = {
