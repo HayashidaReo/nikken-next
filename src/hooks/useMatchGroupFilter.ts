@@ -58,7 +58,7 @@ export const useMatchGroupFilter = (matchGroups: MatchGroup[]) => {
             .sort((a, b) => a.label.localeCompare(b.label, "ja"));
     }, [matchGroups, rounds]);
 
-    const statusOptions = [...MATCH_GROUP_STATUS_OPTIONS];
+    const statusOptions = MATCH_GROUP_STATUS_OPTIONS;
 
     // フィルタリング処理
     const filteredMatchGroups = useMemo(() => {

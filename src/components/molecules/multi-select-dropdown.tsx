@@ -23,7 +23,7 @@ interface MultiSelectDropdownProps {
     /** ドロップダウンのヘッダーラベル */
     label: string;
     /** 選択可能なオプションのリスト */
-    options: MultiSelectOption[];
+    options: readonly MultiSelectOption[] | MultiSelectOption[];
     /** 現在選択されている値の配列 */
     selectedValues: string[];
     /** 選択状態が変更された時のコールバック */
