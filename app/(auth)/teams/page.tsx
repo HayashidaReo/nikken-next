@@ -93,7 +93,7 @@ export default function TeamsPage() {
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder="チーム名を検索..."
-              className="w-128"
+              className="w-[32rem]"
             />
           </div>
           <div className="flex items-center gap-4">
