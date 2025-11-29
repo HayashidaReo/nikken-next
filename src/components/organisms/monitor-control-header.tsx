@@ -1,4 +1,4 @@
-import { ArrowLeft, Monitor, Unplug, Save, ChevronRight } from "lucide-react";
+import { ArrowLeft, Monitor, Unplug, ChevronRight } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
@@ -41,12 +41,11 @@ export function MonitorControlHeader({
     actions,
 }: MonitorControlHeaderProps) {
     const { isPublic, monitorStatusMode, isPresentationConnected } = monitorState;
-    const { activeTournamentType, viewMode, isAllFinished, isSaving } = matchState;
+    const { activeTournamentType, viewMode, isAllFinished } = matchState;
     const {
         onTogglePublic,
         onBackToDashboard,
         onMonitorAction,
-        onSave,
         onConfirmMatch,
         onNextMatch,
     } = actions;
@@ -135,14 +134,7 @@ export function MonitorControlHeader({
                         )}
                     </Button>
 
-                    {activeTournamentType !== "team" && viewMode === "scoreboard" && (
-                        <div className="flex items-center gap-2">
-                            <Button onClick={onSave} size="sm" disabled={isSaving}>
-                                <Save className="w-4 h-4 mr-2" />
-                                {isSaving ? "保存中..." : "保存"}
-                            </Button>
-                        </div>
-                    )}
+
                 </div>
             </div>
         </div>

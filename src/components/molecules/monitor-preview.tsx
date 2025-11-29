@@ -6,6 +6,7 @@ import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
 import { MonitorGroupResults } from "@/components/organisms/monitor-group-results";
+import { MonitorIndividualMatchResult } from "@/components/organisms/monitor-individual-match-result";
 import { cn } from "@/lib/utils/utils";
 
 interface MonitorPreviewProps {
@@ -55,18 +56,34 @@ export function MonitorPreview({
         }
 
         if (data.viewMode === "match_result") {
-            // groupMatchesがない場合は空配列（個人戦などはこのビューを使用しない前提）
-            const displayMatches = monitorData.groupMatches || [];
+            // 団体戦の結果表示
+            if (monitorData.groupMatches && monitorData.groupMatches.length > 0) {
+                return (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <MonitorGroupResults
+                            groupMatches={monitorData.groupMatches}
+                            currentMatchId={monitorData.matchId}
+                            className="w-full h-full"
+                        />
+                    </div>
+                );
+            }
 
-            return (
-                <div className="w-full h-full flex items-center justify-center">
-                    <MonitorGroupResults
-                        groupMatches={displayMatches}
-                        currentMatchId={monitorData.matchId}
-                        className="w-full h-full"
-                    />
-                </div>
-            );
+            // 個人戦の結果表示
+            if (monitorData.matchResult) {
+                return (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <MonitorIndividualMatchResult
+                            playerA={monitorData.matchResult.playerA}
+                            playerB={monitorData.matchResult.playerB}
+                            roundName={monitorData.roundName}
+                            winner={monitorData.matchResult.winner}
+                            isCompleted={true}
+                            className="w-full h-full"
+                        />
+                    </div>
+                );
+            }
         }
 
         return <MonitorLayout data={monitorData} />;

@@ -150,8 +150,37 @@ export default function MonitorControlPage() {
       handleSpecialWinExecute();
       return;
     }
+
+    // 個人戦の場合のEnterキーハンドリング
+    if (activeTournamentType === "individual") {
+      if (showConfirmDialog) {
+        handleConfirmMatchExecute();
+        return;
+      }
+      if (viewMode === "scoreboard") {
+        handleConfirmMatchClick();
+        return;
+      }
+      if (viewMode === "match_result") {
+        handleBackToDashboard();
+        return;
+      }
+      return;
+    }
+
     teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick);
-  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick, specialWinConfirm.isOpen, handleSpecialWinExecute]);
+  }, [
+    teamMatchEnterHandler,
+    showConfirmDialog,
+    handleConfirmMatchClick,
+    handleConfirmMatchExecute,
+    handleNextMatchClick,
+    specialWinConfirm.isOpen,
+    handleSpecialWinExecute,
+    activeTournamentType,
+    viewMode,
+    handleBackToDashboard
+  ]);
 
   useKeyboardShortcuts({ onEnter: handleEnterKey });
 
