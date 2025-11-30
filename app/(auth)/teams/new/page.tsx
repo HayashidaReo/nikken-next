@@ -33,7 +33,10 @@ export default function TeamCreatePage() {
     }) => {
         try {
             // 1. IndexedDBに保存
-            const newTeam = await createTeamMutation.mutateAsync(data);
+            const newTeam = await createTeamMutation.mutateAsync({
+                ...data,
+                isApproved: true, // アプリ内からの登録は自動承認
+            });
 
             showSuccess(`「${data.teamName}」を登録しました`);
 
