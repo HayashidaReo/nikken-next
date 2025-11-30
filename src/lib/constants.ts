@@ -66,8 +66,8 @@ export const RESPONSIVE_FONT_CONSTANTS = {
   },
   /** チーム名表示部分のレスポンシブフォント設定 */
   TEAM: {
-    /** ベースフォントサイズ（rem） - text-7xl相当 */
-    BASE_FONT_SIZE: 4.5,
+    /** ベースフォントサイズ（rem） -  */
+    BASE_FONT_SIZE: 6,
     /** 最小フォントサイズ（rem） */
     MIN_FONT_SIZE: 2,
     /** 自動調整の最大横幅（px） */

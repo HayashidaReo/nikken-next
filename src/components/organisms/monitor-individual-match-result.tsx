@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { cn } from "@/lib/utils/utils";
+import { AdjustHorizontalText } from "@/components/atoms/adjust-horizontal-text";
 
 interface MonitorIndividualMatchResultProps {
     playerA: {
@@ -62,14 +63,22 @@ export function MonitorIndividualMatchResult({
             {/* 試合結果 */}
             <div className="flex items-center gap-16 w-full max-w-6xl">
                 {/* 選手A */}
-                <div className={cn("flex-1 relative", opacityA)}>
-                    <div className="text-center space-y-4">
-                        <div className="text-[96px] text-muted-foreground font-medium leading-tight">
-                            {playerA.teamName}
-                        </div>
-                        <div className="text-[256px] font-bold leading-none">
-                            {playerA.displayName}
-                        </div>
+                <div className={cn("flex-1 relative flex flex-col items-center", opacityA)}>
+                    <div className="text-center space-y-4 w-full flex flex-col items-center">
+                        <AdjustHorizontalText
+                            baseFontSize={6}
+                            minFontSize={2}
+                            maxWidth={500}
+                            textContent={playerA.teamName}
+                            className="text-muted-foreground font-medium leading-tight"
+                        />
+                        <AdjustHorizontalText
+                            baseFontSize={16}
+                            minFontSize={4}
+                            maxWidth={500}
+                            textContent={playerA.displayName}
+                            className="font-bold leading-none"
+                        />
                         {isWinnerA && (
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
                                 <WinnerStamp />
@@ -86,14 +95,22 @@ export function MonitorIndividualMatchResult({
                 </div>
 
                 {/* 選手B */}
-                <div className={cn("flex-1 relative", opacityB)}>
-                    <div className="text-center space-y-4">
-                        <div className="text-[96px] text-muted-foreground font-medium leading-tight">
-                            {playerB.teamName}
-                        </div>
-                        <div className="text-[256px] font-bold leading-none">
-                            {playerB.displayName}
-                        </div>
+                <div className={cn("flex-1 relative flex flex-col items-center", opacityB)}>
+                    <div className="text-center space-y-4 w-full flex flex-col items-center">
+                        <AdjustHorizontalText
+                            baseFontSize={6}
+                            minFontSize={2}
+                            maxWidth={500}
+                            textContent={playerB.teamName}
+                            className="text-muted-foreground font-medium leading-tight"
+                        />
+                        <AdjustHorizontalText
+                            baseFontSize={16}
+                            minFontSize={4}
+                            maxWidth={500}
+                            textContent={playerB.displayName}
+                            className="font-bold leading-none"
+                        />
                         {isWinnerB && (
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
                                 <WinnerStamp />
