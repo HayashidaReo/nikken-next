@@ -48,7 +48,7 @@ export function MonitorGroupResults({
 
                 const getOpacity = (isWinner: boolean) => {
                     if (!isCompleted) return "opacity-40 grayscale";
-                    if (isDraw) return "opacity-100";
+                    if (isDraw) return "opacity-50 scale-95";
                     if (isWinner) return "opacity-100 font-bold";
                     return "opacity-50 scale-95";
                 };

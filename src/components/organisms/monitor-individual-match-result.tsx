@@ -37,7 +37,7 @@ export function MonitorIndividualMatchResult({
 
     const getOpacity = (isWinner: boolean) => {
         if (!isCompleted) return "opacity-40";
-        if (isDraw) return "opacity-100";
+        if (isDraw) return "opacity-50";
         if (isWinner) return "opacity-100 font-bold";
         return "opacity-50";
     };
