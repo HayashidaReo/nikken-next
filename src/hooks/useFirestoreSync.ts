@@ -13,6 +13,15 @@ import { useSyncStore } from '@/store/use-sync-store';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { syncService } from '@/services/sync-service';
 import { FIRESTORE_COLLECTIONS } from '@/lib/constants';
+import isEqual from 'lodash/isEqual';
+
+// 比較時に除外するメタデータフィールド
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const omitMetadata = (data: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { isSynced, id, _deleted, createdAt, updatedAt, organizationId, tournamentId, ...rest } = data;
+    return rest;
+};
 
 export function useFirestoreSync() {
     const { user } = useAuthStore();
@@ -58,12 +67,17 @@ export function useFirestoreSync() {
                         // 競合チェック
                         const localData = await localDB.tournaments.get({ organizationId: orgId, tournamentId });
                         if (localData && !localData.isSynced) {
-                            setConflict({
-                                collection: 'tournaments',
-                                id: tournamentId,
-                                localData,
-                                cloudData: domainData
-                            });
+                            // メタデータとタイムスタンプを除外して比較
+                            if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
+                                await localDB.tournaments.update(localData.tournamentId, { isSynced: true });
+                            } else {
+                                setConflict({
+                                    collection: 'tournaments',
+                                    id: tournamentId,
+                                    localData,
+                                    cloudData: domainData
+                                });
+                            }
                         } else {
                             await localDB.tournaments.put({
                                 ...domainData,
@@ -95,12 +109,17 @@ export function useFirestoreSync() {
 
                 const localData = await localDB.matches.where({ matchId: id }).first();
                 if (localData && !localData.isSynced) {
-                    setConflict({
-                        collection: 'matches',
-                        id,
-                        localData,
-                        cloudData: domainData
-                    });
+                    // メタデータとタイムスタンプを除外して比較
+                    if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
+                        await localDB.matches.update(localData.id!, { isSynced: true });
+                    } else {
+                        setConflict({
+                            collection: 'matches',
+                            id,
+                            localData,
+                            cloudData: domainData
+                        });
+                    }
                 } else {
                     await localDB.matches.put({
                         ...domainData,
@@ -140,12 +159,17 @@ export function useFirestoreSync() {
 
                 const localGroupData = await localDB.matchGroups.where({ matchGroupId: groupId }).first();
                 if (localGroupData && !localGroupData.isSynced) {
-                    setConflict({
-                        collection: 'matchGroups',
-                        id: groupId,
-                        localData: localGroupData,
-                        cloudData: domainGroupData
-                    });
+                    // メタデータとタイムスタンプを除外して比較
+                    if (isEqual(omitMetadata(localGroupData), omitMetadata(domainGroupData))) {
+                        await localDB.matchGroups.update(localGroupData.id!, { isSynced: true });
+                    } else {
+                        setConflict({
+                            collection: 'matchGroups',
+                            id: groupId,
+                            localData: localGroupData,
+                            cloudData: domainGroupData
+                        });
+                    }
                 } else {
                     await localDB.matchGroups.put({
                         ...domainGroupData,
@@ -173,12 +197,17 @@ export function useFirestoreSync() {
 
                             const localTmData = await localDB.teamMatches.where({ matchId: tmId }).first();
                             if (localTmData && !localTmData.isSynced) {
-                                setConflict({
-                                    collection: 'teamMatches',
-                                    id: tmId,
-                                    localData: localTmData,
-                                    cloudData: domainTmData
-                                });
+                                // メタデータとタイムスタンプを除外して比較
+                                if (isEqual(omitMetadata(localTmData), omitMetadata(domainTmData))) {
+                                    await localDB.teamMatches.update(localTmData.id!, { isSynced: true });
+                                } else {
+                                    setConflict({
+                                        collection: 'teamMatches',
+                                        id: tmId,
+                                        localData: localTmData,
+                                        cloudData: domainTmData
+                                    });
+                                }
                             } else {
                                 await localDB.teamMatches.put({
                                     ...domainTmData,
@@ -214,12 +243,17 @@ export function useFirestoreSync() {
 
                 const localData = await localDB.teams.where({ teamId: id }).first();
                 if (localData && !localData.isSynced) {
-                    setConflict({
-                        collection: 'teams',
-                        id,
-                        localData,
-                        cloudData: domainData
-                    });
+                    // メタデータとタイムスタンプを除外して比較
+                    if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
+                        await localDB.teams.update(localData.id!, { isSynced: true });
+                    } else {
+                        setConflict({
+                            collection: 'teams',
+                            id,
+                            localData,
+                            cloudData: domainData
+                        });
+                    }
                 } else {
                     await localDB.teams.put({
                         ...domainData,
