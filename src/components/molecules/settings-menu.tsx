@@ -12,7 +12,7 @@ import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { UnsyncedDataDialog } from "@/components/organisms/unsynced-data-dialog";
 import { useRouter } from "next/navigation";
 import { ROUTES, AUTH_CONSTANTS } from "@/lib/constants";
-import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam } from "@/lib/db";
+import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam, LocalTournament } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import {
@@ -58,6 +58,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
         matchGroups: LocalMatchGroup[];
         teamMatches: LocalTeamMatch[];
         teams: LocalTeam[];
+        tournaments: LocalTournament[];
     } | null>(null);
 
     const [isLoading, setIsLoading] = useState(false);
@@ -150,7 +151,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
         try {
             setIsLoading(true);
             const data = await syncService.getUnsyncedData(user.uid, activeTournamentId);
-            const totalCount = data.matches.length + data.matchGroups.length + data.teamMatches.length + data.teams.length;
+            const totalCount = data.matches.length + data.matchGroups.length + data.teamMatches.length + data.teams.length + data.tournaments.length;
 
             if (totalCount === 0) {
                 showInfo("送信するデータはありませんでした");

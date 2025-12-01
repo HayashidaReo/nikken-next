@@ -9,8 +9,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/atoms/button";
-import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam, db } from "@/lib/db";
-import { CloudUpload, User, Phone, Mail, FileText } from "lucide-react";
+import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam, LocalTournament, db } from "@/lib/db";
+import { CloudUpload, User, Phone, Mail, FileText, Calendar } from "lucide-react";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useMasterData } from "@/components/providers/master-data-provider";
@@ -25,6 +25,7 @@ interface UnsyncedData {
     matchGroups: LocalMatchGroup[];
     teamMatches: LocalTeamMatch[];
     teams: LocalTeam[];
+    tournaments: LocalTournament[];
 }
 
 interface UnsyncedDataDialogProps {
@@ -35,11 +36,11 @@ interface UnsyncedDataDialogProps {
 }
 
 interface TabButtonProps {
-    value: "matches" | "groups" | "teams";
+    value: "matches" | "groups" | "teams" | "tournaments";
     label: string;
     count: number;
     isActive: boolean;
-    onClick: (value: "matches" | "groups" | "teams") => void;
+    onClick: (value: "matches" | "groups" | "teams" | "tournaments") => void;
 }
 
 const TabButton = ({ value, label, count, isActive, onClick }: TabButtonProps) => (
@@ -63,9 +64,9 @@ const Badge = ({ children, className }: { children: React.ReactNode, className?:
 );
 
 export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: UnsyncedDataDialogProps) {
-    const { matches, matchGroups, teamMatches, teams } = data;
-    const totalCount = matches.length + matchGroups.length + teamMatches.length + teams.length;
-    const [activeTab, setActiveTab] = useState<"matches" | "groups" | "teams">("matches");
+    const { matches, matchGroups, teamMatches, teams, tournaments } = data;
+    const totalCount = matches.length + matchGroups.length + teamMatches.length + teams.length + tournaments.length;
+    const [activeTab, setActiveTab] = useState<"matches" | "groups" | "teams" | "tournaments">("matches");
     const { getTeam, getCourt, getRound } = useMasterData();
 
     // 関連するグループIDを収集
@@ -266,6 +267,35 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
         );
     };
 
+    const TournamentItem = ({ tournament }: { tournament: LocalTournament }) => {
+        return (
+            <div className="bg-white p-3 rounded border shadow-sm space-y-3">
+                {/* Header */}
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h3 className="font-bold text-lg text-gray-800">{tournament.tournamentName}</h3>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded border border-blue-200">
+                                {tournament.tournamentType === 'team' ? '団体戦' : '個人戦'}
+                            </span>
+                        </div>
+                    </div>
+                    {tournament._deleted && <Badge>削除対象</Badge>}
+                </div>
+
+                {/* Date */}
+                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                    <Calendar className="w-4 h-4" />
+                    <span>{new Date(tournament.tournamentDate).toLocaleDateString()}</span>
+                </div>
+
+                <div className="text-[10px] text-gray-400 text-right mt-1">
+                    ID: {tournament.tournamentId}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col w-full">
@@ -284,6 +314,7 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
                         <TabButton value="matches" label="個人戦" count={matches.length} isActive={activeTab === "matches"} onClick={setActiveTab} />
                         <TabButton value="groups" label="団体戦" count={matchGroups.length + teamMatches.length} isActive={activeTab === "groups"} onClick={setActiveTab} />
                         <TabButton value="teams" label="チーム" count={teams.length} isActive={activeTab === "teams"} onClick={setActiveTab} />
+                        <TabButton value="tournaments" label="大会" count={tournaments.length} isActive={activeTab === "tournaments"} onClick={setActiveTab} />
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-2 bg-slate-50 border rounded-md">
@@ -347,6 +378,18 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
                                 <div className="space-y-2">
                                     {teams.map((t) => (
                                         <TeamItem key={t.teamId} team={t} />
+                                    ))}
+                                </div>
+                            )
+                        )}
+
+                        {activeTab === "tournaments" && (
+                            tournaments.length === 0 ? (
+                                <div className="text-center text-gray-500 py-8">データはありません</div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {tournaments.map((t) => (
+                                        <TournamentItem key={t.tournamentId} tournament={t} />
                                     ))}
                                 </div>
                             )

@@ -84,6 +84,16 @@ export class LocalTournamentRepository {
     }
 
     /**
+     * 未同期の大会数を取得
+     */
+    async countUnsynced(orgId: string): Promise<number> {
+        return await db.tournaments
+            .where({ organizationId: orgId })
+            .filter(t => t.isSynced === false)
+            .count();
+    }
+
+    /**
      * 同期完了としてマーク
      */
     async markAsSynced(tournamentId: string): Promise<void> {
