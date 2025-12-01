@@ -3,7 +3,7 @@ import { MatchMapper, FirestoreMatchDoc } from '@/data/mappers/match-mapper';
 import { MatchGroupMapper, FirestoreMatchGroupDoc } from '@/data/mappers/match-group-mapper';
 import { TeamMatchMapper, FirestoreTeamMatchDoc } from '@/data/mappers/team-match-mapper';
 import { TeamMapper, FirestoreTeamDoc } from '@/data/mappers/team-mapper';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { db as firestore } from '@/lib/firebase/client';
 import { db as localDB, LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam, LocalTournament } from '@/lib/db';
@@ -11,7 +11,6 @@ import { useAuthStore } from '@/store/use-auth-store';
 import { useActiveTournament } from '@/store/use-active-tournament-store';
 import { useSyncStore } from '@/store/use-sync-store';
 import { useOnlineStatus } from '@/hooks/use-online-status';
-import { syncService } from '@/services/sync-service';
 import { FIRESTORE_COLLECTIONS } from '@/lib/constants';
 import isEqual from 'lodash/isEqual';
 
@@ -31,17 +30,6 @@ export function useFirestoreSync() {
 
     // 監視の有効/無効を判定
     const shouldSync = isOnline && !isEditing && !!user?.uid && !!activeTournamentId;
-
-    // 前回の同期状態を保持して、再開時に再取得を行うためのRef
-    const wasSyncingRef = useRef(shouldSync);
-
-    useEffect(() => {
-        // 同期が無効 -> 有効になったタイミングで、一度手動で全件取得（再開時の同期）
-        if (!wasSyncingRef.current && shouldSync && user?.uid && activeTournamentId) {
-            syncService.downloadTournamentData(user.uid, activeTournamentId).catch(console.error);
-        }
-        wasSyncingRef.current = shouldSync;
-    }, [shouldSync, user?.uid, activeTournamentId]);
 
     useEffect(() => {
         if (!shouldSync || !user?.uid || !activeTournamentId) return;
@@ -67,6 +55,10 @@ export function useFirestoreSync() {
                         // 競合チェック
                         const localData = await localDB.tournaments.get({ organizationId: orgId, tournamentId });
                         if (localData && !localData.isSynced) {
+                            // オフライン編集後の初回同期（added）は、サーバーデータが古いため無視する
+                            // これにより、自分の編集内容が「競合」として扱われるのを防ぐ
+                            if (change.type === 'added') return;
+
                             // メタデータとタイムスタンプを除外して比較
                             if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
                                 await localDB.tournaments.update(localData.tournamentId, { isSynced: true });
@@ -109,6 +101,9 @@ export function useFirestoreSync() {
 
                 const localData = await localDB.matches.where({ matchId: id }).first();
                 if (localData && !localData.isSynced) {
+                    // オフライン編集後の初回同期（added）は無視
+                    if (change.type === 'added') return;
+
                     // メタデータとタイムスタンプを除外して比較
                     if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
                         await localDB.matches.update(localData.id!, { isSynced: true });
@@ -159,6 +154,9 @@ export function useFirestoreSync() {
 
                 const localGroupData = await localDB.matchGroups.where({ matchGroupId: groupId }).first();
                 if (localGroupData && !localGroupData.isSynced) {
+                    // オフライン編集後の初回同期（added）は無視
+                    if (change.type === 'added') return;
+
                     // メタデータとタイムスタンプを除外して比較
                     if (isEqual(omitMetadata(localGroupData), omitMetadata(domainGroupData))) {
                         await localDB.matchGroups.update(localGroupData.id!, { isSynced: true });
@@ -197,6 +195,9 @@ export function useFirestoreSync() {
 
                             const localTmData = await localDB.teamMatches.where({ matchId: tmId }).first();
                             if (localTmData && !localTmData.isSynced) {
+                                // オフライン編集後の初回同期（added）は無視
+                                if (tmChange.type === 'added') return;
+
                                 // メタデータとタイムスタンプを除外して比較
                                 if (isEqual(omitMetadata(localTmData), omitMetadata(domainTmData))) {
                                     await localDB.teamMatches.update(localTmData.id!, { isSynced: true });
@@ -243,6 +244,9 @@ export function useFirestoreSync() {
 
                 const localData = await localDB.teams.where({ teamId: id }).first();
                 if (localData && !localData.isSynced) {
+                    // オフライン編集後の初回同期（added）は無視
+                    if (change.type === 'added') return;
+
                     // メタデータとタイムスタンプを除外して比較
                     if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
                         await localDB.teams.update(localData.id!, { isSynced: true });

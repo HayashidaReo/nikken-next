@@ -327,6 +327,17 @@ export const syncService = {
     },
 
     /**
+     * 未送信データを取得 (表示用)
+     */
+    async getUnsyncedData(orgId: string, tournamentId: string) {
+        const matches = await localMatchRepository.getUnsynced(orgId, tournamentId);
+        const matchGroups = await localMatchGroupRepository.getUnsynced(orgId, tournamentId);
+        const teamMatches = await localTeamMatchRepository.getUnsynced(orgId, tournamentId);
+        const teams = await localTeamRepository.getUnsynced(orgId, tournamentId);
+        return { matches, matchGroups, teamMatches, teams };
+    },
+
+    /**
      * ローカルDBのキャッシュを削除する
      * matches / matchGroups / teamMatches (+ teams が存在する場合) をクリア
      */

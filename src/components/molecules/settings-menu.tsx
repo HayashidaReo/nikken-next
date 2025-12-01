@@ -9,8 +9,10 @@ import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useToast } from "@/components/providers/notification-provider";
 import { syncService } from "@/services/sync-service";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
+import { UnsyncedDataDialog } from "@/components/organisms/unsynced-data-dialog";
 import { useRouter } from "next/navigation";
 import { ROUTES, AUTH_CONSTANTS } from "@/lib/constants";
+import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam } from "@/lib/db";
 
 interface SettingsMenuProps {
     className?: string;
@@ -37,6 +39,13 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
         action: async () => { },
     });
 
+    const [unsyncedData, setUnsyncedData] = useState<{
+        matches: LocalMatch[];
+        matchGroups: LocalMatchGroup[];
+        teamMatches: LocalTeamMatch[];
+        teams: LocalTeam[];
+    } | null>(null);
+
     const [isLoading, setIsLoading] = useState(false);
 
     // メニュー外クリックで閉じる
@@ -61,7 +70,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
         try {
             setIsLoading(true);
             await action();
-            showSuccess(successMessage);
+            if (successMessage) showSuccess(successMessage);
         } catch (error) {
             console.error(error);
             showError(error instanceof Error ? error.message : "エラーが発生しました");
@@ -117,26 +126,46 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
         });
     };
 
-    const handleSendToCloud = () => {
+    const handleSendToCloud = async () => {
         setIsOpen(false);
         if (!user?.uid || !activeTournamentId) {
             showError("大会が選択されていません");
             return;
         }
 
-        setConfirmDialog({
-            isOpen: true,
-            title: "クラウドにデータ送信",
-            message: "端末内の未送信データをクラウドに送信します。よろしいですか？",
-            action: async () => handleAction(async () => {
-                const count = await syncService.uploadResults(user.uid, activeTournamentId);
-                if (count === 0) {
-                    showInfo("送信するデータはありませんでした");
-                } else {
-                    showSuccess(`${count}件のデータを送信しました`);
-                }
-            }, ""), // Success message handled inside
-        });
+        try {
+            setIsLoading(true);
+            const data = await syncService.getUnsyncedData(user.uid, activeTournamentId);
+            const totalCount = data.matches.length + data.matchGroups.length + data.teamMatches.length + data.teams.length;
+
+            if (totalCount === 0) {
+                showInfo("送信するデータはありませんでした");
+                setIsLoading(false);
+                return;
+            }
+
+            setUnsyncedData(data);
+        } catch (error) {
+            console.error(error);
+            showError("データの取得に失敗しました");
+            setIsLoading(false);
+        }
+    };
+
+    const confirmSendToCloud = async () => {
+        if (!user?.uid || !activeTournamentId) return;
+
+        try {
+            setIsLoading(true);
+            const count = await syncService.uploadResults(user.uid, activeTournamentId);
+            showSuccess(`${count}件のデータを送信しました`);
+        } catch (error) {
+            console.error(error);
+            showError(error instanceof Error ? error.message : "送信に失敗しました");
+        } finally {
+            setIsLoading(false);
+            setUnsyncedData(null);
+        }
     };
 
     return (
@@ -200,6 +229,15 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                 onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
                 variant={confirmDialog.variant}
             />
+
+            {unsyncedData && (
+                <UnsyncedDataDialog
+                    isOpen={!!unsyncedData}
+                    onClose={() => setUnsyncedData(null)}
+                    onConfirm={confirmSendToCloud}
+                    data={unsyncedData}
+                />
+            )}
         </>
     );
 }
