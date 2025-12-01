@@ -86,8 +86,7 @@ jobs:
 
       - name: Publish and Mark as Latest
         run: |
-          VERSION=${{ steps.calc_version.outputs.new_version }}
-          # --draft=false を追加して、下書き状態を解除（公開）します
+          VERSION=${GITHUB_REF_NAME#v}
           gh release edit "v${VERSION}" --draft=false --latest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

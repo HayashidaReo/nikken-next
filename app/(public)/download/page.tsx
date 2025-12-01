@@ -17,7 +17,6 @@ async function getLatestRelease(): Promise<GitHubRelease | null> {
     try {
         const headers: HeadersInit = {
             'Accept': 'application/vnd.github+json',
-            'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
         };
 
         const res = await fetch(
