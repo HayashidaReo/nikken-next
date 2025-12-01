@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useMonitorStore } from "@/store/use-monitor-store";
+import { useMonitorStore, type ViewMode } from "@/store/use-monitor-store";
 import { useResolvedMatchData } from "@/hooks/useResolvedMatchData";
 
 interface UseMatchDataWithPriorityResult {
@@ -8,7 +8,7 @@ interface UseMatchDataWithPriorityResult {
     matchFound: boolean;
 }
 
-export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPriorityResult {
+export function useMatchDataWithPriority(matchId: string, initialViewMode?: ViewMode): UseMatchDataWithPriorityResult {
     const { initializeMatch } = useMonitorStore();
     // ストアに保存されているデータ（遷移元で initializeMatch が呼ばれた場合）
     const storeMatchId = useMonitorStore((s) => s.matchId);
@@ -45,9 +45,10 @@ export function useMatchDataWithPriority(matchId: string): UseMatchDataWithPrior
                 resolvedPlayers,
                 roundName,
                 defaultMatchTime: tournament.defaultMatchTime,
+                initialViewMode,
             });
         }
-    }, [hasStoreData, match, tournament, initializeMatch, courtName, roundName, resolvedPlayers, isLoading]);
+    }, [hasStoreData, match, tournament, initializeMatch, courtName, roundName, resolvedPlayers, isLoading, initialViewMode]);
 
     return {
         isLoading: effectiveIsLoading,

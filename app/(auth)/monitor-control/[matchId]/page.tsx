@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useCallback, useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { ConnectionStatus } from "@/components/organisms/connection-status";
@@ -9,10 +9,10 @@ import { ScoreboardOperator } from "@/components/organisms/scoreboard-operator";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
-import { FallbackMonitorDialog } from "@/components/molecules";
+import { FallbackMonitorDialog } from "@/components/molecules/fallback-monitor-dialog";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorController } from "@/hooks/useMonitorController";
-import { useMonitorStore } from "@/store/use-monitor-store";
+import { useMonitorStore, type ViewMode } from "@/store/use-monitor-store";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 import { useMonitorKeyboardShortcuts } from "@/hooks/useMonitorKeyboardShortcuts";
 import { MonitorControlHeader } from "@/components/organisms/monitor-control-header";
@@ -23,7 +23,10 @@ import { useMonitorPageUi } from "@/hooks/useMonitorPageUi";
 
 export default function MonitorControlPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const matchId = params.matchId as string;
+  const mode = searchParams.get("mode");
+  const initialViewMode = mode === "initial" ? "initial" as ViewMode : undefined;
 
   const { orgId, activeTournamentId, activeTournamentType } = useAuthContext();
 
@@ -39,7 +42,17 @@ export default function MonitorControlPage() {
     teamMatches,
     teams,
     tournament,
-  } = useMonitorPageData({ matchId, orgId, activeTournamentId });
+  } = useMonitorPageData({ matchId, orgId, activeTournamentId, initialViewMode });
+
+  useEffect(() => {
+    if (initialViewMode) {
+      // ストアの現在のviewModeを取得して比較
+      const currentViewMode = useMonitorStore.getState().viewMode;
+      if (currentViewMode !== initialViewMode) {
+        setViewMode(initialViewMode);
+      }
+    }
+  }, [initialViewMode, setViewMode, isLoading]);
 
   // モニター制御ロジック
   const {
