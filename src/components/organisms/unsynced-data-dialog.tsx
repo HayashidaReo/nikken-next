@@ -231,13 +231,10 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
                                 <div className="text-center text-gray-500 py-8">データはありません</div>
                             ) : (
                                 <div className="space-y-4">
-                                    {groupedData.map(({ group, matches, isGroupUnsynced, deleted }) => (
+                                    {groupedData.map(({ group, matches, deleted }) => (
                                         <div key={group.matchGroupId} className="bg-white rounded border shadow-sm overflow-hidden">
                                             {/* Group Header */}
-                                            <div className={cn(
-                                                "p-2 border-b flex justify-between items-center text-sm",
-                                                isGroupUnsynced ? "bg-blue-50" : "bg-gray-50"
-                                            )}>
+                                            <div className="p-2 border-b flex justify-between items-center text-sm bg-gray-50">
                                                 <div className="flex items-center gap-3 flex-1 overflow-hidden">
                                                     <span className="font-bold truncate">
                                                         {getTeamName(group.teamAId)} <span className="text-gray-400 font-normal mx-1">vs</span> {getTeamName(group.teamBId)}
@@ -249,7 +246,6 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
                                                 </div>
 
                                                 <div className="flex items-center gap-2 ml-2 shrink-0">
-                                                    {isGroupUnsynced && <Badge className="bg-blue-100 text-blue-800">変更あり</Badge>}
                                                     {deleted && <Badge>削除</Badge>}
                                                 </div>
                                             </div>
