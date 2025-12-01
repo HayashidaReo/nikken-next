@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { TeamMatch, WinReason } from "@/types/match.schema";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
 import { createMatchResultUpdateObject } from "@/domains/match/team-match-logic";
@@ -9,38 +9,53 @@ interface UseTeamMatchEditFormProps {
     onClose: () => void;
 }
 
+interface TeamMatchEditFormState {
+    winner: "playerA" | "playerB" | "draw" | "none" | null;
+    winReason: WinReason | null;
+    playerAScore: number;
+    playerBScore: number;
+    playerAHansoku: number | null;
+    playerBHansoku: number | null;
+    showResetConfirm: boolean;
+}
+
 export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEditFormProps) {
     const { handleSaveMatchResult } = useTeamMatchController();
 
-    const [winner, setWinner] = useState<"playerA" | "playerB" | "draw" | "none" | null>(match.winner);
-    const [winReason, setWinReason] = useState<WinReason | null>(match.winReason);
-    const [playerAScore, setPlayerAScore] = useState(match.players.playerA.score);
-    const [playerBScore, setPlayerBScore] = useState(match.players.playerB.score);
-    const [playerAHansoku, setPlayerAHansoku] = useState(match.players.playerA.hansoku);
-    const [playerBHansoku, setPlayerBHansoku] = useState(match.players.playerB.hansoku);
-    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+    const [state, setState] = useState<TeamMatchEditFormState>({
+        winner: match.winner,
+        winReason: match.winReason,
+        playerAScore: match.players.playerA.score,
+        playerBScore: match.players.playerB.score,
+        playerAHansoku: match.players.playerA.hansoku,
+        playerBHansoku: match.players.playerB.hansoku,
+        showResetConfirm: false,
+    });
 
-    useEffect(() => {
+    if (isOpen !== prevIsOpen) {
+        setPrevIsOpen(isOpen);
         if (isOpen) {
-            setWinner(match.winner);
-            setWinReason(match.winReason);
-            setPlayerAScore(match.players.playerA.score);
-            setPlayerBScore(match.players.playerB.score);
-            setPlayerAHansoku(match.players.playerA.hansoku);
-            setPlayerBHansoku(match.players.playerB.hansoku);
+            setState({
+                winner: match.winner,
+                winReason: match.winReason,
+                playerAScore: match.players.playerA.score,
+                playerBScore: match.players.playerB.score,
+                playerAHansoku: match.players.playerA.hansoku,
+                playerBHansoku: match.players.playerB.hansoku,
+                showResetConfirm: false,
+            });
         }
-        // matchを依存配列から外して、編集中にリセットされないようにする
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen]);
+    }
 
     const handleSave = async () => {
         const updateObject = createMatchResultUpdateObject(match, {
-            playerAScore,
-            playerBScore,
-            playerAHansoku: playerAHansoku ?? 0,
-            playerBHansoku: playerBHansoku ?? 0,
-            winner: winner || "none",
-            winReason: winReason || "none",
+            playerAScore: state.playerAScore,
+            playerBScore: state.playerBScore,
+            playerAHansoku: state.playerAHansoku ?? 0,
+            playerBHansoku: state.playerBHansoku ?? 0,
+            winner: state.winner || "none",
+            winReason: state.winReason || "none",
             isCompleted: true,
         });
         await handleSaveMatchResult(updateObject);
@@ -48,7 +63,7 @@ export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEdi
     };
 
     const handleResetClick = () => {
-        setShowResetConfirm(true);
+        setState(prev => ({ ...prev, showResetConfirm: true }));
     };
 
     const executeReset = async () => {
@@ -62,31 +77,23 @@ export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEdi
             isCompleted: false,
         });
         await handleSaveMatchResult(updateObject);
-        setShowResetConfirm(false);
+        setState(prev => ({ ...prev, showResetConfirm: false }));
         onClose();
     };
 
     const closeResetConfirm = () => {
-        setShowResetConfirm(false);
+        setState(prev => ({ ...prev, showResetConfirm: false }));
     };
 
     return {
-        formState: {
-            winner,
-            winReason,
-            playerAScore,
-            playerBScore,
-            playerAHansoku,
-            playerBHansoku,
-            showResetConfirm,
-        },
+        formState: state,
         setters: {
-            setWinner,
-            setWinReason,
-            setPlayerAScore,
-            setPlayerBScore,
-            setPlayerAHansoku,
-            setPlayerBHansoku,
+            setWinner: (winner: TeamMatchEditFormState["winner"]) => setState(prev => ({ ...prev, winner })),
+            setWinReason: (winReason: TeamMatchEditFormState["winReason"]) => setState(prev => ({ ...prev, winReason })),
+            setPlayerAScore: (playerAScore: number) => setState(prev => ({ ...prev, playerAScore })),
+            setPlayerBScore: (playerBScore: number) => setState(prev => ({ ...prev, playerBScore })),
+            setPlayerAHansoku: (playerAHansoku: number | null) => setState(prev => ({ ...prev, playerAHansoku })),
+            setPlayerBHansoku: (playerBHansoku: number | null) => setState(prev => ({ ...prev, playerBHansoku })),
         },
         actions: {
             handleSave,
