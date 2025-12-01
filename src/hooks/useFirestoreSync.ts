@@ -114,7 +114,7 @@ export function useFirestoreSync() {
         });
         unsubs.push(matchesUnsub);
 
-        // 4. TeamMatches (Subcollection of MatchGroups)
+        // 4. TeamMatches (SubCollection of MatchGroups)
         const teamMatchUnsubs = new Map<string, () => void>();
 
         const groupsQuery = query(collection(firestore, `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.MATCH_GROUPS}`));
