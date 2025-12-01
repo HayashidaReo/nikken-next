@@ -18,47 +18,53 @@ export function MonitorDisplayContainer({
   // タイマーが0になったらブザーを鳴らす（カウントダウンモードのみ）
   useBuzzer(data.timeRemaining, data.timerMode);
 
-  const renderContent = () => {
-    // 非公開時の表示
-    if (!data.isPublic) {
-      return <StandbyScreen />;
-    }
+  const renderers = [
+    {
+      // 非公開時の表示
+      condition: () => !data.isPublic,
+      render: () => <StandbyScreen />,
+    },
+    {
+      // 団体戦の結果表示
+      condition: () =>
+        data.viewMode === "match_result" &&
+        !!data.groupMatches &&
+        data.groupMatches.length > 0,
+      render: () => (
+        <MonitorGroupResults
+          groupMatches={data.groupMatches!}
+          currentMatchId={data.matchId}
+          className="w-full h-full"
+        />
+      ),
+    },
+    {
+      // 個人戦の結果表示
+      condition: () =>
+        data.viewMode === "match_result" && !!data.matchResult,
+      render: () => (
+        <MonitorIndividualMatchResult
+          playerA={data.matchResult!.playerA}
+          playerB={data.matchResult!.playerB}
+          roundName={data.roundName}
+          winner={data.matchResult!.winner}
+          isCompleted={true}
+          className="w-full h-full"
+        />
+      ),
+    },
+    {
+      // 通常のスコアボード表示（デフォルト）
+      condition: () => true,
+      render: () => <MonitorLayout data={data} />,
+    },
+  ];
 
-    // モードによる分岐
-    if (data.viewMode === "match_result") {
-      // groupMatchesがある場合は団体戦の結果表示
-      if (data.groupMatches && data.groupMatches.length > 0) {
-        return (
-          <MonitorGroupResults
-            groupMatches={data.groupMatches}
-            currentMatchId={data.matchId}
-            className="w-full h-full"
-          />
-        );
-      }
-
-      // 個人戦の結果表示（matchResultがある場合）
-      if (data.matchResult) {
-        return (
-          <MonitorIndividualMatchResult
-            playerA={data.matchResult.playerA}
-            playerB={data.matchResult.playerB}
-            roundName={data.roundName}
-            winner={data.matchResult.winner}
-            isCompleted={true}
-            className="w-full h-full"
-          />
-        );
-      }
-    }
-
-    // 通常のスコアボード表示
-    return <MonitorLayout data={data} />;
-  };
+  const activeRenderer = renderers.find((r) => r.condition());
 
   return (
     <MonitorScaleLayout className={className}>
-      {renderContent()}
+      {activeRenderer ? activeRenderer.render() : null}
     </MonitorScaleLayout>
   );
 }
