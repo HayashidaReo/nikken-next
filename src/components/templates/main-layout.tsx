@@ -19,6 +19,7 @@ import { useAuthStore } from "@/store/use-auth-store";
 import { useToast } from "@/components/providers/notification-provider";
 import { HeaderTournamentSelector } from "@/components/molecules/header-tournament-selector";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { isElectron } from "@/lib/utils/platform";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -29,6 +30,15 @@ interface MainLayoutProps {
 interface HeaderProps {
   activeTab?: "matches" | "match-setup" | "teams" | "manual-monitor" | "download";
 }
+
+// ナビゲーション項目の定義（定数として定義）
+const ALL_NAV_ITEMS = [
+  { label: "試合一覧", href: "/dashboard", value: "matches" as const },
+  { label: "試合の組み合わせ設定", href: "/match-setup", value: "match-setup" as const },
+  { label: "チーム・選手管理", href: "/teams", value: "teams" as const },
+  { label: "手動モニター", href: "/manual-monitor-control", value: "manual-monitor" as const },
+  { label: "ダウンロード", href: "/download", value: "download" as const },
+];
 
 function Header({ activeTab }: HeaderProps) {
   const router = useRouter();
@@ -73,13 +83,13 @@ function Header({ activeTab }: HeaderProps) {
     setIsMobileMenuOpen(false);
   };
 
-  const navItems = [
-    { label: "試合一覧", href: "/dashboard", value: "matches" },
-    { label: "試合の組み合わせ設定", href: "/match-setup", value: "match-setup" },
-    { label: "チーム・選手管理", href: "/teams", value: "teams" },
-    { label: "手動モニター", href: "/manual-monitor-control", value: "manual-monitor" },
-    { label: "ダウンロード", href: "/download", value: "download" },
-  ];
+  // Electronアプリの場合はダウンロード項目を除外
+  const navItems = React.useMemo(() => {
+    if (isElectron()) {
+      return ALL_NAV_ITEMS.filter((item) => item.value !== "download");
+    }
+    return ALL_NAV_ITEMS;
+  }, []);
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
