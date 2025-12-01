@@ -13,8 +13,8 @@ import { FallbackMonitorDialog } from "@/components/molecules";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorController } from "@/hooks/useMonitorController";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
+import { useMonitorKeyboardShortcuts } from "@/hooks/useMonitorKeyboardShortcuts";
 import { MonitorControlHeader } from "@/components/organisms/monitor-control-header";
 import { RepMatchSetupDialog } from "@/components/molecules/rep-match-setup-dialog";
 import { useMatchAction } from "@/hooks/useMatchAction";
@@ -145,15 +145,18 @@ export default function MonitorControlPage() {
   }, [specialWinConfirm, handleSpecialWin]);
 
   // キーボードショートカット
-  const handleEnterKey = useCallback(() => {
-    if (specialWinConfirm.isOpen) {
-      handleSpecialWinExecute();
-      return;
-    }
-    teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick);
-  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick, specialWinConfirm.isOpen, handleSpecialWinExecute]);
-
-  useKeyboardShortcuts({ onEnter: handleEnterKey });
+  useMonitorKeyboardShortcuts({
+    specialWinConfirm,
+    handleSpecialWinExecute,
+    activeTournamentType,
+    showConfirmDialog,
+    handleConfirmMatchExecute,
+    viewMode,
+    handleConfirmMatchClick,
+    handleBackToDashboard,
+    teamMatchEnterHandler,
+    handleNextMatchClick,
+  });
 
   // ローディング状態
   if (isLoading) {

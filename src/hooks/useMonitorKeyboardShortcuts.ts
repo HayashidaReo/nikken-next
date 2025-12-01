@@ -1,12 +1,40 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { DOUBLE_TAP_INTERVAL_MS, KEY_MAP } from "@/lib/constants/keyboard";
 
-interface UseKeyboardShortcutsProps {
+interface UseMonitorKeyboardShortcutsProps {
     onEnter?: () => void;
+    specialWinConfirm?: { isOpen: boolean };
+    handleSpecialWinExecute?: () => void;
+    activeTournamentType?: string | null;
+    showConfirmDialog?: boolean;
+    handleConfirmMatchExecute?: () => void;
+    viewMode?: string;
+    handleConfirmMatchClick?: () => void;
+    handleBackToDashboard?: () => void;
+    teamMatchEnterHandler?: (
+        showConfirmDialog: boolean,
+        handleConfirmMatchClick: () => void,
+        handleConfirmMatchExecute: () => void,
+        handleNextMatchClick: () => void
+    ) => void;
+    handleNextMatchClick?: () => void;
+
 }
 
-export const useKeyboardShortcuts = ({ onEnter }: UseKeyboardShortcutsProps = {}) => {
+export function useMonitorKeyboardShortcuts({
+    onEnter,
+    specialWinConfirm,
+    handleSpecialWinExecute,
+    activeTournamentType,
+    showConfirmDialog,
+    handleConfirmMatchExecute,
+    viewMode,
+    handleConfirmMatchClick,
+    handleBackToDashboard,
+    teamMatchEnterHandler,
+    handleNextMatchClick,
+}: UseMonitorKeyboardShortcutsProps = {}) {
     const {
         toggleTimer,
         toggleSelectedPlayer,
@@ -16,6 +44,75 @@ export const useKeyboardShortcuts = ({ onEnter }: UseKeyboardShortcutsProps = {}
     } = useMonitorStore();
 
     const lastTapTimeRef = useRef<Record<string, number>>({});
+
+    const handleEnterKey = useCallback(() => {
+        // 1. Propsで渡されたonEnterがあればそれを優先（後方互換性のため）
+        if (onEnter) {
+            onEnter();
+            return;
+        }
+
+        // 2. MonitorControlPage用のロジック
+        // 必要なPropsが全て揃っている場合のみ実行
+        if (
+            specialWinConfirm &&
+            handleSpecialWinExecute &&
+            activeTournamentType !== undefined &&
+            showConfirmDialog !== undefined &&
+            handleConfirmMatchExecute &&
+            viewMode &&
+            handleConfirmMatchClick &&
+            handleBackToDashboard &&
+            teamMatchEnterHandler &&
+            handleNextMatchClick
+        ) {
+            // 特別な決着（不戦勝・反則勝ち等）の確認ダイアログが開いている場合
+            if (specialWinConfirm.isOpen) {
+                handleSpecialWinExecute();
+                return;
+            }
+
+            // 個人戦の場合のEnterキーハンドリング
+            if (activeTournamentType === "individual") {
+                // 試合終了確認ダイアログが開いている場合
+                if (showConfirmDialog) {
+                    handleConfirmMatchExecute();
+                    return;
+                }
+                // スコアボード表示中 -> 試合終了確認へ
+                if (viewMode === "scoreboard") {
+                    handleConfirmMatchClick();
+                    return;
+                }
+                // 試合結果表示中 -> 一覧へ戻る
+                if (viewMode === "match_result") {
+                    handleBackToDashboard();
+                    return;
+                }
+                return;
+            }
+
+            // 団体戦の場合のEnterキーハンドリング（既存ロジック）
+            teamMatchEnterHandler(
+                showConfirmDialog,
+                handleConfirmMatchClick,
+                handleConfirmMatchExecute,
+                handleNextMatchClick
+            );
+        }
+    }, [
+        onEnter,
+        specialWinConfirm,
+        handleSpecialWinExecute,
+        activeTournamentType,
+        showConfirmDialog,
+        handleConfirmMatchExecute,
+        viewMode,
+        handleConfirmMatchClick,
+        handleBackToDashboard,
+        teamMatchEnterHandler,
+        handleNextMatchClick,
+    ]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -38,10 +135,8 @@ export const useKeyboardShortcuts = ({ onEnter }: UseKeyboardShortcutsProps = {}
 
             // Enterキーの処理（シングルタップ）
             if (action === "enter") {
-                if (onEnter) {
-                    event.preventDefault();
-                    onEnter();
-                }
+                event.preventDefault();
+                handleEnterKey();
                 return;
             }
 
@@ -103,6 +198,7 @@ export const useKeyboardShortcuts = ({ onEnter }: UseKeyboardShortcutsProps = {}
         incrementScoreForSelectedPlayer,
         incrementFoulForSelectedPlayer,
         togglePublic,
-        onEnter,
+        handleEnterKey,
     ]);
-};
+}
+

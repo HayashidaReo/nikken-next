@@ -162,6 +162,11 @@ export function useTournamentSettings() {
                         tournamentType: formData.tournamentType as "individual" | "team",
                     },
                 });
+
+                // アクティブな大会を更新している場合は、activeTournamentTypeも同期
+                if (selectedTournamentId === activeTournamentId) {
+                    setActiveTournament(selectedTournamentId, formData.tournamentType as "individual" | "team");
+                }
             }
 
             // 保存成功
@@ -198,6 +203,7 @@ export function useTournamentSettings() {
         setActiveTournament,
         showError,
         showSuccess,
+        activeTournamentId,
     ]);
 
     return {

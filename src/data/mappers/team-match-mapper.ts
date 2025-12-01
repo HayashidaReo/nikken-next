@@ -67,7 +67,7 @@ export class TeamMatchMapper {
     }
 
     static toFirestoreForCreate(match: Partial<TeamMatch> & { id?: string }): FirestoreTeamMatchCreateDoc {
-        const matchId = match.id || match.matchId;
+        const matchId = match.matchId;
         if (!matchId) throw new Error("ID required");
         if (!match.matchGroupId) throw new Error("MatchGroupId required");
         if (!match.roundId || match.sortOrder === undefined || !match.players) throw new Error("Missing fields");

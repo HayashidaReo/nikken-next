@@ -43,7 +43,7 @@ export class MatchGroupMapper {
     }
 
     static toFirestoreForCreate(group: Partial<MatchGroup> & { id?: string }): FirestoreMatchGroupCreateDoc {
-        const matchGroupId = group.id || group.matchGroupId;
+        const matchGroupId = group.matchGroupId;
         if (!matchGroupId) throw new Error("ID required");
         if (!group.courtId || !group.roundId || group.sortOrder === undefined || !group.teamAId || !group.teamBId) {
             throw new Error("Missing required fields");

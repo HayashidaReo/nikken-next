@@ -124,7 +124,7 @@ export class MatchMapper {
             throw new Error("Both playerA and playerB are required");
         }
 
-        const matchId = match.id || match.matchId;
+        const matchId = match.matchId;
         if (!matchId) {
             throw new Error("Match ID is required for creation");
         }
