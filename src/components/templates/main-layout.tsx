@@ -18,6 +18,8 @@ import { HeaderTournamentSelector } from "@/components/molecules/header-tourname
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { isElectron } from "@/lib/utils/platform";
 import { SettingsMenu } from "@/components/molecules/settings-menu";
+import { useFirestoreSync } from "@/hooks/useFirestoreSync";
+import { ConflictResolutionDialog } from "@/components/organisms/conflict-resolution-dialog";
 
 
 interface MainLayoutProps {
@@ -184,6 +186,9 @@ export function MainLayout({
   activeTab = "matches",
   className,
 }: MainLayoutProps) {
+  // リアルタイム同期の有効化
+  useFirestoreSync();
+
   return (
     <div className={cn("min-h-screen bg-gray-50", className)}>
       <Header activeTab={activeTab} />
@@ -191,6 +196,8 @@ export function MainLayout({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
+
+      <ConflictResolutionDialog />
     </div>
   );
 }

@@ -198,7 +198,10 @@ export const syncService = {
         // 3. 未送信の団体戦試合データを取得 (Team)
         const unsyncedTeamMatches = await localTeamMatchRepository.getUnsynced(orgId, tournamentId);
 
-        if (unsyncedMatches.length === 0 && unsyncedMatchGroups.length === 0 && unsyncedTeamMatches.length === 0) {
+        // 4. 未送信のチームデータを取得
+        const unsyncedTeams = await localTeamRepository.getUnsynced(orgId, tournamentId);
+
+        if (unsyncedMatches.length === 0 && unsyncedMatchGroups.length === 0 && unsyncedTeamMatches.length === 0 && unsyncedTeams.length === 0) {
             return 0;
         }
 
@@ -289,6 +292,26 @@ export const syncService = {
             }
         );
 
+        // チームの同期
+        successCount += await syncItems(
+            unsyncedTeams,
+            "team",
+            (t) => t.teamId,
+            async (team, _) => {
+                // createはupsertとして動作する
+                await teamRepository.create(orgId, tournamentId, team);
+            },
+            async (_, id) => {
+                await teamRepository.delete(orgId, tournamentId, id);
+            },
+            async (team) => {
+                if (team.teamId) await localTeamRepository.markAsSynced(team.teamId);
+            },
+            async (id) => {
+                await localTeamRepository.hardDelete(id);
+            }
+        );
+
         return successCount;
     },
 
@@ -299,7 +322,8 @@ export const syncService = {
         const matchesCount = await localMatchRepository.countUnsynced(orgId, tournamentId);
         const matchGroupsCount = await localMatchGroupRepository.countUnsynced(orgId, tournamentId);
         const teamMatchesCount = await localTeamMatchRepository.countUnsynced(orgId, tournamentId);
-        return matchesCount + matchGroupsCount + teamMatchesCount;
+        const teamsCount = await localTeamRepository.countUnsynced(orgId, tournamentId);
+        return matchesCount + matchGroupsCount + teamMatchesCount + teamsCount;
     },
 
     /**

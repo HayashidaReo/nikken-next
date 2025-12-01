@@ -92,7 +92,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
         setConfirmDialog({
             isOpen: true,
             title: "端末内のデータ初期化",
-            message: "端末内のデータをすべて削除します。この操作は取り消せません。よろしいですか？",
+            message: "端末内のデータをすべて削除します。この操作は取り消せません。よろしいですか？<br>※ クラウド上のデータには影響しません。",
             variant: "destructive",
             action: async () => handleAction(async () => {
                 await syncService.clearLocalData();
