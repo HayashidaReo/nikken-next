@@ -40,10 +40,14 @@ export function MatchActionMenu({
     const calculatePosition = useCallback(() => {
         if (!wrapperRef.current) return null;
 
+        const MENU_WIDTH = 192; // w-48
+        const MENU_ITEM_HEIGHT = 48; // 44px + padding
+        const MENU_MONITOR_HEIGHT = 88;
+
         const rect = wrapperRef.current.getBoundingClientRect();
         const spaceBelow = window.innerHeight - rect.bottom;
-        const menuHeight = onMonitor ? 88 : 48; // 推定高さ (44px per item + padding)
-        const menuWidth = 192; // w-48 = 192px
+        const menuHeight = onMonitor ? MENU_MONITOR_HEIGHT : MENU_ITEM_HEIGHT;
+        const menuWidth = MENU_WIDTH;
 
         // 下に十分なスペースがない場合は上に表示
         const isAbove = spaceBelow < menuHeight && rect.top >= menuHeight;
