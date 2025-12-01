@@ -72,7 +72,7 @@ export function useFirestoreSync() {
                                 await localDB.tournaments.update(localData.tournamentId, { isSynced: true });
                             } else {
                                 setConflict({
-                                    collection: 'tournaments',
+                                    collection: FIRESTORE_COLLECTIONS.TOURNAMENTS,
                                     id: tournamentId,
                                     localData,
                                     cloudData: domainData
@@ -114,7 +114,7 @@ export function useFirestoreSync() {
                         await localDB.matches.update(localData.id!, { isSynced: true });
                     } else {
                         setConflict({
-                            collection: 'matches',
+                            collection: FIRESTORE_COLLECTIONS.MATCHES,
                             id,
                             localData,
                             cloudData: domainData
@@ -164,7 +164,7 @@ export function useFirestoreSync() {
                         await localDB.matchGroups.update(localGroupData.id!, { isSynced: true });
                     } else {
                         setConflict({
-                            collection: 'matchGroups',
+                            collection: FIRESTORE_COLLECTIONS.MATCH_GROUPS,
                             id: groupId,
                             localData: localGroupData,
                             cloudData: domainGroupData
@@ -202,7 +202,7 @@ export function useFirestoreSync() {
                                     await localDB.teamMatches.update(localTmData.id!, { isSynced: true });
                                 } else {
                                     setConflict({
-                                        collection: 'teamMatches',
+                                        collection: FIRESTORE_COLLECTIONS.TEAM_MATCHES,
                                         id: tmId,
                                         localData: localTmData,
                                         cloudData: domainTmData
@@ -248,7 +248,7 @@ export function useFirestoreSync() {
                         await localDB.teams.update(localData.id!, { isSynced: true });
                     } else {
                         setConflict({
-                            collection: 'teams',
+                            collection: FIRESTORE_COLLECTIONS.TEAMS,
                             id,
                             localData,
                             cloudData: domainData
