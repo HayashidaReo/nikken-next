@@ -12,20 +12,11 @@ import { useActiveTournament } from '@/store/use-active-tournament-store';
 import { useSyncStore } from '@/store/use-sync-store';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { FIRESTORE_COLLECTIONS } from '@/lib/constants';
-import isEqual from 'lodash/isEqual';
-
-// 比較時に除外するメタデータフィールド
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const omitMetadata = (data: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { isSynced, id, _deleted, createdAt, updatedAt, organizationId, tournamentId, ...rest } = data;
-    return rest;
-};
 
 export function useFirestoreSync() {
     const { user } = useAuthStore();
     const { activeTournamentId } = useActiveTournament();
-    const { isEditing, setConflict } = useSyncStore();
+    const { isEditing } = useSyncStore();
     const isOnline = useOnlineStatus();
 
     // 監視の有効/無効を判定
@@ -52,32 +43,21 @@ export function useFirestoreSync() {
                         // Mapperを使用して変換
                         const domainData = TournamentMapper.toDomain({ ...data, id: change.doc.id });
 
-                        // 競合チェック
+                        // ローカルデータの確認
                         const localData = await localDB.tournaments.get({ organizationId: orgId, tournamentId });
-                        if (localData && !localData.isSynced) {
-                            // オフライン編集後の初回同期（added）は、サーバーデータが古いため無視する
-                            // これにより、自分の編集内容が「競合」として扱われるのを防ぐ
-                            if (change.type === 'added') return;
 
-                            // メタデータとタイムスタンプを除外して比較
-                            if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
-                                await localDB.tournaments.update(localData.tournamentId, { isSynced: true });
-                            } else {
-                                setConflict({
-                                    collection: FIRESTORE_COLLECTIONS.TOURNAMENTS,
-                                    id: tournamentId,
-                                    localData,
-                                    cloudData: domainData
-                                });
-                            }
-                        } else {
-                            await localDB.tournaments.put({
-                                ...domainData,
-                                organizationId: orgId,
-                                tournamentId,
-                                isSynced: true
-                            } as LocalTournament);
+                        // 未送信データがある場合は、クラウドからの更新を無視する（ローカル優先）
+                        if (localData && !localData.isSynced) {
+                            return;
                         }
+
+                        // 上書き保存
+                        await localDB.tournaments.put({
+                            ...domainData,
+                            organizationId: orgId,
+                            tournamentId,
+                            isSynced: true
+                        } as LocalTournament);
                     }
                 });
             }
@@ -100,30 +80,20 @@ export function useFirestoreSync() {
                 const domainData = MatchMapper.toDomain({ ...data, id });
 
                 const localData = await localDB.matches.where({ matchId: id }).first();
-                if (localData && !localData.isSynced) {
-                    // オフライン編集後の初回同期（added）は無視
-                    if (change.type === 'added') return;
 
-                    // メタデータとタイムスタンプを除外して比較
-                    if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
-                        await localDB.matches.update(localData.id!, { isSynced: true });
-                    } else {
-                        setConflict({
-                            collection: FIRESTORE_COLLECTIONS.MATCHES,
-                            id,
-                            localData,
-                            cloudData: domainData
-                        });
-                    }
-                } else {
-                    await localDB.matches.put({
-                        ...domainData,
-                        organizationId: orgId,
-                        tournamentId,
-                        isSynced: true,
-                        id: localData?.id,
-                    } as LocalMatch);
+                // 未送信データがある場合は、クラウドからの更新を無視する（ローカル優先）
+                if (localData && !localData.isSynced) {
+                    return;
                 }
+
+                // 上書き保存
+                await localDB.matches.put({
+                    ...domainData,
+                    organizationId: orgId,
+                    tournamentId,
+                    isSynced: true,
+                    id: localData?.id,
+                } as LocalMatch);
             });
         });
         unsubs.push(matchesUnsub);
@@ -153,22 +123,12 @@ export function useFirestoreSync() {
                 const domainGroupData = MatchGroupMapper.toDomain({ ...groupData, id: groupId });
 
                 const localGroupData = await localDB.matchGroups.where({ matchGroupId: groupId }).first();
-                if (localGroupData && !localGroupData.isSynced) {
-                    // オフライン編集後の初回同期（added）は無視
-                    if (change.type === 'added') return;
 
-                    // メタデータとタイムスタンプを除外して比較
-                    if (isEqual(omitMetadata(localGroupData), omitMetadata(domainGroupData))) {
-                        await localDB.matchGroups.update(localGroupData.id!, { isSynced: true });
-                    } else {
-                        setConflict({
-                            collection: FIRESTORE_COLLECTIONS.MATCH_GROUPS,
-                            id: groupId,
-                            localData: localGroupData,
-                            cloudData: domainGroupData
-                        });
-                    }
+                // 未送信データがある場合は、クラウドからの更新を無視する（ローカル優先）
+                if (localGroupData && !localGroupData.isSynced) {
+                    // 何もしない
                 } else {
+                    // 上書き保存
                     await localDB.matchGroups.put({
                         ...domainGroupData,
                         organizationId: orgId,
@@ -194,31 +154,21 @@ export function useFirestoreSync() {
                             const domainTmData = TeamMatchMapper.toDomain({ ...tmData, id: tmId });
 
                             const localTmData = await localDB.teamMatches.where({ matchId: tmId }).first();
-                            if (localTmData && !localTmData.isSynced) {
-                                // オフライン編集後の初回同期（added）は無視
-                                if (tmChange.type === 'added') return;
 
-                                // メタデータとタイムスタンプを除外して比較
-                                if (isEqual(omitMetadata(localTmData), omitMetadata(domainTmData))) {
-                                    await localDB.teamMatches.update(localTmData.id!, { isSynced: true });
-                                } else {
-                                    setConflict({
-                                        collection: FIRESTORE_COLLECTIONS.TEAM_MATCHES,
-                                        id: tmId,
-                                        localData: localTmData,
-                                        cloudData: domainTmData
-                                    });
-                                }
-                            } else {
-                                await localDB.teamMatches.put({
-                                    ...domainTmData,
-                                    organizationId: orgId,
-                                    tournamentId,
-                                    isSynced: true,
-                                    id: localTmData?.id,
-                                    matchGroupId: groupId,
-                                } as LocalTeamMatch);
+                            // 未送信データがある場合は、クラウドからの更新を無視する（ローカル優先）
+                            if (localTmData && !localTmData.isSynced) {
+                                return;
                             }
+
+                            // 上書き保存
+                            await localDB.teamMatches.put({
+                                ...domainTmData,
+                                organizationId: orgId,
+                                tournamentId,
+                                isSynced: true,
+                                id: localTmData?.id,
+                                matchGroupId: groupId,
+                            } as LocalTeamMatch);
                         });
                     });
                     teamMatchUnsubs.set(groupId, teamMatchesUnsub);
@@ -243,30 +193,20 @@ export function useFirestoreSync() {
                 const domainData = TeamMapper.toDomain({ ...data, id });
 
                 const localData = await localDB.teams.where({ teamId: id }).first();
-                if (localData && !localData.isSynced) {
-                    // オフライン編集後の初回同期（added）は無視
-                    if (change.type === 'added') return;
 
-                    // メタデータとタイムスタンプを除外して比較
-                    if (isEqual(omitMetadata(localData), omitMetadata(domainData))) {
-                        await localDB.teams.update(localData.id!, { isSynced: true });
-                    } else {
-                        setConflict({
-                            collection: FIRESTORE_COLLECTIONS.TEAMS,
-                            id,
-                            localData,
-                            cloudData: domainData
-                        });
-                    }
-                } else {
-                    await localDB.teams.put({
-                        ...domainData,
-                        organizationId: orgId,
-                        tournamentId,
-                        isSynced: true,
-                        id: localData?.id,
-                    } as LocalTeam);
+                // 未送信データがある場合は、クラウドからの更新を無視する（ローカル優先）
+                if (localData && !localData.isSynced) {
+                    return;
                 }
+
+                // 上書き保存
+                await localDB.teams.put({
+                    ...domainData,
+                    organizationId: orgId,
+                    tournamentId,
+                    isSynced: true,
+                    id: localData?.id,
+                } as LocalTeam);
             });
         });
         unsubs.push(teamsUnsub);
@@ -277,5 +217,5 @@ export function useFirestoreSync() {
             teamMatchUnsubs.forEach(unsub => unsub());
             teamMatchUnsubs.clear();
         };
-    }, [shouldSync, user?.uid, activeTournamentId, setConflict]);
+    }, [shouldSync, user?.uid, activeTournamentId]);
 }
