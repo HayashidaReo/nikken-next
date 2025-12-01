@@ -7,6 +7,7 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useAuthStore } from "@/store/use-auth-store";
 import { MonitorSyncProvider } from "@/components/providers/monitor-sync-provider";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
+import { MasterDataWrapper } from "@/components/providers/master-data-wrapper";
 
 export default function AuthLayout({
     children,
@@ -53,7 +54,9 @@ export default function AuthLayout({
     // 認証済みの場合のみ子コンポーネントを表示
     return (
         <MonitorSyncProvider>
-            {children}
+            <MasterDataWrapper>
+                {children}
+            </MasterDataWrapper>
         </MonitorSyncProvider>
     );
 }

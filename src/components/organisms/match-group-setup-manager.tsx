@@ -86,6 +86,21 @@ export function MatchGroupSetupManager() {
                     return created;
                 } else {
                     // 更新
+                    // 変更があるかチェック
+                    const original = matchGroups.find(g => g.matchGroupId === item.id);
+                    if (original) {
+                        const hasChanges =
+                            original.courtId !== item.courtId ||
+                            original.roundId !== roundId ||
+                            original.teamAId !== item.teamAId ||
+                            original.teamBId !== item.teamBId ||
+                            original.sortOrder !== item.sortOrder;
+
+                        if (!hasChanges) {
+                            return Promise.resolve(0); // 変更なし
+                        }
+                    }
+
                     const patch: Partial<MatchGroupCreate> = {
                         courtId: item.courtId,
                         roundId,
@@ -100,17 +115,20 @@ export function MatchGroupSetupManager() {
             });
             await Promise.all(savePromises);
 
-            showSuccess("チーム対戦を保存しました");
-
-            // バックグラウンド同期
             const deletedIds = toDelete.map(g => g.matchGroupId).filter((id): id is string => !!id);
             const allAffectedIds = [...savedGroupIds, ...deletedIds];
 
-            setTimeout(() => {
-                syncMatchGroupsToCloud(allAffectedIds, { showSuccessToast: true }).catch(err => {
-                    console.error("Background sync failed:", err);
-                });
-            }, 0);
+            if (allAffectedIds.length > 0) {
+                showSuccess(`${allAffectedIds.length}件の変更を保存しました`);
+                // バックグラウンド同期
+                setTimeout(() => {
+                    syncMatchGroupsToCloud(allAffectedIds, { showSuccessToast: true }).catch(err => {
+                        console.error("Background sync failed:", err);
+                    });
+                }, 0);
+            } else {
+                showSuccess("変更はありませんでした");
+            }
 
         } catch (error) {
             showError(error instanceof Error ? error.message : "チーム対戦の保存に失敗しました");
@@ -172,8 +190,21 @@ export function MatchGroupSetupManager() {
                     return created;
                 } else {
                     // 更新
-                    // 更新時は既存の score / hansoku を保持する
                     const existingMatch = teamMatches.find(m => m.matchId === item.id);
+
+                    if (existingMatch) {
+                        const hasChanges =
+                            existingMatch.roundId !== roundId ||
+                            existingMatch.sortOrder !== item.sortOrder ||
+                            existingMatch.players.playerA.playerId !== playerA.playerId ||
+                            existingMatch.players.playerB.playerId !== playerB.playerId;
+
+                        if (!hasChanges) {
+                            return Promise.resolve(0);
+                        }
+                    }
+
+                    // 更新時は既存の score / hansoku を保持する
                     const patch: Partial<TeamMatchCreate> = {
                         roundId,
                         sortOrder: item.sortOrder,
@@ -190,17 +221,20 @@ export function MatchGroupSetupManager() {
             });
             await Promise.all(savePromises);
 
-            showSuccess("個人試合を保存しました");
-
-            // バックグラウンド同期
             const deletedIds = toDelete.map(m => m.matchId).filter((id): id is string => !!id);
             const allAffectedIds = [...savedMatchIds, ...deletedIds];
 
-            setTimeout(() => {
-                syncTeamMatchesToCloud(selectedMatchGroupId, allAffectedIds, { showSuccessToast: true }).catch(err => {
-                    console.error("Background sync failed:", err);
-                });
-            }, 0);
+            if (allAffectedIds.length > 0) {
+                showSuccess(`${allAffectedIds.length}件の変更を保存しました`);
+                // バックグラウンド同期
+                setTimeout(() => {
+                    syncTeamMatchesToCloud(selectedMatchGroupId, allAffectedIds, { showSuccessToast: true }).catch(err => {
+                        console.error("Background sync failed:", err);
+                    });
+                }, 0);
+            } else {
+                showSuccess("変更はありませんでした");
+            }
 
         } catch (error) {
             showError(error instanceof Error ? error.message : "個人試合の保存に失敗しました");

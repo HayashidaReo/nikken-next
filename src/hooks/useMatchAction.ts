@@ -8,6 +8,8 @@ import type { Team } from "@/types/team.schema";
 import type { MonitorData } from "@/types/monitor.schema";
 import { createPlayerDirectory } from "@/lib/utils/player-directory";
 import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
+import { useMatchPersistence } from "@/hooks/useMatchPersistence";
+import { useMatchGroupPersistence } from "@/hooks/useMatchGroupPersistence";
 
 interface UseMatchActionProps {
     orgId: string | null;
@@ -33,6 +35,8 @@ export function useMatchAction({
     const { showError } = useToast();
     const saveIndividualMatchResultMutation = useSaveIndividualMatchResult();
     const saveTeamMatchResultMutation = useSaveTeamMatchResult();
+    const { syncMatchToCloud } = useMatchPersistence();
+    const { syncTeamMatchToCloud } = useMatchGroupPersistence();
 
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [showRepMatchDialog, setShowRepMatchDialog] = useState(false);
@@ -66,21 +70,31 @@ export function useMatchAction({
             // 大会種別に応じて保存先を切り替え
             if (activeTournamentType === "team") {
                 await saveTeamMatchResultMutation.mutateAsync(request);
+                // クラウド同期 (バックグラウンド)
+                if (store.matchGroupId) {
+                    syncTeamMatchToCloud(store.matchGroupId, matchId).catch(console.error);
+                }
             } else if (activeTournamentType === "individual") {
                 await saveIndividualMatchResultMutation.mutateAsync(request);
+                // クラウド同期 (バックグラウンド)
+                syncMatchToCloud(matchId).catch(console.error);
             } else {
                 // 種別が不明な場合はフォールバック（両方試行）
                 try {
                     await saveIndividualMatchResultMutation.mutateAsync(request);
+                    syncMatchToCloud(matchId).catch(console.error);
                 } catch {
                     await saveTeamMatchResultMutation.mutateAsync(request);
+                    if (store.matchGroupId) {
+                        syncTeamMatchToCloud(store.matchGroupId, matchId).catch(console.error);
+                    }
                 }
             }
         } catch (err) {
             console.error(err);
             showError("試合結果の保存に失敗しました");
         }
-    }, [orgId, activeTournamentId, activeTournamentType, saveTeamMatchResultMutation, saveIndividualMatchResultMutation, showError]);
+    }, [orgId, activeTournamentId, activeTournamentType, saveTeamMatchResultMutation, saveIndividualMatchResultMutation, showError, syncMatchToCloud, syncTeamMatchToCloud]);
 
     const handleConfirmMatchClick = useCallback(() => {
         setShowConfirmDialog(true);

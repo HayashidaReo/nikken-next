@@ -36,7 +36,7 @@ export function useMatchPersistence() {
                 // 作成または更新
                 await firestoreRepository.save(orgId, activeTournamentId, localMatch);
                 // 同期完了としてマーク
-                await localMatchRepository.updateByMatchId(matchId, { isSynced: true });
+                await localMatchRepository.markAsSynced(matchId);
             }
         };
 
@@ -81,7 +81,7 @@ export function useMatchPersistence() {
                         await localMatchRepository.hardDelete(matchId);
                     } else {
                         await firestoreRepository.save(orgId, activeTournamentId, localMatch);
-                        await localMatchRepository.updateByMatchId(matchId, { isSynced: true });
+                        await localMatchRepository.markAsSynced(matchId);
                     }
                     successCount++;
                 } catch (e) {
