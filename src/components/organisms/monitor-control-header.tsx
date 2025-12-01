@@ -62,10 +62,33 @@ export function MonitorControlHeader({
             );
         }
 
-        // 試合結果表示中
-        if (viewMode === MONITOR_VIEW_MODES.MATCH_RESULT) {
-            // 団体戦かつ未完了: 次の試合へ
+        // 試合結果表示中 または 初期表示中
+        if (viewMode === MONITOR_VIEW_MODES.MATCH_RESULT || viewMode === MONITOR_VIEW_MODES.INITIAL) {
+            // 初期表示の場合は常に得点板へボタンを表示
+            if (viewMode === MONITOR_VIEW_MODES.INITIAL && actions.onStartMatch) {
+                return (
+                    <Button onClick={actions.onStartMatch} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
+                        得点板へ
+                        <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                        <ChevronRight className="w-4 h-4" />
+                    </Button>
+                );
+            }
+
+            // 団体戦かつ未完了
             if (activeTournamentType === TOURNAMENT_TYPES.TEAM && !isAllFinished) {
+                // 現在の試合が未完了の場合: 得点板へボタン
+                if (matchState.isCurrentMatchCompleted === false && actions.onStartMatch) {
+                    return (
+                        <Button onClick={actions.onStartMatch} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
+                            得点板へ
+                            <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
+                    );
+                }
+
+                // 現在の試合が完了済みの場合: 次の試合へ
                 return (
                     <Button onClick={onNextMatch} variant="default" className="bg-green-600 hover:bg-green-700 gap-2">
                         次の試合へ

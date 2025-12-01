@@ -4,39 +4,44 @@ import React from "react";
 import { useResponsiveFont } from "@/hooks/useResponsiveFont";
 import { cn } from "@/lib/utils/utils";
 
-interface AdjustHorizontalTextProps extends React.HTMLAttributes<HTMLDivElement> {
+interface AdjustVerticalTextProps extends React.HTMLAttributes<HTMLDivElement> {
     baseFontSize: number;
     minFontSize: number;
-    maxWidth: number;
+    maxHeight: number;
     textContent: string;
 }
 
-export function AdjustHorizontalText({
+export function AdjustVerticalText({
     baseFontSize,
     minFontSize,
-    maxWidth,
+    maxHeight,
     textContent,
     className,
     style,
     ...props
-}: AdjustHorizontalTextProps) {
+}: AdjustVerticalTextProps) {
     const { fontSizeRem, elementRef } = useResponsiveFont({
         baseFontSize,
         minFontSize,
-        maxSize: maxWidth,
+        maxSize: maxHeight,
         textContent,
-        direction: "horizontal",
+        direction: "vertical",
     });
 
     return (
         <div
             ref={elementRef}
             style={{
+                writingMode: "vertical-rl",
+                textOrientation: "upright",
+                whiteSpace: "nowrap",
+                lineHeight: "1.2",
                 fontSize: `${fontSizeRem}rem`,
-                maxWidth: `${maxWidth}px`,
+                maxHeight: `${maxHeight}px`,
+                overflow: "hidden",
                 ...style,
             }}
-            className={cn("whitespace-nowrap", className)}
+            className={cn("", className)}
             {...props}
         >
             {textContent}

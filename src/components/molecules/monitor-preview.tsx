@@ -3,7 +3,6 @@
 
 import { useMonitorStore } from "@/store/use-monitor-store";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
-import { StandbyScreen } from "@/components/templates/standby-screen";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
 import { MonitorGroupResults } from "@/components/organisms/monitor-group-results";
 import { MonitorIndividualMatchResult } from "@/components/organisms/monitor-individual-match-result";
@@ -51,8 +50,19 @@ export function MonitorPreview({
 
     // コンテンツのレンダリング
     const renderContent = () => {
-        if (!data.isPublic) {
-            return <StandbyScreen />;
+        if (data.viewMode === "initial") {
+            // 団体戦の初期表示（強調なし）
+            if (monitorData.groupMatches && monitorData.groupMatches.length > 0) {
+                return (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <MonitorGroupResults
+                            groupMatches={monitorData.groupMatches}
+                            currentMatchId={null}
+                            className="w-full h-full"
+                        />
+                    </div>
+                );
+            }
         }
 
         if (data.viewMode === "match_result") {
@@ -107,9 +117,21 @@ export function MonitorPreview({
                     transform: `scale(${scale})`,
                     transformOrigin: "top left",
                 }}
-                className="bg-black text-white overflow-hidden" // overflow-hiddenを追加してはみ出し防止
+                className="bg-black text-white overflow-hidden relative" // relativeを追加
             >
-                {renderContent()}
+                {/* 実際のコンテンツ（非公開時は薄く表示） */}
+                <div className={cn("w-full h-full transition-opacity duration-300", !data.isPublic && "opacity-30")}>
+                    {renderContent()}
+                </div>
+
+                {/* 準備中オーバーレイ */}
+                {!data.isPublic && (
+                    <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-[2px]">
+                        <div className="text-white px-12 py-8 rounded-2xl border border-white/20">
+                            <span className="text-[15rem] font-bold tracking-widest leading-none">準備中</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
