@@ -184,22 +184,6 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                 {isOpen && (
                     <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
                         <button
-                            onClick={handleLogout}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors text-red-600"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            <span>ログアウト</span>
-                        </button>
-                        <div className="border-t border-gray-100 my-1" />
-                        <button
-                            onClick={handleInitialize}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors text-red-600"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            <span>端末内のデータ初期化</span>
-                        </button>
-                        <div className="border-t border-gray-100 my-1" />
-                        <button
                             onClick={handleFetchFromCloud}
                             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
                             disabled={!activeTournamentId}
@@ -214,6 +198,22 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                         >
                             <CloudUpload className="w-4 h-4 text-gray-600" />
                             <span>クラウドにデータ送信</span>
+                        </button>
+                        <div className="border-t border-gray-100 my-1" />
+                        <button
+                            onClick={handleInitialize}
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors text-red-600"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            <span>端末のデータ初期化</span>
+                        </button>
+                        <div className="border-t border-gray-100 my-1" />
+                        <button
+                            onClick={handleLogout}
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors text-red-600"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            <span>ログアウト</span>
                         </button>
                     </div>
                 )}
