@@ -311,8 +311,6 @@ export const syncService = {
         await db.matchGroups.clear();
         await db.teamMatches.clear();
         await db.teams.clear();
+        await db.tournaments.clear();
     }
 };
-
-//TODO: 取り込むときに、ダイアログを表示して内容確認してから取り組む
-//TODO: 保存処理は、未完成未検証
