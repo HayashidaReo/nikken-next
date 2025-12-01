@@ -35,8 +35,10 @@ export function MonitorControlButton({ matchGroupId }: MonitorControlButtonProps
             onClick={handleMonitorControlClick}
             disabled={!teamMatches || teamMatches.length === 0}
             title="モニター操作画面へ"
+            className="gap-2"
         >
             <Monitor className="h-4 w-4" />
+            モニター操作開始
         </Button>
     );
 }
