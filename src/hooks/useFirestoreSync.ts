@@ -12,6 +12,7 @@ import { useActiveTournament } from '@/store/use-active-tournament-store';
 import { useSyncStore } from '@/store/use-sync-store';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { syncService } from '@/services/sync-service';
+import { FIRESTORE_COLLECTIONS } from '@/lib/constants';
 
 export function useFirestoreSync() {
     const { user } = useAuthStore();
@@ -44,7 +45,7 @@ export function useFirestoreSync() {
 
         // 1. Tournaments
         const tournamentUnsub = onSnapshot(
-            collection(firestore, `organizations/${orgId}/tournaments`),
+            collection(firestore, `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}`),
             (snapshot) => {
                 snapshot.docChanges().forEach(async (change) => {
                     if (change.doc.id !== tournamentId) return;
@@ -78,7 +79,7 @@ export function useFirestoreSync() {
         unsubs.push(tournamentUnsub);
 
         // 2. Matches
-        const matchesQuery = query(collection(firestore, `organizations/${orgId}/tournaments/${tournamentId}/matches`));
+        const matchesQuery = query(collection(firestore, `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.MATCHES}`));
         const matchesUnsub = onSnapshot(matchesQuery, (snapshot) => {
             snapshot.docChanges().forEach(async (change) => {
                 const data = change.doc.data() as FirestoreMatchDoc;
@@ -116,7 +117,7 @@ export function useFirestoreSync() {
         // 4. TeamMatches (Subcollection of MatchGroups)
         const teamMatchUnsubs = new Map<string, () => void>();
 
-        const groupsQuery = query(collection(firestore, `organizations/${orgId}/tournaments/${tournamentId}/matchGroups`));
+        const groupsQuery = query(collection(firestore, `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.MATCH_GROUPS}`));
         const groupsUnsub = onSnapshot(groupsQuery, (snapshot) => {
             snapshot.docChanges().forEach(async (change) => {
                 const groupData = change.doc.data() as FirestoreMatchGroupDoc;
@@ -156,7 +157,7 @@ export function useFirestoreSync() {
                 }
 
                 if (!teamMatchUnsubs.has(groupId)) {
-                    const teamMatchesQuery = query(collection(firestore, `organizations/${orgId}/tournaments/${tournamentId}/matchGroups/${groupId}/matches`));
+                    const teamMatchesQuery = query(collection(firestore, `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.MATCH_GROUPS}/${groupId}/${FIRESTORE_COLLECTIONS.MATCHES}`));
                     const teamMatchesUnsub = onSnapshot(teamMatchesQuery, (tmSnapshot) => {
                         tmSnapshot.docChanges().forEach(async (tmChange) => {
                             const tmData = tmChange.doc.data() as FirestoreTeamMatchDoc;
@@ -197,7 +198,7 @@ export function useFirestoreSync() {
         unsubs.push(groupsUnsub);
 
         // 5. Teams
-        const teamsQuery = query(collection(firestore, `organizations/${orgId}/tournaments/${tournamentId}/teams`));
+        const teamsQuery = query(collection(firestore, `${FIRESTORE_COLLECTIONS.ORGANIZATIONS}/${orgId}/${FIRESTORE_COLLECTIONS.TOURNAMENTS}/${tournamentId}/${FIRESTORE_COLLECTIONS.TEAMS}`));
         const teamsUnsub = onSnapshot(teamsQuery, (snapshot) => {
             snapshot.docChanges().forEach(async (change) => {
                 const data = change.doc.data() as FirestoreTeamDoc;
