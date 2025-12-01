@@ -9,10 +9,16 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/atoms/button";
-import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam } from "@/lib/db";
+import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam, db } from "@/lib/db";
 import { CloudUpload } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils/utils";
+import { useMasterData } from "@/components/providers/master-data-provider";
+import { useLiveQuery } from "dexie-react-hooks";
+import { MatchScoreDisplay } from "@/components/molecules/match-score-display";
+import { SCORE_COLORS } from "@/lib/ui-constants";
+import { WIN_REASON_LABELS, getTeamMatchRoundLabelById } from "@/lib/constants";
+import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 
 interface UnsyncedData {
     matches: LocalMatch[];
@@ -28,14 +34,12 @@ interface UnsyncedDataDialogProps {
     data: UnsyncedData;
 }
 
-import { useMasterData } from "@/components/providers/master-data-provider";
-
 interface TabButtonProps {
-    value: "matches" | "groups" | "teamMatches" | "teams";
+    value: "matches" | "groups" | "teams";
     label: string;
     count: number;
     isActive: boolean;
-    onClick: (value: "matches" | "groups" | "teamMatches" | "teams") => void;
+    onClick: (value: "matches" | "groups" | "teams") => void;
 }
 
 const TabButton = ({ value, label, count, isActive, onClick }: TabButtonProps) => (
@@ -61,8 +65,39 @@ const Badge = ({ children, className }: { children: React.ReactNode, className?:
 export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: UnsyncedDataDialogProps) {
     const { matches, matchGroups, teamMatches, teams } = data;
     const totalCount = matches.length + matchGroups.length + teamMatches.length + teams.length;
-    const [activeTab, setActiveTab] = useState<"matches" | "groups" | "teamMatches" | "teams">("matches");
+    const [activeTab, setActiveTab] = useState<"matches" | "groups" | "teams">("matches");
     const { getTeam, getCourt, getRound } = useMasterData();
+
+    // 関連するグループIDを収集
+    const relatedGroupIds = useMemo(() => {
+        const ids = new Set<string>();
+        matchGroups.forEach(g => g.matchGroupId && ids.add(g.matchGroupId));
+        teamMatches.forEach(m => m.matchGroupId && ids.add(m.matchGroupId));
+        return Array.from(ids);
+    }, [matchGroups, teamMatches]);
+
+    // 関連するグループ情報を取得
+    const relatedGroups = useLiveQuery(async () => {
+        if (relatedGroupIds.length === 0) return [];
+        return await db.matchGroups.where('matchGroupId').anyOf(relatedGroupIds).toArray();
+    }, [relatedGroupIds]);
+
+    // グループごとにデータをまとめる
+    const groupedData = useMemo(() => {
+        if (!relatedGroups) return [];
+
+        return relatedGroups.map(group => {
+            const groupMatches = teamMatches.filter(m => m.matchGroupId === group.matchGroupId).sort((a, b) => a.sortOrder - b.sortOrder);
+            const isGroupUnsynced = matchGroups.some(g => g.matchGroupId === group.matchGroupId);
+            const deleted = matchGroups.find(g => g.matchGroupId === group.matchGroupId)?._deleted;
+            return {
+                group,
+                matches: groupMatches,
+                isGroupUnsynced,
+                deleted
+            };
+        }).filter(item => item.matches.length > 0 || item.isGroupUnsynced);
+    }, [relatedGroups, teamMatches, matchGroups]);
 
     const handleConfirm = async () => {
         await onConfirm();
@@ -91,6 +126,84 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
         return round ? round.roundName : roundId;
     };
 
+    const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean, winner: "playerA" | "playerB" | "draw" | "none" | null | undefined, isPlayerA: boolean) => {
+        if (!isCompleted) return SCORE_COLORS.unplayed;
+
+        if (winner) {
+            if (winner === "draw") return SCORE_COLORS.draw;
+            if (isPlayerA && winner === "playerA") return SCORE_COLORS.win;
+            if (!isPlayerA && winner === "playerB") return SCORE_COLORS.win;
+            return SCORE_COLORS.loss;
+        }
+
+        if (playerScore === 0 && opponentScore === 0) {
+            return SCORE_COLORS.draw;
+        }
+        if (playerScore > opponentScore) return SCORE_COLORS.win;
+        if (playerScore === opponentScore) return SCORE_COLORS.draw;
+        return SCORE_COLORS.loss;
+    };
+
+    const MatchItem = ({ match, showRound = true }: { match: LocalMatch | LocalTeamMatch, showRound?: boolean }) => {
+        const playerAName = getPlayerName(match.players.playerA.teamId, match.players.playerA.playerId);
+        const playerBName = getPlayerName(match.players.playerB.teamId, match.players.playerB.playerId);
+        const playerAColor = getPlayerTextColor(match.players.playerA.score, match.players.playerB.score, match.isCompleted, match.winner, true);
+        const playerBColor = getPlayerTextColor(match.players.playerB.score, match.players.playerA.score, match.isCompleted, match.winner, false);
+        const winReason = match.winReason && match.winReason !== "none" ? WIN_REASON_LABELS[match.winReason] : "";
+
+        let winnerText = "";
+        if (match.winner === "playerA") winnerText = `${playerAName} の勝ち`;
+        else if (match.winner === "playerB") winnerText = `${playerBName} の勝ち`;
+        else if (match.winner === "draw") winnerText = "引き分け";
+
+        return (
+            <div className="bg-white p-4 rounded border shadow-sm">
+                <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-bold text-gray-700">
+                        {showRound ? `${getRoundName(match.roundId)} - ` : ""}
+                        {'courtId' in match ? getCourtName(match.courtId) : (getTeamMatchRoundLabelById(match.roundId) || `第${match.sortOrder}試合`)}
+                    </span>
+                    {match._deleted && <Badge>削除対象</Badge>}
+                </div>
+
+                <div className="flex justify-between items-center mb-2 px-4">
+                    <div className={cn("text-lg font-bold w-1/3 text-right truncate", playerAColor)}>
+                        {playerAName}
+                    </div>
+                    <div className="text-sm text-gray-400 px-2">vs</div>
+                    <div className={cn("text-lg font-bold w-1/3 text-left truncate", playerBColor)}>
+                        {playerBName}
+                    </div>
+                </div>
+
+                <MatchScoreDisplay
+                    playerAScore={match.players.playerA.score}
+                    playerBScore={match.players.playerB.score}
+                    playerAColor={playerAColor}
+                    playerBColor={playerBColor}
+                    playerADisplayName={playerAName}
+                    playerBDisplayName={playerBName}
+                    playerAHansoku={match.players.playerA.hansoku as HansokuLevel}
+                    playerBHansoku={match.players.playerB.hansoku as HansokuLevel}
+                    isCompleted={match.isCompleted}
+                />
+
+                <div className="mt-2 text-center space-y-1">
+                    {winReason && (
+                        <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                            {winReason}
+                        </span>
+                    )}
+                    {winnerText && (
+                        <div className="text-sm font-medium text-gray-800">
+                            {winnerText}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col w-full">
@@ -107,8 +220,7 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
                 <div className="flex-1 overflow-hidden min-h-[400px] flex flex-col">
                     <div className="flex border-b border-gray-200 mb-2">
                         <TabButton value="matches" label="個人戦" count={matches.length} isActive={activeTab === "matches"} onClick={setActiveTab} />
-                        <TabButton value="groups" label="団体戦" count={matchGroups.length} isActive={activeTab === "groups"} onClick={setActiveTab} />
-                        <TabButton value="teamMatches" label="団体試合" count={teamMatches.length} isActive={activeTab === "teamMatches"} onClick={setActiveTab} />
+                        <TabButton value="groups" label="団体戦" count={matchGroups.length + teamMatches.length} isActive={activeTab === "groups"} onClick={setActiveTab} />
                         <TabButton value="teams" label="チーム" count={teams.length} isActive={activeTab === "teams"} onClick={setActiveTab} />
                     </div>
 
@@ -119,76 +231,44 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
                             ) : (
                                 <div className="space-y-2">
                                     {matches.map((m) => (
-                                        <div key={m.matchId} className="bg-white p-3 rounded border text-sm shadow-sm">
-                                            <div className="font-bold mb-1 flex justify-between">
-                                                <span>{getRoundName(m.roundId)} - {getCourtName(m.courtId)}</span>
-                                                {m._deleted && <Badge>削除対象</Badge>}
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4 text-gray-600">
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Player A</span>
-                                                    {getPlayerName(m.players.playerA.teamId, m.players.playerA.playerId)}
-                                                </div>
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Player B</span>
-                                                    {getPlayerName(m.players.playerB.teamId, m.players.playerB.playerId)}
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <MatchItem key={m.matchId} match={m} />
                                     ))}
                                 </div>
                             )
                         )}
 
                         {activeTab === "groups" && (
-                            matchGroups.length === 0 ? (
+                            groupedData.length === 0 ? (
                                 <div className="text-center text-gray-500 py-8">データはありません</div>
                             ) : (
-                                <div className="space-y-2">
-                                    {matchGroups.map((g) => (
-                                        <div key={g.matchGroupId} className="bg-white p-3 rounded border text-sm shadow-sm">
-                                            <div className="font-bold mb-1 flex justify-between">
-                                                <span>{getRoundName(g.roundId)} - {getCourtName(g.courtId)}</span>
-                                                {g._deleted && <Badge>削除対象</Badge>}
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4 text-gray-600">
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Team A</span>
-                                                    {getTeamName(g.teamAId)}
+                                <div className="space-y-4">
+                                    {groupedData.map(({ group, matches, isGroupUnsynced, deleted }) => (
+                                        <div key={group.matchGroupId} className="bg-white rounded border shadow-sm overflow-hidden">
+                                            {/* Group Header */}
+                                            <div className={cn(
+                                                "p-3 border-b flex justify-between items-center",
+                                                isGroupUnsynced ? "bg-blue-50" : "bg-gray-50"
+                                            )}>
+                                                <div className="flex flex-col">
+                                                    <div className="font-bold flex items-center gap-2">
+                                                        <span>{getRoundName(group.roundId)} - {getCourtName(group.courtId)}</span>
+                                                        {isGroupUnsynced && <Badge className="bg-blue-100 text-blue-800">グループ変更あり</Badge>}
+                                                        {deleted && <Badge>削除対象</Badge>}
+                                                    </div>
+                                                    <div className="text-sm text-gray-600 mt-1">
+                                                        {getTeamName(group.teamAId)} vs {getTeamName(group.teamBId)}
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Team B</span>
-                                                    {getTeamName(g.teamBId)}
-                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )
-                        )}
 
-                        {activeTab === "teamMatches" && (
-                            teamMatches.length === 0 ? (
-                                <div className="text-center text-gray-500 py-8">データはありません</div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {teamMatches.map((tm) => (
-                                        <div key={tm.matchId} className="bg-white p-3 rounded border text-sm shadow-sm">
-                                            <div className="font-bold mb-1 flex justify-between">
-                                                <span>{getRoundName(tm.roundId)} (第{tm.sortOrder}試合)</span>
-                                                {tm._deleted && <Badge>削除対象</Badge>}
-                                            </div>
-                                            <div className="text-xs text-gray-400 mb-1">Group ID: {tm.matchGroupId}</div>
-                                            <div className="grid grid-cols-2 gap-4 text-gray-600">
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Player A</span>
-                                                    {getPlayerName(tm.players.playerA.teamId, tm.players.playerA.playerId)}
+                                            {/* Matches List */}
+                                            {matches.length > 0 && (
+                                                <div className="p-2 bg-gray-50 space-y-2">
+                                                    {matches.map((tm) => (
+                                                        <MatchItem key={tm.matchId} match={tm} showRound={false} />
+                                                    ))}
                                                 </div>
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Player B</span>
-                                                    {getPlayerName(tm.players.playerB.teamId, tm.players.playerB.playerId)}
-                                                </div>
-                                            </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
