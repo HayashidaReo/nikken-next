@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import type { MonitorData } from "@/types/monitor.schema";
-import { getTeamMatchRoundLabelById } from "@/lib/constants";
+import { getTeamMatchRoundLabelById, WINNER_TYPES } from "@/lib/constants";
 import { VerticalText } from "@/components/atoms/vertical-text";
 import { WinnerStamp } from "@/components/atoms/winner-stamp";
 import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
@@ -43,9 +43,9 @@ export function MonitorGroupResults({
         >
             {reversedMatches.map((match) => {
                 const isCompleted = match.isCompleted;
-                const isWinnerA = match.winner === "playerA";
-                const isWinnerB = match.winner === "playerB";
-                const isDraw = match.winner === "draw";
+                const isWinnerA = match.winner === WINNER_TYPES.PLAYER_A;
+                const isWinnerB = match.winner === WINNER_TYPES.PLAYER_B;
+                const isDraw = match.winner === WINNER_TYPES.DRAW;
                 const isCurrentMatch = match.matchId === currentMatchId;
 
                 const opacityA = getMonitorPlayerOpacity(isCompleted, isWinnerA, isDraw);

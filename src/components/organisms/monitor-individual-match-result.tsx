@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import { MonitorPlayerResult } from "@/components/molecules/monitor-player-result";
+import { WINNER_TYPES } from "@/lib/constants";
 
 interface MonitorIndividualMatchResultProps {
     playerA: {
@@ -31,9 +32,9 @@ export function MonitorIndividualMatchResult({
 }: MonitorIndividualMatchResultProps) {
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const isWinnerA = winner === "playerA";
-    const isWinnerB = winner === "playerB";
-    const isDraw = winner === "draw";
+    const isWinnerA = winner === WINNER_TYPES.PLAYER_A;
+    const isWinnerB = winner === WINNER_TYPES.PLAYER_B;
+    const isDraw = winner === WINNER_TYPES.DRAW;
 
     return (
         <div

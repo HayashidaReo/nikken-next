@@ -5,6 +5,7 @@ import { useBuzzer } from "@/hooks/useBuzzer";
 import { MonitorGroupResults } from "./monitor-group-results";
 import { MonitorIndividualMatchResult } from "./monitor-individual-match-result";
 import { MonitorScaleLayout } from "@/components/templates/monitor-scale-layout";
+import { MONITOR_VIEW_MODES } from "@/lib/constants";
 
 interface MonitorDisplayContainerProps {
   className?: string;
@@ -27,7 +28,7 @@ export function MonitorDisplayContainer({
     {
       // 団体戦の結果表示
       condition: () =>
-        data.viewMode === "match_result" &&
+        data.viewMode === MONITOR_VIEW_MODES.MATCH_RESULT &&
         !!data.groupMatches &&
         data.groupMatches.length > 0,
       render: () => (
@@ -41,7 +42,7 @@ export function MonitorDisplayContainer({
     {
       // 個人戦の結果表示
       condition: () =>
-        data.viewMode === "match_result" && !!data.matchResult,
+        data.viewMode === MONITOR_VIEW_MODES.MATCH_RESULT && !!data.matchResult,
       render: () => (
         <MonitorIndividualMatchResult
           playerA={data.matchResult!.playerA}

@@ -4,6 +4,7 @@ import SwitchLabel from "@/components/molecules/switch-label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { MonitorPreview } from "@/components/molecules/monitor-preview";
 import type { MonitorControlHeaderProps } from "@/types/monitor.schema";
+import { MONITOR_VIEW_MODES, TOURNAMENT_TYPES } from "@/lib/constants";
 
 /**
  * モニター操作画面のヘッダーコンポーネント
@@ -51,7 +52,7 @@ export function MonitorControlHeader({
 
     const renderActionButton = () => {
         // スコアボード表示中: 試合確定ボタン
-        if (viewMode === "scoreboard") {
+        if (viewMode === MONITOR_VIEW_MODES.SCOREBOARD) {
             return (
                 <Button onClick={onConfirmMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
                     試合確定
@@ -62,9 +63,9 @@ export function MonitorControlHeader({
         }
 
         // 試合結果表示中
-        if (viewMode === "match_result") {
+        if (viewMode === MONITOR_VIEW_MODES.MATCH_RESULT) {
             // 団体戦かつ未完了: 次の試合へ
-            if (activeTournamentType === "team" && !isAllFinished) {
+            if (activeTournamentType === TOURNAMENT_TYPES.TEAM && !isAllFinished) {
                 return (
                     <Button onClick={onNextMatch} variant="default" className="bg-green-600 hover:bg-green-700 gap-2">
                         次の試合へ

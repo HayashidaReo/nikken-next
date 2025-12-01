@@ -252,3 +252,29 @@ export const APP_INFO = {
   /** アプリケーションバージョン */
   VERSION: process.env.NEXT_PUBLIC_APP_VERSION || "0.0.0",
 } as const;
+
+// 🖥️ モニター表示モード定数
+export const MONITOR_VIEW_MODES = {
+  SCOREBOARD: "scoreboard",
+  MATCH_RESULT: "match_result",
+} as const;
+
+// 🏆 大会種別定数
+export const TOURNAMENT_TYPES = {
+  INDIVIDUAL: "individual",
+  TEAM: "team",
+} as const;
+
+// 👤 プレイヤーキー定数
+export const PLAYER_KEYS = {
+  PLAYER_A: "playerA",
+  PLAYER_B: "playerB",
+} as const;
+
+// 🏅 勝者タイプ定数
+export const WINNER_TYPES = {
+  PLAYER_A: "playerA",
+  PLAYER_B: "playerB",
+  DRAW: "draw",
+  NONE: "none",
+} as const;
