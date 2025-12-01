@@ -78,6 +78,7 @@ describe("useDashboard", () => {
         (useActiveTournament as unknown as jest.Mock).mockReturnValue({
             activeTournamentId: "test-tournament-id",
             activeTournamentType: "individual",
+            setActiveTournament: jest.fn(),
         });
         (useMatches as jest.Mock).mockReturnValue({
             data: [],
@@ -109,6 +110,7 @@ describe("useDashboard", () => {
         (useActiveTournament as unknown as jest.Mock).mockReturnValue({
             activeTournamentId: null,
             activeTournamentType: null,
+            setActiveTournament: jest.fn(),
         });
 
         const { result } = renderHook(() => useDashboard());
