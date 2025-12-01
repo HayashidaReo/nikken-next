@@ -38,7 +38,7 @@ export function useMatchGroupPersistence() {
                 await localMatchGroupRepository.hardDelete(matchGroupId);
             } else {
                 await firestoreGroupRepository.update(orgId, activeTournamentId, matchGroupId, localGroup);
-                await localMatchGroupRepository.update(matchGroupId, { isSynced: true });
+                await localMatchGroupRepository.markAsSynced(matchGroupId);
             }
         };
 
@@ -86,7 +86,7 @@ export function useMatchGroupPersistence() {
                         await localMatchGroupRepository.hardDelete(groupId);
                     } else {
                         await firestoreGroupRepository.update(orgId, activeTournamentId, groupId, localGroup);
-                        await localMatchGroupRepository.update(groupId, { isSynced: true });
+                        await localMatchGroupRepository.markAsSynced(groupId);
                     }
                     successCount++;
                 } catch (e) {
@@ -138,7 +138,7 @@ export function useMatchGroupPersistence() {
                 await localTeamMatchRepository.hardDeleteByMatchId(matchId);
             } else {
                 await firestoreTeamMatchRepository.update(orgId, activeTournamentId, matchGroupId, matchId, localMatch);
-                await localTeamMatchRepository.updateByMatchId(matchId, { isSynced: true });
+                await localTeamMatchRepository.markAsSynced(matchId);
             }
         };
 
@@ -182,7 +182,7 @@ export function useMatchGroupPersistence() {
                         await localTeamMatchRepository.hardDeleteByMatchId(matchId);
                     } else {
                         await firestoreTeamMatchRepository.update(orgId, activeTournamentId, matchGroupId, matchId, localMatch);
-                        await localTeamMatchRepository.updateByMatchId(matchId, { isSynced: true });
+                        await localTeamMatchRepository.markAsSynced(matchId);
                     }
                     successCount++;
                 } catch (e) {
