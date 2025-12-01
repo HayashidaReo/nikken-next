@@ -60,6 +60,7 @@ export function useSaveIndividualMatchResult() {
             await localMatchRepository.put(updatedMatch);
             return updatedMatch;
         },
+        networkMode: "always",
     });
 }
 
@@ -101,6 +102,7 @@ export function useSaveTeamMatchResult() {
             await localTeamMatchRepository.put(updatedMatch);
             return updatedMatch;
         },
+        networkMode: "always",
     });
 }
 
