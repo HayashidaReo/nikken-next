@@ -151,54 +151,43 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
         const playerBColor = getPlayerTextColor(match.players.playerB.score, match.players.playerA.score, match.isCompleted, match.winner, false);
         const winReason = match.winReason && match.winReason !== "none" ? WIN_REASON_LABELS[match.winReason] : "";
 
-        let winnerText = "";
-        if (match.winner === "playerA") winnerText = `${playerAName} の勝ち`;
-        else if (match.winner === "playerB") winnerText = `${playerBName} の勝ち`;
-        else if (match.winner === "draw") winnerText = "引き分け";
 
         return (
-            <div className="bg-white p-4 rounded border shadow-sm">
-                <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-gray-700">
+            <div className="bg-white p-2 rounded border shadow-sm">
+                {/* Header: Round | Result | Status */}
+                <div className="flex justify-between items-center mb-1 text-xs">
+                    <span className="font-bold text-gray-700">
                         {showRound ? `${getRoundName(match.roundId)} - ` : ""}
                         {'courtId' in match ? getCourtName(match.courtId) : (getTeamMatchRoundLabelById(match.roundId) || `第${match.sortOrder}試合`)}
                     </span>
-                    {match._deleted && <Badge>削除対象</Badge>}
+                    <div className="flex items-center gap-2">
+                        {winReason && <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{winReason}</span>}
+                        {match._deleted && <Badge>削除対象</Badge>}
+                    </div>
                 </div>
 
-                <div className="flex justify-between items-center mb-2 px-4">
-                    <div className={cn("text-lg font-bold w-1/3 text-right truncate", playerAColor)}>
+                {/* Body: Player A [Score] Player B */}
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
+                    <div className={cn("text-base font-bold text-right truncate leading-tight", playerAColor)}>
                         {playerAName}
                     </div>
-                    <div className="text-sm text-gray-400 px-2">vs</div>
-                    <div className={cn("text-lg font-bold w-1/3 text-left truncate", playerBColor)}>
+
+                    <MatchScoreDisplay
+                        playerAScore={match.players.playerA.score}
+                        playerBScore={match.players.playerB.score}
+                        playerAColor={playerAColor}
+                        playerBColor={playerBColor}
+                        playerADisplayName={playerAName}
+                        playerBDisplayName={playerBName}
+                        playerAHansoku={match.players.playerA.hansoku as HansokuLevel}
+                        playerBHansoku={match.players.playerB.hansoku as HansokuLevel}
+                        isCompleted={match.isCompleted}
+                        className="scale-90" // Slightly compact the score component
+                    />
+
+                    <div className={cn("text-base font-bold text-left truncate leading-tight", playerBColor)}>
                         {playerBName}
                     </div>
-                </div>
-
-                <MatchScoreDisplay
-                    playerAScore={match.players.playerA.score}
-                    playerBScore={match.players.playerB.score}
-                    playerAColor={playerAColor}
-                    playerBColor={playerBColor}
-                    playerADisplayName={playerAName}
-                    playerBDisplayName={playerBName}
-                    playerAHansoku={match.players.playerA.hansoku as HansokuLevel}
-                    playerBHansoku={match.players.playerB.hansoku as HansokuLevel}
-                    isCompleted={match.isCompleted}
-                />
-
-                <div className="mt-2 text-center space-y-1">
-                    {winReason && (
-                        <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
-                            {winReason}
-                        </span>
-                    )}
-                    {winnerText && (
-                        <div className="text-sm font-medium text-gray-800">
-                            {winnerText}
-                        </div>
-                    )}
                 </div>
             </div>
         );
@@ -246,18 +235,22 @@ export function UnsyncedDataDialog({ isOpen, onClose, onConfirm, data }: Unsynce
                                         <div key={group.matchGroupId} className="bg-white rounded border shadow-sm overflow-hidden">
                                             {/* Group Header */}
                                             <div className={cn(
-                                                "p-3 border-b flex justify-between items-center",
+                                                "p-2 border-b flex justify-between items-center text-sm",
                                                 isGroupUnsynced ? "bg-blue-50" : "bg-gray-50"
                                             )}>
-                                                <div className="flex flex-col">
-                                                    <div className="font-bold flex items-center gap-2">
-                                                        <span>{getRoundName(group.roundId)} - {getCourtName(group.courtId)}</span>
-                                                        {isGroupUnsynced && <Badge className="bg-blue-100 text-blue-800">グループ変更あり</Badge>}
-                                                        {deleted && <Badge>削除対象</Badge>}
+                                                <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                                                    <span className="font-bold truncate">
+                                                        {getTeamName(group.teamAId)} <span className="text-gray-400 font-normal mx-1">vs</span> {getTeamName(group.teamBId)}
+                                                    </span>
+                                                    <div className="flex items-center gap-2 text-gray-600 text-xs whitespace-nowrap">
+                                                        <span className="bg-white px-1.5 py-0.5 rounded border">{getRoundName(group.roundId)}</span>
+                                                        <span className="bg-white px-1.5 py-0.5 rounded border">{getCourtName(group.courtId)}</span>
                                                     </div>
-                                                    <div className="text-sm text-gray-600 mt-1">
-                                                        {getTeamName(group.teamAId)} vs {getTeamName(group.teamBId)}
-                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 ml-2 shrink-0">
+                                                    {isGroupUnsynced && <Badge className="bg-blue-100 text-blue-800">変更あり</Badge>}
+                                                    {deleted && <Badge>削除</Badge>}
                                                 </div>
                                             </div>
 
