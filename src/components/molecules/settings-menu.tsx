@@ -13,6 +13,7 @@ import { UnsyncedDataDialog } from "@/components/organisms/unsynced-data-dialog"
 import { useRouter } from "next/navigation";
 import { ROUTES, AUTH_CONSTANTS } from "@/lib/constants";
 import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam } from "@/lib/db";
+import { useLiveQuery } from "dexie-react-hooks";
 
 interface SettingsMenuProps {
     className?: string;
@@ -25,6 +26,11 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
     const { activeTournamentId } = useActiveTournament();
     const { showSuccess, showError, showInfo } = useToast();
     const router = useRouter();
+
+    const unsyncedCount = useLiveQuery(async () => {
+        if (!user?.uid || !activeTournamentId) return 0;
+        return await syncService.getUnsyncedCount(user.uid, activeTournamentId);
+    }, [user?.uid, activeTournamentId]);
 
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
@@ -171,15 +177,22 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
     return (
         <>
             <div className={cn("relative", className)} ref={menuRef}>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsOpen(!isOpen)}
-                    aria-label="設定メニュー"
-                    disabled={isLoading}
-                >
-                    <Settings className={cn("h-5 w-5", isLoading && "animate-spin")} />
-                </Button>
+                <div className="relative inline-block">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsOpen(!isOpen)}
+                        aria-label="設定メニュー"
+                        disabled={isLoading}
+                    >
+                        <Settings className="h-5 w-5" />
+                    </Button>
+                    {unsyncedCount !== undefined && unsyncedCount > 0 && (
+                        <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                            {unsyncedCount > 99 ? "99+" : unsyncedCount}
+                        </span>
+                    )}
+                </div>
 
                 {isOpen && (
                     <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
@@ -197,7 +210,10 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                             disabled={!activeTournamentId}
                         >
                             <CloudUpload className="w-4 h-4 text-gray-600" />
-                            <span>クラウドにデータ送信</span>
+                            <span>
+                                クラウドにデータ送信
+                                {unsyncedCount !== undefined && unsyncedCount > 0 && ` (${unsyncedCount}件)`}
+                            </span>
                         </button>
                         <div className="border-t border-gray-100 my-1" />
                         <button
