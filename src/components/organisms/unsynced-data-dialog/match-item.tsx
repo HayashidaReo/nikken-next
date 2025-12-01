@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils/utils";
 import { MatchScoreDisplay } from "@/components/molecules/match-score-display";
 import { WIN_REASON_LABELS, getTeamMatchRoundLabelById } from "@/lib/constants";
 import { Badge } from "./badge";
-import { getPlayerTextColor } from "./utils";
+import { getPlayerTextColor } from "@/lib/utils/match-utils";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
 
 interface MatchItemProps {

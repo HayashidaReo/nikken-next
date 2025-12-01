@@ -9,7 +9,7 @@ export const getPlayerTextColor = (
 ) => {
     if (!isCompleted) return SCORE_COLORS.unplayed;
 
-    if (winner) {
+    if (winner && winner !== "none") {
         if (winner === "draw") return SCORE_COLORS.draw;
         if (isPlayerA && winner === "playerA") return SCORE_COLORS.win;
         if (!isPlayerA && winner === "playerB") return SCORE_COLORS.win;
