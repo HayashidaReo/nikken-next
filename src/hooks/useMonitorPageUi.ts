@@ -38,17 +38,6 @@ export function useMonitorPageUi({
         handleMonitorAction();
     }, [handleMonitorAction]);
 
-    // 画面遷移時の初期表示モード適用
-    const nextViewMode = useMonitorStore((s) => s.nextViewMode);
-    const setNextViewMode = useMonitorStore((s) => s.setNextViewMode);
-    const setViewMode = useMonitorStore((s) => s.setViewMode);
-
-    useEffect(() => {
-        if (nextViewMode) {
-            setViewMode(nextViewMode);
-            setNextViewMode(null);
-        }
-    }, [nextViewMode, setViewMode, setNextViewMode]);
 
     // 団体戦の場合、グループ試合データをストアに設定
     useEffect(() => {

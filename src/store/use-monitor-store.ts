@@ -68,6 +68,7 @@ export interface MonitorState {
       roundName?: string;
       defaultMatchTime?: number;
       groupMatches?: MonitorData["groupMatches"];
+      initialViewMode?: ViewMode;
     }
   ) => void;
   setPlayerScore: (player: "A" | "B", score: number) => void;
@@ -145,9 +146,10 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       roundName?: string;
       defaultMatchTime?: number;
       groupMatches?: MonitorData["groupMatches"];
+      initialViewMode?: ViewMode;
     }
   ) => {
-    const { resolvedPlayers, roundName, defaultMatchTime = 180, groupMatches } = options || {};
+    const { resolvedPlayers, roundName, defaultMatchTime = 180, groupMatches, initialViewMode } = options || {};
     const fallbackPlayer = (
       player: Match["players"]["playerA"] | TeamMatch["players"]["playerA"]
     ): ResolvedMatchPlayer => ({
@@ -184,8 +186,8 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
         score: playerBData.score,
         hansoku: playerBData.hansoku,
       },
-      // 試合切り替え時にモードをリセット（nextViewModeがあればそれを使用）
-      viewMode: get().nextViewMode || "scoreboard",
+      // 試合切り替え時にモードをリセット（initialViewModeがあればそれを使用、なければnextViewMode、それもなければscoreboard）
+      viewMode: initialViewMode || get().nextViewMode || "scoreboard",
       matchResult: undefined,
       // タイマーをリセット（大会設定値を使用）
       timeRemaining: defaultMatchTime,
