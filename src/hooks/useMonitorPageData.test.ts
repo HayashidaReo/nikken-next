@@ -167,7 +167,7 @@ describe("useMonitorPageData", () => {
             })
         );
 
-        expect(useMatchDataWithPriority).toHaveBeenCalledWith("match-456");
+        expect(useMatchDataWithPriority).toHaveBeenCalledWith("match-456", undefined);
     });
 
     it("should call useTournament with correct orgId and tournamentId", () => {
