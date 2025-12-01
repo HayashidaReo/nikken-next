@@ -1,10 +1,10 @@
 import React from "react";
 import { render, fireEvent, cleanup } from "@testing-library/react";
-import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
+import { useMonitorKeyboardShortcuts } from "./useMonitorKeyboardShortcuts";
 import { useMonitorStore } from "@/store/use-monitor-store";
 
 function TestHarness() {
-  useKeyboardShortcuts();
+  useMonitorKeyboardShortcuts();
   return null;
 }
 
