@@ -14,6 +14,13 @@ import { useRouter } from "next/navigation";
 import { ROUTES, AUTH_CONSTANTS } from "@/lib/constants";
 import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/atoms/tooltip";
 
 interface SettingsMenuProps {
     className?: string;
@@ -26,6 +33,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
     const { activeTournamentId } = useActiveTournament();
     const { showSuccess, showError, showInfo } = useToast();
     const router = useRouter();
+    const isOnline = useOnlineStatus();
 
     const unsyncedCount = useLiveQuery(async () => {
         if (!user?.uid || !activeTournamentId) return 0;
@@ -174,6 +182,54 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
         }
     };
 
+    const renderMenuButton = (
+        onClick: () => void,
+        icon: React.ElementType,
+        label: React.ReactNode,
+        options: {
+            disabled?: boolean;
+            isDestructive?: boolean;
+            requiresOnline?: boolean;
+        } = {}
+    ) => {
+        const { disabled = false, isDestructive = false, requiresOnline = false } = options;
+        const isOfflineBlocked = requiresOnline && !isOnline;
+        const isDisabled = disabled || isOfflineBlocked;
+
+        const buttonContent = (
+            <button
+                onClick={onClick}
+                className={cn(
+                    "w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors",
+                    isDestructive ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-gray-50",
+                    isDisabled && "opacity-50 cursor-not-allowed hover:bg-transparent"
+                )}
+                disabled={isDisabled}
+            >
+                {/* @ts-expect-error: Lucide icon component type compatibility */}
+                {icon && <icon className={cn("w-4 h-4", isDestructive ? "text-red-600" : "text-gray-600")} />}
+                <span>{label}</span>
+            </button>
+        );
+
+        if (isOfflineBlocked) {
+            return (
+                <TooltipProvider>
+                    <Tooltip delayDuration={0}>
+                        <TooltipTrigger asChild>
+                            <div className="w-full">{buttonContent}</div>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                            <p>オンライン時のみ使用できます</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            );
+        }
+
+        return buttonContent;
+    };
+
     return (
         <>
             <div className={cn("relative", className)} ref={menuRef}>
@@ -196,41 +252,40 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
 
                 {isOpen && (
                     <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
-                        <button
-                            onClick={handleFetchFromCloud}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                            disabled={!activeTournamentId}
-                        >
-                            <CloudDownload className="w-4 h-4 text-gray-600" />
-                            <span>クラウドからデータ取得</span>
-                        </button>
-                        <button
-                            onClick={handleSendToCloud}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                            disabled={!activeTournamentId}
-                        >
-                            <CloudUpload className="w-4 h-4 text-gray-600" />
-                            <span>
+                        {renderMenuButton(
+                            handleFetchFromCloud,
+                            CloudDownload,
+                            "クラウド同期",
+                            { disabled: !activeTournamentId, requiresOnline: true }
+                        )}
+
+                        {renderMenuButton(
+                            handleSendToCloud,
+                            CloudUpload,
+                            <>
                                 クラウドにデータ送信
                                 {unsyncedCount !== undefined && unsyncedCount > 0 && ` (${unsyncedCount}件)`}
-                            </span>
-                        </button>
+                            </>,
+                            { disabled: !activeTournamentId, requiresOnline: true }
+                        )}
+
                         <div className="border-t border-gray-100 my-1" />
-                        <button
-                            onClick={handleInitialize}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors text-red-600"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            <span>端末のデータ初期化</span>
-                        </button>
+
+                        {renderMenuButton(
+                            handleInitialize,
+                            Trash2,
+                            "端末のデータ初期化",
+                            { isDestructive: true }
+                        )}
+
                         <div className="border-t border-gray-100 my-1" />
-                        <button
-                            onClick={handleLogout}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors text-red-600"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            <span>ログアウト</span>
-                        </button>
+
+                        {renderMenuButton(
+                            handleLogout,
+                            LogOut,
+                            "ログアウト",
+                            { isDestructive: true, requiresOnline: true }
+                        )}
                     </div>
                 )}
             </div>
