@@ -5,6 +5,9 @@ import { useToast } from "@/components/providers/notification-provider";
 import { syncService } from "@/services/sync-service";
 import { useLiveQuery } from "dexie-react-hooks";
 import { LocalMatch, LocalMatchGroup, LocalTeamMatch, LocalTeam, LocalTournament } from "@/lib/db";
+import { useQueryClient } from "@tanstack/react-query";
+import { tournamentKeys } from "@/queries/use-tournaments";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 export interface UnsyncedData {
     matches: LocalMatch[];
@@ -19,6 +22,7 @@ export function useSyncActions() {
     const { activeTournamentId } = useActiveTournament();
     const { showSuccess, showError, showInfo } = useToast();
     const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
 
     const unsyncedCount = useLiveQuery(async () => {
         if (!user?.uid || !activeTournamentId) return 0;
@@ -87,10 +91,16 @@ export function useSyncActions() {
         }
     }, [user?.uid, activeTournamentId, showError, showSuccess]);
 
+    const isOnline = useOnlineStatus();
+
     const handleClearLocalData = useCallback(async () => {
         try {
             setIsLoading(true);
             await syncService.clearLocalData();
+            // 大会一覧を再取得して、大会選択ができる状態に戻す（オンライン時のみ）
+            if (isOnline) {
+                await queryClient.invalidateQueries({ queryKey: tournamentKeys.lists() });
+            }
             showSuccess("端末内のデータを初期化しました");
         } catch (error) {
             console.error(error);
@@ -99,7 +109,7 @@ export function useSyncActions() {
         } finally {
             setIsLoading(false);
         }
-    }, [showError, showSuccess]);
+    }, [showError, showSuccess, queryClient, isOnline]);
 
     return {
         unsyncedCount,
