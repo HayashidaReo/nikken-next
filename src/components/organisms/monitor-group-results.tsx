@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { cn } from "@/lib/utils/utils";
 import type { MonitorData } from "@/types/monitor.schema";
 import { getTeamMatchRoundLabelById, WINNER_TYPES } from "@/lib/constants";
-import { VerticalText } from "@/components/atoms/vertical-text";
+import { AdjustVerticalText } from "@/components/atoms/adjust-vertical-text";
 import { WinnerStamp } from "@/components/atoms/winner-stamp";
 import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
 
@@ -84,11 +84,12 @@ export function MonitorGroupResults({
                                         <WinnerStamp size={100} />
                                     </div>
                                 )}
-                                <VerticalText
-                                    text={match.playerA.displayName}
-                                    variant="player"
+                                <AdjustVerticalText
+                                    textContent={match.playerA.displayName}
                                     baseFontSize={10}
+                                    minFontSize={2.5}
                                     maxHeight={400}
+                                    className="font-bold text-white tracking-widest"
                                 />
                             </div>
 
@@ -99,11 +100,12 @@ export function MonitorGroupResults({
                                 </div>
 
                                 <div className="bg-background/80 px-4 py-4 rounded-sm border border-border/40 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
-                                    <VerticalText
-                                        text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
-                                        variant="round"
-                                        baseFontSize={3}
+                                    <AdjustVerticalText
+                                        textContent={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
+                                        baseFontSize={2.5}
+                                        minFontSize={1}
                                         maxHeight={120}
+                                        className="font-medium text-gray-300 tracking-widest"
                                     />
                                 </div>
                             </div>
@@ -115,11 +117,12 @@ export function MonitorGroupResults({
                                         <WinnerStamp size={100} />
                                     </div>
                                 )}
-                                <VerticalText
-                                    text={match.playerB.displayName}
-                                    variant="player"
+                                <AdjustVerticalText
+                                    textContent={match.playerB.displayName}
                                     baseFontSize={10}
+                                    minFontSize={2.5}
                                     maxHeight={350}
+                                    className="font-bold text-white tracking-widest"
                                 />
                             </div>
                         </div>
@@ -131,12 +134,12 @@ export function MonitorGroupResults({
             <div className={cn(gridLayoutClass, "w-full")}>
                 {/* 4/10: チームA */}
                 <div className="flex items-center justify-center h-full border-l-4 border-primary/20">
-                    <VerticalText
-                        text={teamAName}
-                        variant="team"
-                        baseFontSize={12}
-                        maxHeight={380}
-                        className="font-bold tracking-widest"
+                    <AdjustVerticalText
+                        textContent={teamAName}
+                        baseFontSize={8}
+                        minFontSize={3}
+                        maxHeight={400}
+                        className="font-bold text-white tracking-widest"
                     />
                 </div>
 
@@ -147,12 +150,12 @@ export function MonitorGroupResults({
 
                 {/* 4/10: チームB */}
                 <div className="flex items-center justify-center h-full border-l-4 border-primary/20">
-                    <VerticalText
-                        text={teamBName}
-                        variant="team"
-                        baseFontSize={12}
-                        maxHeight={380}
-                        className="font-bold tracking-widest"
+                    <AdjustVerticalText
+                        textContent={teamBName}
+                        baseFontSize={8}
+                        minFontSize={3}
+                        maxHeight={400}
+                        className="font-bold text-white tracking-widest"
                     />
                 </div>
             </div>
