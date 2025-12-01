@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils/utils";
 import type { MonitorData } from "@/types/monitor.schema";
 import { getTeamMatchRoundLabelById } from "@/lib/constants";
 import { VerticalText } from "@/components/atoms/vertical-text";
+import { WinnerStamp } from "@/components/atoms/winner-stamp";
+import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
 
 interface MonitorGroupResultsProps {
     groupMatches: NonNullable<MonitorData["groupMatches"]>;
@@ -46,15 +48,8 @@ export function MonitorGroupResults({
                 const isDraw = match.winner === "draw";
                 const isCurrentMatch = match.matchId === currentMatchId;
 
-                const getOpacity = (isWinner: boolean) => {
-                    if (!isCompleted) return "opacity-40 grayscale";
-                    if (isDraw) return "opacity-50 scale-95";
-                    if (isWinner) return "opacity-100 font-bold";
-                    return "opacity-50 scale-95";
-                };
-
-                const opacityA = getOpacity(isWinnerA);
-                const opacityB = getOpacity(isWinnerB);
+                const opacityA = getMonitorPlayerOpacity(isCompleted, isWinnerA, isDraw);
+                const opacityB = getMonitorPlayerOpacity(isCompleted, isWinnerB, isDraw);
 
                 return (
                     <div
@@ -80,7 +75,7 @@ export function MonitorGroupResults({
                             <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA)}>
                                 {isWinnerA && (
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <WinnerStamp />
+                                        <WinnerStamp size={100} />
                                     </div>
                                 )}
                                 <VerticalText
@@ -111,7 +106,7 @@ export function MonitorGroupResults({
                             <div className={cn("flex flex-col items-center justify-start pt-4 w-full h-full relative", opacityB)}>
                                 {isWinnerB && (
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <WinnerStamp />
+                                        <WinnerStamp size={100} />
                                     </div>
                                 )}
                                 <VerticalText
@@ -156,13 +151,5 @@ export function MonitorGroupResults({
                 </div>
             </div>
         </div>
-    );
-}
-
-function WinnerStamp() {
-    return (
-        <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-80">
-            <circle cx="50" cy="50" r="40" stroke="#DC2626" strokeWidth="6" />
-        </svg>
     );
 }
