@@ -67,7 +67,7 @@ export function MonitorControlHeader({
             // 初期表示の場合は常に得点板へボタンを表示
             if (viewMode === MONITOR_VIEW_MODES.INITIAL && actions.onStartMatch) {
                 return (
-                    <Button onClick={actions.onStartMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
+                    <Button onClick={actions.onStartMatch} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
                         得点板へ
                         <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
                         <ChevronRight className="w-4 h-4" />
@@ -80,7 +80,7 @@ export function MonitorControlHeader({
                 // 現在の試合が未完了の場合: 得点板へボタン
                 if (matchState.isCurrentMatchCompleted === false && actions.onStartMatch) {
                     return (
-                        <Button onClick={actions.onStartMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
+                        <Button onClick={actions.onStartMatch} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
                             得点板へ
                             <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
                             <ChevronRight className="w-4 h-4" />
