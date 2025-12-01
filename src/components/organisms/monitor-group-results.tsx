@@ -93,7 +93,7 @@ export function MonitorGroupResults({
                                     <div className="w-px h-full bg-border/30" />
                                 </div>
 
-                                <div className="bg-background/80 px-3 py-4 rounded-sm border border-border/40 shadow-sm backdrop-blur-sm">
+                                <div className="bg-background/80 px-4 py-4 rounded-sm border border-border/40 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
                                     <VerticalText
                                         text={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
                                         variant="round"

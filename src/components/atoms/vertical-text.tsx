@@ -67,7 +67,7 @@ export function VerticalText({
                 writingMode: "vertical-rl",
                 textOrientation: "upright",
                 whiteSpace: "nowrap",
-                overflow: "hidden",
+                lineHeight: "1.2", // フォントサイズに対して適切な行間を確保
                 ...(maxHeight && {
                     fontSize: `${fontSizeRem}rem`,
                     maxHeight: `${maxHeight}px`,
