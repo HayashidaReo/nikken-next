@@ -158,6 +158,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                 return;
             }
 
+            setIsLoading(false);
             setUnsyncedData(data);
         } catch (error) {
             console.error(error);
