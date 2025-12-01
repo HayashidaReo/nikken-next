@@ -250,6 +250,7 @@ export const syncService = {
                     sortOrder: group.sortOrder,
                     teamAId: group.teamAId,
                     teamBId: group.teamBId,
+                    isCompleted: group.isCompleted,
                 });
             },
             async (_, id) => {
@@ -277,6 +278,8 @@ export const syncService = {
                     players: teamMatch.players,
                     sortOrder: teamMatch.sortOrder,
                     isCompleted: teamMatch.isCompleted,
+                    winner: teamMatch.winner,
+                    winReason: teamMatch.winReason,
                 });
             },
             async (teamMatch, id) => {
