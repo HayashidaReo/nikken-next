@@ -91,8 +91,6 @@ export interface MonitorState {
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => void;
   incrementScoreForSelectedPlayer: () => void;
   incrementFoulForSelectedPlayer: () => void;
-  incrementScoreForSelectedPlayer: () => void;
-  incrementFoulForSelectedPlayer: () => void;
   getMonitorSnapshot: () => MonitorData;
   handleTick: () => void;
 
@@ -127,7 +125,6 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   isPublic: false,
   viewMode: "scoreboard",
   presentationConnected: false,
-  fallbackOpen: false,
   fallbackOpen: false,
   selectedPlayer: null,
   nextViewMode: null,
@@ -193,7 +190,6 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       // タイマーをリセット（大会設定値を使用）
       timeRemaining: defaultMatchTime,
       isTimerRunning: false,
-      timerMode: "countdown", // カウントダウンモードに戻す
       timerMode: "countdown", // カウントダウンモードに戻す
       groupMatches,
       nextViewMode: null, // 初期化後にリセット
