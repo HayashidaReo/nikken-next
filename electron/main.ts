@@ -28,12 +28,20 @@ function setupAutoUpdater() {
 
     autoUpdater.checkForUpdatesAndNotify();
 
-    autoUpdater.on("update-available", () => {
-        console.log("Update available");
+    autoUpdater.on("checking-for-update", () => {
+        log.info("Checking for updates...");
     });
 
-    autoUpdater.on("update-downloaded", () => {
-        console.log("Update downloaded");
+    autoUpdater.on("update-available", (info) => {
+        log.info("Update available:", info);
+    });
+
+    autoUpdater.on("update-not-available", (info) => {
+        log.info("Update not available:", info);
+    });
+
+    autoUpdater.on("update-downloaded", (info) => {
+        log.info("Update downloaded:", info);
         dialog.showMessageBox({
             type: "info",
             title: "アップデートあり",
@@ -47,7 +55,7 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on("error", (err) => {
-        console.error("Auto-updater error:", err);
+        log.error("Auto-updater error:", err);
     });
 }
 

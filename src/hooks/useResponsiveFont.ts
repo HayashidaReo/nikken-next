@@ -5,25 +5,28 @@ import { useEffect, useRef, useState } from "react";
 interface UseResponsiveFontOptions {
     baseFontSize: number; // rem単位
     minFontSize?: number; // rem単位
-    maxWidth?: number; // px単位
+    maxSize?: number; // px単位 (width or height)
     textContent?: string | null; // 監視対象のテキスト内容
+    direction?: "horizontal" | "vertical"; // 方向
 }
 
 /**
- * テキストが指定された最大横幅を超えないように、
+ * テキストが指定された最大サイズを超えないように、
  * フォントサイズを自動調整するカスタムフック
  *
  * @param options.baseFontSize - ベースのフォントサイズ（rem）
  * @param options.minFontSize - 最小フォントサイズ（rem、デフォルト: baseFontSize * 0.6）
- * @param options.maxWidth - テキストの最大横幅（px）
+ * @param options.maxSize - テキストの最大サイズ（px）。横書きならwidth、縦書きならheight
  * @param options.textContent - テキスト内容（変更検知用）
+ * @param options.direction - 方向（"horizontal" | "vertical"）。デフォルトは "horizontal"
  * @returns fontSizeRem - 計算されたフォントサイズ（rem）
  */
 export function useResponsiveFont({
     baseFontSize,
     minFontSize,
-    maxWidth = 100,
+    maxSize = 100,
     textContent,
+    direction = "horizontal",
 }: UseResponsiveFontOptions) {
     const elementRef = useRef<HTMLDivElement>(null);
     const [fontSizeRem, setFontSizeRem] = useState(baseFontSize);
@@ -70,28 +73,26 @@ export function useResponsiveFont({
             // 1. 一旦DOMのスタイルを直接ベースサイズに変更して計測
             el.style.fontSize = `${baseFontSize}rem`;
 
-            const scrollWidth = el.scrollWidth;
+            const currentSize = direction === "horizontal" ? el.scrollWidth : el.scrollHeight;
             let newFontSize = baseFontSize;
 
-            if (scrollWidth > maxWidth) {
+            if (currentSize > maxSize) {
                 // テキストがはみ出している場合、フォントサイズを縮小
-                const scaleFactor = maxWidth / scrollWidth;
+                const scaleFactor = maxSize / currentSize;
                 newFontSize = Math.max(minSize, baseFontSize * scaleFactor);
             }
 
-            // 2. 計算結果をStateに反映（これにより次回のレンダリングでstyle propが更新される）
+            // 2. 計算結果をStateに反映
             if (Math.abs(newFontSize - currentFontRef.current) > 0.01) {
                 currentFontRef.current = newFontSize;
                 setFontSizeRem(newFontSize);
             }
 
-            // 3. 念のため、DOMスタイルも計算結果に合わせておく（State反映までのちらつき防止）
-            // ただし、State更新が走るとReactがstyle属性を上書きするので、整合性は保たれる
+            // 3. 念のため、DOMスタイルも計算結果に合わせておく
             el.style.fontSize = `${newFontSize}rem`;
         };
 
         // テキスト変更直後と、少し遅延させたタイミングの両方で実行
-        // （フォント読み込みやレイアウト確定のタイミングズレを考慮）
         adjustFontSize();
 
         const timeoutId = setTimeout(adjustFontSize, 50);
@@ -99,7 +100,7 @@ export function useResponsiveFont({
         return () => {
             clearTimeout(timeoutId);
         };
-    }, [baseFontSize, minFontSize, maxWidth, textContent]);
+    }, [baseFontSize, minFontSize, maxSize, textContent, direction]);
 
     return { fontSizeRem, elementRef };
 }

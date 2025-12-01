@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
 import { useMonitorData } from "@/hooks/use-monitor-data";
 import { MonitorLayout } from "@/components/templates/monitor-layout";
 import { StandbyScreen } from "@/components/templates/standby-screen";
-import { MONITOR_CONSTANTS } from "@/lib/constants";
 import { useBuzzer } from "@/hooks/useBuzzer";
 import { MonitorGroupResults } from "./monitor-group-results";
+import { MonitorIndividualMatchResult } from "./monitor-individual-match-result";
+import { MonitorScaleLayout } from "@/components/templates/monitor-scale-layout";
+import { MONITOR_VIEW_MODES } from "@/lib/constants";
 
 interface MonitorDisplayContainerProps {
   className?: string;
@@ -14,95 +15,71 @@ export function MonitorDisplayContainer({
   className = "",
 }: MonitorDisplayContainerProps) {
   const { data } = useMonitorData();
-  const [scale, setScale] = useState(1);
 
   // タイマーが0になったらブザーを鳴らす（カウントダウンモードのみ）
   useBuzzer(data.timeRemaining, data.timerMode);
 
-  useEffect(() => {
-    const handleResize = () => {
-      const BASE_WIDTH = MONITOR_CONSTANTS.BASE_WIDTH;
-      const BASE_HEIGHT = MONITOR_CONSTANTS.BASE_HEIGHT;
+  const renderers = [
+    {
+      // 非公開時の表示
+      condition: () => !data.isPublic,
+      render: () => <StandbyScreen />,
+    },
+    {
+      // 団体戦の初期表示（強調なし）
+      condition: () =>
+        data.viewMode === MONITOR_VIEW_MODES.INITIAL &&
+        !!data.groupMatches &&
+        data.groupMatches.length > 0,
+      render: () => (
+        <MonitorGroupResults
+          groupMatches={data.groupMatches!}
+          currentMatchId={null}
+          className="w-full h-full"
+        />
+      ),
+    },
+    {
+      // 団体戦の結果表示
+      condition: () =>
+        data.viewMode === MONITOR_VIEW_MODES.MATCH_RESULT &&
+        !!data.groupMatches &&
+        data.groupMatches.length > 0,
+      render: () => (
+        <MonitorGroupResults
+          groupMatches={data.groupMatches!}
+          currentMatchId={data.matchId}
+          className="w-full h-full"
+        />
+      ),
+    },
+    {
+      // 個人戦の結果表示
+      condition: () =>
+        data.viewMode === MONITOR_VIEW_MODES.MATCH_RESULT && !!data.matchResult,
+      render: () => (
+        <MonitorIndividualMatchResult
+          playerA={data.matchResult!.playerA}
+          playerB={data.matchResult!.playerB}
+          roundName={data.roundName}
+          winner={data.matchResult!.winner}
+          isCompleted={true}
+          className="w-full h-full"
+        />
+      ),
+    },
+    {
+      // 通常のスコアボード表示（デフォルト）
+      condition: () => true,
+      render: () => <MonitorLayout data={data} />,
+    },
+  ];
 
-      const scaleX = window.innerWidth / BASE_WIDTH;
-      const scaleY = window.innerHeight / BASE_HEIGHT;
-
-      // 画面に収まるように小さい方の倍率を採用（contain）
-      setScale(Math.min(scaleX, scaleY));
-    };
-
-    // 初期化とイベントリスナー設定
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // 非公開時の表示
-  if (!data.isPublic) {
-    return (
-      <div
-        className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
-      >
-        <div
-          style={{
-            width: MONITOR_CONSTANTS.BASE_WIDTH,
-            height: MONITOR_CONSTANTS.BASE_HEIGHT,
-            transform: `scale(${scale})`,
-            transformOrigin: "center",
-          }}
-          className="bg-black flex-shrink-0"
-        >
-          <StandbyScreen />
-        </div>
-      </div>
-    );
-  }
-
-  // モードによる分岐
-  if (data.viewMode === "match_result") {
-    // groupMatchesがない場合は空配列（個人戦などはこのビューを使用しない前提）
-    const displayMatches = data.groupMatches || [];
-
-    return (
-      <div
-        className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
-      >
-        <div
-          style={{
-            width: MONITOR_CONSTANTS.BASE_WIDTH,
-            height: MONITOR_CONSTANTS.BASE_HEIGHT,
-            transform: `scale(${scale})`,
-            transformOrigin: "center",
-          }}
-          className="bg-black flex-shrink-0 flex items-center justify-center"
-        >
-          <MonitorGroupResults
-            groupMatches={displayMatches}
-            currentMatchId={data.matchId}
-            className="w-full h-full"
-          />
-        </div>
-      </div>
-    );
-  }
+  const activeRenderer = renderers.find((r) => r.condition());
 
   return (
-    <div
-      className={`w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center ${className}`}
-    >
-      {/* 基準解像度 BASE_WIDTH×BASE_HEIGHT でレイアウトし、画面サイズに合わせてスケールする */}
-      <div
-        style={{
-          width: MONITOR_CONSTANTS.BASE_WIDTH,
-          height: MONITOR_CONSTANTS.BASE_HEIGHT,
-          transform: `scale(${scale})`,
-          transformOrigin: "center",
-        }}
-        className="bg-black flex-shrink-0"
-      >
-        <MonitorLayout data={data} />
-      </div>
-    </div>
+    <MonitorScaleLayout className={className}>
+      {activeRenderer ? activeRenderer.render() : null}
+    </MonitorScaleLayout>
   );
 }

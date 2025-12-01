@@ -8,7 +8,7 @@ import {
 } from "@/lib/utils/player-utils";
 import type { MonitorPlayer } from "@/types/monitor.schema";
 import { type HansokuLevel } from "@/lib/utils/penalty-utils";
-import { useResponsiveFont } from "@/hooks/useResponsiveFont";
+import { AdjustHorizontalText } from "@/components/atoms/adjust-horizontal-text";
 import { RESPONSIVE_FONT_CONSTANTS } from "@/lib/constants";
 
 interface PlayerSectionProps {
@@ -26,22 +26,6 @@ export function PlayerSection({
   const playerName = getPlayerDisplayName(variant, player.displayName);
   const scorePositionClass = getPlayerPositionClass(variant);
 
-  // 選手名のフォントサイズを自動調整
-  const { fontSizeRem: playerFontSize, elementRef: playerRef } = useResponsiveFont({
-    baseFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE,
-    minFontSize: RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE,
-    maxWidth: RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH,
-    textContent: playerName, // 変更検知用
-  });
-
-  // チーム名のフォントサイズを自動調整
-  const { fontSizeRem: teamFontSize, elementRef: teamRef } = useResponsiveFont({
-    baseFontSize: RESPONSIVE_FONT_CONSTANTS.TEAM.BASE_FONT_SIZE,
-    minFontSize: RESPONSIVE_FONT_CONSTANTS.TEAM.MIN_FONT_SIZE,
-    maxWidth: RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH,
-    textContent: player.teamName, // 変更検知用
-  });
-
   return (
     <div
       className={`flex-1 ${styles.background} relative px-16 py-8 ${styles.text} ${className}`}
@@ -50,29 +34,27 @@ export function PlayerSection({
       <div className="flex items-center h-full">
         <div className="flex-1">
           {/* チーム名は最大横幅を超過するとフォント自動縮小 */}
-          <div
-            ref={teamRef}
+          <AdjustHorizontalText
+            baseFontSize={RESPONSIVE_FONT_CONSTANTS.TEAM.BASE_FONT_SIZE}
+            minFontSize={RESPONSIVE_FONT_CONSTANTS.TEAM.MIN_FONT_SIZE}
+            maxWidth={RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH}
+            textContent={player.teamName || "チーム名未設定"}
             style={{
-              fontSize: `${teamFontSize}rem`,
-              maxWidth: `${RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH}px`,
               height: `${RESPONSIVE_FONT_CONSTANTS.TEAM.HEIGHT}px`,
             }}
-            className="font-bold mb-2 opacity-90 py-4 whitespace-nowrap flex items-center"
-          >
-            {player.teamName || "チーム名未設定"}
-          </div>
+            className="font-bold mb-2 opacity-90 py-4 flex items-center"
+          />
           {/* 選手名は最大横幅を超過するとフォント自動縮小 */}
-          <div
-            ref={playerRef}
+          <AdjustHorizontalText
+            baseFontSize={RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE}
+            minFontSize={RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE}
+            maxWidth={RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}
+            textContent={playerName}
             style={{
-              fontSize: `${playerFontSize}rem`,
-              maxWidth: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}px`,
               height: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.HEIGHT}px`,
             }}
-            className="font-black leading-none whitespace-nowrap"
-          >
-            {playerName}
-          </div>
+            className="font-black leading-none"
+          />
         </div>
       </div>
 

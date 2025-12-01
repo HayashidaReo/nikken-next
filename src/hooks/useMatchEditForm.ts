@@ -1,15 +1,14 @@
 import { useState } from "react";
-import type { TeamMatch, WinReason } from "@/types/match.schema";
-import { useTeamMatchController } from "@/hooks/useTeamMatchController";
-import { createMatchResultUpdateObject } from "@/domains/match/team-match-logic";
+import type { Match, WinReason } from "@/types/match.schema";
+import { localMatchRepository } from "@/repositories/local/match-repository";
 
-interface UseTeamMatchEditFormProps {
-    match: TeamMatch;
+interface UseMatchEditFormProps {
+    match: Match;
     isOpen: boolean;
     onClose: () => void;
 }
 
-interface TeamMatchEditFormState {
+interface MatchEditFormState {
     winner: "playerA" | "playerB" | "draw" | "none" | null;
     winReason: WinReason | null;
     playerAScore: number;
@@ -19,11 +18,9 @@ interface TeamMatchEditFormState {
     showResetConfirm: boolean;
 }
 
-export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEditFormProps) {
-    const { handleSaveMatchResult } = useTeamMatchController();
-
+export function useMatchEditForm({ match, isOpen, onClose }: UseMatchEditFormProps) {
     const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
-    const [state, setState] = useState<TeamMatchEditFormState>({
+    const [state, setState] = useState<MatchEditFormState>({
         winner: match.winner,
         winReason: match.winReason,
         playerAScore: match.players.playerA.score,
@@ -49,16 +46,26 @@ export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEdi
     }
 
     const handleSave = async () => {
-        const updateObject = createMatchResultUpdateObject(match, {
-            playerAScore: state.playerAScore,
-            playerBScore: state.playerBScore,
-            playerAHansoku: state.playerAHansoku ?? 0,
-            playerBHansoku: state.playerBHansoku ?? 0,
+        if (!match.matchId) return;
+
+        await localMatchRepository.update(match.matchId, {
+            players: {
+                playerA: {
+                    ...match.players.playerA,
+                    score: state.playerAScore,
+                    hansoku: state.playerAHansoku ?? 0,
+                },
+                playerB: {
+                    ...match.players.playerB,
+                    score: state.playerBScore,
+                    hansoku: state.playerBHansoku ?? 0,
+                },
+            },
             winner: state.winner || "none",
             winReason: state.winReason || "none",
             isCompleted: true,
+            isSynced: false,
         });
-        await handleSaveMatchResult(updateObject);
         onClose();
     };
 
@@ -67,16 +74,26 @@ export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEdi
     };
 
     const executeReset = async () => {
-        const updateObject = createMatchResultUpdateObject(match, {
-            playerAScore: 0,
-            playerBScore: 0,
-            playerAHansoku: 0,
-            playerBHansoku: 0,
+        if (!match.matchId) return;
+
+        await localMatchRepository.update(match.matchId, {
+            players: {
+                playerA: {
+                    ...match.players.playerA,
+                    score: 0,
+                    hansoku: 0,
+                },
+                playerB: {
+                    ...match.players.playerB,
+                    score: 0,
+                    hansoku: 0,
+                },
+            },
             winner: "none",
             winReason: "none",
             isCompleted: false,
+            isSynced: false,
         });
-        await handleSaveMatchResult(updateObject);
         setState(prev => ({ ...prev, showResetConfirm: false }));
         onClose();
     };
@@ -88,8 +105,8 @@ export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEdi
     return {
         formState: state,
         setters: {
-            setWinner: (winner: TeamMatchEditFormState["winner"]) => setState(prev => ({ ...prev, winner })),
-            setWinReason: (winReason: TeamMatchEditFormState["winReason"]) => setState(prev => ({ ...prev, winReason })),
+            setWinner: (winner: MatchEditFormState["winner"]) => setState(prev => ({ ...prev, winner })),
+            setWinReason: (winReason: MatchEditFormState["winReason"]) => setState(prev => ({ ...prev, winReason })),
             setPlayerAScore: (playerAScore: number) => setState(prev => ({ ...prev, playerAScore })),
             setPlayerBScore: (playerBScore: number) => setState(prev => ({ ...prev, playerBScore })),
             setPlayerAHansoku: (playerAHansoku: number | null) => setState(prev => ({ ...prev, playerAHansoku })),

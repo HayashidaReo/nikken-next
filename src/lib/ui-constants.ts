@@ -18,14 +18,16 @@ export const SCORE_COLORS = {
  * - 合計は 100% になるように設計
  */
 export const MATCH_TABLE_COLUMN_WIDTHS = {
-    courtName: 16,      // コート名（短いテキスト想定）
-    round: 20,         // ラウンド（例: 1回戦、準決勝など）
-    playerATeam: 13,   // 選手A所属（チーム名）
-    playerAName: 10,   // 選手A名
-    score: 10,         // 得点（スコア表示 + 反則カード）
-    playerBTeam: 13,   // 選手B所属（チーム名）
-    playerBName: 10,   // 選手B名
+    courtName: 13,      // コート名（短いテキスト想定）
+    round: 13,         // ラウンド（例: 1回戦、準決勝など）
+    playerATeam: 15,   // 選手A所属（チーム名）
+    playerAName: 9,   // 選手A名
+    score: 9,         // 得点（スコア表示 + 反則カード）
+    playerBTeam: 15,   // 選手B所属（チーム名）
+    playerBName: 9,   // 選手B名
+    winReason: 6,     // 決着理由
     action: 8,        // 操作ボタン
+    edit: 3,          // 編集ボタン
 } as const;
 
 /**
@@ -80,12 +82,11 @@ export const TEAM_MATCH_SETUP_TABLE_COLUMN_WIDTHS = {
  */
 export const TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS = {
     round: 15,
-    playerAName: 16,
-    score: 30,
-    playerBName: 16,
-    winReason: 10,
-    action: 9,
-    edit: 4,
+    playerAName: 18,
+    score: 32,
+    playerBName: 18,
+    winReason: 11,
+    others: 6,
 } as const;
 
 /**

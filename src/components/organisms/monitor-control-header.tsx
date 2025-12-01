@@ -1,9 +1,10 @@
-import { ArrowLeft, Monitor, Unplug, Save, ChevronRight } from "lucide-react";
+import { ArrowLeft, Monitor, Unplug, ChevronRight } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
 import { MonitorPreview } from "@/components/molecules/monitor-preview";
 import type { MonitorControlHeaderProps } from "@/types/monitor.schema";
+import { MONITOR_VIEW_MODES, TOURNAMENT_TYPES } from "@/lib/constants";
 
 /**
  * モニター操作画面のヘッダーコンポーネント
@@ -35,21 +36,81 @@ import type { MonitorControlHeaderProps } from "@/types/monitor.schema";
 
 
 export function MonitorControlHeader({
-
     monitorState,
     matchState,
     actions,
 }: MonitorControlHeaderProps) {
     const { isPublic, monitorStatusMode, isPresentationConnected } = monitorState;
-    const { activeTournamentType, viewMode, isAllFinished, isSaving } = matchState;
+    const { activeTournamentType, viewMode, isAllFinished } = matchState;
     const {
         onTogglePublic,
         onBackToDashboard,
         onMonitorAction,
-        onSave,
         onConfirmMatch,
         onNextMatch,
     } = actions;
+
+    const renderActionButton = () => {
+        // スコアボード表示中: 試合確定ボタン
+        if (viewMode === MONITOR_VIEW_MODES.SCOREBOARD) {
+            return (
+                <Button onClick={onConfirmMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
+                    試合確定
+                    <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                    <ChevronRight className="w-4 h-4" />
+                </Button>
+            );
+        }
+
+        // 試合結果表示中 または 初期表示中
+        if (viewMode === MONITOR_VIEW_MODES.MATCH_RESULT || viewMode === MONITOR_VIEW_MODES.INITIAL) {
+            // 初期表示の場合は常に得点板へボタンを表示
+            if (viewMode === MONITOR_VIEW_MODES.INITIAL && actions.onStartMatch) {
+                return (
+                    <Button onClick={actions.onStartMatch} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
+                        得点板へ
+                        <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                        <ChevronRight className="w-4 h-4" />
+                    </Button>
+                );
+            }
+
+            // 団体戦かつ未完了
+            if (activeTournamentType === TOURNAMENT_TYPES.TEAM && !isAllFinished) {
+                // 現在の試合が未完了の場合: 得点板へボタン
+                if (matchState.isCurrentMatchCompleted === false && actions.onStartMatch) {
+                    return (
+                        <Button onClick={actions.onStartMatch} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
+                            得点板へ
+                            <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
+                    );
+                }
+
+                // 現在の試合が完了済みの場合: 次の試合へ
+                return (
+                    <Button onClick={onNextMatch} variant="default" className="bg-green-600 hover:bg-green-700 gap-2">
+                        次の試合へ
+                        <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                        <ChevronRight className="w-4 h-4" />
+                    </Button>
+                );
+            }
+
+            // それ以外（個人戦、または団体戦完了）: 一覧へ戻る
+            return (
+                <Button onClick={onBackToDashboard} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
+                    一覧へ戻る
+                    <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
+                    <ChevronRight className="w-4 h-4" />
+                </Button>
+            );
+        }
+
+        return null;
+    };
+
     return (
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-4">
             <div className="flex items-center justify-start gap-4">
@@ -81,27 +142,8 @@ export function MonitorControlHeader({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {activeTournamentType === "team" && viewMode === "scoreboard" && (
-                        <Button onClick={onConfirmMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
-                            試合確定
-                            <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
-                            <ChevronRight className="w-4 h-4" />
-                        </Button>
-                    )}
-                    {activeTournamentType === "team" && viewMode === "match_result" && !isAllFinished && (
-                        <Button onClick={onNextMatch} variant="default" className="bg-green-600 hover:bg-green-700 gap-2">
-                            次の試合へ
-                            <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
-                            <ChevronRight className="w-4 h-4" />
-                        </Button>
-                    )}
-                    {activeTournamentType === "team" && viewMode === "match_result" && isAllFinished && (
-                        <Button onClick={onBackToDashboard} variant="default" className="bg-purple-600 hover:bg-purple-700 gap-2">
-                            一覧へ戻る
-                            <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
-                            <ChevronRight className="w-4 h-4" />
-                        </Button>
-                    )}
+                    {renderActionButton()}
+
                     <Button onClick={onMonitorAction} variant={isPresentationConnected ? "destructive" : "outline"}>
                         {isPresentationConnected ? (
                             <>
@@ -115,15 +157,6 @@ export function MonitorControlHeader({
                             </>
                         )}
                     </Button>
-
-                    {activeTournamentType !== "team" && (
-                        <div className="flex items-center gap-2">
-                            <Button onClick={onSave} size="sm" disabled={isSaving}>
-                                <Save className="w-4 h-4 mr-2" />
-                                {isSaving ? "保存中..." : "保存"}
-                            </Button>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

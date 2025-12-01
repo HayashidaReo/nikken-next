@@ -7,7 +7,7 @@ import {
   PlayerScoreCard,
   TimerControl,
 } from "@/components/molecules";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+
 
 interface ScoreboardOperatorProps {
   organizationId: string;
@@ -16,6 +16,7 @@ interface ScoreboardOperatorProps {
   className?: string;
   isManual?: boolean;
   onSpecialWinAction?: (playerKey: "A" | "B", action: "fusen" | "hantei" | "hansoku") => void;
+
 }
 
 export function ScoreboardOperator({
@@ -45,8 +46,6 @@ export function ScoreboardOperator({
     setTeamName,
   } = useMonitorStore();
 
-  // キーボードショートカットの有効化
-  useKeyboardShortcuts();
 
   return (
     <div className={cn("w-full mx-auto space-y-4", className)}>

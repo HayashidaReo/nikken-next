@@ -13,8 +13,8 @@ import { FallbackMonitorDialog } from "@/components/molecules";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorController } from "@/hooks/useMonitorController";
 import { useMonitorStore } from "@/store/use-monitor-store";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTeamMatchController } from "@/hooks/useTeamMatchController";
+import { useMonitorKeyboardShortcuts } from "@/hooks/useMonitorKeyboardShortcuts";
 import { MonitorControlHeader } from "@/components/organisms/monitor-control-header";
 import { RepMatchSetupDialog } from "@/components/molecules/rep-match-setup-dialog";
 import { useMatchAction } from "@/hooks/useMatchAction";
@@ -29,6 +29,7 @@ export default function MonitorControlPage() {
 
   const playerA = useMonitorStore((s) => s.playerA);
   const playerB = useMonitorStore((s) => s.playerB);
+  const setViewMode = useMonitorStore((s) => s.setViewMode);
 
   // データ取得ロジック（統合）
   const {
@@ -144,16 +145,27 @@ export default function MonitorControlPage() {
     await handleSpecialWin(winner, action);
   }, [specialWinConfirm, handleSpecialWin]);
 
-  // キーボードショートカット
-  const handleEnterKey = useCallback(() => {
-    if (specialWinConfirm.isOpen) {
-      handleSpecialWinExecute();
-      return;
-    }
-    teamMatchEnterHandler(showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick);
-  }, [teamMatchEnterHandler, showConfirmDialog, handleConfirmMatchClick, handleConfirmMatchExecute, handleNextMatchClick, specialWinConfirm.isOpen, handleSpecialWinExecute]);
+  const handleStartMatch = useCallback(() => {
+    setViewMode("scoreboard");
+  }, [setViewMode]);
 
-  useKeyboardShortcuts({ onEnter: handleEnterKey });
+  // 現在の試合が完了しているかどうかを判定
+  const isCurrentMatchCompleted = teamMatches?.find(m => m.matchId === matchId)?.isCompleted ?? false;
+
+  // キーボードショートカット
+  useMonitorKeyboardShortcuts({
+    specialWinConfirm,
+    handleSpecialWinExecute,
+    activeTournamentType,
+    showConfirmDialog,
+    handleConfirmMatchExecute,
+    viewMode,
+    handleConfirmMatchClick,
+    handleBackToDashboard,
+    teamMatchEnterHandler,
+    handleNextMatchClick,
+    handleStartMatch,
+  });
 
   // ローディング状態
   if (isLoading) {
@@ -265,6 +277,7 @@ export default function MonitorControlPage() {
             viewMode,
             isAllFinished,
             isSaving,
+            isCurrentMatchCompleted,
           }}
           actions={{
             onTogglePublic: togglePublic,
@@ -274,6 +287,7 @@ export default function MonitorControlPage() {
             onConfirmMatch: handleConfirmMatchClick,
             onNextMatch: handleNextMatchClick,
             onShowTeamResult: handleShowTeamResult,
+            onStartMatch: handleStartMatch,
           }}
         />
 

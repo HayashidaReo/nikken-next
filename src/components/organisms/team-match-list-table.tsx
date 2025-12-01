@@ -6,7 +6,7 @@ import { useMonitorStore } from "@/store/use-monitor-store";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import ScoreCell from "@/components/molecules/score-cell";
 import PlayerCell from "@/components/molecules/player-cell";
-import ActionCell from "@/components/molecules/action-cell";
+
 import { SCORE_COLORS, TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import MatchTable from "@/components/organisms/match-table";
 import type { TeamMatch } from "@/types/match.schema";
@@ -64,8 +64,8 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                     { key: "score", label: "得点", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.score, className: "text-center" },
                     { key: "playerBName", label: "選手B名", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.playerBName },
                     { key: "winReason", label: "決着", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.winReason, className: "text-center" },
-                    { key: "action", label: "モニター", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
-                    { key: "edit", label: "", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.edit, className: "text-center" },
+
+                    { key: "others", label: "その他", width: TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS.others, className: "text-center" },
                 ]}
                 className={className}
             >
@@ -102,22 +102,22 @@ export function TeamMatchListTable({ matches, tournamentName, rawTournamentName,
                                     <span className="text-lg font-medium text-gray-600">{winReasonLabel || "-"}</span>
                                 </div>
                             </TableCell>
-                            <ActionCell
-                                onMonitor={() => {
-                                    initializeMatch(match, rawTournamentName, courtName, {
-                                        resolvedPlayers: {
-                                            playerA,
-                                            playerB,
-                                        },
-                                        roundName,
-                                        groupMatches: createMonitorGroupMatches(matches, match.matchGroupId, playerDirectory),
-                                    });
-                                    router.push(`/monitor-control/${match.matchId}`);
-                                }}
-                            />
                             <TableCell className="p-2 text-center">
                                 <div className="flex items-center justify-center h-full">
-                                    <MatchActionMenu onEdit={() => setEditingMatch(match)} />
+                                    <MatchActionMenu
+                                        onEdit={() => setEditingMatch(match)}
+                                        onMonitor={() => {
+                                            initializeMatch(match, rawTournamentName, courtName, {
+                                                resolvedPlayers: {
+                                                    playerA,
+                                                    playerB,
+                                                },
+                                                roundName,
+                                                groupMatches: createMonitorGroupMatches(matches, match.matchGroupId, playerDirectory),
+                                            });
+                                            router.push(`/monitor-control/${match.matchId}`);
+                                        }}
+                                    />
                                 </div>
                             </TableCell>
                         </TableRow>

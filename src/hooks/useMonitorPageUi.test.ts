@@ -13,15 +13,27 @@ describe("useMonitorPageUi", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         // デフォルトのモックストア値
-        (useMonitorStore as unknown as jest.Mock).mockImplementation((selector) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mockStore = (selector: any) =>
             selector({
                 presentationConnected: false,
                 fallbackOpen: false,
                 isPublic: false,
                 togglePublic: jest.fn(),
                 viewMode: "scoreboard" as const,
-            })
-        );
+                nextViewMode: null,
+                setNextViewMode: jest.fn(),
+                setViewMode: jest.fn(),
+                setGroupMatches: jest.fn(),
+            });
+
+        // getStateメソッドを追加
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (useMonitorStore as any).getState = jest.fn(() => ({
+            setGroupMatches: jest.fn(),
+        }));
+
+        (useMonitorStore as unknown as jest.Mock).mockImplementation(mockStore);
     });
 
     describe("handleMonitorClick", () => {
