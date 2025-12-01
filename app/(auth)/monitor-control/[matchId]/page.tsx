@@ -29,6 +29,7 @@ export default function MonitorControlPage() {
 
   const playerA = useMonitorStore((s) => s.playerA);
   const playerB = useMonitorStore((s) => s.playerB);
+  const setViewMode = useMonitorStore((s) => s.setViewMode);
 
   // データ取得ロジック（統合）
   const {
@@ -143,6 +144,13 @@ export default function MonitorControlPage() {
 
     await handleSpecialWin(winner, action);
   }, [specialWinConfirm, handleSpecialWin]);
+
+  const handleStartMatch = useCallback(() => {
+    setViewMode("scoreboard");
+  }, [setViewMode]);
+
+  // 現在の試合が完了しているかどうかを判定
+  const isCurrentMatchCompleted = teamMatches?.find(m => m.matchId === matchId)?.isCompleted ?? false;
 
   // キーボードショートカット
   useMonitorKeyboardShortcuts({
@@ -268,6 +276,7 @@ export default function MonitorControlPage() {
             viewMode,
             isAllFinished,
             isSaving,
+            isCurrentMatchCompleted,
           }}
           actions={{
             onTogglePublic: togglePublic,
@@ -277,6 +286,7 @@ export default function MonitorControlPage() {
             onConfirmMatch: handleConfirmMatchClick,
             onNextMatch: handleNextMatchClick,
             onShowTeamResult: handleShowTeamResult,
+            onStartMatch: handleStartMatch,
           }}
         />
 

@@ -91,8 +91,14 @@ export interface MonitorState {
   toggleSelectedPlayer: (player: "playerA" | "playerB" | "none") => void;
   incrementScoreForSelectedPlayer: () => void;
   incrementFoulForSelectedPlayer: () => void;
+  incrementScoreForSelectedPlayer: () => void;
+  incrementFoulForSelectedPlayer: () => void;
   getMonitorSnapshot: () => MonitorData;
   handleTick: () => void;
+
+  // 画面遷移用
+  nextViewMode: ViewMode | null;
+  setNextViewMode: (mode: ViewMode | null) => void;
 }
 
 export const useMonitorStore = create<MonitorState>((set, get) => ({
@@ -122,9 +128,14 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
   viewMode: "scoreboard",
   presentationConnected: false,
   fallbackOpen: false,
+  fallbackOpen: false,
   selectedPlayer: null,
+  nextViewMode: null,
 
   // アクション
+  setNextViewMode: (mode) => {
+    set({ nextViewMode: mode });
+  },
   initializeMatch: (
     match: Match | TeamMatch,
     tournamentName: string,
@@ -176,14 +187,16 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
         score: playerBData.score,
         hansoku: playerBData.hansoku,
       },
-      // 試合切り替え時にモードをリセット
-      viewMode: "scoreboard",
+      // 試合切り替え時にモードをリセット（nextViewModeがあればそれを使用）
+      viewMode: get().nextViewMode || "scoreboard",
       matchResult: undefined,
       // タイマーをリセット（大会設定値を使用）
       timeRemaining: defaultMatchTime,
       isTimerRunning: false,
       timerMode: "countdown", // カウントダウンモードに戻す
+      timerMode: "countdown", // カウントダウンモードに戻す
       groupMatches,
+      nextViewMode: null, // 初期化後にリセット
     });
   },
 

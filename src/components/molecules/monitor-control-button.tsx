@@ -1,0 +1,42 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/atoms/button";
+import { Monitor } from "lucide-react";
+import { useTeamMatches } from "@/queries/use-team-matches";
+import { MONITOR_VIEW_MODES } from "@/lib/constants";
+import { useMonitorStore } from "@/store/use-monitor-store";
+
+interface MonitorControlButtonProps {
+    matchGroupId: string;
+}
+
+export function MonitorControlButton({ matchGroupId }: MonitorControlButtonProps) {
+    const router = useRouter();
+    const { data: teamMatches } = useTeamMatches(matchGroupId);
+    const setNextViewMode = useMonitorStore((s) => s.setNextViewMode);
+
+    const handleMonitorControlClick = () => {
+        if (!teamMatches || teamMatches.length === 0) return;
+
+        // sortOrderでソートして最初の試合を取得
+        const firstMatch = [...teamMatches].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+
+        if (firstMatch && firstMatch.matchId) {
+            setNextViewMode(MONITOR_VIEW_MODES.MATCH_RESULT);
+            router.push(`/monitor-control/${firstMatch.matchId}`);
+        }
+    };
+
+    return (
+        <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleMonitorControlClick}
+            disabled={!teamMatches || teamMatches.length === 0}
+            title="モニター操作画面へ"
+        >
+            <Monitor className="h-4 w-4" />
+        </Button>
+    );
+}

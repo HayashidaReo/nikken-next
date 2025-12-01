@@ -103,6 +103,8 @@ export interface MatchStateProps {
     isAllFinished: boolean;
     /** 保存処理中かどうか */
     isSaving: boolean;
+    /** 現在の試合が完了しているかどうか（団体戦用） */
+    isCurrentMatchCompleted?: boolean;
 }
 
 /**
@@ -123,6 +125,8 @@ export interface MonitorActions {
     onNextMatch: () => void;
     /** 最終結果を表示するアクション（団体戦用） */
     onShowTeamResult: () => void;
+    /** 試合開始アクション（団体戦用） */
+    onStartMatch?: () => void;
 }
 
 /**

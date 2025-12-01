@@ -1,5 +1,7 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useMonitorStore } from "@/store/use-monitor-store";
+import { createPlayerDirectory } from "@/lib/utils/player-directory";
+import { createMonitorGroupMatches } from "@/lib/utils/team-match-utils";
 import type { Team } from "@/types/team.schema";
 import type { TeamMatch } from "@/types/team-match.schema";
 
@@ -35,6 +37,16 @@ export function useMonitorPageUi({
         setShowDisconnectConfirm(false);
         handleMonitorAction();
     }, [handleMonitorAction]);
+
+    // 団体戦の場合、グループ試合データをストアに設定
+    useEffect(() => {
+        if (teamMatches && teamMatches.length > 0 && teams && teams.length > 0) {
+            const playerDirectory = createPlayerDirectory(teams);
+            const matchGroupId = teamMatches[0].matchGroupId;
+            const groupMatches = createMonitorGroupMatches(teamMatches, matchGroupId, playerDirectory);
+            useMonitorStore.getState().setGroupMatches(groupMatches);
+        }
+    }, [teamMatches, teams]);
 
     // teamMatchesから正しいチーム順序を取得
     const orderedTeams = useMemo(() => {

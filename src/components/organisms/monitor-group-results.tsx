@@ -46,7 +46,8 @@ export function MonitorGroupResults({
                 const isWinnerA = match.winner === WINNER_TYPES.PLAYER_A;
                 const isWinnerB = match.winner === WINNER_TYPES.PLAYER_B;
                 const isDraw = match.winner === WINNER_TYPES.DRAW;
-                const isCurrentMatch = match.matchId === currentMatchId;
+                // 現在の試合かつ、試合が完了している場合のみ強調表示（初期表示などで未実施の試合が強調されるのを防ぐ）
+                const isCurrentMatch = match.matchId === currentMatchId && match.isCompleted;
 
                 const opacityA = getMonitorPlayerOpacity(isCompleted, isWinnerA, isDraw);
                 const opacityB = getMonitorPlayerOpacity(isCompleted, isWinnerB, isDraw);
