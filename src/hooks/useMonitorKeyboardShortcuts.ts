@@ -135,6 +135,7 @@ export function useMonitorKeyboardShortcuts({
 
             // Enterキーの処理（シングルタップ）
             if (action === "enter") {
+                if (event.repeat) return;
                 event.preventDefault();
                 handleEnterKey();
                 return;
