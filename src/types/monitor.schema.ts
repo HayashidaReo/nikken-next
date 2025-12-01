@@ -125,7 +125,7 @@ export interface MonitorActions {
     onNextMatch: () => void;
     /** 最終結果を表示するアクション（団体戦用） */
     onShowTeamResult: () => void;
-    /** 試合開始アクション（団体戦用） */
+    /** 得点板へ進むアクション（団体戦用） */
     onStartMatch?: () => void;
 }
 

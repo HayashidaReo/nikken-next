@@ -64,11 +64,11 @@ export function MonitorControlHeader({
 
         // 試合結果表示中 または 初期表示中
         if (viewMode === MONITOR_VIEW_MODES.MATCH_RESULT || viewMode === MONITOR_VIEW_MODES.INITIAL) {
-            // 初期表示の場合は常に試合開始ボタンを表示
+            // 初期表示の場合は常に得点板へボタンを表示
             if (viewMode === MONITOR_VIEW_MODES.INITIAL && actions.onStartMatch) {
                 return (
                     <Button onClick={actions.onStartMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
-                        試合開始
+                        得点板へ
                         <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
                         <ChevronRight className="w-4 h-4" />
                     </Button>
@@ -77,11 +77,11 @@ export function MonitorControlHeader({
 
             // 団体戦かつ未完了
             if (activeTournamentType === TOURNAMENT_TYPES.TEAM && !isAllFinished) {
-                // 現在の試合が未完了の場合: 試合開始ボタン
+                // 現在の試合が未完了の場合: 得点板へボタン
                 if (matchState.isCurrentMatchCompleted === false && actions.onStartMatch) {
                     return (
                         <Button onClick={actions.onStartMatch} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
-                            試合開始
+                            得点板へ
                             <ShortcutBadge shortcut="Enter" className="!bg-white/20 !text-white !border-white/30" />
                             <ChevronRight className="w-4 h-4" />
                         </Button>

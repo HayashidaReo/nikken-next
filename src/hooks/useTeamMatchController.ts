@@ -250,7 +250,7 @@ export function useTeamMatchController({
             return;
         }
 
-        // 初期表示の場合 -> 試合開始
+        // 初期表示の場合 -> 得点板へ
         if (viewMode === "initial" && onStartMatch) {
             onStartMatch();
             return;
