@@ -27,7 +27,7 @@ export const monitorDataSchema = z.object({
     isTimerRunning: z.boolean(),
     timerMode: z.enum(["countdown", "stopwatch"]).default("countdown"),
     isPublic: z.boolean(),
-    viewMode: z.enum(["scoreboard", "match_result", "team_result"]).default("scoreboard"),
+    viewMode: z.enum(["scoreboard", "match_result", "team_result", "initial"]).default("scoreboard"),
     matchResult: z.object({
         playerA: monitorPlayerSchema,
         playerB: monitorPlayerSchema,
@@ -98,7 +98,7 @@ export interface MatchStateProps {
     /** 大会種別（individual または team） */
     activeTournamentType: string | null | undefined;
     /** 現在の表示モード */
-    viewMode: "scoreboard" | "match_result" | "team_result";
+    viewMode: "scoreboard" | "match_result" | "team_result" | "initial";
     /** 全ての試合が完了したかどうか（団体戦用） */
     isAllFinished: boolean;
     /** 保存処理中かどうか */

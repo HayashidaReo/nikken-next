@@ -275,6 +275,7 @@ export const APP_INFO = {
 export const MONITOR_VIEW_MODES = {
   SCOREBOARD: "scoreboard",
   MATCH_RESULT: "match_result",
+  INITIAL: "initial",
 } as const;
 
 // 🏆 大会種別定数

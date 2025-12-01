@@ -23,7 +23,7 @@ export function MonitorControlButton({ matchGroupId }: MonitorControlButtonProps
         const firstMatch = [...teamMatches].sort((a, b) => a.sortOrder - b.sortOrder)[0];
 
         if (firstMatch && firstMatch.matchId) {
-            setNextViewMode(MONITOR_VIEW_MODES.MATCH_RESULT);
+            setNextViewMode(MONITOR_VIEW_MODES.INITIAL);
             router.push(`/monitor-control/${firstMatch.matchId}`);
         }
     };

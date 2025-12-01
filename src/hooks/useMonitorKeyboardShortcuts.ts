@@ -16,10 +16,11 @@ interface UseMonitorKeyboardShortcutsProps {
         showConfirmDialog: boolean,
         handleConfirmMatchClick: () => void,
         handleConfirmMatchExecute: () => void,
-        handleNextMatchClick: () => void
+        handleNextMatchClick: () => void,
+        handleStartMatch?: () => void
     ) => void;
     handleNextMatchClick?: () => void;
-
+    handleStartMatch?: () => void;
 }
 
 export function useMonitorKeyboardShortcuts({
@@ -34,6 +35,7 @@ export function useMonitorKeyboardShortcuts({
     handleBackToDashboard,
     teamMatchEnterHandler,
     handleNextMatchClick,
+    handleStartMatch,
 }: UseMonitorKeyboardShortcutsProps = {}) {
     const {
         toggleTimer,
@@ -97,7 +99,8 @@ export function useMonitorKeyboardShortcuts({
                 showConfirmDialog,
                 handleConfirmMatchClick,
                 handleConfirmMatchExecute,
-                handleNextMatchClick
+                handleNextMatchClick,
+                handleStartMatch
             );
         }
     }, [
@@ -112,6 +115,7 @@ export function useMonitorKeyboardShortcuts({
         handleBackToDashboard,
         teamMatchEnterHandler,
         handleNextMatchClick,
+        handleStartMatch,
     ]);
 
     useEffect(() => {

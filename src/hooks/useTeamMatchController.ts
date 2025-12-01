@@ -236,7 +236,8 @@ export function useTeamMatchController({
         showConfirmDialog: boolean,
         onConfirmMatch: () => void,
         onConfirmExecute: () => void,
-        onNextMatch: () => void
+        onNextMatch: () => void,
+        onStartMatch?: () => void
     ) => {
         // ダイアログが開いている場合 -> 確定実行
         if (showConfirmDialog) {
@@ -249,6 +250,12 @@ export function useTeamMatchController({
             return;
         }
 
+        // 初期表示の場合 -> 試合開始
+        if (viewMode === "initial" && onStartMatch) {
+            onStartMatch();
+            return;
+        }
+
         // 試合確定ボタンが表示されている場合 -> ダイアログを開く
         if (viewMode === "scoreboard") {
             onConfirmMatch();
@@ -257,6 +264,12 @@ export function useTeamMatchController({
 
         // 次の試合へボタンが表示されている場合 -> 次の試合へ（代表戦判定含む）
         if (viewMode === "match_result" && !isAllFinished) {
+            // 現在の試合が未完了の場合は試合開始
+            const isCurrentMatchCompleted = teamMatches?.find(m => m.matchId === matchId)?.isCompleted ?? false;
+            if (!isCurrentMatchCompleted && onStartMatch) {
+                onStartMatch();
+                return;
+            }
             onNextMatch();
             return;
         }
@@ -266,7 +279,7 @@ export function useTeamMatchController({
             handleBackToDashboard();
             return;
         }
-    }, [activeTournamentType, viewMode, isAllFinished, handleBackToDashboard]);
+    }, [activeTournamentType, viewMode, isAllFinished, handleBackToDashboard, teamMatches, matchId]);
 
     /**
      * 代表戦を作成して開始する

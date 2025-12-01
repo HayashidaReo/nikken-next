@@ -55,6 +55,21 @@ export function MonitorPreview({
             return <StandbyScreen />;
         }
 
+        if (data.viewMode === "initial") {
+            // 団体戦の初期表示（強調なし）
+            if (monitorData.groupMatches && monitorData.groupMatches.length > 0) {
+                return (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <MonitorGroupResults
+                            groupMatches={monitorData.groupMatches}
+                            currentMatchId={null}
+                            className="w-full h-full"
+                        />
+                    </div>
+                );
+            }
+        }
+
         if (data.viewMode === "match_result") {
             // 団体戦の結果表示
             if (monitorData.groupMatches && monitorData.groupMatches.length > 0) {

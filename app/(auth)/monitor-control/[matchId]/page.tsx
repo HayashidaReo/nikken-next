@@ -164,6 +164,7 @@ export default function MonitorControlPage() {
     handleBackToDashboard,
     teamMatchEnterHandler,
     handleNextMatchClick,
+    handleStartMatch,
   });
 
   // ローディング状態

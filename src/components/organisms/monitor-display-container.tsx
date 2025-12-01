@@ -26,6 +26,20 @@ export function MonitorDisplayContainer({
       render: () => <StandbyScreen />,
     },
     {
+      // 団体戦の初期表示（強調なし）
+      condition: () =>
+        data.viewMode === MONITOR_VIEW_MODES.INITIAL &&
+        !!data.groupMatches &&
+        data.groupMatches.length > 0,
+      render: () => (
+        <MonitorGroupResults
+          groupMatches={data.groupMatches!}
+          currentMatchId={null}
+          className="w-full h-full"
+        />
+      ),
+    },
+    {
       // 団体戦の結果表示
       condition: () =>
         data.viewMode === MONITOR_VIEW_MODES.MATCH_RESULT &&
