@@ -21,8 +21,6 @@ describe("useMonitorPageUi", () => {
                 isPublic: false,
                 togglePublic: jest.fn(),
                 viewMode: "scoreboard" as const,
-                nextViewMode: null,
-                setNextViewMode: jest.fn(),
                 setViewMode: jest.fn(),
                 setGroupMatches: jest.fn(),
             });

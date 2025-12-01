@@ -9,9 +9,14 @@ import { localTournamentRepository } from '@/repositories/local/tournament-repos
 import { localMatchGroupRepository } from '@/repositories/local/match-group-repository';
 import { localTeamMatchRepository } from '@/repositories/local/team-match-repository';
 import { localTeamRepository } from '@/repositories/local/team-repository';
-import type { Match, MatchGroup, TeamMatch, MatchCreateWithId } from '@/types/match.schema';
+import type { Match, MatchGroup, TeamMatch } from '@/types/match.schema';
 import type { Tournament } from '@/types/tournament.schema';
 import type { Team } from '@/types/team.schema';
+import { uploadTournaments } from './sync/tournament-sync';
+import { uploadMatches } from './sync/match-sync';
+import { uploadMatchGroups } from './sync/match-group-sync';
+import { uploadTeamMatches } from './sync/team-match-sync';
+import { uploadTeams } from './sync/team-sync';
 
 const matchRepository = new FirestoreMatchRepository();
 const matchGroupRepository = new FirestoreMatchGroupRepository();
@@ -129,43 +134,6 @@ async function saveToLocalDB(orgId: string, tournamentId: string, data: FetchedD
     });
 }
 
-/**
- * 同期処理の共通ロジック
- */
-async function syncItems<T extends { _deleted?: boolean; id?: number }>(
-    items: T[],
-    itemName: string,
-    getId: (item: T) => string | undefined,
-    syncAction: (item: T, id: string) => Promise<void>,
-    deleteAction: (item: T, id: string) => Promise<void>,
-    markSynced: (item: T) => Promise<void>,
-    hardDeleteLocal: (id: string) => Promise<void>
-): Promise<number> {
-    let successCount = 0;
-    for (const item of items) {
-        const id = getId(item);
-        if (!id) {
-            console.error(`[SyncService] ${itemName} has no ID, skipping`, item);
-            continue;
-        }
-
-        try {
-            if (item._deleted) {
-                await deleteAction(item, id);
-                await hardDeleteLocal(id);
-                successCount++;
-            } else {
-                await syncAction(item, id);
-                await markSynced(item);
-                successCount++;
-            }
-        } catch (error) {
-            console.error(`[SyncService] Failed to sync ${itemName} ${id}`, error);
-        }
-    }
-    return successCount;
-}
-
 export const syncService = {
     /**
      * Firestoreから大会データと試合データをダウンロードし、ローカルDBを上書き保存する
@@ -189,105 +157,22 @@ export const syncService = {
             throw new Error("オフラインのためデータを送信できません。インターネット接続を確認してから再度お試しください。");
         }
 
-        // 1. 未送信の試合データを取得 (Individual)
-        const unsyncedMatches = await localMatchRepository.getUnsynced(orgId, tournamentId);
-
-        // 2. 未送信の団体戦グループデータを取得 (Team)
-        const unsyncedMatchGroups = await localMatchGroupRepository.getUnsynced(orgId, tournamentId);
-
-        // 3. 未送信の団体戦試合データを取得 (Team)
-        const unsyncedTeamMatches = await localTeamMatchRepository.getUnsynced(orgId, tournamentId);
-
-        if (unsyncedMatches.length === 0 && unsyncedMatchGroups.length === 0 && unsyncedTeamMatches.length === 0) {
-            return 0;
-        }
-
         let successCount = 0;
 
+        // 大会データの同期
+        successCount += await uploadTournaments(orgId);
+
         // 個人戦試合の同期
-        successCount += await syncItems(
-            unsyncedMatches,
-            "match",
-            (m) => m.matchId,
-            async (match, id) => {
-                // 必要なプロパティを明示的に指定してオブジェクトを作成
-                const matchData: MatchCreateWithId = {
-                    matchId: id,
-                    courtId: match.courtId,
-                    roundId: match.roundId,
-                    players: match.players,
-                    sortOrder: match.sortOrder,
-                    isCompleted: match.isCompleted,
-                    winner: match.winner,
-                    winReason: match.winReason,
-                };
-                await matchRepository.save(orgId, tournamentId, matchData);
-            },
-            async (_, id) => {
-                await matchRepository.delete(orgId, tournamentId, id);
-            },
-            async (match) => {
-                if (match.matchId) await localMatchRepository.markAsSynced(match.matchId);
-            },
-            async (id) => {
-                await localMatchRepository.hardDelete(id);
-            }
-        );
+        successCount += await uploadMatches(orgId, tournamentId);
 
         // 団体戦グループの同期
-        successCount += await syncItems(
-            unsyncedMatchGroups,
-            "match group",
-            (g) => g.matchGroupId,
-            async (group, id) => {
-                await matchGroupRepository.update(orgId, tournamentId, id, {
-                    matchGroupId: group.matchGroupId,
-                    courtId: group.courtId,
-                    roundId: group.roundId,
-                    sortOrder: group.sortOrder,
-                    teamAId: group.teamAId,
-                    teamBId: group.teamBId,
-                });
-            },
-            async (_, id) => {
-                await matchGroupRepository.delete(orgId, tournamentId, id);
-            },
-            async (group) => {
-                if (group.matchGroupId) await localMatchGroupRepository.markAsSynced(group.matchGroupId);
-            },
-            async (id) => {
-                await localMatchGroupRepository.hardDelete(id);
-            }
-        );
+        successCount += await uploadMatchGroups(orgId, tournamentId);
 
         // 団体戦試合の同期
-        successCount += await syncItems(
-            unsyncedTeamMatches,
-            "team match",
-            (m) => m.matchId,
-            async (teamMatch, id) => {
-                if (!teamMatch.matchGroupId) throw new Error("Missing matchGroupId");
-                await teamMatchRepository.update(orgId, tournamentId, teamMatch.matchGroupId, id, {
-                    matchId: id,
-                    matchGroupId: teamMatch.matchGroupId,
-                    roundId: teamMatch.roundId,
-                    players: teamMatch.players,
-                    sortOrder: teamMatch.sortOrder,
-                    isCompleted: teamMatch.isCompleted,
-                });
-            },
-            async (teamMatch, id) => {
-                if (!teamMatch.matchGroupId) throw new Error("Missing matchGroupId");
-                await teamMatchRepository.delete(orgId, tournamentId, teamMatch.matchGroupId, id);
-            },
-            async (teamMatch) => {
-                if (teamMatch.matchId) await localTeamMatchRepository.markAsSynced(teamMatch.matchId);
-            },
+        successCount += await uploadTeamMatches(orgId, tournamentId);
 
-            async (id) => {
-                await localTeamMatchRepository.hardDelete(id);
-            }
-        );
+        // チームの同期
+        successCount += await uploadTeams(orgId, tournamentId);
 
         return successCount;
     },
@@ -299,7 +184,21 @@ export const syncService = {
         const matchesCount = await localMatchRepository.countUnsynced(orgId, tournamentId);
         const matchGroupsCount = await localMatchGroupRepository.countUnsynced(orgId, tournamentId);
         const teamMatchesCount = await localTeamMatchRepository.countUnsynced(orgId, tournamentId);
-        return matchesCount + matchGroupsCount + teamMatchesCount;
+        const teamsCount = await localTeamRepository.countUnsynced(orgId, tournamentId);
+        const tournamentsCount = await localTournamentRepository.countUnsynced(orgId);
+        return matchesCount + matchGroupsCount + teamMatchesCount + teamsCount + tournamentsCount;
+    },
+
+    /**
+     * 未送信データを取得 (表示用)
+     */
+    async getUnsyncedData(orgId: string, tournamentId: string) {
+        const matches = await localMatchRepository.getUnsynced(orgId, tournamentId);
+        const matchGroups = await localMatchGroupRepository.getUnsynced(orgId, tournamentId);
+        const teamMatches = await localTeamMatchRepository.getUnsynced(orgId, tournamentId);
+        const teams = await localTeamRepository.getUnsynced(orgId, tournamentId);
+        const tournaments = await localTournamentRepository.getUnsynced(orgId);
+        return { matches, matchGroups, teamMatches, teams, tournaments };
     },
 
     /**
@@ -311,8 +210,6 @@ export const syncService = {
         await db.matchGroups.clear();
         await db.teamMatches.clear();
         await db.teams.clear();
+        await db.tournaments.clear();
     }
 };
-
-//TODO: 取り込むときに、ダイアログを表示して内容確認してから取り組む
-//TODO: 保存処理は、未完成未検証

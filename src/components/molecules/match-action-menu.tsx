@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { MoreVertical, Edit2, Monitor } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { cn } from "@/lib/utils/utils";
@@ -26,25 +27,82 @@ export function MatchActionMenu({
     className,
 }: MatchActionMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
+    const [dropdownState, setDropdownState] = useState({
+        top: 0,
+        left: 0,
+        isAbove: false,
+    });
+
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const portalRef = useRef<HTMLDivElement>(null);
+
+    // メニューの位置を計算
+    const calculatePosition = useCallback(() => {
+        if (!wrapperRef.current) return null;
+
+        const MENU_WIDTH = 192; // w-48
+        const MENU_ITEM_HEIGHT = 48; // 44px + padding
+        const MENU_MONITOR_HEIGHT = 88;
+
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const menuHeight = onMonitor ? MENU_MONITOR_HEIGHT : MENU_ITEM_HEIGHT;
+        const menuWidth = MENU_WIDTH;
+
+        // 下に十分なスペースがない場合は上に表示
+        const isAbove = spaceBelow < menuHeight && rect.top >= menuHeight;
+
+        return {
+            top: isAbove ? rect.top - menuHeight - 4 : rect.bottom + 4,
+            left: rect.right - menuWidth, // ボタンの右端に合わせる
+            isAbove,
+        };
+    }, [onMonitor]);
 
     // メニュー外クリックで閉じる
     useEffect(() => {
+        if (!isOpen) return;
         const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node;
             if (
-                menuRef.current &&
-                !menuRef.current.contains(event.target as Node)
+                wrapperRef.current &&
+                !wrapperRef.current.contains(target) &&
+                portalRef.current &&
+                !portalRef.current.contains(target)
             ) {
                 setIsOpen(false);
             }
         };
 
-        if (isOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-            return () =>
-                document.removeEventListener("mousedown", handleClickOutside);
-        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen]);
+
+    // スクロール/リサイズ時の位置更新
+    useEffect(() => {
+        if (!isOpen) return;
+        const updatePosition = () => {
+            const pos = calculatePosition();
+            if (pos) setDropdownState(pos);
+        };
+
+        window.addEventListener("scroll", updatePosition, true);
+        window.addEventListener("resize", updatePosition);
+
+        return () => {
+            window.removeEventListener("scroll", updatePosition, true);
+            window.removeEventListener("resize", updatePosition);
+        };
+    }, [isOpen, calculatePosition]);
+
+    const handleToggle = () => {
+        if (!isOpen) {
+            // 開くときに位置計算
+            const pos = calculatePosition();
+            if (pos) setDropdownState(pos);
+        }
+        setIsOpen(!isOpen);
+    };
 
     /**
      * 編集メニューのクリックハンドラー
@@ -64,38 +122,47 @@ export function MatchActionMenu({
         }
     };
 
+    const menuContent = isOpen && (
+        <div
+            ref={portalRef}
+            className="fixed z-[9999] w-48 bg-white border border-gray-200 rounded-md shadow-lg"
+            style={{
+                top: `${dropdownState.top}px`,
+                left: `${dropdownState.left}px`,
+            }}
+        >
+            {onMonitor && (
+                <button
+                    onClick={handleMonitorClick}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors border-b border-gray-100"
+                >
+                    <Monitor className="w-4 h-4 text-gray-600" />
+                    <span>モニター操作へ</span>
+                </button>
+            )}
+            <button
+                onClick={handleEditClick}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
+            >
+                <Edit2 className="w-4 h-4 text-gray-600" />
+                <span>編集</span>
+            </button>
+        </div>
+    );
+
     return (
-        <div className={cn("relative", className)} ref={menuRef}>
+        <div className={cn("relative", className)} ref={wrapperRef}>
             <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleToggle}
                 aria-label="操作メニュー"
             >
                 <MoreVertical className="h-4 w-4" />
             </Button>
 
-            {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    {onMonitor && (
-                        <button
-                            onClick={handleMonitorClick}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors border-b border-gray-100"
-                        >
-                            <Monitor className="w-4 h-4 text-gray-600" />
-                            <span>モニター操作へ</span>
-                        </button>
-                    )}
-                    <button
-                        onClick={handleEditClick}
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                    >
-                        <Edit2 className="w-4 h-4 text-gray-600" />
-                        <span>編集</span>
-                    </button>
-                </div>
-            )}
+            {typeof document !== "undefined" && createPortal(menuContent, document.body)}
         </div>
     );
 }

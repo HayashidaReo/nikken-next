@@ -7,7 +7,7 @@ import { TableRow, TableCell } from "@/components/atoms/table";
 import ScoreCell from "@/components/molecules/score-cell";
 import PlayerCell from "@/components/molecules/player-cell";
 import ActionCell from "@/components/molecules/action-cell";
-import { SCORE_COLORS, MATCH_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
+import { MATCH_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 import MatchTable from "@/components/organisms/match-table";
 import type { Match } from "@/types/match.schema";
 import type { HansokuLevel } from "@/lib/utils/penalty-utils";
@@ -16,6 +16,7 @@ import { useMasterData } from "@/components/providers/master-data-provider";
 import { WIN_REASON_LABELS } from "@/lib/constants";
 import { MatchActionMenu } from "@/components/molecules/match-action-menu";
 import { MatchEditDialog } from "./match-edit-dialog";
+import { getPlayerTextColor } from "@/lib/utils/match-utils";
 
 interface MatchListTableProps {
   matches: Match[];
@@ -34,24 +35,7 @@ export function MatchListTable({ matches, tournamentName, className }: MatchList
 
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 
-  const getPlayerTextColor = (playerScore: number, opponentScore: number, isCompleted: boolean, winner: "playerA" | "playerB" | "draw" | "none" | null | undefined, isPlayerA: boolean) => {
-    if (!isCompleted) return SCORE_COLORS.unplayed;
 
-    if (winner) {
-      if (winner === "draw") return SCORE_COLORS.draw;
-      if (isPlayerA && winner === "playerA") return SCORE_COLORS.win;
-      if (!isPlayerA && winner === "playerB") return SCORE_COLORS.win;
-      return SCORE_COLORS.loss;
-    }
-
-    // Fallback to score comparison if winner is not set (legacy data)
-    if (playerScore === 0 && opponentScore === 0) {
-      return SCORE_COLORS.draw;
-    }
-    if (playerScore > opponentScore) return SCORE_COLORS.win;
-    if (playerScore === opponentScore) return SCORE_COLORS.draw;
-    return SCORE_COLORS.loss;
-  };
 
   return (
     <>

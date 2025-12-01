@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu, X, WifiOff } from "lucide-react";
+import { Menu, X, WifiOff } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/atoms/button";
 import {
@@ -12,14 +12,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/atoms/tooltip";
-import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { cn } from "@/lib/utils/utils";
-import { APP_INFO, AUTH_CONSTANTS, ROUTES } from "@/lib/constants";
-import { useAuthStore } from "@/store/use-auth-store";
-import { useToast } from "@/components/providers/notification-provider";
+import { APP_INFO, ROUTES } from "@/lib/constants";
 import { HeaderTournamentSelector } from "@/components/molecules/header-tournament-selector";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { isElectron } from "@/lib/utils/platform";
+import { SettingsMenu } from "@/components/molecules/settings-menu";
+import { useFirestoreSync } from "@/hooks/useFirestoreSync";
+
+
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -42,34 +43,8 @@ const ALL_NAV_ITEMS = [
 
 function Header({ activeTab }: HeaderProps) {
   const router = useRouter();
-  const { signOut } = useAuthStore();
-  const { showSuccess, showError } = useToast();
-  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const isOnline = useOnlineStatus();
-
-  const handleLogoutClick = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const handleLogoutConfirm = async () => {
-    try {
-      await signOut();
-      showSuccess("ログアウトしました");
-
-      // ログアウト後、ログイン画面にリダイレクト
-      setTimeout(() => {
-        router.push(ROUTES.LOGIN);
-      }, AUTH_CONSTANTS.LOGOUT_REDIRECT_DELAY);
-    } catch {
-      showError("ログアウトに失敗しました");
-      setShowLogoutConfirm(false);
-    }
-  };
-
-  const handleLogoutCancel = () => {
-    setShowLogoutConfirm(false);
-  };
 
   const handleManageTournaments = () => {
     router.push(ROUTES.TOURNAMENT_SETTINGS);
@@ -149,23 +124,7 @@ function Header({ activeTab }: HeaderProps) {
             </div>
 
             <div className="flex items-center">
-              <TooltipProvider delayDuration={20}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleLogoutClick}
-                      aria-label="ログアウト"
-                    >
-                      <LogOut className="w-5 h-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" align="center" sideOffset={5}>
-                    <p>ログアウト</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <SettingsMenu />
             </div>
 
             {/* モバイル用ハンバーガーメニューボタン */}
@@ -218,18 +177,6 @@ function Header({ activeTab }: HeaderProps) {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ログアウト確認ダイアログ */}
-      <ConfirmDialog
-        isOpen={showLogoutConfirm}
-        title="ログアウト"
-        message="現在ログインしているアカウントからログアウトしますか？"
-        confirmText="はい"
-        cancelText="キャンセル"
-        onConfirm={handleLogoutConfirm}
-        onCancel={handleLogoutCancel}
-        variant="destructive"
-      />
     </header>
   );
 }
@@ -239,6 +186,9 @@ export function MainLayout({
   activeTab = "matches",
   className,
 }: MainLayoutProps) {
+  // リアルタイム同期の有効化
+  useFirestoreSync();
+
   return (
     <div className={cn("min-h-screen bg-gray-50", className)}>
       <Header activeTab={activeTab} />

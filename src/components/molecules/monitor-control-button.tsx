@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/button";
 import { Monitor } from "lucide-react";
 import { useTeamMatches } from "@/queries/use-team-matches";
-import { MONITOR_VIEW_MODES } from "@/lib/constants";
-import { useMonitorStore } from "@/store/use-monitor-store";
 
 interface MonitorControlButtonProps {
     matchGroupId: string;
@@ -14,7 +12,6 @@ interface MonitorControlButtonProps {
 export function MonitorControlButton({ matchGroupId }: MonitorControlButtonProps) {
     const router = useRouter();
     const { data: teamMatches } = useTeamMatches(matchGroupId);
-    const setNextViewMode = useMonitorStore((s) => s.setNextViewMode);
 
     const handleMonitorControlClick = () => {
         if (!teamMatches || teamMatches.length === 0) return;
@@ -23,8 +20,7 @@ export function MonitorControlButton({ matchGroupId }: MonitorControlButtonProps
         const firstMatch = [...teamMatches].sort((a, b) => a.sortOrder - b.sortOrder)[0];
 
         if (firstMatch && firstMatch.matchId) {
-            setNextViewMode(MONITOR_VIEW_MODES.INITIAL);
-            router.push(`/monitor-control/${firstMatch.matchId}`);
+            router.push(`/monitor-control/${firstMatch.matchId}?mode=initial`);
         }
     };
 
