@@ -56,8 +56,7 @@ export function MonitorGroupResults({
                     <div
                         key={match.matchId}
                         className={cn(
-                            "relative transition-all duration-500",
-                            isCurrentMatch && "scale-105"
+                            "relative transition-all duration-500"
                         )}
                     >
                         <div
@@ -65,13 +64,19 @@ export function MonitorGroupResults({
                             className={cn(
                                 gridLayoutClass,
                                 "relative z-10 w-full",
-                                isCurrentMatch && [
-                                    "shadow-[0_0_40px_rgba(255,255,255,0.4)]",
-                                    "bg-white/5",
-                                    "rounded-lg",
-                                ]
+                                isCurrentMatch && "scale-110" // スケールを少し強調
                             )}
                         >
+                            {/* 背景のモヤモヤ（現在試合のみ） */}
+                            {isCurrentMatch && (
+                                <div
+                                    className="absolute inset-0 z-0 pointer-events-none"
+                                    style={{
+                                        background: "radial-gradient(ellipse 80% 95% at center, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0) 90%)",
+                                        filter: "blur(8px)",
+                                    }}
+                                />
+                            )}
                             {/* --- 4/10: 選手A (上) --- */}
                             <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA)}>
                                 {isWinnerA && (
