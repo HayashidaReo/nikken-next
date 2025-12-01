@@ -23,8 +23,9 @@ export function AdjustHorizontalText({
     const { fontSizeRem, elementRef } = useResponsiveFont({
         baseFontSize,
         minFontSize,
-        maxWidth,
+        maxSize: maxWidth,
         textContent,
+        direction: "horizontal",
     });
 
     return (

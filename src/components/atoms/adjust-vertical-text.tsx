@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useResponsiveVerticalFont } from "@/hooks/useResponsiveVerticalFont";
+import { useResponsiveFont } from "@/hooks/useResponsiveFont";
 import { cn } from "@/lib/utils/utils";
 
 interface AdjustVerticalTextProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -20,11 +20,12 @@ export function AdjustVerticalText({
     style,
     ...props
 }: AdjustVerticalTextProps) {
-    const { fontSizeRem, elementRef } = useResponsiveVerticalFont({
+    const { fontSizeRem, elementRef } = useResponsiveFont({
         baseFontSize,
         minFontSize,
-        maxHeight,
+        maxSize: maxHeight,
         textContent,
+        direction: "vertical",
     });
 
     return (
