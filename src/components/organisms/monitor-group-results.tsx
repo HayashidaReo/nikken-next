@@ -6,6 +6,7 @@ import type { MonitorData } from "@/types/monitor.schema";
 import { getTeamMatchRoundLabelById, WINNER_TYPES } from "@/lib/constants";
 import { AdjustVerticalText } from "@/components/atoms/adjust-vertical-text";
 import { WinnerStamp } from "@/components/atoms/winner-stamp";
+import { DrawTriangle } from "@/components/atoms/draw-triangle";
 import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
 
 interface MonitorGroupResultsProps {
@@ -34,7 +35,7 @@ export function MonitorGroupResults({
             ref={containerRef}
             className={cn(
                 // 親コンテナでの items-center は維持（全体を画面垂直中央にするため）
-                "grid items-center p-12 min-h-[800px] bg-transparent w-full",
+                "grid items-center p-12 min-h-[800px] bg-white w-full",
                 className
             )}
             style={{
@@ -72,7 +73,7 @@ export function MonitorGroupResults({
                                 <div
                                     className="absolute inset-0 z-0 pointer-events-none"
                                     style={{
-                                        background: "radial-gradient(ellipse 80% 95% at center, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0) 90%)",
+                                        background: "radial-gradient(ellipse 80% 95% at center, rgba(0,0,0,0.40) 0%, rgba(0,0,0,0.0) 80%, rgba(0,0,0,0) 90%)",
                                         filter: "blur(8px)",
                                     }}
                                 />
@@ -81,7 +82,7 @@ export function MonitorGroupResults({
                             <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA)}>
                                 {isWinnerA && (
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <WinnerStamp size={100} />
+                                        <WinnerStamp size={120} />
                                     </div>
                                 )}
                                 <AdjustVerticalText
@@ -89,7 +90,7 @@ export function MonitorGroupResults({
                                     baseFontSize={10}
                                     minFontSize={2.5}
                                     maxHeight={400}
-                                    className="font-bold text-white tracking-widest"
+                                    className="font-bold text-black tracking-widest"
                                 />
                             </div>
 
@@ -99,22 +100,27 @@ export function MonitorGroupResults({
                                     <div className="w-px h-full bg-border/30" />
                                 </div>
 
-                                <div className="bg-background/80 px-4 py-4 rounded-sm border border-border/40 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
+                                <div className="bg-background/80 px-4 py-4 rounded-sm border border-gray-500 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
                                     <AdjustVerticalText
                                         textContent={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
-                                        baseFontSize={2.5}
+                                        baseFontSize={3}
                                         minFontSize={1}
                                         maxHeight={120}
-                                        className="font-medium text-gray-300 tracking-widest"
+                                        className="font-medium text-gray-700 tracking-widest"
                                     />
                                 </div>
+                                {isDraw && (
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                                        <DrawTriangle size={120} />
+                                    </div>
+                                )}
                             </div>
 
                             {/* --- 4/10: 選手B (下) --- */}
                             <div className={cn("flex flex-col items-center justify-start pt-4 w-full h-full relative", opacityB)}>
                                 {isWinnerB && (
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <WinnerStamp size={100} />
+                                        <WinnerStamp size={120} />
                                     </div>
                                 )}
                                 <AdjustVerticalText
@@ -122,7 +128,7 @@ export function MonitorGroupResults({
                                     baseFontSize={10}
                                     minFontSize={2.5}
                                     maxHeight={350}
-                                    className="font-bold text-white tracking-widest"
+                                    className="font-bold text-black tracking-widest"
                                 />
                             </div>
                         </div>
@@ -139,7 +145,7 @@ export function MonitorGroupResults({
                         baseFontSize={8}
                         minFontSize={3}
                         maxHeight={400}
-                        className="font-bold text-white tracking-widest"
+                        className="font-bold text-black tracking-widest"
                     />
                 </div>
 
@@ -155,7 +161,7 @@ export function MonitorGroupResults({
                         baseFontSize={8}
                         minFontSize={3}
                         maxHeight={400}
-                        className="font-bold text-white tracking-widest"
+                        className="font-bold text-black tracking-widest"
                     />
                 </div>
             </div>
