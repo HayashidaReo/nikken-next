@@ -14,23 +14,36 @@ function initializeFirebaseAdmin() {
 
   // 本番環境での認証情報設定
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const projectId = process.env.FIREBASE_PROJECT_ID;
 
-  if (
-    !privateKey ||
-    !process.env.FIREBASE_CLIENT_EMAIL ||
-    !process.env.FIREBASE_PROJECT_ID
-  ) {
-    throw new Error("Firebase Admin SDK環境変数が設定されていません");
+  // 秘密鍵とクライアントメールがある場合は cert で初期化
+  if (privateKey && clientEmail && projectId) {
+    try {
+      return initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+        projectId,
+      });
+    } catch (error) {
+      console.warn("Firebase Admin SDK credential initialization failed, falling back to default credentials:", error);
+      // フォールバックへ進む
+    }
   }
 
-  return initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: privateKey,
-    }),
-    projectId: process.env.FIREBASE_PROJECT_ID,
-  });
+  // 環境変数が不足している場合、または初期化に失敗した場合は、デフォルトの認証情報（エミュレーターやADC）を試みる
+  // projectId だけでもあると良いが、なくても動作する場合がある（エミュレーターなど）
+  try {
+    return initializeApp({
+      projectId: projectId || "demo-project", // エミュレーター用にダミーIDを設定
+    });
+  } catch (error) {
+    console.error("Firebase Admin SDK default initialization failed:", error);
+    throw error; // ここで失敗した場合はどうしようもないので投げる
+  }
 }
 
 // Firebase Admin アプリケーション
