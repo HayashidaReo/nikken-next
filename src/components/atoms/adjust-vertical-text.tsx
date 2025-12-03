@@ -36,6 +36,7 @@ export function AdjustVerticalText({
                 textOrientation: "upright",
                 whiteSpace: "nowrap",
                 lineHeight: "1",
+                letterSpacing: "-0.02em",
                 fontSize: `${fontSizeRem}rem`,
                 maxHeight: `${maxHeight}px`,
                 overflow: "hidden",

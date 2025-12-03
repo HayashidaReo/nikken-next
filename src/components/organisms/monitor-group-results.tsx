@@ -80,7 +80,7 @@ export function MonitorGroupResults({
                                     baseFontSize={12}
                                     minFontSize={2.5}
                                     maxHeight={375}
-                                    className="font-bold text-black tracking-widest"
+                                    className="font-bold text-black w-fit"
                                 />
                             </div>
 
@@ -93,10 +93,10 @@ export function MonitorGroupResults({
                                 <div className="bg-background/80 px-4 py-4 rounded-sm border border-gray-500 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
                                     <AdjustVerticalText
                                         textContent={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
-                                        baseFontSize={3}
+                                        baseFontSize={4}
                                         minFontSize={1}
                                         maxHeight={120}
-                                        className="font-medium text-gray-700 tracking-widest"
+                                        className="font-medium text-gray-900 w-fit mx-auto"
                                     />
                                 </div>
                                 {isDraw && (
@@ -119,7 +119,7 @@ export function MonitorGroupResults({
                                     baseFontSize={12}
                                     minFontSize={2.5}
                                     maxHeight={375}
-                                    className="font-bold text-black tracking-widest"
+                                    className="font-bold text-black w-fit"
                                 />
                             </div>
                         </div>
@@ -136,7 +136,7 @@ export function MonitorGroupResults({
                         baseFontSize={8}
                         minFontSize={3}
                         maxHeight={400}
-                        className="font-bold text-black tracking-widest"
+                        className="font-bold text-black w-fit"
                     />
                 </div>
 
@@ -152,7 +152,7 @@ export function MonitorGroupResults({
                         baseFontSize={8}
                         minFontSize={3}
                         maxHeight={400}
-                        className="font-bold text-black tracking-widest"
+                        className="font-bold text-black w-fit"
                     />
                 </div>
             </div>
