@@ -15,6 +15,7 @@ export function resolvePlayerInfo(teams: Team[] | undefined, playerId: string, t
     return {
         displayName: player?.displayName || playerId,
         teamName: team?.teamName || teamId,
+        grade: player?.grade,
     };
 }
 

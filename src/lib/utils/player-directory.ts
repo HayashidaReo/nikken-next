@@ -4,6 +4,7 @@ import type { Team } from "@/types/team.schema";
 export type ResolvedMatchPlayer = MatchPlayer & {
     displayName: string;
     teamName: string;
+    grade?: string;
 };
 
 export type PlayerDirectoryEntry = {
@@ -11,6 +12,7 @@ export type PlayerDirectoryEntry = {
     teamId: string;
     displayName: string;
     teamName: string;
+    grade?: string;
 };
 
 export type PlayerDirectoryMaps = {
@@ -32,6 +34,7 @@ export function createPlayerDirectory(teams: Team[]): PlayerDirectoryMaps {
                 teamId: team.teamId,
                 displayName: player.displayName,
                 teamName: team.teamName,
+                grade: player.grade,
             });
         });
     });
@@ -67,6 +70,7 @@ export function resolveMatchPlayer(
         ...player,
         displayName: info.displayName,
         teamName: info.teamName,
+        grade: info.grade,
     };
 }
 
@@ -100,6 +104,7 @@ export function resolvePlayerFromTeams(
         teamId,
         displayName: player.displayName,
         teamName: team.teamName,
+        grade: player.grade,
     };
 }
 
@@ -112,5 +117,6 @@ export function resolveMatchPlayerFromTeams(
         ...player,
         displayName: info.displayName,
         teamName: info.teamName,
+        grade: info.grade,
     };
 }

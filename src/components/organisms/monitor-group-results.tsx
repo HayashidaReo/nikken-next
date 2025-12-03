@@ -82,6 +82,11 @@ export function MonitorGroupResults({
                                     maxHeight={375}
                                     className="font-bold text-black w-fit"
                                 />
+                                {match.playerA.grade && (
+                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-xl font-bold text-gray-700 whitespace-nowrap">
+                                        {match.playerA.grade}
+                                    </div>
+                                )}
                             </div>
 
                             {/* --- 2/10: ラウンドラベル (中央) --- */}
@@ -121,6 +126,11 @@ export function MonitorGroupResults({
                                     maxHeight={375}
                                     className="font-bold text-black w-fit"
                                 />
+                                {match.playerB.grade && (
+                                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xl font-bold text-gray-700 whitespace-nowrap">
+                                        {match.playerB.grade}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
