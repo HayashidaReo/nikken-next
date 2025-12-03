@@ -46,7 +46,8 @@ export function MonitorGroupResults({
                 const isWinnerA = match.winner === WINNER_TYPES.PLAYER_A;
                 const isWinnerB = match.winner === WINNER_TYPES.PLAYER_B;
                 const isDraw = match.winner === WINNER_TYPES.DRAW;
-                // 現在の試合かつ、試合が完了している場合のみ強調表示（初期表示などで未実施の試合が強調されるのを防ぐ）
+                // 現在の試合かつ、試合が完了している場合のみ強調表示（初期表示などで未実施の試合が強調されるのを防ぐ）(今は使っていない)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const isCurrentMatch = match.matchId === currentMatchId && match.isCompleted;
 
                 const opacityA = getMonitorPlayerOpacity(isCompleted, isWinnerA, isDraw);
@@ -64,19 +65,8 @@ export function MonitorGroupResults({
                             className={cn(
                                 gridLayoutClass,
                                 "relative z-10 w-full",
-                                isCurrentMatch && "scale-110" // スケールを少し強調
                             )}
                         >
-                            {/* 背景のモヤモヤ（現在試合のみ） */}
-                            {isCurrentMatch && (
-                                <div
-                                    className="absolute inset-0 z-0 pointer-events-none"
-                                    style={{
-                                        background: "radial-gradient(ellipse 80% 95% at center, rgba(0,0,0,0.40) 0%, rgba(0,0,0,0.0) 80%, rgba(0,0,0,0) 90%)",
-                                        filter: "blur(8px)",
-                                    }}
-                                />
-                            )}
                             {/* --- 4/10: 選手A (上) --- */}
                             <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA, isWinnerA && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
                                 <AdjustVerticalText
