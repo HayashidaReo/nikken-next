@@ -19,7 +19,7 @@ export function ModernNavbar() {
                         <span className="text-white font-bold text-lg">N</span>
                     </div>
                     <span className="font-bold text-lg tracking-tight text-white/90 group-hover:text-white transition-colors">
-                        Nikken Next
+                        MatcHub
                     </span>
                 </Link>
 

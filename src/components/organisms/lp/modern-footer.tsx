@@ -9,9 +9,9 @@ export function ModernFooter() {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                            <span className="text-black font-bold text-lg">N</span>
+                            <span className="text-black font-bold text-lg">M</span>
                         </div>
-                        <span className="font-bold text-xl tracking-tight text-white">Nikken Next</span>
+                        <span className="font-bold text-xl tracking-tight text-white">MatcHub</span>
                     </div>
 
                     <div className="flex gap-8 text-sm text-gray-500">
@@ -21,7 +21,7 @@ export function ModernFooter() {
                     </div>
 
                     <p className="text-sm text-gray-600">
-                        © {new Date().getFullYear()} Nikken Next.
+                        © {new Date().getFullYear()} MatcHub.
                     </p>
                 </div>
             </div>

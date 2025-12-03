@@ -22,7 +22,7 @@ export function GallerySection() {
                         ギャラリー
                     </h2>
                     <p className="text-gray-400 max-w-2xl mx-auto">
-                        Nikken Nextの体験をご覧ください。
+                        MatcHubの体験をご覧ください。
                     </p>
                 </motion.div>
             </div>
