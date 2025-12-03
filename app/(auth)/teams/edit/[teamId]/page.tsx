@@ -33,6 +33,7 @@ export default function TeamEditPage() {
       lastName: string;
       firstName: string;
       displayName: string;
+      grade?: string;
     }[];
   }) => {
     try {

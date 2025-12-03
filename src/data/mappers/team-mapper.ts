@@ -25,6 +25,7 @@ export interface FirestorePlayerDoc {
   lastName: string;
   firstName: string;
   displayName: string;
+  grade?: string;
 }
 
 /**
@@ -144,6 +145,7 @@ export class TeamMapper {
       lastName: doc.lastName,
       firstName: doc.firstName,
       displayName: doc.displayName,
+      grade: doc.grade,
     };
 
     return playerSchema.parse(player);
@@ -158,6 +160,7 @@ export class TeamMapper {
       lastName: player.lastName,
       firstName: player.firstName,
       displayName: player.displayName,
+      grade: player.grade,
     };
   }
 

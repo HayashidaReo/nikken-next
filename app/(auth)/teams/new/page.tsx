@@ -29,6 +29,7 @@ export default function TeamCreatePage() {
             lastName: string;
             firstName: string;
             displayName: string;
+            grade?: string;
         }[];
     }) => {
         try {
