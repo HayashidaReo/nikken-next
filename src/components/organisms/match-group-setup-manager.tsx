@@ -48,7 +48,7 @@ export function MatchGroupSetupManager() {
         }
     };
 
-    const handleSaveMatchGroups = async (data: MatchGroupSetupData[]) => {
+    const handleSaveMatchGroups = async (data: MatchGroupSetupData[]): Promise<{ success: boolean; idMapping?: Record<string, string> }> => {
         // 既存のIDセット
         const currentIds = new Set(data.map(d => d.id).filter(id => !id.startsWith("group-")));
 
@@ -65,6 +65,8 @@ export function MatchGroupSetupManager() {
 
             // 作成・更新
             const savedGroupIds: string[] = [];
+            const idMapping: Record<string, string> = {};
+
             const savePromises = data.map(async (item) => {
                 const roundId = resolveRoundId(item);
                 if (!roundId) {
@@ -82,7 +84,10 @@ export function MatchGroupSetupManager() {
                         isCompleted: false,
                     };
                     const created = await createMatchGroup.mutateAsync(newGroup);
-                    if (created.matchGroupId) savedGroupIds.push(created.matchGroupId);
+                    if (created.matchGroupId) {
+                        savedGroupIds.push(created.matchGroupId);
+                        idMapping[item.id] = created.matchGroupId;
+                    }
                     return created;
                 } else {
                     // 更新
@@ -129,9 +134,11 @@ export function MatchGroupSetupManager() {
             } else {
                 showSuccess("変更はありませんでした");
             }
+            return { success: true, idMapping };
 
         } catch (error) {
             showError(error instanceof Error ? error.message : "チーム対戦の保存に失敗しました");
+            return { success: false };
         }
     };
 
