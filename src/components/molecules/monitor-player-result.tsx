@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils/utils";
 import { AdjustHorizontalText } from "@/components/atoms/adjust-horizontal-text";
-import { WinnerStamp } from "@/components/atoms/winner-stamp";
 import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
 
 interface MonitorPlayerResultProps {
@@ -39,11 +38,6 @@ export function MonitorPlayerResult({
                     textContent={displayName}
                     className="font-bold leading-none"
                 />
-                {isWinner && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                        <WinnerStamp />
-                    </div>
-                )}
             </div>
         </div>
     );

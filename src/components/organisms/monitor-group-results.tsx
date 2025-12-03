@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils/utils";
 import type { MonitorData } from "@/types/monitor.schema";
 import { getTeamMatchRoundLabelById, WINNER_TYPES } from "@/lib/constants";
 import { AdjustVerticalText } from "@/components/atoms/adjust-vertical-text";
-import { WinnerStamp } from "@/components/atoms/winner-stamp";
 import { DrawTriangle } from "@/components/atoms/draw-triangle";
 import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
 
@@ -79,12 +78,7 @@ export function MonitorGroupResults({
                                 />
                             )}
                             {/* --- 4/10: 選手A (上) --- */}
-                            <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA)}>
-                                {isWinnerA && (
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <WinnerStamp size={120} />
-                                    </div>
-                                )}
+                            <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA, isWinnerA && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
                                 <AdjustVerticalText
                                     textContent={match.playerA.displayName}
                                     baseFontSize={10}
@@ -117,12 +111,7 @@ export function MonitorGroupResults({
                             </div>
 
                             {/* --- 4/10: 選手B (下) --- */}
-                            <div className={cn("flex flex-col items-center justify-start pt-4 w-full h-full relative", opacityB)}>
-                                {isWinnerB && (
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <WinnerStamp size={120} />
-                                    </div>
-                                )}
+                            <div className={cn("flex flex-col items-center justify-start pt-4 w-full h-full relative", opacityB, isWinnerB && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
                                 <AdjustVerticalText
                                     textContent={match.playerB.displayName}
                                     baseFontSize={10}

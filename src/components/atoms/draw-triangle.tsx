@@ -21,8 +21,8 @@ export function DrawTriangle({ className, size = 100 }: DrawTriangleProps) {
             <path
                 d={`M${size / 2} 0 L${size} ${height} L0 ${height} Z`}
                 fill="none"
-                stroke="#08bc4aff" // green-500
-                strokeWidth={size * 0.05}
+                stroke="#08bc4ad3" // green-500
+                strokeWidth={size * 0.15}
             />
         </svg>
     );
