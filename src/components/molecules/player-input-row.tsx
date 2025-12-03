@@ -13,6 +13,7 @@ interface PlayerInputRowProps {
     index: number;
     register: UseFormRegister<TeamFormData>;
     error?: FieldError;
+    gradeError?: FieldError;
     onRemove: () => void;
     canRemove: boolean;
     control: Control<TeamFormData>;
@@ -23,6 +24,7 @@ export function PlayerInputRow({
     index,
     register,
     error,
+    gradeError,
     onRemove,
     canRemove,
     control,
@@ -67,21 +69,29 @@ export function PlayerInputRow({
                             control={control}
                             name={`players.${index}.grade`}
                             render={({ field: { value, onChange } }) => (
-                                <SearchableSelect
-                                    options={GRADE_OPTIONS}
-                                    value={
-                                        GRADES.find((g) => g.label === value)?.id
-                                    }
-                                    onValueChange={(id) => {
-                                        const label = GRADES.find((g) => g.id === id)?.label;
-                                        if (label) {
-                                            onChange(label);
+                                <>
+                                    <SearchableSelect
+                                        options={GRADE_OPTIONS}
+                                        value={
+                                            GRADES.find((g) => g.label === value)?.id
                                         }
-                                    }}
-                                    placeholder="段位"
-                                    className="h-10 bg-white"
-                                    onEnterSelect={onEnterSelect}
-                                />
+                                        onValueChange={(id) => {
+                                            const label = GRADES.find((g) => g.id === id)?.label;
+                                            if (label) {
+                                                onChange(label);
+                                            }
+                                        }}
+                                        placeholder="段位"
+                                        className="h-10 bg-white"
+                                        onEnterSelect={onEnterSelect}
+                                        hasError={!!gradeError}
+                                    />
+                                    {gradeError && (
+                                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                                            {gradeError.message}
+                                        </p>
+                                    )}
+                                </>
                             )}
                         />
                     </div>

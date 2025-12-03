@@ -34,12 +34,13 @@ export function PlayerListForm({
             index={index}
             register={register}
             error={errors.players?.[index]?.fullName}
+            gradeError={errors.players?.[index]?.grade}
             onRemove={() => remove(index)}
             canRemove={fields.length > 1}
             control={control}
             onEnterSelect={() => {
               if (index === fields.length - 1) {
-                append({ fullName: "" });
+                append({ fullName: "", grade: "" });
                 // レンダリング後に新しいフィールドにフォーカス
                 setTimeout(() => {
                   setFocus(`players.${index + 1}.fullName`);
@@ -55,7 +56,7 @@ export function PlayerListForm({
 
       <div className="pt-2">
         <AddButton
-          onClick={() => append({ fullName: "" })}
+          onClick={() => append({ fullName: "", grade: "" })}
           className="w-full h-12 border-2 border-dashed border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all"
         >
           <span className="flex items-center justify-center gap-2 font-medium">
