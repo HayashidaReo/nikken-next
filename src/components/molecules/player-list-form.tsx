@@ -34,6 +34,7 @@ export function PlayerListForm({
             error={errors.players?.[index]?.fullName}
             onRemove={() => remove(index)}
             canRemove={fields.length > 1}
+            control={control}
           />
         ))}
       </div>
