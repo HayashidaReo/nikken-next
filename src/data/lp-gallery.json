@@ -1,0 +1,26 @@
+[
+    {
+        "src": "/lp/monitor_controller.png",
+        "alt": "Monitor Controller Interface",
+        "title": "Intuitive Control Panel",
+        "description": "Manage scores and timers with ease using our clean, touch-friendly interface."
+    },
+    {
+        "src": "/lp/team_match_result.png",
+        "alt": "Team Match Result Screen",
+        "title": "Team Match Results",
+        "description": "Visualize team battles with clear, high-impact result screens."
+    },
+    {
+        "src": "/lp/match_list_dashboard.png",
+        "alt": "Match List Dashboard",
+        "title": "Tournament Management",
+        "description": "Track match progress and sync status in real-time."
+    },
+    {
+        "src": "/lp/dual_monitor_setup.png",
+        "alt": "Dual Monitor Setup",
+        "title": "Professional Display",
+        "description": "Seamless dual-screen support for a broadcast-quality experience."
+    }
+]
