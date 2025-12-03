@@ -34,7 +34,7 @@ export function createPlayerDirectory(teams: Team[]): PlayerDirectoryMaps {
                 teamId: team.teamId,
                 displayName: player.displayName,
                 teamName: team.teamName,
-                grade: player.grade,
+                grade: player.grade || undefined,
             });
         });
     });
@@ -104,7 +104,7 @@ export function resolvePlayerFromTeams(
         teamId,
         displayName: player.displayName,
         teamName: team.teamName,
-        grade: player.grade,
+        grade: player.grade || undefined,
     };
 }
 
