@@ -33,28 +33,83 @@ export function PlayerSection({
       {/* 左側：チーム名と選手名 */}
       <div className="flex items-center h-full">
         <div className="flex-1">
-          {/* チーム名は最大横幅を超過するとフォント自動縮小 */}
-          <AdjustHorizontalText
-            baseFontSize={RESPONSIVE_FONT_CONSTANTS.TEAM.BASE_FONT_SIZE}
-            minFontSize={RESPONSIVE_FONT_CONSTANTS.TEAM.MIN_FONT_SIZE}
-            maxWidth={RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH}
-            textContent={player.teamName || "チーム名未設定"}
-            style={{
-              height: `${RESPONSIVE_FONT_CONSTANTS.TEAM.HEIGHT}px`,
-            }}
-            className="font-bold mb-2 opacity-90 py-4 flex items-center"
-          />
-          {/* 選手名は最大横幅を超過するとフォント自動縮小 */}
-          <AdjustHorizontalText
-            baseFontSize={RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE}
-            minFontSize={RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE}
-            maxWidth={RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}
-            textContent={playerName}
-            style={{
-              height: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.HEIGHT}px`,
-            }}
-            className="font-black leading-none"
-          />
+          {/* 選手A (赤): チーム名 -> 選手名 -> 段位 */}
+          {variant === "red" && (
+            <>
+              {/* チーム名は最大横幅を超過するとフォント自動縮小 */}
+              <AdjustHorizontalText
+                baseFontSize={RESPONSIVE_FONT_CONSTANTS.TEAM.BASE_FONT_SIZE}
+                minFontSize={RESPONSIVE_FONT_CONSTANTS.TEAM.MIN_FONT_SIZE}
+                maxWidth={RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH}
+                textContent={player.teamName || "チーム名未設定"}
+                style={{
+                  height: `${RESPONSIVE_FONT_CONSTANTS.TEAM.HEIGHT}px`,
+                }}
+                className="font-bold mb-2 opacity-90 py-4 flex items-center"
+              />
+              {/* 選手名は最大横幅を超過するとフォント自動縮小 */}
+              <AdjustHorizontalText
+                baseFontSize={RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE}
+                minFontSize={RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE}
+                maxWidth={RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}
+                textContent={playerName}
+                style={{
+                  height: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.HEIGHT}px`,
+                }}
+                className="font-black leading-none"
+              />
+              {player.grade && (
+                <div className="mt-2">
+                  <AdjustHorizontalText
+                    textContent={player.grade}
+                    baseFontSize={4}
+                    minFontSize={1}
+                    maxWidth={200}
+                    className="font-bold text-white bg-red-500 px-4 py-0.5 rounded w-fit"
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          {/* 選手B (白): 段位 -> チーム名 -> 選手名 */}
+          {variant === "white" && (
+            <>
+              {player.grade && (
+                <div className="mb-2">
+                  <AdjustHorizontalText
+                    textContent={player.grade}
+                    baseFontSize={4}
+                    minFontSize={1}
+                    maxWidth={200}
+                    className="font-bold text-gray-700 bg-gray-200 px-4 py-0.5 rounded w-fit"
+                  />
+                </div>
+              )}
+              {/* チーム名は最大横幅を超過するとフォント自動縮小 */}
+              <AdjustHorizontalText
+                baseFontSize={RESPONSIVE_FONT_CONSTANTS.TEAM.BASE_FONT_SIZE}
+                minFontSize={RESPONSIVE_FONT_CONSTANTS.TEAM.MIN_FONT_SIZE}
+                maxWidth={RESPONSIVE_FONT_CONSTANTS.TEAM.MAX_WIDTH}
+                textContent={player.teamName || "チーム名未設定"}
+                style={{
+                  height: `${RESPONSIVE_FONT_CONSTANTS.TEAM.HEIGHT}px`,
+                }}
+                className="font-bold mb-2 opacity-90 py-4 flex items-center"
+              />
+              {/* 選手名は最大横幅を超過するとフォント自動縮小 */}
+              <AdjustHorizontalText
+                baseFontSize={RESPONSIVE_FONT_CONSTANTS.PLAYER.BASE_FONT_SIZE}
+                minFontSize={RESPONSIVE_FONT_CONSTANTS.PLAYER.MIN_FONT_SIZE}
+                maxWidth={RESPONSIVE_FONT_CONSTANTS.PLAYER.MAX_WIDTH}
+                textContent={playerName}
+                style={{
+                  height: `${RESPONSIVE_FONT_CONSTANTS.PLAYER.HEIGHT}px`,
+                }}
+                className="font-black leading-none"
+              />
+            </>
+          )}
         </div>
       </div>
 
