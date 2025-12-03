@@ -327,7 +327,7 @@ export function TeamForm({
                           options={GRADE_OPTIONS}
                           value={
                             GRADES.find(
-                              (g) => g.label === getValues(`players.${index}.grade`)
+                              (g) => g.label === watchedPlayers?.[index]?.grade
                             )?.id
                           }
                           onValueChange={(id) => {
