@@ -35,10 +35,12 @@ export function AdjustVerticalText({
                 writingMode: "vertical-rl",
                 textOrientation: "upright",
                 whiteSpace: "nowrap",
-                lineHeight: "1.2",
+                lineHeight: "1",
+                letterSpacing: "-0.02em",
                 fontSize: `${fontSizeRem}rem`,
                 maxHeight: `${maxHeight}px`,
                 overflow: "hidden",
+                transform: "translateX(-3%)", // 微調整: 少し左に寄せる
                 ...style,
             }}
             className={cn("", className)}
