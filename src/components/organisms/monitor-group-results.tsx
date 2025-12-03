@@ -34,7 +34,7 @@ export function MonitorGroupResults({
             ref={containerRef}
             className={cn(
                 // 親コンテナでの items-center は維持（全体を画面垂直中央にするため）
-                "grid items-center p-12 min-h-[800px] bg-white w-full",
+                "grid items-center p-4 min-h-[800px] bg-white w-full",
                 className
             )}
             style={{
@@ -68,12 +68,12 @@ export function MonitorGroupResults({
                             )}
                         >
                             {/* --- 4/10: 選手A (上) --- */}
-                            <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA, isWinnerA && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
+                            <div className={cn("flex flex-col items-center justify-end pb-2 w-full h-full relative", opacityA, isWinnerA && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
                                 <AdjustVerticalText
                                     textContent={match.playerA.displayName}
-                                    baseFontSize={10}
+                                    baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={400}
+                                    maxHeight={390}
                                     className="font-bold text-black tracking-widest"
                                 />
                             </div>
@@ -101,12 +101,12 @@ export function MonitorGroupResults({
                             </div>
 
                             {/* --- 4/10: 選手B (下) --- */}
-                            <div className={cn("flex flex-col items-center justify-start pt-4 w-full h-full relative", opacityB, isWinnerB && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
+                            <div className={cn("flex flex-col items-center justify-start pt-2 w-full h-full relative", opacityB, isWinnerB && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
                                 <AdjustVerticalText
                                     textContent={match.playerB.displayName}
-                                    baseFontSize={10}
+                                    baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={350}
+                                    maxHeight={390}
                                     className="font-bold text-black tracking-widest"
                                 />
                             </div>
