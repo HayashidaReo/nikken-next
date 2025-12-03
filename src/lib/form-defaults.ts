@@ -48,6 +48,7 @@ export const teamEditSchema = z.object({
       lastName: z.string().min(1, "姓は必須です"),
       firstName: z.string().min(1, "名は必須です"),
       displayName: z.string(),
+      grade: z.string().optional(),
     })
   ),
 });
@@ -62,7 +63,7 @@ export const defaultTeamFormValues: TeamFormData = {
   representativePhone: "",
   representativeEmail: "",
   teamName: "",
-  players: [{ fullName: "" }],
+  players: [{ fullName: "", grade: "" }],
   remarks: "",
 };
 
@@ -119,6 +120,7 @@ export function createDefaultTeamEditValues(team: {
     lastName: string;
     firstName: string;
     displayName: string;
+    grade?: string | null;
   }>;
 }): TeamEditData {
   return {
@@ -133,6 +135,7 @@ export function createDefaultTeamEditValues(team: {
       lastName: player.lastName,
       firstName: player.firstName,
       displayName: player.displayName,
+      grade: player.grade ?? "",
     })),
   };
 }

@@ -22,6 +22,7 @@ export interface Player {
   displayName: string;
   score: number;
   hansoku: number;
+  grade?: string;
 }
 
 interface PlayerScoreCardProps {
@@ -88,9 +89,16 @@ export function PlayerScoreCard({
         <div className="grid grid-cols-3 items-center">
           <div className="flex items-center justify-start space-x-2">
             {playerKey === "A" ? (
-              <div className="flex items-center gap-2">
-                <CardTitle className={cn(titleColor)}>{title}</CardTitle>
-                <ShortcutBadge shortcut={playerKey} className="text-xs" />
+              <div className="flex flex-col items-start gap-1">
+                <div className="flex items-center gap-2">
+                  <CardTitle className={cn(titleColor)}>{title}</CardTitle>
+                  <ShortcutBadge shortcut={playerKey} className="text-xs" />
+                </div>
+                {player.grade && (
+                  <span className="text-lg font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                    {player.grade}
+                  </span>
+                )}
               </div>
             ) : (
               <PenaltyDisplay hansokuCount={player.hansoku as HansokuLevel} variant="medium" ariaLabel={`${title} の反則`} />
@@ -100,9 +108,16 @@ export function PlayerScoreCard({
 
           <div className="flex items-center justify-end space-x-2">
             {playerKey === "B" ? (
-              <div className="flex items-center gap-2">
-                <ShortcutBadge shortcut={playerKey} className="text-xs" />
-                <CardTitle className={cn(titleColor)}>{title}</CardTitle>
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2">
+                  <ShortcutBadge shortcut={playerKey} className="text-xs" />
+                  <CardTitle className={cn(titleColor)}>{title}</CardTitle>
+                </div>
+                {player.grade && (
+                  <span className="text-lg font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                    {player.grade}
+                  </span>
+                )}
               </div>
             ) : (
               <PenaltyDisplay hansokuCount={player.hansoku as HansokuLevel} variant="medium" ariaLabel={`${title} の反則`} />

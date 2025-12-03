@@ -15,7 +15,7 @@ export const getMonitorPlayerOpacity = (
     isDraw: boolean
 ) => {
     if (!isCompleted) return "opacity-40";
-    if (isDraw) return "opacity-50";
+    if (isDraw) return "opacity-100";
     if (isWinner) return "opacity-100 font-bold";
-    return "opacity-50";
+    return "opacity-100";
 };

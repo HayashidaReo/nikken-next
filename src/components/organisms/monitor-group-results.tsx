@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils/utils";
 import type { MonitorData } from "@/types/monitor.schema";
 import { getTeamMatchRoundLabelById, WINNER_TYPES } from "@/lib/constants";
 import { AdjustVerticalText } from "@/components/atoms/adjust-vertical-text";
-import { WinnerStamp } from "@/components/atoms/winner-stamp";
+import { DrawTriangle } from "@/components/atoms/draw-triangle";
 import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
 
 interface MonitorGroupResultsProps {
@@ -26,15 +26,14 @@ export function MonitorGroupResults({
 
     const totalColumns = reversedMatches.length + 1;
 
-    // grid-rows-[4fr_2fr_4fr] に変更
-    const gridLayoutClass = "grid grid-rows-[4fr_2fr_4fr]";
+    const gridLayoutClass = "grid grid-rows-[450px_170px_450px]";
 
     return (
         <div
             ref={containerRef}
             className={cn(
                 // 親コンテナでの items-center は維持（全体を画面垂直中央にするため）
-                "grid items-center p-12 min-h-[800px] bg-transparent w-full",
+                "grid items-center bg-white w-full",
                 className
             )}
             style={{
@@ -46,7 +45,8 @@ export function MonitorGroupResults({
                 const isWinnerA = match.winner === WINNER_TYPES.PLAYER_A;
                 const isWinnerB = match.winner === WINNER_TYPES.PLAYER_B;
                 const isDraw = match.winner === WINNER_TYPES.DRAW;
-                // 現在の試合かつ、試合が完了している場合のみ強調表示（初期表示などで未実施の試合が強調されるのを防ぐ）
+                // 現在の試合かつ、試合が完了している場合のみ強調表示（初期表示などで未実施の試合が強調されるのを防ぐ）(今は使っていない)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const isCurrentMatch = match.matchId === currentMatchId && match.isCompleted;
 
                 const opacityA = getMonitorPlayerOpacity(isCompleted, isWinnerA, isDraw);
@@ -64,33 +64,34 @@ export function MonitorGroupResults({
                             className={cn(
                                 gridLayoutClass,
                                 "relative z-10 w-full",
-                                isCurrentMatch && "scale-110" // スケールを少し強調
                             )}
                         >
-                            {/* 背景のモヤモヤ（現在試合のみ） */}
-                            {isCurrentMatch && (
-                                <div
-                                    className="absolute inset-0 z-0 pointer-events-none"
-                                    style={{
-                                        background: "radial-gradient(ellipse 80% 95% at center, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0) 90%)",
-                                        filter: "blur(8px)",
-                                    }}
-                                />
-                            )}
                             {/* --- 4/10: 選手A (上) --- */}
-                            <div className={cn("flex flex-col items-center justify-end pb-4 w-full h-full relative", opacityA)}>
-                                {isWinnerA && (
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <WinnerStamp size={100} />
-                                    </div>
-                                )}
+                            <div className={cn(
+                                "flex flex-col items-center justify-center pb-2 w-full h-full relative",
+                                opacityA,
+                                // 常に枠のスペースを確保（勝者なら赤、それ以外は透明）
+                                "border-[20px] rounded-xl w-[85%] mx-auto",
+                                isWinnerA ? "border-red-600" : "border-transparent"
+                            )}>
                                 <AdjustVerticalText
                                     textContent={match.playerA.displayName}
-                                    baseFontSize={10}
+                                    baseFontSize={12}
                                     minFontSize={2.5}
                                     maxHeight={400}
-                                    className="font-bold text-white tracking-widest"
+                                    className="font-bold text-black w-fit"
                                 />
+                                {/* {match.playerA.grade && (
+                                    <div className="absolute top-5 -right-16 bg-gray-200 px-1 py-1 rounded">
+                                        <AdjustVerticalText
+                                            textContent={match.playerA.grade}
+                                            baseFontSize={8}
+                                            minFontSize={3}
+                                            maxHeight={130}
+                                            className="font-bold text-gray-700"
+                                        />
+                                    </div>
+                                )} */}
                             </div>
 
                             {/* --- 2/10: ラウンドラベル (中央) --- */}
@@ -99,31 +100,48 @@ export function MonitorGroupResults({
                                     <div className="w-px h-full bg-border/30" />
                                 </div>
 
-                                <div className="bg-background/80 px-4 py-4 rounded-sm border border-border/40 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
+                                <div className="bg-background/80 px-2 py-2 rounded-sm border border-gray-500 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
                                     <AdjustVerticalText
                                         textContent={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
-                                        baseFontSize={2.5}
+                                        baseFontSize={4}
                                         minFontSize={1}
                                         maxHeight={120}
-                                        className="font-medium text-gray-300 tracking-widest"
+                                        className="font-medium text-gray-900 w-fit mx-auto"
                                     />
                                 </div>
+                                {isDraw && (
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                                        <DrawTriangle size={120} />
+                                    </div>
+                                )}
                             </div>
 
                             {/* --- 4/10: 選手B (下) --- */}
-                            <div className={cn("flex flex-col items-center justify-start pt-4 w-full h-full relative", opacityB)}>
-                                {isWinnerB && (
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <WinnerStamp size={100} />
-                                    </div>
-                                )}
+                            <div className={cn(
+                                "flex flex-col items-center justify-center pt-2 w-full h-full relative",
+                                opacityB,
+                                // 常に枠のスペースを確保（勝者なら赤、それ以外は透明）
+                                "border-[20px] rounded-xl w-[85%] mx-auto",
+                                isWinnerB ? "border-red-600" : "border-transparent"
+                            )}>
                                 <AdjustVerticalText
                                     textContent={match.playerB.displayName}
-                                    baseFontSize={10}
+                                    baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={350}
-                                    className="font-bold text-white tracking-widest"
+                                    maxHeight={400}
+                                    className="font-bold text-black w-fit"
                                 />
+                                {/* {match.playerB.grade && (
+                                    <div className="absolute top-5 -right-16 bg-gray-200 px-1 py-1 rounded">
+                                        <AdjustVerticalText
+                                            textContent={match.playerB.grade}
+                                            baseFontSize={8}
+                                            minFontSize={3}
+                                            maxHeight={130}
+                                            className="font-bold text-gray-700"
+                                        />
+                                    </div>
+                                )} */}
                             </div>
                         </div>
                     </div>
@@ -133,13 +151,13 @@ export function MonitorGroupResults({
             {/* --- チーム名エリア (一番右) --- */}
             <div className={cn(gridLayoutClass, "w-full")}>
                 {/* 4/10: チームA */}
-                <div className="flex items-center justify-center h-full border-l-4 border-primary/20">
+                <div className="flex items-center justify-center h-full border-primary/20">
                     <AdjustVerticalText
                         textContent={teamAName}
                         baseFontSize={8}
                         minFontSize={3}
                         maxHeight={400}
-                        className="font-bold text-white tracking-widest"
+                        className="font-bold text-black w-fit"
                     />
                 </div>
 
@@ -149,13 +167,13 @@ export function MonitorGroupResults({
                 </div>
 
                 {/* 4/10: チームB */}
-                <div className="flex items-center justify-center h-full border-l-4 border-primary/20">
+                <div className="flex items-center justify-center h-full border-primary/20">
                     <AdjustVerticalText
                         textContent={teamBName}
                         baseFontSize={8}
                         minFontSize={3}
                         maxHeight={400}
-                        className="font-bold text-white tracking-widest"
+                        className="font-bold text-black w-fit"
                     />
                 </div>
             </div>

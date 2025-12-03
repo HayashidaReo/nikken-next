@@ -40,6 +40,8 @@ import { createDefaultTeamEditValues } from "@/lib/form-defaults";
 
 import { teamManagementSchema } from "@/types/team.schema";
 import { DisplayNameService } from "@/domains/team/services/display-name.service";
+import { SearchableSelect } from "@/components/molecules/searchable-select";
+import { GRADES, GRADE_OPTIONS } from "@/lib/constants";
 
 
 // 編集用のスキーマ
@@ -74,6 +76,7 @@ export function TeamForm({
     handleSubmit,
     setValue,
     getValues,
+    setFocus,
     formState: { errors, isDirty },
   } = useForm<TeamEditData>({
     resolver: zodResolver(teamEditSchema),
@@ -92,6 +95,7 @@ export function TeamForm({
             lastName: "",
             firstName: "",
             displayName: "",
+            grade: "",
           },
         ],
       },
@@ -289,7 +293,7 @@ export function TeamForm({
                   {fields.map((field, index) => (
                     <AnimatedListItem
                       key={field.id}
-                      className="grid grid-cols-1 md:grid-cols-[repeat(3,1fr)_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
+                      className="grid grid-cols-1 md:grid-cols-[repeat(4,1fr)_80px] gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors"
                     >
                       <div>
                         <Label className="text-sm">姓 *</Label>
@@ -313,6 +317,46 @@ export function TeamForm({
                         {errors.players?.[index]?.firstName && (
                           <p className="text-sm text-red-600 mt-1">
                             {errors.players[index]?.firstName?.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label className="text-sm">段位</Label>
+                        <SearchableSelect
+                          options={GRADE_OPTIONS}
+                          value={
+                            GRADES.find(
+                              (g) => g.label === watchedPlayers?.[index]?.grade
+                            )?.id
+                          }
+                          onValueChange={(id) => {
+                            const label = GRADES.find((g) => g.id === id)?.label;
+                            if (label) {
+                              setValue(`players.${index}.grade`, label, {
+                                shouldDirty: true,
+                              });
+                            }
+                          }}
+                          placeholder="段位を選択"
+                          className="h-10"
+                          onEnterSelect={() => {
+                            if (index === fields.length - 1) {
+                              addPlayer();
+                              // レンダリング後に新しいフィールドにフォーカス
+                              setTimeout(() => {
+                                setFocus(`players.${index + 1}.lastName`);
+                              }, 0);
+                            } else {
+                              // 次の行の姓にフォーカス
+                              setFocus(`players.${index + 1}.lastName`);
+                            }
+                          }}
+                          hasError={!!errors.players?.[index]?.grade}
+                        />
+                        {errors.players?.[index]?.grade && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.players[index]?.grade?.message}
                           </p>
                         )}
                       </div>
