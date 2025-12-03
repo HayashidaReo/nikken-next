@@ -82,7 +82,7 @@ export function MonitorGroupResults({
                                     maxHeight={400}
                                     className="font-bold text-black w-fit"
                                 />
-                                {match.playerA.grade && (
+                                {/* {match.playerA.grade && (
                                     <div className="absolute top-5 -right-16 bg-gray-200 px-1 py-1 rounded">
                                         <AdjustVerticalText
                                             textContent={match.playerA.grade}
@@ -92,7 +92,7 @@ export function MonitorGroupResults({
                                             className="font-bold text-gray-700"
                                         />
                                     </div>
-                                )}
+                                )} */}
                             </div>
 
                             {/* --- 2/10: ラウンドラベル (中央) --- */}
@@ -131,8 +131,8 @@ export function MonitorGroupResults({
                                     minFontSize={2.5}
                                     maxHeight={400}
                                     className="font-bold text-black w-fit"
-                                />
-                                {match.playerB.grade && (
+                                />                                
+                                {/* {match.playerB.grade && (
                                     <div className="absolute top-5 -right-16 bg-gray-200 px-1 py-1 rounded">
                                         <AdjustVerticalText
                                             textContent={match.playerB.grade}
@@ -142,7 +142,7 @@ export function MonitorGroupResults({
                                             className="font-bold text-gray-700"
                                         />
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         </div>
                     </div>
