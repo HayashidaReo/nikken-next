@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { LogIn } from "lucide-react";
 import { MagneticButton } from "@/components/atoms/magnetic-button";
 
+import Image from "next/image";
+
 export function ModernNavbar() {
     return (
         <motion.nav
@@ -15,8 +17,8 @@ export function ModernNavbar() {
         >
             <div className="flex items-center justify-between w-full max-w-5xl px-6 py-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-black/20">
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <span className="text-white font-bold text-lg">N</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative">
+                        <Image src="/icon.svg" alt="MatcHub Logo" fill className="object-contain p-1" />
                     </div>
                     <span className="font-bold text-lg tracking-tight text-white/90 group-hover:text-white transition-colors">
                         MatcHub

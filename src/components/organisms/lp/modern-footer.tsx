@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 
+import Image from "next/image";
+
 export function ModernFooter() {
     return (
         <footer className="bg-[#050505] border-t border-white/5 py-20">
             <div className="container mx-auto px-4">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                            <span className="text-black font-bold text-lg">M</span>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center relative">
+                            <Image src="/icon.svg" alt="MatcHub Logo" fill className="object-contain p-1" />
                         </div>
                         <span className="font-bold text-xl tracking-tight text-white">MatcHub</span>
                     </div>
