@@ -7,7 +7,7 @@ describe("team-form.schema", () => {
             representativeName: "田中 太郎",
             representativePhone: "090-1234-5678",
             representativeEmail: "tanaka@example.com",
-            players: [{ fullName: "山田 太郎" }, { fullName: "佐藤 花子" }],
+            players: [{ fullName: "山田 太郎", grade: "初段" }, { fullName: "佐藤 花子", grade: "二段" }],
             remarks: "特記事項なし",
         };
 
@@ -96,7 +96,7 @@ describe("team-form.schema", () => {
         test("選手名が空の場合エラーになる", () => {
             const invalidData = {
                 ...validData,
-                players: [{ fullName: "山田 太郎" }, { fullName: "" }],
+                players: [{ fullName: "山田 太郎", grade: "初段" }, { fullName: "", grade: "二段" }],
             };
             const result = teamFormSchema.safeParse(invalidData);
             expect(result.success).toBe(false);
@@ -114,8 +114,8 @@ describe("team-form.schema", () => {
             const invalidData = {
                 ...validData,
                 players: [
-                    { fullName: "山田 太郎" },
-                    { fullName: "単一名" }, // 姓名分割できない
+                    { fullName: "山田 太郎", grade: "初段" },
+                    { fullName: "単一名", grade: "二段" }, // 姓名分割できない
                 ],
             };
             const result = teamFormSchema.safeParse(invalidData);
