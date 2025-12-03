@@ -87,6 +87,7 @@ export function useTeamMatchController({
     // 判定のために現在のスコアを取得
     const playerA = useMonitorStore((s) => s.playerA);
     const playerB = useMonitorStore((s) => s.playerB);
+    const matchResult = useMonitorStore((s) => s.matchResult);
 
 
 
@@ -109,7 +110,12 @@ export function useTeamMatchController({
             teamMatches,
             matchId,
             currentSortOrder,
-            { playerA, playerB }
+            {
+                playerA,
+                playerB,
+                winner: matchResult?.winner,
+                winReason: matchResult?.winReason,
+            }
         );
         isAllFinished = status.isAllFinished;
         needsRepMatch = status.needsRepMatch;
@@ -149,12 +155,14 @@ export function useTeamMatchController({
                             teamName: pA.teamName,
                             score: m.players.playerA.score,
                             hansoku: m.players.playerA.hansoku,
+                            grade: pA.grade,
                         },
                         playerB: {
                             displayName: pB.displayName,
                             teamName: pB.teamName,
                             score: m.players.playerB.score,
                             hansoku: m.players.playerB.hansoku,
+                            grade: pB.grade,
                         },
                         winner: w,
                         winReason: m.winReason || "none",
@@ -166,8 +174,8 @@ export function useTeamMatchController({
             if (currentMatchIndex !== -1) {
                 results[currentMatchIndex] = {
                     ...results[currentMatchIndex],
-                    playerA: snapshot.playerA,
-                    playerB: snapshot.playerB,
+                    playerA: { ...snapshot.playerA, grade: snapshot.playerA.grade },
+                    playerB: { ...snapshot.playerB, grade: snapshot.playerB.grade },
                     winner,
                 };
             }

@@ -73,7 +73,7 @@ export function ScoreboardOperator({
               player={playerA}
               playerKey="A"
               title="選手A"
-              titleColor="text-blue-600"
+              titleColor="text-red-600"
               onScoreChange={setPlayerScore}
               onHansokuChange={setPlayerHansoku}
               isSelected={selectedPlayer === "playerA"}
@@ -99,7 +99,7 @@ export function ScoreboardOperator({
               player={playerB}
               playerKey="B"
               title="選手B"
-              titleColor="text-red-600"
+              titleColor="text-gray-600"
               onScoreChange={setPlayerScore}
               onHansokuChange={setPlayerHansoku}
               isSelected={selectedPlayer === "playerB"}

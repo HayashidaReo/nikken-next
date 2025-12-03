@@ -10,6 +10,7 @@ export const monitorPlayerSchema = z.object({
     teamName: z.string(),
     score: z.number(),
     hansoku: z.number(),
+    grade: z.string().optional(),
 });
 
 /**
