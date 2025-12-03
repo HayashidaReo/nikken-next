@@ -24,13 +24,17 @@ export function ModernNavbar() {
                 </Link>
 
                 <div className="hidden md:flex items-center gap-8">
-                    {["Features", "Download", "Gallery"].map((item) => (
+                    {[
+                        { label: "機能", href: "#features" },
+                        { label: "ダウンロード", href: "#download" },
+                        { label: "ギャラリー", href: "#gallery" }
+                    ].map((item) => (
                         <Link
-                            key={item}
-                            href={`#${item.toLowerCase()}`}
+                            key={item.label}
+                            href={item.href}
                             className="text-sm font-medium text-white/60 hover:text-white transition-colors relative group"
                         >
-                            {item}
+                            {item.label}
                             <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all duration-300 group-hover:w-full" />
                         </Link>
                     ))}
@@ -40,7 +44,7 @@ export function ModernNavbar() {
                     <MagneticButton>
                         <Link href="/manual-monitor-control">
                             <button className="hidden md:flex items-center gap-2 px-5 py-2 bg-white/10 text-white text-sm font-bold rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10">
-                                Try Demo
+                                デモを試す
                             </button>
                         </Link>
                     </MagneticButton>
@@ -49,7 +53,7 @@ export function ModernNavbar() {
                         <Link href="/login">
                             <button className="flex items-center gap-2 px-5 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-blue-50 transition-colors">
                                 <LogIn className="w-4 h-4" />
-                                Login
+                                ログイン
                             </button>
                         </Link>
                     </MagneticButton>

@@ -2,9 +2,6 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { ArrowRight } from "lucide-react";
-import { MagneticButton } from "@/components/atoms/magnetic-button";
-import Link from "next/link";
 import Image from "next/image";
 
 export function ModernHero() {
@@ -40,7 +37,7 @@ export function ModernHero() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                     </span>
-                    v1.0 Available Now
+                    v1.0 リリース
                 </motion.div>
 
                 <motion.h1
@@ -49,9 +46,9 @@ export function ModernHero() {
                     transition={{ duration: 0.8, delay: 0.3 }}
                     className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-white mb-8"
                 >
-                    The Future of <br />
+                    日本拳法大会運営の <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x">
-                        Kempo Management
+                        未来形
                     </span>
                 </motion.h1>
 
@@ -61,9 +58,9 @@ export function ModernHero() {
                     transition={{ duration: 0.8, delay: 0.4 }}
                     className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed"
                 >
-                    Offline-first. Dual-screen support. Real-time sync.
+                    オフラインファースト。デュアルモニター対応。リアルタイム同期。
                     <br />
-                    Experience the next generation of tournament operations.
+                    次世代の大会運営を体験してください。
                 </motion.p>
 
                 {/* CTAs moved to Navbar */}

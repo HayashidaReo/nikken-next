@@ -6,29 +6,29 @@ import Image from "next/image";
 
 const features = [
     {
-        title: "Offline First",
-        description: "Works perfectly without internet. Data syncs automatically when you're back online.",
+        title: "オフラインファースト",
+        description: "インターネットなしで完璧に動作。オンライン復帰時にデータは同期可能です。",
         icon: <WifiOff className="w-6 h-6" />,
         className: "md:col-span-2",
         image: "/lp/match_list_dashboard.png",
     },
     {
-        title: "Dual Screen",
-        description: "Professional scoreboard display via HDMI/AirPlay.",
+        title: "スクリーン表示",
+        description: "HDMI/AirPlay経由で洗礼された得点板を表示。",
         icon: <Monitor className="w-6 h-6" />,
         className: "md:col-span-1",
         image: "/lp/dual_monitor_setup.png",
     },
     {
-        title: "Real-time Sync",
-        description: "Instant updates across all devices in the venue.",
+        title: "リアルタイム同期",
+        description: "会場内の全デバイスで瞬時に情報を更新。(オンライン接続時)",
         icon: <Cloud className="w-6 h-6" />,
         className: "md:col-span-1",
         image: null,
     },
     {
-        title: "Keyboard Control",
-        description: "Optimized shortcuts for rapid score entry.",
+        title: "キーボード操作",
+        description: "素早いスコア入力のための最適化されたショートカット。",
         icon: <Keyboard className="w-6 h-6" />,
         className: "md:col-span-2",
         image: "/lp/monitor_controller.png",
@@ -47,8 +47,8 @@ export function BentoGrid() {
                     className="text-center mb-20"
                 >
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-                        Everything you need to run <br />
-                        <span className="text-gray-500">a world-class tournament.</span>
+                        世界基準の大会運営に <br />
+                        <span className="text-gray-500">必要なすべてを。</span>
                     </h2>
                 </motion.div>
 

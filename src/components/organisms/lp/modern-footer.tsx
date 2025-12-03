@@ -15,9 +15,9 @@ export function ModernFooter() {
                     </div>
 
                     <div className="flex gap-8 text-sm text-gray-500">
-                        <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
-                        <Link href="#" className="hover:text-white transition-colors">Terms</Link>
-                        <Link href="#" className="hover:text-white transition-colors">Contact</Link>
+                        <Link href="#" className="hover:text-white transition-colors">プライバシーポリシー</Link>
+                        <Link href="#" className="hover:text-white transition-colors">利用規約</Link>
+                        <Link href="#" className="hover:text-white transition-colors">お問い合わせ</Link>
                     </div>
 
                     <p className="text-sm text-gray-600">
