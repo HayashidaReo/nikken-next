@@ -352,7 +352,13 @@ export function TeamForm({
                               setFocus(`players.${index + 1}.lastName`);
                             }
                           }}
+                          hasError={!!errors.players?.[index]?.grade}
                         />
+                        {errors.players?.[index]?.grade && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.players[index]?.grade?.message}
+                          </p>
+                        )}
                       </div>
 
                       <div>

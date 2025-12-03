@@ -26,15 +26,14 @@ export function MonitorGroupResults({
 
     const totalColumns = reversedMatches.length + 1;
 
-    // grid-rows-[450px_180px_450px] に変更
-    const gridLayoutClass = "grid grid-rows-[438px_170px_438px]";
+    const gridLayoutClass = "grid grid-rows-[450px_170px_450px]";
 
     return (
         <div
             ref={containerRef}
             className={cn(
                 // 親コンテナでの items-center は維持（全体を画面垂直中央にするため）
-                "grid items-center p-4 min-h-[800px] bg-white w-full",
+                "grid items-center bg-white w-full",
                 className
             )}
             style={{
@@ -69,7 +68,7 @@ export function MonitorGroupResults({
                         >
                             {/* --- 4/10: 選手A (上) --- */}
                             <div className={cn(
-                                "flex flex-col items-center justify-end pb-2 w-full h-full relative",
+                                "flex flex-col items-center justify-center pb-2 w-full h-full relative",
                                 opacityA,
                                 // 常に枠のスペースを確保（勝者なら赤、それ以外は透明）
                                 "border-[20px] rounded-xl w-[85%] mx-auto",
@@ -119,7 +118,7 @@ export function MonitorGroupResults({
 
                             {/* --- 4/10: 選手B (下) --- */}
                             <div className={cn(
-                                "flex flex-col items-center justify-start pt-2 w-full h-full relative",
+                                "flex flex-col items-center justify-center pt-2 w-full h-full relative",
                                 opacityB,
                                 // 常に枠のスペースを確保（勝者なら赤、それ以外は透明）
                                 "border-[20px] rounded-xl w-[85%] mx-auto",
@@ -131,7 +130,7 @@ export function MonitorGroupResults({
                                     minFontSize={2.5}
                                     maxHeight={400}
                                     className="font-bold text-black w-fit"
-                                />                                
+                                />
                                 {/* {match.playerB.grade && (
                                     <div className="absolute top-5 -right-16 bg-gray-200 px-1 py-1 rounded">
                                         <AdjustVerticalText

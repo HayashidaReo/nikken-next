@@ -19,7 +19,10 @@ interface TeamMatchEditFormState {
     showResetConfirm: boolean;
 }
 
+import { useMatchGroupPersistence } from "@/hooks/useMatchGroupPersistence";
+
 export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEditFormProps) {
+    const { syncTeamMatchToCloud } = useMatchGroupPersistence();
     const { handleSaveMatchResult } = useTeamMatchController();
 
     const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
@@ -59,6 +62,12 @@ export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEdi
             isCompleted: true,
         });
         await handleSaveMatchResult(updateObject);
+
+        // オンラインなら非同期で同期（待機しない）
+        if (match.matchGroupId) {
+            syncTeamMatchToCloud(match.matchGroupId, match.matchId || "", { showSuccessToast: true });
+        }
+
         onClose();
     };
 
@@ -77,6 +86,12 @@ export function useTeamMatchEditForm({ match, isOpen, onClose }: UseTeamMatchEdi
             isCompleted: false,
         });
         await handleSaveMatchResult(updateObject);
+
+        // オンラインなら非同期で同期（待機しない）
+        if (match.matchGroupId) {
+            syncTeamMatchToCloud(match.matchGroupId, match.matchId || "", { showSuccessToast: true });
+        }
+
         setState(prev => ({ ...prev, showResetConfirm: false }));
         onClose();
     };

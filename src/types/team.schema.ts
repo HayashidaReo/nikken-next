@@ -8,7 +8,7 @@ export const playerSchema = z.object({
   lastName: z.string().min(1, "姓は必須です"),
   firstName: z.string().min(1, "名は必須です"),
   displayName: z.string().default(""), // displayNameはCloud Functionで生成
-  grade: z.string().optional(), // 段位
+  grade: z.string().nullable().optional(), // 段位
 });
 
 /**
@@ -51,6 +51,7 @@ export const teamManagementSchema = baseTeamSchema.extend({
   players: z.array(
     playerSchema.extend({
       displayName: z.string(),
+      grade: z.string({ message: "段位を選択してください" }).min(1, "段位を選択してください"),
     })
   ).min(1, "最低1人の選手を登録してください"),
   remarks: z.string(),

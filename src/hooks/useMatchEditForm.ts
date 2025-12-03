@@ -18,7 +18,10 @@ interface MatchEditFormState {
     showResetConfirm: boolean;
 }
 
+import { useMatchPersistence } from "@/hooks/useMatchPersistence";
+
 export function useMatchEditForm({ match, isOpen, onClose }: UseMatchEditFormProps) {
+    const { syncMatchToCloud } = useMatchPersistence();
     const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
     const [state, setState] = useState<MatchEditFormState>({
         winner: match.winner,
@@ -66,6 +69,10 @@ export function useMatchEditForm({ match, isOpen, onClose }: UseMatchEditFormPro
             isCompleted: true,
             isSynced: false,
         });
+
+        // オンラインなら非同期で同期（待機しない）
+        syncMatchToCloud(match.matchId, { showSuccessToast: true });
+
         onClose();
     };
 
@@ -94,6 +101,10 @@ export function useMatchEditForm({ match, isOpen, onClose }: UseMatchEditFormPro
             isCompleted: false,
             isSynced: false,
         });
+
+        // オンラインなら非同期で同期（待機しない）
+        syncMatchToCloud(match.matchId, { showSuccessToast: true });
+
         setState(prev => ({ ...prev, showResetConfirm: false }));
         onClose();
     };
