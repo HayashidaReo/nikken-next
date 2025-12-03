@@ -1,7 +1,7 @@
 "use client";
 
 import { useFieldArray } from "react-hook-form";
-import { Control, FieldErrors, UseFormRegister } from "react-hook-form";
+import { Control, FieldErrors, UseFormRegister, UseFormSetFocus } from "react-hook-form";
 
 import { AddButton } from "./action-buttons";
 import { PlayerInputRow } from "./player-input-row";
@@ -11,12 +11,14 @@ interface PlayerListFormProps {
   control: Control<TeamFormData>;
   errors: FieldErrors<TeamFormData>;
   register: UseFormRegister<TeamFormData>;
+  setFocus: UseFormSetFocus<TeamFormData>;
 }
 
 export function PlayerListForm({
   control,
   errors,
   register,
+  setFocus,
 }: PlayerListFormProps) {
   const { fields, append, remove } = useFieldArray({
     control,
@@ -35,6 +37,18 @@ export function PlayerListForm({
             onRemove={() => remove(index)}
             canRemove={fields.length > 1}
             control={control}
+            onEnterSelect={() => {
+              if (index === fields.length - 1) {
+                append({ fullName: "" });
+                // レンダリング後に新しいフィールドにフォーカス
+                setTimeout(() => {
+                  setFocus(`players.${index + 1}.fullName`);
+                }, 0);
+              } else {
+                // 次の行の姓にフォーカス
+                setFocus(`players.${index + 1}.fullName`);
+              }
+            }}
           />
         ))}
       </div>

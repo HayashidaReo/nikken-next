@@ -33,6 +33,7 @@ interface SearchableSelectProps {
     'data-field-key'?: string;
     hasError?: boolean;
     hint?: string;
+    onEnterSelect?: () => void;
 }
 
 export function SearchableSelect({
@@ -46,6 +47,7 @@ export function SearchableSelect({
     'data-field-key': dataFieldKey,
     hasError = false,
     hint,
+    onEnterSelect,
 }: SearchableSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -314,6 +316,12 @@ export function SearchableSelect({
                         focusedIndex >= 0 ? filteredOptions[focusedIndex] : undefined;
                     if (categoryToSelect) {
                         handleSelect(categoryToSelect);
+                        if (onEnterSelect) {
+                            // 選択処理が完了した後に実行するために少し遅延させる
+                            setTimeout(() => {
+                                onEnterSelect();
+                            }, 0);
+                        }
                     }
                     break;
                 }
@@ -328,15 +336,7 @@ export function SearchableSelect({
 
         document.addEventListener('keydown', handleGlobalKeyDown);
         return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-    }, [
-        isOpen,
-        filteredOptions,
-        focusedIndex,
-        isKeyboardNavigating,
-        handleSelect,
-        resetNavigationState,
-        value,
-    ]);
+    }, [isOpen, filteredOptions, focusedIndex, isKeyboardNavigating, handleSelect, resetNavigationState, value, onEnterSelect]);
 
     // 5. フォーカス位置へのスクロール
     // マウス移動でフォーカスが変わった時に勝手にスクロールされないよう、

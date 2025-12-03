@@ -76,6 +76,7 @@ export function TeamForm({
     handleSubmit,
     setValue,
     getValues,
+    setFocus,
     formState: { errors, isDirty },
   } = useForm<TeamEditData>({
     resolver: zodResolver(teamEditSchema),
@@ -339,6 +340,18 @@ export function TeamForm({
                           }}
                           placeholder="段位を選択"
                           className="h-10"
+                          onEnterSelect={() => {
+                            if (index === fields.length - 1) {
+                              addPlayer();
+                              // レンダリング後に新しいフィールドにフォーカス
+                              setTimeout(() => {
+                                setFocus(`players.${index + 1}.lastName`);
+                              }, 0);
+                            } else {
+                              // 次の行の姓にフォーカス
+                              setFocus(`players.${index + 1}.lastName`);
+                            }
+                          }}
                         />
                       </div>
 

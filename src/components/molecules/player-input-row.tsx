@@ -16,6 +16,7 @@ interface PlayerInputRowProps {
     onRemove: () => void;
     canRemove: boolean;
     control: Control<TeamFormData>;
+    onEnterSelect?: () => void;
 }
 
 export function PlayerInputRow({
@@ -25,6 +26,7 @@ export function PlayerInputRow({
     onRemove,
     canRemove,
     control,
+    onEnterSelect,
 }: PlayerInputRowProps) {
     return (
         <div className="group relative flex gap-4 items-start bg-gray-50 p-4 rounded-lg border border-gray-200 transition-all">
@@ -78,6 +80,7 @@ export function PlayerInputRow({
                                     }}
                                     placeholder="段位"
                                     className="h-10 bg-white"
+                                    onEnterSelect={onEnterSelect}
                                 />
                             )}
                         />
