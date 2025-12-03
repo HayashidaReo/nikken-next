@@ -28,6 +28,7 @@ export function ModernNavbar() {
                         { label: "機能", href: "#features" },
                         { label: "ギャラリー", href: "#gallery" },
                         { label: "ダウンロード", href: "/download" },
+                        { label: "お問い合わせ", href: "/contact" },
                     ].map((item) => (
                         <Link
                             key={item.label}
