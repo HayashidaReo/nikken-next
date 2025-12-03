@@ -12,14 +12,14 @@ const features = [
         description: "HDMI/AirPlay経由でプロ仕様のスコアボードをモニターに表示。",
         icon: <Monitor className="w-6 h-6" />,
         className: "md:col-span-1",
-        image: "/about/dual_monitor_setup.png",
+        image: "/about/scoreboard_monitor.png",
     },
     {
         title: "直感的なモニター操作",
         description: "素早いスコア入力のための最適化されたショートカット。操作性の良いパネル配置。",
         icon: <Keyboard className="w-6 h-6" />,
         className: "md:col-span-1",
-        image: "/about/monitor_controller.png",
+        image: "/about/controller.png",
     },
     {
         title: "複数大会の同時管理",
