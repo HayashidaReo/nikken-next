@@ -26,15 +26,14 @@ export function MonitorGroupResults({
 
     const totalColumns = reversedMatches.length + 1;
 
-    // grid-rows-[450px_180px_450px] に変更
-    const gridLayoutClass = "grid grid-rows-[438px_170px_438px]";
+    const gridLayoutClass = "grid grid-rows-[450px_170px_450px]";
 
     return (
         <div
             ref={containerRef}
             className={cn(
                 // 親コンテナでの items-center は維持（全体を画面垂直中央にするため）
-                "grid items-center p-4 min-h-[800px] bg-white w-full",
+                "grid items-center bg-white w-full",
                 className
             )}
             style={{
