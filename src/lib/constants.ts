@@ -297,3 +297,19 @@ export const WINNER_TYPES = {
   DRAW: "draw",
   NONE: "none",
 } as const;
+
+// 🥋 段位定数
+export const GRADES = [
+  { id: "3k", label: "三級" },
+  { id: "2k", label: "二級" },
+  { id: "1k", label: "一級" },
+  { id: "1d", label: "初段" },
+  { id: "2d", label: "弍段" },
+  { id: "3d", label: "参段" },
+  { id: "4d", label: "四段" },
+] as const;
+
+export const GRADE_OPTIONS = GRADES.map((g) => ({
+  value: g.id,
+  label: g.label,
+}));

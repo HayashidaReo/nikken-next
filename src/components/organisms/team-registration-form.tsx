@@ -43,6 +43,7 @@ export function TeamRegistrationForm({
     handleSubmit,
     trigger,
     getValues,
+    setFocus,
     formState: { errors, isDirty },
   } = useForm<TeamFormData>({
     resolver: zodResolver(teamFormSchema),
@@ -178,6 +179,7 @@ export function TeamRegistrationForm({
               control={control}
               errors={errors}
               register={register}
+              setFocus={setFocus}
             />
           </section>
 

@@ -25,6 +25,7 @@ export class TeamFormConverter {
         lastName: nameResult.lastName,
         firstName: nameResult.firstName,
         displayName: "", // 初期値（DisplayNameServiceで後から生成）
+        grade: player.grade,
       };
     });
 

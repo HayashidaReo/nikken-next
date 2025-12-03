@@ -80,7 +80,14 @@ export function ConfirmationDialog({
                     <div className="flex items-center justify-center w-6 h-6 bg-white rounded-full text-xs font-medium text-gray-400 border border-gray-200">
                       {index + 1}
                     </div>
-                    <p className="font-medium text-gray-900">{player.fullName}</p>
+                    <p className="font-medium text-gray-900">
+                      {player.fullName}
+                      {player.grade && (
+                        <span className="ml-2 text-sm text-gray-500 font-normal bg-gray-100 px-2 py-0.5 rounded">
+                          {player.grade}
+                        </span>
+                      )}
+                    </p>
                   </div>
                 ))}
               </div>

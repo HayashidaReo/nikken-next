@@ -25,12 +25,14 @@ export interface MonitorState {
     teamName: string;
     score: number;
     hansoku: number;
+    grade?: string;
   };
   playerB: {
     displayName: string;
     teamName: string;
     score: number;
     hansoku: number;
+    grade?: string;
   };
 
   // タイマー関連
@@ -170,12 +172,14 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
         teamName: playerAData.teamName,
         score: playerAData.score,
         hansoku: playerAData.hansoku,
+        grade: playerAData.grade,
       },
       playerB: {
         displayName: playerBData.displayName,
         teamName: playerBData.teamName,
         score: playerBData.score,
         hansoku: playerBData.hansoku,
+        grade: playerBData.grade,
       },
       // 試合切り替え時にモードをリセット（initialViewModeがあればそれを使用、なければscoreboard）
       viewMode: initialViewMode || "scoreboard",

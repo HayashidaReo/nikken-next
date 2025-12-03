@@ -15,6 +15,7 @@ export function resolvePlayerInfo(teams: Team[] | undefined, playerId: string, t
     return {
         displayName: player?.displayName || playerId,
         teamName: team?.teamName || teamId,
+        grade: player?.grade,
     };
 }
 
@@ -42,11 +43,70 @@ export function calculateTeamMatchWins(matches: TeamMatch[]) {
  * @param currentMatchSnapshot - 現在の試合の最新スコア（ストアのスナップショット）
  * @returns 全試合終了フラグと代表戦必要フラグ
  */
+/**
+ * 現在の試合結果を反映した有効な試合リストを作成する
+ * 
+ * @param completedMatches - 完了した通常の試合リスト
+ * @param currentMatchId - 現在の試合ID
+ * @param currentMatchSnapshot - 現在の試合の最新スコア（ストアのスナップショット）
+ * @returns 現在の試合結果が反映された試合リスト
+ */
+function calculateEffectiveMatches(
+    completedMatches: TeamMatch[],
+    currentMatchId: string,
+    currentMatchSnapshot: {
+        playerA: { score: number };
+        playerB: { score: number };
+        winner?: "playerA" | "playerB" | "draw" | "none";
+        winReason?: WinReason | null;
+    }
+): TeamMatch[] {
+    return completedMatches.map(m => {
+        if (m.matchId === currentMatchId) {
+            // 明示的な勝者が指定されている場合（判定、不戦勝など）はそれを使用
+            if (currentMatchSnapshot.winner && currentMatchSnapshot.winner !== "none") {
+                return {
+                    ...m,
+                    winner: currentMatchSnapshot.winner,
+                    winReason: currentMatchSnapshot.winReason || "none",
+                };
+            }
+
+            const scoreA = currentMatchSnapshot.playerA.score;
+            const scoreB = currentMatchSnapshot.playerB.score;
+            let winner: "playerA" | "playerB" | "draw" | "none" = "none";
+            if (scoreA > scoreB) winner = "playerA";
+            else if (scoreB > scoreA) winner = "playerB";
+            else winner = "draw";
+
+            return {
+                ...m,
+                winner,
+            };
+        }
+        return m;
+    });
+}
+
+/**
+ * 団体戦の進行状況を分析する
+ * 
+ * @param teamMatches - 団体戦の全試合データ
+ * @param currentMatchId - 現在の試合ID
+ * @param currentSortOrder - 現在の試合のソート順
+ * @param currentMatchSnapshot - 現在の試合の最新スコア（ストアのスナップショット）
+ * @returns 全試合終了フラグと代表戦必要フラグ
+ */
 export function analyzeTeamMatchStatus(
     teamMatches: TeamMatch[],
     currentMatchId: string,
     currentSortOrder: number | undefined,
-    currentMatchSnapshot: { playerA: { score: number }, playerB: { score: number } }
+    currentMatchSnapshot: {
+        playerA: { score: number };
+        playerB: { score: number };
+        winner?: "playerA" | "playerB" | "draw" | "none";
+        winReason?: WinReason | null;
+    }
 ) {
     let isAllFinished = false;
     let needsRepMatch = false;
@@ -71,23 +131,7 @@ export function analyzeTeamMatchStatus(
     // 5試合目の時（またはそれ以降の判定が必要な時）
     if (currentMatch?.roundId === TEAM_MATCH_CONSTANTS.LAST_REGULAR_MATCH_ROUND_ID) {
         // 現在の試合のスナップショットを反映した試合リストを作成
-        const effectiveMatches = completedRegularMatches.map(m => {
-            if (m.matchId === currentMatchId) {
-                const scoreA = currentMatchSnapshot.playerA.score;
-                const scoreB = currentMatchSnapshot.playerB.score;
-                let winner: "playerA" | "playerB" | "draw" | "none" = "none";
-                if (scoreA > scoreB) winner = "playerA";
-                else if (scoreB > scoreA) winner = "playerB";
-                else winner = "draw";
-
-                return {
-                    ...m,
-                    winner,
-                };
-            }
-            return m;
-        });
-
+        const effectiveMatches = calculateEffectiveMatches(completedRegularMatches, currentMatchId, currentMatchSnapshot);
         const { winsA, winsB } = calculateTeamMatchWins(effectiveMatches);
 
         // 同点の場合

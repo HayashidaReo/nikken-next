@@ -84,7 +84,8 @@
 | `players[].playerId`    | String        | 選手固有ID                                                 |
 | `players[].lastName`    | String        | 姓                                                         |
 | `players[].firstName`   | String        | 名                                                         |
-| `players[].displayName` | String        | 表示名（基本姓のみ。同姓がいる場合は、名の一部も含まれる） |
+| `players[].displayName` | String        | 表示名（基本姓のみ。同姓がいる場合は、名の一部も含まれる）          |
+| `players[].grade`       | String?       | 段位　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　  |
 | `remarks`               | String        | 備考欄                                                     |
 | `isApproved`            | Boolean       | 承認状態（デフォルト: false）                              |
 | `createdAt`             | Timestamp     | フォーム送信日時                                           |
