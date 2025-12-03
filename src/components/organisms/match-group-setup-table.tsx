@@ -32,7 +32,7 @@ import { useMasterData } from "@/components/providers/master-data-provider";
 
 interface MatchGroupSetupTableProps {
     matchGroups: MatchGroup[];
-    onSave: (data: MatchGroupSetupData[]) => void;
+    onSave: (data: MatchGroupSetupData[]) => Promise<{ success: boolean; idMapping?: Record<string, string> }>;
     onSelect: (group: MatchGroupSetupData) => void;
     isSaving: boolean;
 }
@@ -88,13 +88,14 @@ export function MatchGroupSetupTable({
 
     const [showSaveConfirm, setShowSaveConfirm] = useState(false);
     const [showTeamChangeConfirm, setShowTeamChangeConfirm] = useState(false);
+    const [pendingNavigation, setPendingNavigation] = useState<MatchGroupSetupData | null>(null);
 
     // 削除された既存対戦の数
     const [deletedGroupCount, setDeletedGroupCount] = useState(0);
     // チーム変更があった既存対戦の数
     const [changedTeamGroupCount, setChangedTeamGroupCount] = useState(0);
 
-    const checkDeleteAndSave = () => {
+    const checkDeleteAndSave = (targetRow?: MatchGroupSetupData) => {
         // 既存の対戦が削除されている場合は確認ダイアログを表示
         const currentIds = new Set(data.map(d => d.id));
         const count = Array.from(initialGroupIds).filter((id: string) => !currentIds.has(id)).length;
@@ -105,7 +106,34 @@ export function MatchGroupSetupTable({
             return;
         }
 
-        onSave(data);
+        executeSave(targetRow);
+    };
+
+    const executeSave = async (targetRow?: MatchGroupSetupData) => {
+        const result = await onSave(data);
+        // 引数の targetRow を優先、なければ state の pendingNavigation
+        let target = targetRow || pendingNavigation;
+
+        if (result.success) {
+            // IDマッピングがあればローカルデータを更新する
+            if (result.idMapping) {
+                setData(prev => prev.map(row => {
+                    if (result.idMapping && result.idMapping[row.id]) {
+                        return { ...row, id: result.idMapping[row.id] };
+                    }
+                    return row;
+                }));
+            }
+
+            if (target) {
+                // 新規作成された行の場合、IDをマッピングから取得して更新する
+                if (target.id.startsWith("group-") && result.idMapping && result.idMapping[target.id]) {
+                    target = { ...target, id: result.idMapping[target.id] };
+                }
+                onSelect(target);
+                setPendingNavigation(null);
+            }
+        }
     };
 
     const confirmTeamChange = () => {
@@ -119,15 +147,50 @@ export function MatchGroupSetupTable({
 
     const confirmSave = () => {
         setShowSaveConfirm(false);
-        onSave(data);
+        executeSave();
         setDeletedGroupCount(0);
     };
 
     const cancelSave = () => {
         setShowSaveConfirm(false);
+        setPendingNavigation(null);
     };
 
-    const handleSave = () => {
+    // 初期データのIDセット（既存対戦の削除判定用）
+    const [initialGroupIds] = useState(() => {
+        return new Set(matchGroups.map(g => g.matchGroupId || ""));
+    });
+
+    const hasChanges = () => {
+        // 新規追加された行があるか
+        const hasNew = data.some(d => d.id.startsWith("group-"));
+        if (hasNew) return true;
+
+        // 削除された行があるか
+        const currentIds = new Set(data.map(d => d.id));
+        const hasDeleted = Array.from(initialGroupIds).some((id: string) => !currentIds.has(id));
+        if (hasDeleted) return true;
+
+        // 変更された行があるか
+        return data.some(row => {
+            const original = matchGroups.find(g => g.matchGroupId === row.id);
+            if (!original) return false;
+            return (
+                original.courtId !== row.courtId ||
+                original.roundId !== row.roundId ||
+                original.teamAId !== row.teamAId ||
+                original.teamBId !== row.teamBId ||
+                original.sortOrder !== row.sortOrder
+            );
+        });
+    };
+
+    // handleSave のシグネチャ変更
+    const handleSave = (targetRow?: MatchGroupSetupData) => {
+        if (targetRow) {
+            setPendingNavigation(targetRow);
+        }
+
         const newErrors: Record<string, string[]> = {};
         let hasError = false;
 
@@ -168,7 +231,15 @@ export function MatchGroupSetupTable({
             return;
         }
 
-        checkDeleteAndSave();
+        checkDeleteAndSave(targetRow);
+    };
+
+    const handleDetailClick = (row: MatchGroupSetupData) => {
+        if (hasChanges()) {
+            handleSave(row);
+        } else {
+            onSelect(row);
+        }
     };
 
     const addRow = () => {
@@ -176,7 +247,7 @@ export function MatchGroupSetupTable({
         setData((prev) => [
             ...prev,
             {
-                id: `group-${Date.now()} `,
+                id: `group-${Date.now()}`,
                 courtId: "",
                 roundName: "",
                 roundId: "",
@@ -187,11 +258,6 @@ export function MatchGroupSetupTable({
             },
         ]);
     };
-
-    // 初期データのIDセット（既存対戦の削除判定用）
-    const [initialGroupIds] = useState(() => {
-        return new Set(matchGroups.map(g => g.matchGroupId || ""));
-    });
 
     const removeRow = (index: number) => {
         setData((prev) => prev.filter((_, i) => i !== index));
@@ -234,7 +300,7 @@ export function MatchGroupSetupTable({
             <MatchTable
                 title="チーム対戦設定"
                 headerRight={
-                    <Button onClick={handleSave} disabled={isSaving}>
+                    <Button onClick={() => handleSave()} disabled={isSaving}>
                         {isSaving ? "保存中..." : "保存"}
                     </Button>
                 }
@@ -248,7 +314,7 @@ export function MatchGroupSetupTable({
                             index={index}
                             onUpdate={updateData}
                             onRemove={removeRow}
-                            onSelect={onSelect}
+                            onSelect={handleDetailClick}
                             errors={errors[row.id]}
                         />
                     ))}
