@@ -1,24 +1,24 @@
 [
     {
-        "src": "/lp/monitor_controller.png",
+        "src": "/about/monitor_controller.png",
         "alt": "Monitor Controller Interface",
         "title": "直感的な操作パネル",
         "description": "クリーンでタッチフレンドリーなインターフェースで、スコアとタイマーを簡単に管理。"
     },
     {
-        "src": "/lp/team_match_result.png",
+        "src": "/about/team_match_result.png",
         "alt": "Team Match Result Screen",
         "title": "団体戦リザルト",
         "description": "団体戦の結果を、明確でインパクトのある画面で可視化。"
     },
     {
-        "src": "/lp/match_list_dashboard.png",
+        "src": "/about/match_list_dashboard.png",
         "alt": "Match List Dashboard",
         "title": "大会管理",
         "description": "試合の進行状況と同期ステータスをリアルタイムで追跡。"
     },
     {
-        "src": "/lp/dual_monitor_setup.png",
+        "src": "/about/dual_monitor_setup.png",
         "alt": "Dual Monitor Setup",
         "title": "プロフェッショナルディスプレイ",
         "description": "放送品質の体験を実現するシームレスなデュアルスクリーン対応。"

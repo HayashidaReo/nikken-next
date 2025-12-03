@@ -10,18 +10,18 @@ const features = [
         description: "インターネットなしで完璧に動作。オンライン復帰時にデータは同期可能です。",
         icon: <WifiOff className="w-6 h-6" />,
         className: "md:col-span-2",
-        image: "/lp/match_list_dashboard.png",
+        image: "/about/match_list_dashboard.png",
     },
     {
-        title: "スクリーン表示",
-        description: "HDMI/AirPlay経由で洗礼された得点板を表示。",
+        title: "デュアルスクリーン",
+        description: "HDMI/AirPlay経由でプロ仕様のスコアボードを表示。",
         icon: <Monitor className="w-6 h-6" />,
         className: "md:col-span-1",
-        image: "/lp/dual_monitor_setup.png",
+        image: "/about/dual_monitor_setup.png",
     },
     {
         title: "リアルタイム同期",
-        description: "会場内の全デバイスで瞬時に情報を更新。(オンライン接続時)",
+        description: "会場内の全デバイスで瞬時に情報を更新。",
         icon: <Cloud className="w-6 h-6" />,
         className: "md:col-span-1",
         image: null,
@@ -31,7 +31,7 @@ const features = [
         description: "素早いスコア入力のための最適化されたショートカット。",
         icon: <Keyboard className="w-6 h-6" />,
         className: "md:col-span-2",
-        image: "/lp/monitor_controller.png",
+        image: "/about/monitor_controller.png",
     },
 ];
 
