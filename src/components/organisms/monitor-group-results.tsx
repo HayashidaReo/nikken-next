@@ -68,12 +68,18 @@ export function MonitorGroupResults({
                             )}
                         >
                             {/* --- 4/10: 選手A (上) --- */}
-                            <div className={cn("flex flex-col items-center justify-end pb-2 w-full h-full relative", opacityA, isWinnerA && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
+                            <div className={cn(
+                                "flex flex-col items-center justify-end pb-2 w-full h-full relative",
+                                opacityA,
+                                // 常に枠のスペースを確保（勝者なら赤、それ以外は透明）
+                                "border-[20px] rounded-xl w-[85%] mx-auto",
+                                isWinnerA ? "border-red-600" : "border-transparent"
+                            )}>
                                 <AdjustVerticalText
                                     textContent={match.playerA.displayName}
                                     baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={390}
+                                    maxHeight={375}
                                     className="font-bold text-black tracking-widest"
                                 />
                             </div>
@@ -101,12 +107,18 @@ export function MonitorGroupResults({
                             </div>
 
                             {/* --- 4/10: 選手B (下) --- */}
-                            <div className={cn("flex flex-col items-center justify-start pt-2 w-full h-full relative", opacityB, isWinnerB && "border-8 border-red-600 rounded-xl w-[85%] mx-auto")}>
+                            <div className={cn(
+                                "flex flex-col items-center justify-start pt-2 w-full h-full relative",
+                                opacityB,
+                                // 常に枠のスペースを確保（勝者なら赤、それ以外は透明）
+                                "border-[20px] rounded-xl w-[85%] mx-auto",
+                                isWinnerB ? "border-red-600" : "border-transparent"
+                            )}>
                                 <AdjustVerticalText
                                     textContent={match.playerB.displayName}
                                     baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={390}
+                                    maxHeight={375}
                                     className="font-bold text-black tracking-widest"
                                 />
                             </div>
