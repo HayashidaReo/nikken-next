@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils/utils";
 import type { MonitorData } from "@/types/monitor.schema";
 import { getTeamMatchRoundLabelById, WINNER_TYPES } from "@/lib/constants";
 import { AdjustVerticalText } from "@/components/atoms/adjust-vertical-text";
-import { AdjustHorizontalText } from "@/components/atoms/adjust-horizontal-text";
 import { DrawTriangle } from "@/components/atoms/draw-triangle";
 import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
 
@@ -80,17 +79,17 @@ export function MonitorGroupResults({
                                     textContent={match.playerA.displayName}
                                     baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={365}
+                                    maxHeight={400}
                                     className="font-bold text-black w-fit"
                                 />
                                 {match.playerA.grade && (
-                                    <div className="w-[120px] absolute -top-14 left-1/2 -translate-x-1/2 bg-white px-1 rounded">
-                                        <AdjustHorizontalText
+                                    <div className="absolute top-5 -right-16 bg-gray-200 px-1 py-1 rounded">
+                                        <AdjustVerticalText
                                             textContent={match.playerA.grade}
-                                            baseFontSize={3}
-                                            minFontSize={1}
-                                            maxWidth={120}
-                                            className="font-bold text-gray-700 text-center"
+                                            baseFontSize={8}
+                                            minFontSize={3}
+                                            maxHeight={130}
+                                            className="font-bold text-gray-700"
                                         />
                                     </div>
                                 )}
@@ -130,17 +129,17 @@ export function MonitorGroupResults({
                                     textContent={match.playerB.displayName}
                                     baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={365}
+                                    maxHeight={400}
                                     className="font-bold text-black w-fit"
                                 />
                                 {match.playerB.grade && (
-                                    <div className="w-[120px] absolute -bottom-14 left-1/2 -translate-x-1/2 bg-white px-1 rounded">
-                                        <AdjustHorizontalText
+                                    <div className="absolute top-5 -right-16 bg-gray-200 px-1 py-1 rounded">
+                                        <AdjustVerticalText
                                             textContent={match.playerB.grade}
-                                            baseFontSize={3}
-                                            minFontSize={1}
-                                            maxWidth={120}
-                                            className="font-bold text-gray-700 text-center"
+                                            baseFontSize={8}
+                                            minFontSize={3}
+                                            maxHeight={130}
+                                            className="font-bold text-gray-700"
                                         />
                                     </div>
                                 )}
@@ -153,7 +152,7 @@ export function MonitorGroupResults({
             {/* --- チーム名エリア (一番右) --- */}
             <div className={cn(gridLayoutClass, "w-full")}>
                 {/* 4/10: チームA */}
-                <div className="flex items-center justify-center h-full border-l-4 border-primary/20">
+                <div className="flex items-center justify-center h-full border-primary/20">
                     <AdjustVerticalText
                         textContent={teamAName}
                         baseFontSize={8}
@@ -169,7 +168,7 @@ export function MonitorGroupResults({
                 </div>
 
                 {/* 4/10: チームB */}
-                <div className="flex items-center justify-center h-full border-l-4 border-primary/20">
+                <div className="flex items-center justify-center h-full border-primary/20">
                     <AdjustVerticalText
                         textContent={teamBName}
                         baseFontSize={8}
