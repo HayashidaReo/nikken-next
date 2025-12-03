@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Monitor, Keyboard, Users } from "lucide-react";
+import { Monitor, Keyboard, Users, Layers, Edit3 } from "lucide-react";
 import Image from "next/image";
 
 import { HybridSyncFeature } from "./hybrid-sync-feature";
@@ -20,6 +20,20 @@ const features = [
         icon: <Keyboard className="w-6 h-6" />,
         className: "md:col-span-1",
         image: "/about/monitor_controller.png",
+    },
+    {
+        title: "複数大会の同時管理",
+        description: "複数の大会を作成し、並行して進行状況を管理できます。",
+        icon: <Layers className="w-6 h-6" />,
+        className: "md:col-span-1",
+        image: "/about/management_dashboard.png",
+    },
+    {
+        title: "登録不要の即席モード",
+        description: "選手名などを操作画面でそのまま入力することで、登録なしに誰でも得点板を使用することができます。",
+        icon: <Edit3 className="w-6 h-6" />,
+        className: "md:col-span-3",
+        image: "/about/monitor_display_hero.png",
     },
 ];
 
@@ -102,6 +116,16 @@ export function BentoGrid() {
                     {/* Keyboard Control (1 column) */}
                     {features.slice(1, 2).map((feature, i) => (
                         <FeatureCard key={i + 1} feature={feature} index={i + 1} />
+                    ))}
+
+                    {/* Row 3 */}
+                    {features.slice(2, 3).map((feature, i) => (
+                        <FeatureCard key={i + 2} feature={feature} index={i + 2} />
+                    ))}
+
+                    {/* Row 4 */}
+                    {features.slice(3, 4).map((feature, i) => (
+                        <FeatureCard key={i + 3} feature={feature} index={i + 3} />
                     ))}
                 </div>
             </div>
