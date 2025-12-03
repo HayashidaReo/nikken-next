@@ -8,7 +8,7 @@ export const playerSchema = z.object({
   lastName: z.string().min(1, "姓は必須です"),
   firstName: z.string().min(1, "名は必須です"),
   displayName: z.string().default(""), // displayNameはCloud Functionで生成
-  grade: z.string().optional(), // 段位
+  grade: z.string().nullable().optional(), // 段位
 });
 
 /**
