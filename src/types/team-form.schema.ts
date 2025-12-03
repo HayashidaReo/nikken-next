@@ -24,7 +24,7 @@ export const teamFormSchema = z.object({
             validatePlayerName,
             "選手名は「姓 名」の形式で、姓と名の間に半角スペースを入れてください"
           ),
-        grade: z.string().nullable().optional(),
+        grade: z.string({ message: "段位を選択してください" }).min(1, "段位を選択してください"),
       })
     )
     .min(1, "最低1人の選手を登録してください"),

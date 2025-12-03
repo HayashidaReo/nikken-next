@@ -51,6 +51,7 @@ export const teamManagementSchema = baseTeamSchema.extend({
   players: z.array(
     playerSchema.extend({
       displayName: z.string(),
+      grade: z.string({ message: "段位を選択してください" }).min(1, "段位を選択してください"),
     })
   ).min(1, "最低1人の選手を登録してください"),
   remarks: z.string(),
