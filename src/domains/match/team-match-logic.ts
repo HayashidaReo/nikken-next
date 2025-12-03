@@ -47,7 +47,12 @@ export function analyzeTeamMatchStatus(
     teamMatches: TeamMatch[],
     currentMatchId: string,
     currentSortOrder: number | undefined,
-    currentMatchSnapshot: { playerA: { score: number }, playerB: { score: number } }
+    currentMatchSnapshot: {
+        playerA: { score: number };
+        playerB: { score: number };
+        winner?: "playerA" | "playerB" | "draw" | "none";
+        winReason?: WinReason | null;
+    }
 ) {
     let isAllFinished = false;
     let needsRepMatch = false;
@@ -74,6 +79,15 @@ export function analyzeTeamMatchStatus(
         // 現在の試合のスナップショットを反映した試合リストを作成
         const effectiveMatches = completedRegularMatches.map(m => {
             if (m.matchId === currentMatchId) {
+                // 明示的な勝者が指定されている場合（判定、不戦勝など）はそれを使用
+                if (currentMatchSnapshot.winner && currentMatchSnapshot.winner !== "none") {
+                    return {
+                        ...m,
+                        winner: currentMatchSnapshot.winner,
+                        winReason: currentMatchSnapshot.winReason || "none",
+                    };
+                }
+
                 const scoreA = currentMatchSnapshot.playerA.score;
                 const scoreB = currentMatchSnapshot.playerB.score;
                 let winner: "playerA" | "playerB" | "draw" | "none" = "none";

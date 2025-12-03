@@ -87,6 +87,7 @@ export function useTeamMatchController({
     // 判定のために現在のスコアを取得
     const playerA = useMonitorStore((s) => s.playerA);
     const playerB = useMonitorStore((s) => s.playerB);
+    const matchResult = useMonitorStore((s) => s.matchResult);
 
 
 
@@ -109,7 +110,12 @@ export function useTeamMatchController({
             teamMatches,
             matchId,
             currentSortOrder,
-            { playerA, playerB }
+            {
+                playerA,
+                playerB,
+                winner: matchResult?.winner,
+                winReason: matchResult?.winReason,
+            }
         );
         isAllFinished = status.isAllFinished;
         needsRepMatch = status.needsRepMatch;
