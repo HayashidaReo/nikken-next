@@ -62,10 +62,10 @@ export function PlayerSection({
                 <div className="mt-2">
                   <AdjustHorizontalText
                     textContent={player.grade}
-                    baseFontSize={4}
+                    baseFontSize={5}
                     minFontSize={1}
                     maxWidth={200}
-                    className="font-bold text-white bg-red-500 px-4 py-0.5 rounded w-fit"
+                    className="font-bold text-white bg-red-500 px-4 py-0 rounded w-fit"
                   />
                 </div>
               )}
@@ -79,10 +79,10 @@ export function PlayerSection({
                 <div className="mb-2">
                   <AdjustHorizontalText
                     textContent={player.grade}
-                    baseFontSize={4}
+                    baseFontSize={5}
                     minFontSize={1}
                     maxWidth={200}
-                    className="font-bold text-gray-700 bg-gray-200 px-4 py-0.5 rounded w-fit"
+                    className="font-bold text-gray-700 bg-gray-200 px-4 py-0 rounded w-fit"
                   />
                 </div>
               )}
