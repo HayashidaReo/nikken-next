@@ -28,7 +28,7 @@ export function PlayerSection({
 
   return (
     <div
-      className={`flex-1 ${styles.background} relative px-16 py-8 ${styles.text} ${className}`}
+      className={`flex-1 ${styles.background} relative px-12 ${styles.text} ${className}`}
     >
       {/* 左側：チーム名と選手名 */}
       <div className="flex items-center h-full">
@@ -59,7 +59,7 @@ export function PlayerSection({
                 className="font-black leading-none"
               />
               {player.grade && (
-                <div className="mt-2">
+                <div className="mt-1">
                   <AdjustHorizontalText
                     textContent={player.grade}
                     baseFontSize={5}
@@ -76,7 +76,7 @@ export function PlayerSection({
           {variant === "white" && (
             <>
               {player.grade && (
-                <div className="mb-2">
+                <div className="mb-1">
                   <AdjustHorizontalText
                     textContent={player.grade}
                     baseFontSize={5}
