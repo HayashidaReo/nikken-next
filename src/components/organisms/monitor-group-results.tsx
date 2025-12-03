@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils/utils";
 import type { MonitorData } from "@/types/monitor.schema";
 import { getTeamMatchRoundLabelById, WINNER_TYPES } from "@/lib/constants";
 import { AdjustVerticalText } from "@/components/atoms/adjust-vertical-text";
+import { AdjustHorizontalText } from "@/components/atoms/adjust-horizontal-text";
 import { DrawTriangle } from "@/components/atoms/draw-triangle";
 import { getMonitorPlayerOpacity } from "@/lib/utils/monitor";
 
@@ -26,8 +27,8 @@ export function MonitorGroupResults({
 
     const totalColumns = reversedMatches.length + 1;
 
-    // grid-rows-[4fr_2fr_4fr] に変更
-    const gridLayoutClass = "grid grid-rows-[4fr_2fr_4fr]";
+    // grid-rows-[450px_180px_450px] に変更
+    const gridLayoutClass = "grid grid-rows-[438px_170px_438px]";
 
     return (
         <div
@@ -79,12 +80,18 @@ export function MonitorGroupResults({
                                     textContent={match.playerA.displayName}
                                     baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={375}
+                                    maxHeight={365}
                                     className="font-bold text-black w-fit"
                                 />
                                 {match.playerA.grade && (
-                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-xl font-bold text-gray-700 whitespace-nowrap">
-                                        {match.playerA.grade}
+                                    <div className="w-[120px] absolute -top-14 left-1/2 -translate-x-1/2 bg-white px-1 rounded">
+                                        <AdjustHorizontalText
+                                            textContent={match.playerA.grade}
+                                            baseFontSize={3}
+                                            minFontSize={1}
+                                            maxWidth={120}
+                                            className="font-bold text-gray-700 text-center"
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -95,7 +102,7 @@ export function MonitorGroupResults({
                                     <div className="w-px h-full bg-border/30" />
                                 </div>
 
-                                <div className="bg-background/80 px-4 py-4 rounded-sm border border-gray-500 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
+                                <div className="bg-background/80 px-2 py-2 rounded-sm border border-gray-500 shadow-sm backdrop-blur-sm min-w-[4rem] text-center">
                                     <AdjustVerticalText
                                         textContent={match.roundId ? getTeamMatchRoundLabelById(match.roundId) : ""}
                                         baseFontSize={4}
@@ -123,12 +130,18 @@ export function MonitorGroupResults({
                                     textContent={match.playerB.displayName}
                                     baseFontSize={12}
                                     minFontSize={2.5}
-                                    maxHeight={375}
+                                    maxHeight={365}
                                     className="font-bold text-black w-fit"
                                 />
                                 {match.playerB.grade && (
-                                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xl font-bold text-gray-700 whitespace-nowrap">
-                                        {match.playerB.grade}
+                                    <div className="w-[120px] absolute -bottom-14 left-1/2 -translate-x-1/2 bg-white px-1 rounded">
+                                        <AdjustHorizontalText
+                                            textContent={match.playerB.grade}
+                                            baseFontSize={3}
+                                            minFontSize={1}
+                                            maxWidth={120}
+                                            className="font-bold text-gray-700 text-center"
+                                        />
                                     </div>
                                 )}
                             </div>
