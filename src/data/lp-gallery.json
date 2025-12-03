@@ -2,25 +2,31 @@
     {
         "src": "/about/monitor_controller.png",
         "alt": "Monitor Controller Interface",
-        "title": "直感的な操作パネル",
-        "description": "クリーンでタッチフレンドリーなインターフェースで、スコアとタイマーを簡単に管理。"
+        "title": "直感的なモニター操作画面",
+        "description": "キーボードショートカットに対応した、直感的な操作画面でスコアと反則、タイマーを簡単に管理。"
     },
     {
         "src": "/about/team_match_result.png",
         "alt": "Team Match Result Screen",
-        "title": "団体戦リザルト",
-        "description": "団体戦の結果を、明確でインパクトのある画面で可視化。"
+        "title": "団体戦結果表示",
+        "description": "進行中の団体戦の結果を、明確でインパクトのある画面でモニター表示。"
+    },
+    {
+        "src": "/about/match_list_dashboard.png",
+        "alt": "Scoreboard Display",
+        "title": "洗練されたスコアボード",
+        "description": "操作画面からリアルタイムで更新される試合情報を、美しいデザインで表示。"
     },
     {
         "src": "/about/match_list_dashboard.png",
         "alt": "Match List Dashboard",
-        "title": "大会管理",
-        "description": "試合の進行状況と同期ステータスをリアルタイムで追跡。"
+        "title": "一目で分かる試合結果管理画面",
+        "description": "リアルタイムで進行中の試合状況を一覧表示し、試合結果を即座に把握。"
     },
     {
-        "src": "/about/dual_monitor_setup.png",
-        "alt": "Dual Monitor Setup",
-        "title": "プロフェッショナルディスプレイ",
-        "description": "放送品質の体験を実現するシームレスなデュアルスクリーン対応。"
+        "src": "/about/match_list_dashboard.png",
+        "alt": "Match List Dashboard",
+        "title": "簡単に入力可能なチーム申請フォーム",
+        "description": "参加希望チームが簡単に情報を入力できる、セキュリティに配慮した専用フォームを提供。"
     }
 ]

@@ -8,15 +8,15 @@ import { HybridSyncFeature } from "./hybrid-sync-feature";
 
 const features = [
     {
-        title: "デュアルスクリーン",
-        description: "HDMI/AirPlay経由でプロ仕様のスコアボードを表示。",
+        title: "外部ディスプレイ表示",
+        description: "HDMI/AirPlay経由でプロ仕様のスコアボードをモニターに表示。",
         icon: <Monitor className="w-6 h-6" />,
         className: "md:col-span-1",
         image: "/about/dual_monitor_setup.png",
     },
     {
-        title: "キーボード操作",
-        description: "素早いスコア入力のための最適化されたショートカット。",
+        title: "直感的なモニター操作",
+        description: "素早いスコア入力のための最適化されたショートカット。操作性の良いパネル配置。",
         icon: <Keyboard className="w-6 h-6" />,
         className: "md:col-span-1",
         image: "/about/monitor_controller.png",
@@ -65,9 +65,9 @@ export function BentoGrid() {
                                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform duration-300">
                                     <Users className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">チーム管理・申請</h3>
+                                <h3 className="text-xl font-bold text-white mb-2">チーム・選手の管理・申請</h3>
                                 <p className="text-gray-400 leading-relaxed mb-4">
-                                    専用の申請フォームを作成し、参加チームからの情報をスムーズに収集。<br />
+                                    セキュリティに考慮した専用の申請フォームを作成し、外部に公開。参加チームからの情報をスムーズに収集。<br />
                                     アプリ内からも手動でチームを追加・管理できます。
                                 </p>
                             </div>
