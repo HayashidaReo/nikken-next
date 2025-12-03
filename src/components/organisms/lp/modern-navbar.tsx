@@ -26,8 +26,8 @@ export function ModernNavbar() {
                 <div className="hidden md:flex items-center gap-8">
                     {[
                         { label: "機能", href: "#features" },
+                        { label: "ギャラリー", href: "#gallery" },
                         { label: "ダウンロード", href: "/download" },
-                        { label: "ギャラリー", href: "#gallery" }
                     ].map((item) => (
                         <Link
                             key={item.label}
