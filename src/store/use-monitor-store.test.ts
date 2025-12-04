@@ -77,6 +77,14 @@ beforeEach(() => {
     timeRemaining: 180,
     isTimerRunning: false,
     isPublic: false,
+    viewMode: "scoreboard",
+    matchResult: undefined,
+    teamMatchResults: undefined,
+    groupMatches: undefined,
+    presentationConnected: false,
+    presentationConnection: null,
+    fallbackOpen: false,
+    selectedPlayer: null,
   });
 });
 
@@ -414,12 +422,14 @@ describe("useMonitorStore", () => {
           teamName: "チームA",
           score: 1,
           hansoku: 0,
+          grade: undefined,
         },
         playerB: {
           displayName: "鈴木",
           teamName: "チームB",
           score: 1,
           hansoku: 1,
+          grade: undefined,
         },
         timeRemaining: 180,
         isTimerRunning: false,
