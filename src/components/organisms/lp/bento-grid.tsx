@@ -34,8 +34,8 @@ const features = [
         title: "登録不要の即席モード",
         description: "選手名などを操作画面でそのまま入力することで、登録なしに誰でも得点板を使用することができます。",
         icon: <Edit3 className="w-6 h-6" />,
-        className: "md:col-span-3",
-        image: "/about/monitor_display_hero.png",
+        className: "md:col-span-2",
+        image: "/about/manual_controller.png",
     },
 ];
 
