@@ -300,6 +300,7 @@ export const WINNER_TYPES = {
 
 // 🥋 段位定数
 export const GRADES = [
+  { id: "none", label: "無級" },
   { id: "3k", label: "三級" },
   { id: "2k", label: "二級" },
   { id: "1k", label: "一級" },
