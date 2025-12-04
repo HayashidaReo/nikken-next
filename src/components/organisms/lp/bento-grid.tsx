@@ -39,7 +39,7 @@ const features = [
 
 export function BentoGrid() {
     return (
-        <section id="features" className="py-32 bg-[#0a0a0a] relative overflow-hidden">
+        <section id="features" className="py-32 bg-lp-bg relative overflow-hidden">
             <div className="container mx-auto px-4 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -48,9 +48,9 @@ export function BentoGrid() {
                     transition={{ duration: 0.6 }}
                     className="text-center mb-20"
                 >
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+                    <h2 className="text-3xl md:text-5xl font-bold text-lp-text mb-6">
                         世界基準の大会運営に <br />
-                        <span className="text-gray-500">必要なすべてを。</span>
+                        <span className="text-lp-text-muted">必要なすべてを。</span>
                     </h2>
                 </motion.div>
 
@@ -72,15 +72,15 @@ export function BentoGrid() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                         whileHover={{ scale: 1.02 }}
-                        className={`group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-8 hover:bg-white/10 transition-colors md:col-span-2`}
+                        className={`group relative overflow-hidden rounded-3xl bg-lp-secondary/30 border border-lp-primary/10 p-8 hover:bg-lp-secondary/50 transition-colors md:col-span-2`}
                     >
                         <div className="relative z-10 h-full flex flex-col justify-between">
                             <div>
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform duration-300">
+                                <div className="w-12 h-12 rounded-2xl bg-lp-primary/10 flex items-center justify-center text-lp-primary mb-6 group-hover:scale-110 transition-transform duration-300">
                                     <Users className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">チーム・選手の管理・申請</h3>
-                                <p className="text-gray-400 leading-relaxed mb-4">
+                                <h3 className="text-xl font-bold text-lp-text mb-2">チーム・選手の管理・申請</h3>
+                                <p className="text-lp-text-muted leading-relaxed mb-4">
                                     セキュリティに考慮した専用の申請フォームを作成し、外部に公開。参加チームからの情報をスムーズに収集。<br />
                                     アプリ内からも手動でチームを追加・管理できます。
                                 </p>
@@ -89,8 +89,8 @@ export function BentoGrid() {
                             {/* Visual representation of form/app */}
                             <div className="flex gap-4 mt-4 h-48">
                                 <div className="flex-1 relative rounded-xl overflow-hidden border border-white/5 group/image">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 opacity-50"></div>
-                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-white/80 bg-black/50 px-2 py-1 rounded-full backdrop-blur-sm">申請フォーム</div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-lp-bg via-transparent to-transparent z-10 opacity-50"></div>
+                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-lp-text/80 bg-lp-bg/50 px-2 py-1 rounded-full backdrop-blur-sm">申請フォーム</div>
                                     <Image
                                         src="/about/team_form.png"
                                         alt="Team Application Form"
@@ -99,8 +99,8 @@ export function BentoGrid() {
                                     />
                                 </div>
                                 <div className="flex-1 relative rounded-xl overflow-hidden border border-white/5 group/image">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 opacity-50"></div>
-                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-white/80 bg-black/50 px-2 py-1 rounded-full backdrop-blur-sm">アプリ管理</div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-lp-bg via-transparent to-transparent z-10 opacity-50"></div>
+                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-lp-text/80 bg-lp-bg/50 px-2 py-1 rounded-full backdrop-blur-sm">アプリ管理</div>
                                     <Image
                                         src="/about/team_management.png"
                                         alt="Team Management Dashboard"
@@ -110,7 +110,7 @@ export function BentoGrid() {
                                 </div>
                             </div>
                         </div>
-                        <div className="absolute -inset-px bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
+                        <div className="absolute -inset-px bg-gradient-to-r from-lp-primary to-lp-accent opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
                     </motion.div>
 
                     {/* Keyboard Control (1 column) */}
@@ -149,20 +149,20 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             whileHover={{ scale: 1.02 }}
-            className={`group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-8 hover:bg-white/10 transition-colors ${feature.className}`}
+            className={`group relative overflow-hidden rounded-3xl bg-lp-secondary/30 border border-lp-primary/10 p-8 hover:bg-lp-secondary/50 transition-colors ${feature.className}`}
         >
             <div className="relative z-10 h-full flex flex-col justify-between">
                 <div className="mb-8">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-12 h-12 rounded-2xl bg-lp-primary/10 flex items-center justify-center text-lp-primary mb-6 group-hover:scale-110 transition-transform duration-300">
                         {feature.icon}
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-                    <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+                    <h3 className="text-xl font-bold text-lp-text mb-2">{feature.title}</h3>
+                    <p className="text-lp-text-muted leading-relaxed">{feature.description}</p>
                 </div>
 
                 {feature.image && (
                     <div className="relative w-full h-48 rounded-xl overflow-hidden mt-4 border border-white/5">
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10 opacity-50"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-lp-bg to-transparent z-10 opacity-50"></div>
                         <Image
                             src={feature.image}
                             alt={feature.title}
@@ -174,7 +174,7 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
             </div>
 
             {/* Glow Effect */}
-            <div className="absolute -inset-px bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
+            <div className="absolute -inset-px bg-gradient-to-r from-lp-primary to-lp-accent opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
         </motion.div>
     );
 }

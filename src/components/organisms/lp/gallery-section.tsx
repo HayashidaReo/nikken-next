@@ -9,7 +9,7 @@ export function GallerySection() {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     return (
-        <section id="gallery" className="py-32 bg-[#050505] relative border-t border-white/5">
+        <section id="gallery" className="py-32 bg-lp-bg relative border-t border-white/5">
             <div className="container mx-auto px-4 relative z-10 mb-16">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -18,10 +18,10 @@ export function GallerySection() {
                     transition={{ duration: 0.6 }}
                     className="text-center"
                 >
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+                    <h2 className="text-3xl md:text-5xl font-bold text-lp-text mb-6">
                         ギャラリー
                     </h2>
-                    <p className="text-gray-400 max-w-2xl mx-auto">
+                    <p className="text-lp-text-muted max-w-2xl mx-auto">
                         MatcHubの体験をご覧ください。
                     </p>
                 </motion.div>
@@ -43,7 +43,7 @@ export function GallerySection() {
                 {galleryData.map((item, index) => (
                     <motion.div
                         key={index}
-                        className="flex-none w-[85vw] md:w-[600px] aspect-[2704/1696] relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 snap-center group"
+                        className="flex-none w-[85vw] md:w-[600px] aspect-[2704/1696] relative rounded-2xl overflow-hidden border border-white/10 bg-lp-secondary/30 snap-center group"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -55,11 +55,11 @@ export function GallerySection() {
                             fill
                             className="object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 group-hover:opacity-100"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
-                            <h3 className="text-xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-t from-lp-bg/90 via-lp-bg/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
+                            <h3 className="text-xl font-bold text-lp-text mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                                 {item.title}
                             </h3>
-                            <p className="text-gray-300 text-sm translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
+                            <p className="text-lp-text-muted text-sm translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
                                 {item.description}
                             </p>
                         </div>
