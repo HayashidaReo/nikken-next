@@ -188,7 +188,7 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
       timeRemaining: defaultMatchTime,
       isTimerRunning: false,
       timerMode: "countdown", // カウントダウンモードに戻す
-      groupMatches,
+      groupMatches: groupMatches || get().groupMatches,
     });
   },
 

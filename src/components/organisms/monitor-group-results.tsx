@@ -111,7 +111,7 @@ export function MonitorGroupResults({
                                 </div>
                                 {isDraw && (
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                                        <DrawTriangle size={120} />
+                                        <DrawTriangle size={250} />
                                     </div>
                                 )}
                             </div>
