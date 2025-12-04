@@ -44,6 +44,7 @@ export function ScoreboardOperator({
     selectedPlayer,
     setPlayerName,
     setTeamName,
+    setPlayerGrade,
   } = useMonitorStore();
 
 
@@ -82,6 +83,7 @@ export function ScoreboardOperator({
               isManual={isManual}
               onNameChange={setPlayerName}
               onTeamNameChange={setTeamName}
+              onGradeChange={setPlayerGrade}
               onSpecialWinAction={onSpecialWinAction}
             />
           </div>
@@ -108,6 +110,7 @@ export function ScoreboardOperator({
               isManual={isManual}
               onNameChange={setPlayerName}
               onTeamNameChange={setTeamName}
+              onGradeChange={setPlayerGrade}
               onSpecialWinAction={onSpecialWinAction}
             />
           </div>

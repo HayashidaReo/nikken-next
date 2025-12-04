@@ -76,6 +76,7 @@ export interface MonitorState {
   setPlayerScore: (player: "A" | "B", score: number) => void;
   setPlayerName: (player: "A" | "B", name: string) => void;
   setTeamName: (player: "A" | "B", name: string) => void;
+  setPlayerGrade: (player: "A" | "B", grade: string) => void;
   setPlayerHansoku: (player: "A" | "B", hansoku: number) => void;
   setTimeRemaining: (seconds: number) => void;
   startTimer: () => void;
@@ -231,6 +232,19 @@ export const useMonitorStore = create<MonitorState>((set, get) => ({
     } else {
       set({
         playerB: { ...currentState.playerB, teamName: name },
+      });
+    }
+  },
+
+  setPlayerGrade: (player: "A" | "B", grade: string) => {
+    const currentState = get();
+    if (player === "A") {
+      set({
+        playerA: { ...currentState.playerA, grade },
+      });
+    } else {
+      set({
+        playerB: { ...currentState.playerB, grade },
       });
     }
   },
