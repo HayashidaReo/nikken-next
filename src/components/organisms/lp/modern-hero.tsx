@@ -75,8 +75,8 @@ export function ModernHero() {
                     <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl shadow-blue-500/10 bg-[#111]">
                         <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-purple-500/5 pointer-events-none z-10"></div>
                         <Image
-                            src="/about/monitor_display_hero.png"
-                            alt="Dashboard Preview"
+                            src="/about/hero_v2.png"
+                            alt="Nippon Kempo Match and Dashboard"
                             width={1200}
                             height={675}
                             className="w-full h-auto object-cover opacity-90"
