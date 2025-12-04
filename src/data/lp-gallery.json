@@ -6,16 +6,22 @@
         "description": "キーボードショートカットに対応した、直感的な操作画面でスコアと反則、タイマーを簡単に管理。"
     },
     {
+        "src": "/about/monitor_scoreboard.png",
+        "alt": "Scoreboard Display",
+        "title": "洗練されたスコアボード表示",
+        "description": "操作画面からリアルタイムで更新される試合情報を、美しいデザインで表示。"
+    },
+    {
         "src": "/about/monitor_team_match_result.png",
         "alt": "Team Match Result Screen",
         "title": "団体戦結果表示モニター",
         "description": "進行中の団体戦の結果を、明確でインパクトのある画面でモニター表示。"
     },
     {
-        "src": "/about/monitor_scoreboard.png",
-        "alt": "Scoreboard Display",
-        "title": "洗練されたスコアボード表示",
-        "description": "操作画面からリアルタイムで更新される試合情報を、美しいデザインで表示。"
+        "src": "/about/dashboard.png",
+        "alt": "Dashboard",
+        "title": "情報が詰まったダッシュボード",
+        "description": "試合の進行状況、チーム情報など、必要な情報にすぐにアクセス可能。"
     },
     {
         "src": "/about/team_match_result_table.png",
@@ -24,16 +30,23 @@
         "description": "リアルタイムで進行中の試合状況を一覧表示し、試合結果を即座に把握。"
     },
     {
-        "src": "/about/.png",
-        "alt": "Match List Dashboard",
+        "src": "/about/team_form.png",
+        "alt": "Team Form",
         "title": "簡単に入力可能なチーム申請フォーム",
-        "description": "参加希望チームが簡単に情報を入力できる、セキュリティに配慮した専用フォームを提供。"
+        "description": "参加希望チームが簡単に情報を入力できる、セキュリティに配慮した専用フォームをワンクリックで作成＆公開。"
     },
     {
-        "src": "/about/dashboard.png",
-        "alt": "Dashboard",
-        "title": "情報が詰まったダッシュボード",
-        "description": "試合の進行状況、チーム情報など、必要な情報にすぐにアクセス可能。"
+        "src": "/about/team_management.png",
+        "alt": "Team Management",
+        "title": "直感的なチーム・選手管理ダッシュボード",
+        "description": "チームと選手の情報を一元管理し、簡単に編集・更新が可能なダッシュボード。フォームからの申請も自動で反映。"
+    },
+    {
+        "src": "/about/tournaments_management.png",
+        "alt": "Tournaments Management",
+        "title": "複数大会の一元管理ダッシュボード",
+        "description": "複数の大会を作成し、並行して進行状況を管理。チーム申請フォームに表示される大会情報も設定可能。"
     }
+
 
 ]

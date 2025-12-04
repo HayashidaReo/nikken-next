@@ -26,7 +26,7 @@ const features = [
         description: "複数の大会を作成し、並行して進行状況を管理できます。",
         icon: <Layers className="w-6 h-6" />,
         className: "md:col-span-1",
-        image: "/about/management_dashboard.png",
+        image: "/about/tournaments_management.png",
     },
     {
         title: "登録不要の即席モード",
@@ -92,7 +92,7 @@ export function BentoGrid() {
                                     <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 opacity-50"></div>
                                     <div className="absolute top-2 left-2 z-20 text-xs font-bold text-white/80 bg-black/50 px-2 py-1 rounded-full backdrop-blur-sm">申請フォーム</div>
                                     <Image
-                                        src="/about/team_application_form.png"
+                                        src="/about/team_form.png"
                                         alt="Team Application Form"
                                         fill
                                         className="object-cover opacity-80 group-hover/image:opacity-100 transition-opacity duration-500 group-hover/image:scale-105"
@@ -102,7 +102,7 @@ export function BentoGrid() {
                                     <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 opacity-50"></div>
                                     <div className="absolute top-2 left-2 z-20 text-xs font-bold text-white/80 bg-black/50 px-2 py-1 rounded-full backdrop-blur-sm">アプリ管理</div>
                                     <Image
-                                        src="/about/team_management_dashboard.png"
+                                        src="/about/team_management.png"
                                         alt="Team Management Dashboard"
                                         fill
                                         className="object-cover opacity-80 group-hover/image:opacity-100 transition-opacity duration-500 group-hover/image:scale-105"
