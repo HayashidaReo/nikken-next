@@ -18,7 +18,7 @@
         "description": "操作画面からリアルタイムで更新される試合情報を、美しいデザインで表示。"
     },
     {
-        "src": "/about/public/about/team_match_result_table.png",
+        "src": "/about/team_match_result_table.png",
         "alt": "Match Result Management Screen",
         "title": "一目で分かる試合結果管理画面",
         "description": "リアルタイムで進行中の試合状況を一覧表示し、試合結果を即座に把握。"

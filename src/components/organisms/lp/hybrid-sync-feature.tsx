@@ -19,8 +19,8 @@ export function HybridSyncFeature() {
                 <div className="w-1/2 h-full relative z-10 border-r border-white/5 bg-gradient-to-br from-blue-900/10 to-transparent overflow-hidden">
                     <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity duration-500">
                         <Image
-                            src="/images/lp/offline-first.png"
-                            alt="Offline First Mockup"
+                            src="/about/offline-pc.png"
+                            alt="Offline First PC Mockup"
                             fill
                             className="object-cover"
                         />
@@ -45,8 +45,8 @@ export function HybridSyncFeature() {
                 <div className="w-1/2 h-full relative z-10 bg-gradient-to-tl from-purple-900/10 to-transparent overflow-hidden">
                     <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity duration-500">
                         <Image
-                            src="/images/lp/realtime-sync.png"
-                            alt="Realtime Sync Mockup"
+                            src="/about/realtime-sync-pcs.png"
+                            alt="Realtime Sync PC Mockup"
                             fill
                             className="object-cover"
                         />
