@@ -3,12 +3,27 @@ import path from "path";
 import { fork, ChildProcess } from "child_process";
 import fs from "fs";
 import { autoUpdater } from "electron-updater";
+import net from "net";
 
 let mainWindow: BrowserWindow | null;
 let serverProcess: ChildProcess | null;
 
 const isDev = process.env.NODE_ENV === "development";
-const PORT = 3000; // In production, you might want to find a free port dynamically
+
+function findFreePort(startPort: number): Promise<number> {
+    return new Promise((resolve) => {
+        const server = net.createServer();
+        server.unref();
+        server.on("error", () => {
+            resolve(findFreePort(startPort + 1));
+        });
+        server.listen(startPort, () => {
+            server.close(() => {
+                resolve(startPort);
+            });
+        });
+    });
+}
 
 import log from "electron-log";
 
@@ -59,7 +74,7 @@ function setupAutoUpdater() {
     });
 }
 
-function createWindow() {
+function createWindow(port: number) {
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
@@ -71,11 +86,11 @@ function createWindow() {
     });
 
     if (isDev) {
-        mainWindow.loadURL(`http://localhost:${PORT}`);
+        mainWindow.loadURL(`http://localhost:${port}`);
         mainWindow.webContents.openDevTools();
     } else {
         // In production, we load the local server
-        mainWindow.loadURL(`http://localhost:${PORT}`);
+        mainWindow.loadURL(`http://localhost:${port}`);
     }
 
     mainWindow.on("closed", () => {
@@ -96,7 +111,7 @@ async function checkServerReady(url: string, timeout = 10000): Promise<boolean> 
     return false;
 }
 
-async function startServer() {
+async function startServer(port: number) {
     if (isDev) return;
 
     // Use app_standalone directory in Resources
@@ -122,7 +137,7 @@ async function startServer() {
     }
 
     serverProcess = fork(serverPath, [], {
-        env: { ...process.env, PORT: String(PORT), HOSTNAME: "localhost" },
+        env: { ...process.env, PORT: String(port), HOSTNAME: "localhost" },
         cwd: path.dirname(serverPath),
         silent: true,
     });
@@ -151,9 +166,13 @@ async function startServer() {
 }
 
 app.whenReady().then(async () => {
-    await startServer();
+    // Development mode uses hardcoded 3000 (Next.js default)
+    // Production mode finds a free port starting from 3010
+    const port = isDev ? 3000 : await findFreePort(3010);
 
-    const serverUrl = `http://localhost:${PORT}`;
+    await startServer(port);
+
+    const serverUrl = `http://localhost:${port}`;
     const isReady = isDev ? true : await checkServerReady(serverUrl);
 
     if (!isReady) {
@@ -162,14 +181,14 @@ app.whenReady().then(async () => {
         return;
     }
 
-    createWindow();
+    createWindow(port);
 
     // Setup Auto Updater
     setupAutoUpdater();
 
     app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
+            createWindow(port);
         }
     });
 });
