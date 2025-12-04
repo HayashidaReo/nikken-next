@@ -43,7 +43,7 @@ export function GallerySection() {
                 {galleryData.map((item, index) => (
                     <motion.div
                         key={index}
-                        className="flex-none w-[85vw] md:w-[600px] aspect-video relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 snap-center group"
+                        className="flex-none w-[85vw] md:w-[600px] aspect-[2704/1696] relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 snap-center group"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: index * 0.1 }}
