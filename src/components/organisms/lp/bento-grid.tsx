@@ -3,8 +3,10 @@
 import { motion } from "framer-motion";
 import { Monitor, Keyboard, Users, Layers, Edit3 } from "lucide-react";
 import Image from "next/image";
-
+import { useState } from "react";
+import { ImageModal } from "./image-modal";
 import { HybridSyncFeature } from "./hybrid-sync-feature";
+
 
 const features = [
     {
@@ -38,6 +40,8 @@ const features = [
 ];
 
 export function BentoGrid() {
+    const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+
     return (
         <section id="features" className="py-32 bg-lp-bg relative overflow-hidden">
             <div className="container mx-auto px-4 relative z-10">
@@ -61,7 +65,12 @@ export function BentoGrid() {
 
                     {/* Dual Screen (1 column) */}
                     {features.slice(0, 1).map((feature, i) => (
-                        <FeatureCard key={i} feature={feature} index={i} />
+                        <FeatureCard
+                            key={i}
+                            feature={feature}
+                            index={i}
+                            onImageClick={(src, alt) => setSelectedImage({ src, alt })}
+                        />
                     ))}
 
                     {/* Row 2 */}
@@ -88,9 +97,12 @@ export function BentoGrid() {
 
                             {/* Visual representation of form/app */}
                             <div className="flex gap-4 mt-4 h-48">
-                                <div className="flex-1 relative rounded-xl overflow-hidden border border-white/5 group/image">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-lp-bg via-transparent to-transparent z-10 opacity-50"></div>
-                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-lp-text/80 bg-lp-bg/50 px-2 py-1 rounded-full backdrop-blur-sm">申請フォーム</div>
+                                <div
+                                    className="flex-1 relative rounded-xl overflow-hidden border border-white/5 group/image cursor-zoom-in"
+                                    onClick={() => setSelectedImage({ src: "/about/team_form.png", alt: "Team Application Form" })}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-t from-lp-bg via-transparent to-transparent z-10 opacity-50 pointer-events-none"></div>
+                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-lp-text/80 bg-lp-bg/50 px-2 py-1 rounded-full backdrop-blur-sm pointer-events-none">申請フォーム</div>
                                     <Image
                                         src="/about/team_form.png"
                                         alt="Team Application Form"
@@ -98,9 +110,12 @@ export function BentoGrid() {
                                         className="object-cover opacity-80 group-hover/image:opacity-100 transition-opacity duration-500 group-hover/image:scale-105"
                                     />
                                 </div>
-                                <div className="flex-1 relative rounded-xl overflow-hidden border border-white/5 group/image">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-lp-bg via-transparent to-transparent z-10 opacity-50"></div>
-                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-lp-text/80 bg-lp-bg/50 px-2 py-1 rounded-full backdrop-blur-sm">アプリ管理</div>
+                                <div
+                                    className="flex-1 relative rounded-xl overflow-hidden border border-white/5 group/image cursor-zoom-in"
+                                    onClick={() => setSelectedImage({ src: "/about/team_management.png", alt: "Team Management Dashboard" })}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-t from-lp-bg via-transparent to-transparent z-10 opacity-50 pointer-events-none"></div>
+                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-lp-text/80 bg-lp-bg/50 px-2 py-1 rounded-full backdrop-blur-sm pointer-events-none">アプリ管理</div>
                                     <Image
                                         src="/about/team_management.png"
                                         alt="Team Management Dashboard"
@@ -115,20 +130,42 @@ export function BentoGrid() {
 
                     {/* Keyboard Control (1 column) */}
                     {features.slice(1, 2).map((feature, i) => (
-                        <FeatureCard key={i + 1} feature={feature} index={i + 1} />
+                        <FeatureCard
+                            key={i + 1}
+                            feature={feature}
+                            index={i + 1}
+                            onImageClick={(src, alt) => setSelectedImage({ src, alt })}
+                        />
                     ))}
 
                     {/* Row 3 */}
                     {features.slice(2, 3).map((feature, i) => (
-                        <FeatureCard key={i + 2} feature={feature} index={i + 2} />
+                        <FeatureCard
+                            key={i + 2}
+                            feature={feature}
+                            index={i + 2}
+                            onImageClick={(src, alt) => setSelectedImage({ src, alt })}
+                        />
                     ))}
 
                     {/* Row 4 */}
                     {features.slice(3, 4).map((feature, i) => (
-                        <FeatureCard key={i + 3} feature={feature} index={i + 3} />
+                        <FeatureCard
+                            key={i + 3}
+                            feature={feature}
+                            index={i + 3}
+                            onImageClick={(src, alt) => setSelectedImage({ src, alt })}
+                        />
                     ))}
                 </div>
             </div>
+
+            <ImageModal
+                isOpen={!!selectedImage}
+                onClose={() => setSelectedImage(null)}
+                imageSrc={selectedImage?.src || null}
+                imageAlt={selectedImage?.alt || ""}
+            />
         </section>
     );
 }
@@ -141,7 +178,7 @@ interface Feature {
     image: string | null;
 }
 
-function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
+function FeatureCard({ feature, index, onImageClick }: { feature: Feature; index: number; onImageClick: (src: string, alt: string) => void }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -161,8 +198,11 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
                 </div>
 
                 {feature.image && (
-                    <div className="relative w-full h-48 rounded-xl overflow-hidden mt-4 border border-white/5">
-                        <div className="absolute inset-0 bg-gradient-to-t from-lp-bg to-transparent z-10 opacity-50"></div>
+                    <div
+                        className="relative w-full h-48 rounded-xl overflow-hidden mt-4 border border-white/5 cursor-zoom-in"
+                        onClick={() => feature.image && onImageClick(feature.image, feature.title)}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-t from-lp-bg to-transparent z-10 opacity-50 pointer-events-none"></div>
                         <Image
                             src={feature.image}
                             alt={feature.title}
