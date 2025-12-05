@@ -9,6 +9,7 @@ import { FallbackMonitorDialog } from "@/components/molecules";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useMonitorPageUi } from "@/hooks/useMonitorPageUi";
 import { useManualMonitorState } from "@/hooks/useManualMonitorState";
+import { useMonitorKeyboardShortcuts } from "@/hooks/useMonitorKeyboardShortcuts";
 
 export default function ManualMonitorControlPage() {
     const router = useRouter();
@@ -95,6 +96,9 @@ export default function ManualMonitorControlPage() {
             }
         );
     });
+
+    // キーボードショートカットを有効化
+    useMonitorKeyboardShortcuts();
 
     const handleBackToDashboard = () => {
         router.push("/dashboard");
