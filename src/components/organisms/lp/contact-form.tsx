@@ -7,11 +7,12 @@ import * as z from "zod";
 import { motion } from "framer-motion";
 import { Loader2, Send, CheckCircle, AlertCircle } from "lucide-react";
 import { submitContactForm } from "@/lib/api/contact";
+import { ContactFormInput } from "@/components/molecules/contact-form-input";
 
 const contactSchema = z.object({
     name: z.string().min(1, "お名前を入力してください"),
     email: z.string().email("有効なメールアドレスを入力してください"),
-    message: z.string().min(1, "お問い合わせ内容を入力してください"),
+    message: z.string().min(1, "お問い合わせ内容をご記入してください"),
     company: z.string().optional(),
 });
 
@@ -95,76 +96,38 @@ export function ContactForm() {
                         ) : (
                             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label htmlFor="name" className="text-sm font-medium text-lp-text-muted">
-                                            お名前 <span className="text-red-400">*</span>
-                                        </label>
-                                        <input
-                                            id="name"
-                                            type="text"
-                                            className={`w-full bg-lp-bg/50 border ${errors.name ? "border-red-500/50" : "border-white/10"} rounded-xl px-4 py-3 text-lp-text focus:outline-none focus:border-lp-primary/50 focus:ring-1 focus:ring-lp-primary/50 transition-all`}
-                                            placeholder="山田 太郎"
-                                            {...register("name")}
-                                        />
-                                        {errors.name && (
-                                            <p className="text-red-400 text-xs flex items-center gap-1">
-                                                <AlertCircle className="w-3 h-3" />
-                                                {errors.name.message}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label htmlFor="company" className="text-sm font-medium text-lp-text-muted">
-                                            会社名・団体名
-                                        </label>
-                                        <input
-                                            id="company"
-                                            type="text"
-                                            className="w-full bg-lp-bg/50 border border-white/10 rounded-xl px-4 py-3 text-lp-text focus:outline-none focus:border-lp-primary/50 focus:ring-1 focus:ring-lp-primary/50 transition-all"
-                                            placeholder="株式会社〇〇"
-                                            {...register("company")}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label htmlFor="email" className="text-sm font-medium text-lp-text-muted">
-                                        メールアドレス <span className="text-red-400">*</span>
-                                    </label>
-                                    <input
-                                        id="email"
-                                        type="email"
-                                        className={`w-full bg-lp-bg/50 border ${errors.email ? "border-red-500/50" : "border-white/10"} rounded-xl px-4 py-3 text-lp-text focus:outline-none focus:border-lp-primary/50 focus:ring-1 focus:ring-lp-primary/50 transition-all`}
-                                        placeholder="example@email.com"
-                                        {...register("email")}
+                                    <ContactFormInput
+                                        label="お名前"
+                                        registration={register("name")}
+                                        error={errors.name}
+                                        placeholder="山田 太郎"
+                                        required
                                     />
-                                    {errors.email && (
-                                        <p className="text-red-400 text-xs flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" />
-                                            {errors.email.message}
-                                        </p>
-                                    )}
+
+                                    <ContactFormInput
+                                        label="会社名・団体名"
+                                        registration={register("company")}
+                                        placeholder="株式会社〇〇"
+                                    />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label htmlFor="message" className="text-sm font-medium text-lp-text-muted">
-                                        お問い合わせ内容 <span className="text-red-400">*</span>
-                                    </label>
-                                    <textarea
-                                        id="message"
-                                        rows={5}
-                                        className={`w-full bg-lp-bg/50 border ${errors.message ? "border-red-500/50" : "border-white/10"} rounded-xl px-4 py-3 text-lp-text focus:outline-none focus:border-lp-primary/50 focus:ring-1 focus:ring-lp-primary/50 transition-all resize-none`}
-                                        placeholder="内容をご記入ください"
-                                        {...register("message")}
-                                    />
-                                    {errors.message && (
-                                        <p className="text-red-400 text-xs flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" />
-                                            {errors.message.message}
-                                        </p>
-                                    )}
-                                </div>
+                                <ContactFormInput
+                                    label="メールアドレス"
+                                    registration={register("email")}
+                                    error={errors.email}
+                                    placeholder="example@email.com"
+                                    type="email"
+                                    required
+                                />
+
+                                <ContactFormInput
+                                    label="お問い合わせ内容"
+                                    registration={register("message")}
+                                    error={errors.message}
+                                    placeholder="内容をご記入ください"
+                                    multiline
+                                    required
+                                />
 
                                 {submitError && (
                                     <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
