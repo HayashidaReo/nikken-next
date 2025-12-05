@@ -46,7 +46,11 @@
         "alt": "Tournaments Management",
         "title": "複数大会の一元管理ダッシュボード",
         "description": "複数の大会を作成し、並行して進行状況を管理。チーム申請フォームに表示される大会情報も設定可能。"
+    },
+    {
+        "src": "/about/hero_v2.png",
+        "alt": "Instant Monitor Overview",
+        "title": "想定される利用シーン",
+        "description": "観客に試合状況をリアルタイムで伝えたい大会運営者や、スムーズな試合進行を目指す審判団に最適です。"
     }
-
-
 ]
