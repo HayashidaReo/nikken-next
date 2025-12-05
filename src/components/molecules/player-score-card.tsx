@@ -38,6 +38,7 @@ interface PlayerScoreCardProps {
   isManual?: boolean;
   onNameChange?: (playerKey: "A" | "B", name: string) => void;
   onTeamNameChange?: (playerKey: "A" | "B", name: string) => void;
+  onGradeChange?: (playerKey: "A" | "B", grade: string) => void;
   onSpecialWinAction?: (playerKey: "A" | "B", action: "fusen" | "hantei" | "hansoku") => void;
 }
 
@@ -61,6 +62,7 @@ export function PlayerScoreCard({
   isManual = false,
   onNameChange,
   onTeamNameChange,
+  onGradeChange,
   onSpecialWinAction,
 }: PlayerScoreCardProps) {
   const { playerA: storePlayerA, playerB: storePlayerB } = useMonitorStore();
@@ -149,6 +151,12 @@ export function PlayerScoreCard({
                   onChange={(e) => onNameChange?.(playerKey, e.target.value)}
                   placeholder="選手名"
                   className="text-center font-bold text-lg"
+                />
+                <Input
+                  value={player.grade || ""}
+                  onChange={(e) => onGradeChange?.(playerKey, e.target.value)}
+                  placeholder="段位"
+                  className="text-center h-8 text-sm"
                 />
               </div>
             ) : (
