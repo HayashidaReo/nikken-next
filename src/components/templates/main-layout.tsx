@@ -37,7 +37,7 @@ const ALL_NAV_ITEMS = [
   { label: "試合一覧", href: "/dashboard", value: "matches" as const },
   { label: "試合の組み合わせ設定", href: "/match-setup", value: "match-setup" as const },
   { label: "チーム・選手管理", href: "/teams", value: "teams" as const },
-  { label: "手動モニター", href: "/manual-monitor-control", value: "manual-monitor" as const },
+  { label: "即席モニター", href: "/manual-monitor-control", value: "manual-monitor" as const },
   { label: "ダウンロード", href: "/download", value: "download" as const },
 ];
 

@@ -60,7 +60,11 @@ export function DownloadContent({ release, macArmUrl, macIntelUrl, winUrl }: Dow
 
                         <motion.p variants={item} className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
                             日本拳法の試合管理を、もっとシンプルに、もっと美しく、もっと快適に。<br />
-                            ネイティブアプリならではのパフォーマンスを体験してください。
+                            ネイティブアプリならではのパフォーマンスを体験してください。<br />
+                            <span className="text-blue-400 font-bold mt-4 inline-block text-lg">
+                                ご利用には、アカウントを発行する必要がございます。<br />
+                                発行ご希望の方は<Link href="about/#contact" className="underline hover:text-blue-300 transition-colors">お問い合わせフォーム</Link>よりご相談くださいませ。
+                            </span>
                         </motion.p>
                     </div>
 
