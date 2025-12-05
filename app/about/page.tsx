@@ -3,6 +3,7 @@ import { ModernHero } from "@/components/organisms/lp/modern-hero";
 import { BentoGrid } from "@/components/organisms/lp/bento-grid";
 import { GallerySection } from "@/components/organisms/lp/gallery-section";
 import { ModernFooter } from "@/components/organisms/lp/modern-footer";
+import { ContactForm } from "@/components/organisms/lp/contact-form";
 
 export default function LpPage() {
     return (
@@ -12,6 +13,7 @@ export default function LpPage() {
                 <ModernHero />
                 <BentoGrid />
                 <GallerySection />
+                <ContactForm />
             </main>
             <ModernFooter />
         </div>
