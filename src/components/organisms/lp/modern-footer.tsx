@@ -16,10 +16,11 @@ export function ModernFooter() {
                         <span className="font-bold text-xl tracking-tight text-lp-text">MatcHub</span>
                     </div>
 
-                    <div className="flex gap-8 text-sm text-lp-text-muted">
+                    {/* 今は表示しない */}
+                    {/* <div className="flex gap-8 text-sm text-lp-text-muted">
                         <Link href="/privacy" className="hover:text-lp-primary transition-colors">プライバシーポリシー</Link>
                         <Link href="/terms" className="hover:text-lp-primary transition-colors">利用規約</Link>
-                    </div>
+                    </div> */}
 
                     <p className="text-sm text-lp-text-muted/60">
                         © {new Date().getFullYear()} MatcHub.
