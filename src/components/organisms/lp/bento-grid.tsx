@@ -1,15 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { Monitor, Keyboard, Users, Layers, Edit3, ArrowRight } from "lucide-react";
-import Image from "next/image";
+import { Monitor, Keyboard, Layers } from "lucide-react";
 import { useState } from "react";
 import { ImageModal } from "./image-modal";
 import { HybridSyncFeature } from "./hybrid-sync-feature";
+import { FeatureCard, Feature } from "./feature-card";
+import { TeamManagementCard } from "./team-management-card";
+import { InstantModeCard } from "./instant-mode-card";
 
 
-const features = [
+const features: Feature[] = [
     {
         title: "外部ディスプレイ表示",
         description: "HDMI/AirPlay経由でプロ仕様のスコアボードをモニターに表示。",
@@ -54,9 +55,6 @@ export function BentoGrid() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
                     {/* Row 1 */}
-                    {/* Hybrid Sync Feature (Spans 2 columns) */}
-                    <HybridSyncFeature />
-
                     {/* Dual Screen (1 column) */}
                     {features.slice(0, 1).map((feature, i) => (
                         <FeatureCard
@@ -67,60 +65,12 @@ export function BentoGrid() {
                         />
                     ))}
 
+                    {/* Hybrid Sync Feature (Spans 2 columns) */}
+                    <HybridSyncFeature />
+
                     {/* Row 2 */}
                     {/* Team Management (Spans 2 columns) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        whileHover={{ scale: 1.02 }}
-                        className={`group relative overflow-hidden rounded-3xl bg-lp-secondary/30 border border-lp-primary/10 p-8 hover:bg-lp-secondary/50 transition-colors md:col-span-2`}
-                    >
-                        <div className="relative z-10 h-full flex flex-col justify-between">
-                            <div>
-                                <div className="w-12 h-12 rounded-2xl bg-lp-primary/10 flex items-center justify-center text-lp-primary mb-6 group-hover:scale-110 transition-transform duration-300">
-                                    <Users className="w-6 h-6" />
-                                </div>
-                                <h3 className="text-xl font-bold text-lp-text mb-2">チーム・選手の管理・申請</h3>
-                                <p className="text-lp-text-muted leading-relaxed mb-4">
-                                    セキュリティに考慮した専用の申請フォームを作成し、外部に公開。参加チームからの情報をスムーズに収集。<br />
-                                    アプリ内からも手動でチームを追加・管理できます。
-                                </p>
-                            </div>
-
-                            {/* Visual representation of form/app */}
-                            <div className="flex gap-4 mt-4 h-48">
-                                <div
-                                    className="flex-1 relative rounded-xl overflow-hidden border border-white/5 group/image cursor-zoom-in"
-                                    onClick={() => setSelectedImage({ src: "/about/team_form.png", alt: "Team Application Form" })}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-t from-lp-bg via-transparent to-transparent z-10 opacity-50 pointer-events-none"></div>
-                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-lp-text/80 bg-lp-bg/50 px-2 py-1 rounded-full backdrop-blur-sm pointer-events-none">申請フォーム</div>
-                                    <Image
-                                        src="/about/team_form.png"
-                                        alt="Team Application Form"
-                                        fill
-                                        className="object-cover opacity-80 group-hover/image:opacity-100 transition-opacity duration-500 group-hover/image:scale-105"
-                                    />
-                                </div>
-                                <div
-                                    className="flex-1 relative rounded-xl overflow-hidden border border-white/5 group/image cursor-zoom-in"
-                                    onClick={() => setSelectedImage({ src: "/about/team_management.png", alt: "Team Management Dashboard" })}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-t from-lp-bg via-transparent to-transparent z-10 opacity-50 pointer-events-none"></div>
-                                    <div className="absolute top-2 left-2 z-20 text-xs font-bold text-lp-text/80 bg-lp-bg/50 px-2 py-1 rounded-full backdrop-blur-sm pointer-events-none">アプリ管理</div>
-                                    <Image
-                                        src="/about/team_management.png"
-                                        alt="Team Management Dashboard"
-                                        fill
-                                        className="object-cover opacity-80 group-hover/image:opacity-100 transition-opacity duration-500 group-hover/image:scale-105"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="absolute -inset-px bg-gradient-to-r from-lp-primary to-lp-accent opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
-                    </motion.div>
+                    <TeamManagementCard onImageClick={(src, alt) => setSelectedImage({ src, alt })} />
 
                     {/* Keyboard Control (1 column) */}
                     {features.slice(1, 2).map((feature, i) => (
@@ -143,51 +93,7 @@ export function BentoGrid() {
                     ))}
 
                     {/* Instant Mode Custom Card (Spans 2 columns) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                        whileHover={{ scale: 1.02 }}
-                        className="group relative overflow-hidden rounded-3xl bg-lp-secondary/30 border border-lp-primary/10 p-8 hover:bg-lp-secondary/50 transition-colors md:col-span-2 flex flex-col justify-between"
-                    >
-                        {/* Top: Text Content */}
-                        <div className="relative z-10 mb-8">
-                            <div className="w-12 h-12 rounded-2xl bg-lp-primary/10 flex items-center justify-center text-lp-primary mb-6 group-hover:scale-110 transition-transform duration-300">
-                                <Edit3 className="w-6 h-6" />
-                            </div>
-                            <h3 className="text-xl font-bold text-lp-text mb-2">登録不要の即席モード</h3>
-                            <p className="text-lp-text-muted leading-relaxed max-w-2xl">
-                                選手名などを操作画面でそのまま入力することで、登録なしに誰でも得点板を使用することができます。
-                            </p>
-                        </div>
-
-                        {/* Bottom: Button and Image */}
-                        <div className="relative z-10 flex flex-col md:flex-row items-end justify-between gap-8">
-                            <Link href="/manual-monitor-control" className="mb-4 md:mb-8">
-                                <button className="flex items-center gap-2 px-6 py-3 bg-lp-blue text-white text-sm font-bold rounded-full hover:bg-lp-blue/90 transition-colors shadow-lg shadow-lp-primary/20">
-                                    早速使ってみる
-                                    <ArrowRight className="w-4 h-4" />
-                                </button>
-                            </Link>
-
-                            <div
-                                className="w-full md:w-1/2 aspect-[2704/1696] relative rounded-xl overflow-hidden border border-white/5 cursor-zoom-in"
-                                onClick={() => setSelectedImage({ src: "/about/manual_controller.png", alt: "Instant Mode" })}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-t from-lp-bg to-transparent z-10 opacity-50 pointer-events-none"></div>
-                                <Image
-                                    src="/about/manual_controller.png"
-                                    alt="Instant Mode"
-                                    fill
-                                    className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500 group-hover:scale-105"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Glow Effect */}
-                        <div className="absolute -inset-px bg-gradient-to-r from-lp-primary to-lp-accent opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
-                    </motion.div>
+                    <InstantModeCard onImageClick={(src, alt) => setSelectedImage({ src, alt })} />
                 </div>
             </div>
 
@@ -198,54 +104,5 @@ export function BentoGrid() {
                 imageAlt={selectedImage?.alt || ""}
             />
         </section>
-    );
-}
-
-interface Feature {
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    className: string;
-    image: string | null;
-}
-
-function FeatureCard({ feature, index, onImageClick }: { feature: Feature; index: number; onImageClick: (src: string, alt: string) => void }) {
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            whileHover={{ scale: 1.02 }}
-            className={`group relative overflow-hidden rounded-3xl bg-lp-secondary/30 border border-lp-primary/10 p-8 hover:bg-lp-secondary/50 transition-colors ${feature.className}`}
-        >
-            <div className="relative z-10 h-full flex flex-col justify-between">
-                <div className="mb-8">
-                    <div className="w-12 h-12 rounded-2xl bg-lp-primary/10 flex items-center justify-center text-lp-primary mb-6 group-hover:scale-110 transition-transform duration-300">
-                        {feature.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-lp-text mb-2">{feature.title}</h3>
-                    <p className="text-lp-text-muted leading-relaxed">{feature.description}</p>
-                </div>
-
-                {feature.image && (
-                    <div
-                        className="relative w-full h-48 rounded-xl overflow-hidden mt-4 border border-white/5 cursor-zoom-in"
-                        onClick={() => feature.image && onImageClick(feature.image, feature.title)}
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-t from-lp-bg to-transparent z-10 opacity-50 pointer-events-none"></div>
-                        <Image
-                            src={feature.image}
-                            alt={feature.title}
-                            fill
-                            className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500 group-hover:scale-105"
-                        />
-                    </div>
-                )}
-            </div>
-
-            {/* Glow Effect */}
-            <div className="absolute -inset-px bg-gradient-to-r from-lp-primary to-lp-accent opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
-        </motion.div>
     );
 }
