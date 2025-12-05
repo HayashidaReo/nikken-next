@@ -67,7 +67,10 @@ export function ContactForm() {
                             お問い合わせ
                         </h2>
                         <p className="text-lp-text-muted">
-                            ご質問やご要望がございましたら、お気軽にお問い合わせください。
+                            ご質問やご要望がございましたら、お気軽にお問い合わせください。<br />
+                            <span className="text-lp-primary font-bold mt-2 inline-block">
+                                ご利用には、アカウントを発行する必要がございます。発行ご希望の方はお問い合わせフォームよりご相談くださいませ。各種大会に合わせてカスタマイズも承っております。
+                            </span>
                         </p>
                     </div>
 
