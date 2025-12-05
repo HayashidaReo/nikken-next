@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "next dev --turbo",
     "dev:pwa": "ENABLE_PWA=true next dev",
+    "dev:host": "next dev --turbo -H 0.0.0.0",
     "build": "ENABLE_PWA=true next build",
     "build:no-pwa": "next build",
     "start": "next start",
