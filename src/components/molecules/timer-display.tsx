@@ -31,7 +31,7 @@ export function TimerDisplay({
         <div className="absolute inset-0 z-20 flex items-center justify-end pr-12">
           <div
             className={cn(
-              "text-[26rem] leading-[0.9] font-black tracking-tight",
+              "text-[26rem] leading-[0.9] font-bold tracking-tight",
               isTimerRunning ? "text-green-400" : "text-white"
             )}
           >

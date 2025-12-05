@@ -101,7 +101,7 @@ export default function ManualMonitorControlPage() {
     useMonitorKeyboardShortcuts();
 
     const handleBackToDashboard = () => {
-        router.push("/dashboard");
+        router.back();
     };
 
     return (
