@@ -26,7 +26,6 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
     }, [teams]);
 
     // 試合をラウンドIDごとにマップ
-    // sortOrderは 1-based index と仮定
     const matchLookup = useMemo(() => {
         const map = new Map<string, MatchGroup>(); // key: roundId-sortOrder
         matchGroups.forEach(m => {
@@ -36,32 +35,21 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
     }, [matchGroups]);
 
     const rounds = tournament.rounds;
-    // チーム数から必要なラウンド数を計算（最低でもlog2(teams)）
-    // 例: 8チーム -> 3ラウンド, 5チーム -> 3ラウンド
     const neededRounds = Math.ceil(Math.log2(Math.max(teams.length, 2)));
     const totalRounds = Math.max(rounds.length, neededRounds);
     const roundOffset = totalRounds - rounds.length;
 
     // 仮想的なツリー構造を生成
-    // 各ラウンドの必要スロット数 = 2^(totalRounds - 1 - rIndex)
-    // 構造は totalRounds に基づいて完全なツリーを作る
     const virtualStructure = useMemo(() => {
-        // 全ラウンド分（仮想含む）ループ
         const structure = Array.from({ length: totalRounds }).map((_, rIndex) => {
             const matchCount = Math.pow(2, totalRounds - 1 - rIndex);
-
-            // 実際のラウンドデータとのマッピング
-            // rIndex < roundOffset の場合、まだ実際のラウンドが存在しない（仮想ラウンド）
             const realRoundIndex = rIndex - roundOffset;
             const roundData = realRoundIndex >= 0 ? rounds[realRoundIndex] : undefined;
             const roundId = roundData?.roundId;
 
-            // 各スロット（試合）のデータを生成
             const slots = Array.from({ length: matchCount }).map((_, i) => {
                 const sortOrder = i; // 0-based
-                // roundIdが無い場合はマッチ検索できない
                 const match = roundId ? matchLookup.get(`${roundId}-${sortOrder}`) : undefined;
-
                 const key = match?.matchGroupId || `virtual-${rIndex}-${sortOrder}`;
 
                 return {
@@ -77,28 +65,17 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
         return structure;
     }, [rounds, totalRounds, matchLookup, roundOffset]);
 
-    // 最初のラウンドの試合数（=チームペア数）
     const firstRoundSlotCount = virtualStructure[0]?.slots.length || 0;
 
     // Y座標計算用マップ
-    // key -> { x, y }
     const posMap = useMemo(() => {
         const map = new Map<string, { x: number, y: number }>();
 
         virtualStructure.forEach((level) => {
             level.slots.forEach((slot, index) => {
                 const rIndex = level.slots[0].roundIndex;
-                // X座標: ラウンドに応じて右へずらす
                 const setX = rIndex * LEVEL_WIDTH + NODE_WIDTH + 40;
-
-                // Y座標: 2つのチーム（または前段の試合）の中央に配置
                 const slotSpan = Math.pow(2, rIndex + 1);
-
-                // チームカードの中心を考慮した中央位置
-                // 例: index=0, rIndex=0 の場合
-                //   - slot 0 (team A) の中心: 0.5 * ITEM_HEIGHT  
-                //   - slot 1 (team B) の中心: 1.5 * ITEM_HEIGHT
-                //   - その中間: 1.0 * ITEM_HEIGHT
                 const centerSlot = index * slotSpan + slotSpan / 2;
                 const y = centerSlot * ITEM_HEIGHT;
 
@@ -115,19 +92,10 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
         let side: "teamA" | "teamB" = leafIndex % 2 === 0 ? "teamA" : "teamB";
 
         while (rIndex < totalRounds) {
-            // realRoundIndexを確認
             const realRoundIndex = rIndex - roundOffset;
             const roundData = realRoundIndex >= 0 ? rounds[realRoundIndex] : undefined;
 
-            if (!roundData) {
-                // ラウンドがない場合（仮想）
-                // マッチがないのでBye扱いとして上に登るか？
-                // しかし仮想ラウンドは「未定」なのでByeではない。
-                // データがないため追跡不能。
-                // ただし、もしここが「1回戦」なら、ここにあるはずのチームは「その枠」にいるチーム。
-                // データ不足のため追跡終了
-                return undefined;
-            }
+            if (!roundData) return undefined;
 
             const sortOrder = mIndex;
             const match = matchLookup.get(`${roundData.roundId}-${sortOrder}`);
@@ -138,7 +106,6 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                 return undefined;
             }
 
-            // Bye logic (only valid if match structure implies it, but here we just trace up)
             if (side === "teamB") return undefined;
 
             const nextMIndex = Math.floor(mIndex / 2);
@@ -154,38 +121,40 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
     const totalHeight = (firstRoundSlotCount * 2) * ITEM_HEIGHT;
     const totalWidth = totalRounds * LEVEL_WIDTH + NODE_WIDTH + 100;
 
+    // ヘルパー関数: 試合の結果に基づいて線のスタイルを決定
+    const getStrokeStyle = (match: MatchGroup | undefined) => {
+        const isCompleted = match?.isCompleted;
+        const strokeColor = isCompleted ? "#0F172A" : "#CBD5E1";
+        const strokeWidth = isCompleted ? "3" : "2";
+        return { strokeColor, strokeWidth };
+    };
+
     return (
         <div className="w-full overflow-auto bg-white min-h-screen p-8">
             <div className="relative" style={{ width: totalWidth, height: totalHeight }}>
                 <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-                    {/* Connections between matches - split at merge point */}
+                    
+                    {/* Connections between matches - horizontal lines to vertical bar */}
                     {virtualStructure.map((level, rIndex) => {
                         const nextLevel = virtualStructure[rIndex + 1];
                         if (!nextLevel) return null;
 
                         return level.slots.map((slot, sIndex) => {
                             const currentPos = posMap.get(slot.key);
-
                             const parentIndex = Math.floor(sIndex / 2);
                             const parentSlot = nextLevel.slots[parentIndex];
 
                             if (currentPos && parentSlot) {
                                 const nextPos = posMap.get(parentSlot.key);
                                 if (nextPos) {
-                                    const isCompleted = slot.match?.isCompleted;
-                                    const strokeColor = isCompleted ? "#0F172A" : "#CBD5E1";
-                                    const strokeWidth = isCompleted ? "3" : "2";
-
+                                    const { strokeColor, strokeWidth } = getStrokeStyle(slot.match);
                                     const bracketX = nextPos.x - 60;
 
-                                    // Part 1: From current match to merge point (vertical bar)
-                                    // Use current match's color
+                                    // Horizontal line to vertical bar
                                     return (
                                         <path
-                                            key={`conn-${slot.key}`}
-                                            d={`M ${currentPos.x} ${currentPos.y} 
-                                               H ${bracketX} 
-                                               V ${nextPos.y}`}
+                                            key={`conn-h-${slot.key}`}
+                                            d={`M ${currentPos.x} ${currentPos.y} H ${bracketX}`}
                                             fill="none"
                                             stroke={strokeColor}
                                             strokeWidth={strokeWidth}
@@ -197,31 +166,73 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         });
                     })}
 
-                    {/* Connections from merge point to next match */}
+                    {/* Vertical line on the vertical bar (Merge point) */}
                     {virtualStructure.map((level, rIndex) => {
                         const nextLevel = virtualStructure[rIndex + 1];
                         if (!nextLevel) return null;
 
-                        return nextLevel.slots.map((parentSlot, parentIndex) => {
+                        return nextLevel.slots.flatMap((parentSlot, parentIndex) => {
                             const nextPos = posMap.get(parentSlot.key);
-                            if (!nextPos) return null;
+                            if (!nextPos) return [];
 
                             const bracketX = nextPos.x - 60;
 
-                            // Check if either child match is completed
-                            const childIndex1 = parentIndex * 2;
-                            const childIndex2 = parentIndex * 2 + 1;
-                            const child1 = level.slots[childIndex1];
-                            const child2 = level.slots[childIndex2];
+                            const child1 = level.slots[parentIndex * 2];
+                            const child2 = level.slots[parentIndex * 2 + 1];
+                            
+                            const child1Pos = child1 ? posMap.get(child1.key) : null;
+                            const child2Pos = child2 ? posMap.get(child2.key) : null;
 
-                            const anyChildCompleted = child1?.match?.isCompleted || child2?.match?.isCompleted;
-                            const strokeColor = anyChildCompleted ? "#0F172A" : "#CBD5E1";
-                            const strokeWidth = anyChildCompleted ? "3" : "2";
+                            // 垂直線は、親試合が完了しているかどうかで線の色を決定する
+                            // 勝者が確定した場合、次のラウンドへ進む線は黒くする
+                            const { strokeColor, strokeWidth } = getStrokeStyle(parentSlot.match);
 
-                            // Part 2: From merge point to next match
+                            const lines = [];
+
+                            // Draw vertical line covering the span of the two children
+                            if (child1Pos && child2Pos) {
+                                lines.push(
+                                    <path
+                                        key={`conn-v-span-${parentSlot.key}`}
+                                        d={`M ${bracketX} ${child1Pos.y} V ${child2Pos.y}`}
+                                        fill="none"
+                                        stroke={strokeColor}
+                                        strokeWidth={strokeWidth}
+                                    />
+                                );
+                            } else if (child1Pos) {
+                                // For the first round where the bottom team might be missing (Bye)
+                                lines.push(
+                                    <path
+                                        key={`conn-v-span-${parentSlot.key}`}
+                                        d={`M ${bracketX} ${child1Pos.y} V ${nextPos.y}`}
+                                        fill="none"
+                                        stroke={strokeColor}
+                                        strokeWidth={strokeWidth}
+                                    />
+                                );
+                            }
+
+                            return lines;
+                        });
+                    })}
+                    
+                    {/* Connections from merge point to next match node (Horizontal line) */}
+                    {virtualStructure.map((level, rIndex) => {
+                        const nextLevel = virtualStructure[rIndex + 1];
+                        if (!nextLevel) return null;
+
+                        return nextLevel.slots.flatMap((parentSlot) => {
+                            const nextPos = posMap.get(parentSlot.key);
+                            if (!nextPos) return [];
+
+                            const bracketX = nextPos.x - 60;
+                            const { strokeColor, strokeWidth } = getStrokeStyle(parentSlot.match);
+                            
+                            // Horizontal line from merge point to parent match node
                             return (
                                 <path
-                                    key={`merge-${parentSlot.key}`}
+                                    key={`merge-to-node-${parentSlot.key}`}
                                     d={`M ${bracketX} ${nextPos.y} H ${nextPos.x}`}
                                     fill="none"
                                     stroke={strokeColor}
@@ -231,6 +242,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         });
                     })}
 
+
                     {/* Final Winner Line */}
                     {(() => {
                         const finalLevel = virtualStructure[virtualStructure.length - 1];
@@ -238,9 +250,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         if (finalSlot) {
                             const pos = posMap.get(finalSlot.key);
                             if (pos) {
-                                const isCompleted = finalSlot.match?.isCompleted;
-                                const strokeColor = isCompleted ? "#0F172A" : "#CBD5E1";
-                                const strokeWidth = isCompleted ? "3" : "2";
+                                const { strokeColor, strokeWidth } = getStrokeStyle(finalSlot.match);
                                 return (
                                     <path
                                         d={`M ${pos.x} ${pos.y} H ${pos.x + 60}`}
@@ -256,10 +266,6 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
 
                 {/* Teams (Left Column) - Render all leaf slots */}
                 <div className="absolute left-0 top-0 flex flex-col gap-0">
-                    {/* firstRoundSlotCount * 2 creates the leaf count.
-                        virtualStructure[0] contains matches. Each match has 2 leaves. 
-                        Iterate virtualStructure[0].slots (matches) -> render 2 leaves per match.
-                    */}
                     {virtualStructure[0]?.slots.map((slot, index) => {
                         const leafIndexA = index * 2;
                         const leafIndexB = index * 2 + 1;
@@ -270,11 +276,6 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         const slotY_A = leafIndexA * ITEM_HEIGHT;
                         const slotY_B = leafIndexB * ITEM_HEIGHT;
 
-                        // Winner check needs careful logic for byes
-                        // For display purposed in left column, we highlight if they won the specific round 1 match?
-                        // Or highlight if they are still in tournament...
-                        // Simple logic: If match exists, check winner. If inferred from Bye, maybe don't highlight or highlight as winner?
-                        // Let's stick to match result if exists.
                         const isWinnerA = slot.match?.winnerTeam === "teamA";
                         const isWinnerB = slot.match?.winnerTeam === "teamB";
 
@@ -311,19 +312,21 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
 
                         const bracketX = matchPos.x - 0;
 
+                        // チームが勝った場合にのみ黒線で描画
+                        const styleA = isWinnerA ? { stroke: "#0F172A", strokeWidth: "3" } : { stroke: "#CBD5E1", strokeWidth: "2" };
+                        const styleB = isWinnerB ? { stroke: "#0F172A", strokeWidth: "3" } : { stroke: "#CBD5E1", strokeWidth: "2" };
+
                         return (
                             <React.Fragment key={`team-lines-${slot.key}`}>
                                 <path
                                     d={`M ${NODE_WIDTH} ${slotY_A + ITEM_HEIGHT / 2} H ${bracketX} V ${matchPos.y} H ${matchPos.x}`}
                                     fill="none"
-                                    stroke={isWinnerA ? "#0F172A" : "#CBD5E1"}
-                                    strokeWidth={isWinnerA ? "3" : "2"}
+                                    {...styleA}
                                 />
                                 <path
                                     d={`M ${NODE_WIDTH} ${slotY_B + ITEM_HEIGHT / 2} H ${bracketX} V ${matchPos.y} H ${matchPos.x}`}
                                     fill="none"
-                                    stroke={isWinnerB ? "#0F172A" : "#CBD5E1"}
-                                    strokeWidth={isWinnerB ? "3" : "2"}
+                                    {...styleB}
                                 />
                             </React.Fragment>
                         );
@@ -372,4 +375,3 @@ const TeamCard = ({ team, isWinner }: { team: Team | undefined, isWinner: boolea
         </div>
     );
 };
-
