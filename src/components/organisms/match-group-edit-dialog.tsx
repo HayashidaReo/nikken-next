@@ -36,7 +36,7 @@ export function MatchGroupEditDialog({
 
     const { winnerTeam, isCompleted } = formState;
     const { setWinnerTeam, setIsCompleted } = setters;
-    const { handleSave } = actions;
+    const { handleSave, handleReset } = actions;
 
     const winnerOptions = [
         { value: "teamA", label: teamAName },
@@ -77,9 +77,18 @@ export function MatchGroupEditDialog({
                 </div>
 
                 {/* ボタン */}
-                <div className="flex justify-end items-center pt-4 border-t border-slate-100 gap-2">
-                    <Button variant="outline" onClick={onClose} className="h-12 px-8 bg-white hover:bg-slate-50 text-slate-700 border-slate-200">キャンセル</Button>
-                    <Button onClick={handleSave} className="h-12 px-8 bg-blue-600 text-white">保存する</Button>
+                <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                    <Button
+                        variant="ghost"
+                        onClick={handleReset}
+                        className="h-12 px-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                        リセット
+                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={onClose} className="h-12 px-8 bg-white hover:bg-slate-50 text-slate-700 border-slate-200">キャンセル</Button>
+                        <Button onClick={handleSave} className="h-12 px-8 bg-blue-600 text-white">保存する</Button>
+                    </div>
                 </div>
             </CardContent>
         </ModalDialog>

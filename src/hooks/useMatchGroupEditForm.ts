@@ -55,6 +55,14 @@ export function useMatchGroupEditForm({ matchGroup, isOpen, onClose }: UseMatchG
         }
     };
 
+    const handleReset = () => {
+        setState(prev => ({
+            ...prev,
+            winnerTeam: undefined,
+            isCompleted: false,
+        }));
+    };
+
     return {
         formState: state,
         setters: {
@@ -63,6 +71,7 @@ export function useMatchGroupEditForm({ matchGroup, isOpen, onClose }: UseMatchG
         },
         actions: {
             handleSave,
+            handleReset,
         },
     };
 }
