@@ -438,7 +438,7 @@ B. 組織一覧の表示 (将来実装)
 
 ### トーナメント表画面 (公開)
 
-URL: `tournament-bracket/{tournamentId}`
+URL: `tournament-bracket/{orgId}/{tournamentId}`
 試合の観戦者が、試合の進み具合や対戦結果をスマホ等からリアルタイムに確認できる画面。
 
 #### 機能
@@ -447,7 +447,7 @@ URL: `tournament-bracket/{tournamentId}`
 - **リアルタイム更新**: 試合結果（勝者）が確定すると、トーナメントの勝ち上がりがリアルタイムに反映される。
 
 #### データ構造の変更
-- `matchGroups` ドキュメントに `winner_team` フィールド (Optional, string) を追加。
+- MatchGroupsに `winnerTeam` フィールドを追加 (teamA | teamB)ional, string) を追加。
   - 値は `teamA` または `teamB`。
 - このフィールドを基に勝敗を判定し、トーナメント表の進捗を表示する。
 

@@ -10,6 +10,7 @@ export interface FirestoreMatchGroupDoc {
     teamAId: string;
     teamBId: string;
     isCompleted: boolean;
+    winnerTeam?: "teamA" | "teamB";
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -33,6 +34,7 @@ export class MatchGroupMapper {
             teamAId: doc.teamAId,
             teamBId: doc.teamBId,
             isCompleted: doc.isCompleted ?? false,
+            winnerTeam: doc.winnerTeam,
             createdAt: doc.createdAt.toDate(),
             updatedAt: doc.updatedAt.toDate(),
         };
@@ -57,6 +59,7 @@ export class MatchGroupMapper {
             teamAId: group.teamAId,
             teamBId: group.teamBId,
             isCompleted: group.isCompleted ?? false,
+            winnerTeam: group.winnerTeam,
         };
     }
 
@@ -71,6 +74,7 @@ export class MatchGroupMapper {
         if (group.teamAId) data.teamAId = group.teamAId;
         if (group.teamBId) data.teamBId = group.teamBId;
         if (group.isCompleted !== undefined) data.isCompleted = group.isCompleted;
+        if (group.winnerTeam) data.winnerTeam = group.winnerTeam;
         return data;
     }
 }

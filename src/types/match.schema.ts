@@ -158,6 +158,7 @@ export const matchGroupSchema = z.object({
   teamAId: z.string().min(1, "チームAは必須です"),
   teamBId: z.string().min(1, "チームBは必須です"),
   isCompleted: z.boolean(),
+  winnerTeam: z.enum(["teamA", "teamB"]).optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });

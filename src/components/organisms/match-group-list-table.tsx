@@ -13,6 +13,10 @@ import { MultiSelectDropdown } from "@/components/molecules/multi-select-dropdow
 import { useMatchGroupFilter } from "@/hooks/useMatchGroupFilter";
 import { MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
 
+import { ShareMenu } from "@/components/molecules/share-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { useActiveTournament } from "@/store/use-active-tournament-store";
+
 interface MatchGroupListTableProps {
     matchGroups: MatchGroup[];
     tournamentName: string;
@@ -21,6 +25,13 @@ interface MatchGroupListTableProps {
 
 export function MatchGroupListTable({ matchGroups, tournamentName, className }: MatchGroupListTableProps) {
     const router = useRouter();
+    const { user } = useAuth();
+    const { activeTournamentId } = useActiveTournament();
+
+    // orgIdはユーザーID、tournamentIdはアクティブな大会IDを使用
+    const orgId = user?.uid;
+    const tournamentId = activeTournamentId;
+
     const { teams, courts, rounds } = useMasterData();
     const {
         selectedCourtIds,
@@ -38,6 +49,12 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
     return (
         <MatchTable
             title={tournamentName}
+            headerRight={
+                <ShareMenu
+                    itemName="トーナメント表"
+                    sharePath={`/tournament-bracket/${orgId}/${tournamentId}`}
+                />
+            }
             columns={[
                 {
                     key: "status",

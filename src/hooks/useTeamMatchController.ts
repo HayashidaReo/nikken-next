@@ -376,16 +376,52 @@ export function useTeamMatchController({
 
     useEffect(() => {
         const updateMatchGroupCompletion = async () => {
-            if (activeTournamentType === "team" && matchGroupId && isAllFinished) {
+            if (activeTournamentType === "team" && matchGroupId && isAllFinished && teamMatches) {
                 const { localMatchGroupRepository } = await import("@/repositories/local/match-group-repository");
                 const group = await localMatchGroupRepository.getById(matchGroupId);
-                if (group && !group.isCompleted) {
-                    await localMatchGroupRepository.update(matchGroupId, { isCompleted: true });
+
+                if (group && (!group.isCompleted || !group.winnerTeam)) {
+                    // 勝敗判定ロジック
+                    let winnerTeam: "teamA" | "teamB" | undefined = undefined;
+
+                    // 完了した試合の勝敗を集計
+                    let winsA = 0;
+                    let winsB = 0;
+
+                    teamMatches.forEach(m => {
+                        if (m.isCompleted) {
+                            if (m.winner === "playerA") winsA++;
+                            else if (m.winner === "playerB") winsB++;
+                        }
+                    });
+
+                    // 現在の試合（matchId）がteamMatches内でまだisCompletedになっていない場合、
+                    // ストアの状態（snapshot判定済み）を加味する必要があるが、
+                    // このuseEffectは render サイクルと非同期更新の兼ね合いで
+                    // teamMatches が最新（完了済み）になっていることを期待する。
+                    // もし最新でない場合、直前の handleSaveMatchResult で更新された teamMatches が流れてくるのを待つ。
+
+                    // ここではシンプルに teamMatches の集計のみで判定する
+                    // （isAllFinished が true になるのは、必要な試合が全て終わった後なので）
+
+                    if (winsA > winsB) winnerTeam = "teamA";
+                    else if (winsB > winsA) winnerTeam = "teamB";
+                    // 代表戦がある場合、その勝者が全体の勝者
+                    const repMatch = teamMatches.find(m => m.roundId === TEAM_MATCH_CONSTANTS.REP_MATCH_ROUND_ID);
+                    if (repMatch && repMatch.isCompleted) {
+                        if (repMatch.winner === "playerA") winnerTeam = "teamA";
+                        else if (repMatch.winner === "playerB") winnerTeam = "teamB";
+                    }
+
+                    await localMatchGroupRepository.update(matchGroupId, {
+                        isCompleted: true,
+                        winnerTeam: winnerTeam
+                    });
                 }
             }
         };
         updateMatchGroupCompletion();
-    }, [activeTournamentType, matchGroupId, isAllFinished]);
+    }, [activeTournamentType, matchGroupId, isAllFinished, teamMatches]);
 
     const handleSaveMatchResult = useCallback(async (result: Partial<TeamMatch> & { matchId: string }) => {
         const { localTeamMatchRepository } = await import("@/repositories/local/team-match-repository");
