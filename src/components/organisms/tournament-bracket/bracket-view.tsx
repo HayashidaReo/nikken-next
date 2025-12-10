@@ -25,11 +25,11 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
         return new Map(teams.map(t => [t.teamId, t]));
     }, [teams]);
 
-    // 試合をラウンドIDごとにマップ
+    // 試合をsortOrder（全体連番）ごとにマップ
     const matchLookup = useMemo(() => {
-        const map = new Map<string, MatchGroup>(); // key: roundId-sortOrder
+        const map = new Map<number, MatchGroup>(); // key: sortOrder
         matchGroups.forEach(m => {
-            map.set(`${m.roundId}-${m.sortOrder}`, m);
+            map.set(m.sortOrder, m);
         });
         return map;
     }, [matchGroups]);
@@ -40,28 +40,44 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
     const roundOffset = totalRounds - rounds.length;
 
     // 仮想的なツリー構造を生成
+    // 各ラウンドの必要スロット数 = 2^(totalRounds - 1 - rIndex)
+    // sortOrderはトーナメント全体での連番（0始まり）とする
     const virtualStructure = useMemo(() => {
+        let matchCounter = 0;
+
         const structure = Array.from({ length: totalRounds }).map((_, rIndex) => {
             const matchCount = Math.pow(2, totalRounds - 1 - rIndex);
+
             const realRoundIndex = rIndex - roundOffset;
             const roundData = realRoundIndex >= 0 ? rounds[realRoundIndex] : undefined;
             const roundId = roundData?.roundId;
 
+            // 各スロット（試合）のデータを生成
             const slots = Array.from({ length: matchCount }).map((_, i) => {
-                const sortOrder = i; // 0-based
-                const match = roundId ? matchLookup.get(`${roundId}-${sortOrder}`) : undefined;
-                const key = match?.matchGroupId || `virtual-${rIndex}-${sortOrder}`;
+                const currentSortOrder = matchCounter + i;
+                // sortOrderで一致する試合データを使用
+                const match = matchLookup.get(currentSortOrder);
+
+                const key = match?.matchGroupId || `virtual-${rIndex}-${currentSortOrder}`;
 
                 return {
-                    roundId,
+                    key,
                     roundIndex: rIndex,
-                    sortOrder,
+                    sortOrder: currentSortOrder, // 全体連番をセット
                     match,
-                    key
+                    nextMatchId: undefined as string | undefined // 後で設定
                 };
             });
-            return { round: roundData, slots };
+
+            matchCounter += matchCount; // カウンタを進める
+
+            return {
+                roundIndex: rIndex,
+                slots,
+                roundId
+            };
         });
+
         return structure;
     }, [rounds, totalRounds, matchLookup, roundOffset]);
 
@@ -85,35 +101,28 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
         return map;
     }, [virtualStructure]);
 
-    // チーム検索（シード対応）
-    const traceTeamForLeaf = (leafIndex: number): Team | undefined => {
+    // 特定のリーフ位置にあるチームを追跡する（Bye考慮）
+    const traceTeam = (leafIndex: number): Team | undefined => {
         let rIndex = 0;
         let mIndex = Math.floor(leafIndex / 2);
         let side: "teamA" | "teamB" = leafIndex % 2 === 0 ? "teamA" : "teamB";
 
         while (rIndex < totalRounds) {
-            const realRoundIndex = rIndex - roundOffset;
-            const roundData = realRoundIndex >= 0 ? rounds[realRoundIndex] : undefined;
+            const currentLevel = virtualStructure[rIndex];
+            if (!currentLevel) return undefined;
 
-            if (!roundData) return undefined;
+            const slot = currentLevel.slots[mIndex];
 
-            const sortOrder = mIndex;
-            const match = matchLookup.get(`${roundData.roundId}-${sortOrder}`);
-
-            if (match) {
-                const teamId = side === "teamA" ? match.teamAId : match.teamBId;
+            if (slot && slot.match) {
+                const teamId = side === "teamA" ? slot.match.teamAId : slot.match.teamBId;
                 if (teamId) return teamsMap.get(teamId);
                 return undefined;
             }
 
-            if (side === "teamB") return undefined;
-
-            const nextMIndex = Math.floor(mIndex / 2);
-            const nextSide = mIndex % 2 === 0 ? "teamA" : "teamB";
-
+            // マッチがない場合、次のラウンドへ進む
+            side = mIndex % 2 === 0 ? "teamA" : "teamB";
+            mIndex = Math.floor(mIndex / 2);
             rIndex++;
-            mIndex = nextMIndex;
-            side = nextSide;
         }
         return undefined;
     };
@@ -133,7 +142,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
         <div className="w-full overflow-auto bg-white min-h-screen p-8">
             <div className="relative" style={{ width: totalWidth, height: totalHeight }}>
                 <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-                    
+
                     {/* Connections between matches - horizontal lines to vertical bar */}
                     {virtualStructure.map((level, rIndex) => {
                         const nextLevel = virtualStructure[rIndex + 1];
@@ -179,7 +188,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
 
                             const child1 = level.slots[parentIndex * 2];
                             const child2 = level.slots[parentIndex * 2 + 1];
-                            
+
                             const child1Pos = child1 ? posMap.get(child1.key) : null;
                             const child2Pos = child2 ? posMap.get(child2.key) : null;
 
@@ -216,7 +225,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                             return lines;
                         });
                     })}
-                    
+
                     {/* Connections from merge point to next match node (Horizontal line) */}
                     {virtualStructure.map((level, rIndex) => {
                         const nextLevel = virtualStructure[rIndex + 1];
@@ -228,7 +237,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
 
                             const bracketX = nextPos.x - 60;
                             const { strokeColor, strokeWidth } = getStrokeStyle(parentSlot.match);
-                            
+
                             // Horizontal line from merge point to parent match node
                             return (
                                 <path
@@ -241,28 +250,58 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                             );
                         });
                     })}
+                </svg>
 
+                {/* Match Nodes (SortOrder Labels) */}
+                {virtualStructure.map((level, rIndex) => {
+                    return level.slots.map((slot, sIndex) => {
+                        const pos = posMap.get(slot.key);
+                        if (!pos) return null;
 
-                    {/* Final Winner Line */}
-                    {(() => {
-                        const finalLevel = virtualStructure[virtualStructure.length - 1];
-                        const finalSlot = finalLevel?.slots[0];
-                        if (finalSlot) {
-                            const pos = posMap.get(finalSlot.key);
-                            if (pos) {
-                                const { strokeColor, strokeWidth } = getStrokeStyle(finalSlot.match);
-                                return (
+                        const isFinished = slot.match?.isCompleted;
+
+                        return (
+                            <div
+                                key={`node-${slot.key}`}
+                                className={cn(
+                                    "absolute flex items-center justify-center text-xs font-bold text-white rounded-sm cursor-pointer hover:scale-110 transition-transform shadow-sm",
+                                    isFinished ? "bg-slate-800" : "bg-slate-400"
+                                )}
+                                style={{
+                                    left: pos.x - MATCH_LABEL_SIZE / 2,
+                                    top: pos.y,
+                                    width: MATCH_LABEL_SIZE,
+                                    height: MATCH_LABEL_SIZE,
+                                    transform: `translateY(${MATCH_LABEL_SIZE / 2}px)`
+                                }}
+                            >
+                                {slot.sortOrder}
+                            </div>
+                        );
+                    });
+                })}
+
+                {/* Final Winner Line */}
+                {(() => {
+                    const finalLevel = virtualStructure[virtualStructure.length - 1];
+                    const finalSlot = finalLevel?.slots[0];
+                    if (finalSlot) {
+                        const pos = posMap.get(finalSlot.key);
+                        if (pos) {
+                            const { strokeColor, strokeWidth } = getStrokeStyle(finalSlot.match);
+                            return (
+                                <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
                                     <path
                                         d={`M ${pos.x} ${pos.y} H ${pos.x + 60}`}
                                         fill="none"
                                         stroke={strokeColor}
                                         strokeWidth={strokeWidth}
                                     />
-                                );
-                            }
+                                </svg>
+                            );
                         }
-                    })()}
-                </svg>
+                    }
+                })()}
 
                 {/* Teams (Left Column) - Render all leaf slots */}
                 <div className="absolute left-0 top-0 flex flex-col gap-0">
@@ -270,8 +309,8 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         const leafIndexA = index * 2;
                         const leafIndexB = index * 2 + 1;
 
-                        const teamA = traceTeamForLeaf(leafIndexA) || teams[leafIndexA];
-                        const teamB = traceTeamForLeaf(leafIndexB) || teams[leafIndexB];
+                        const teamA = traceTeam(leafIndexA);
+                        const teamB = traceTeam(leafIndexB);
 
                         const slotY_A = leafIndexA * ITEM_HEIGHT;
                         const slotY_B = leafIndexB * ITEM_HEIGHT;
