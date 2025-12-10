@@ -90,7 +90,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
         virtualStructure.forEach((level) => {
             level.slots.forEach((slot, index) => {
                 const rIndex = level.slots[0].roundIndex;
-                const setX = rIndex * LEVEL_WIDTH + NODE_WIDTH + 40;
+                const setX = rIndex * LEVEL_WIDTH + NODE_WIDTH + 120;
                 const slotSpan = Math.pow(2, rIndex + 1);
                 const centerSlot = index * slotSpan + slotSpan / 2;
                 const y = centerSlot * ITEM_HEIGHT;
@@ -396,7 +396,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         const isWinnerA = slot.match?.winnerTeam === "teamA";
                         const isWinnerB = slot.match?.winnerTeam === "teamB";
 
-                        const bracketX = matchPos.x - 0;
+                        const bracketX = matchPos.x - 60;
 
                         // チームが勝った場合にのみ黒線で描画
                         const styleA = isWinnerA ? { stroke: "#0F172A", strokeWidth: "3" } : { stroke: "#CBD5E1", strokeWidth: "2" };
