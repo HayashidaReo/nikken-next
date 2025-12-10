@@ -20,6 +20,7 @@ import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { MatchActionMenu } from "@/components/molecules/match-action-menu";
 import { MatchGroupEditDialog } from "./match-group-edit-dialog";
 import { useState } from "react";
+import { cn } from "@/lib/utils/utils";
 
 interface MatchGroupListTableProps {
     matchGroups: MatchGroup[];
@@ -126,11 +127,35 @@ export function MatchGroupListTable({ matchGroups, tournamentName, className }: 
                             </TableCell>
                             <PlayerCell text={courtName} title={courtName} />
                             <PlayerCell text={roundName} title={roundName} />
-                            <PlayerCell text={teamAName} title={teamAName} />
+                            <TableCell className="p-1">
+                                <div
+                                    className={cn(
+                                        "px-2 py-1.5 rounded-md truncate text-sm font-medium transition-colors",
+                                        group.winnerTeam === "teamA"
+                                            ? "border-2 border-red-500"
+                                            : "border-2 border-transparent"
+                                    )}
+                                    title={teamAName}
+                                >
+                                    {teamAName}
+                                </div>
+                            </TableCell>
                             <TableCell className="p-0 text-center">
                                 <div className="flex items-center justify-center h-full text-gray-400 font-bold">vs</div>
                             </TableCell>
-                            <PlayerCell text={teamBName} title={teamBName} />
+                            <TableCell className="p-1">
+                                <div
+                                    className={cn(
+                                        "px-2 py-1.5 rounded-md truncate text-sm font-medium transition-colors",
+                                        group.winnerTeam === "teamB"
+                                            ? "border-2 border-red-500"
+                                            : "border-2 border-transparent"
+                                    )}
+                                    title={teamBName}
+                                >
+                                    {teamBName}
+                                </div>
+                            </TableCell>
                             <TableCell className="p-2 text-center">
                                 <div className="flex items-center justify-center">
                                     <Button
