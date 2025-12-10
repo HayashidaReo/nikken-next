@@ -158,7 +158,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
         <div className="w-full overflow-auto bg-white min-h-screen p-8">
             <div className="relative" style={{ width: totalWidth, height: totalHeight }}>
                 <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-                    {/* Connections */}
+                    {/* Connections between matches - split at merge point */}
                     {virtualStructure.map((level, rIndex) => {
                         const nextLevel = virtualStructure[rIndex + 1];
                         if (!nextLevel) return null;
@@ -176,15 +176,16 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                                     const strokeColor = isCompleted ? "#0F172A" : "#CBD5E1";
                                     const strokeWidth = isCompleted ? "3" : "2";
 
-                                    const bracketX = nextPos.x - 30;
+                                    const bracketX = nextPos.x - 60;
 
+                                    // Part 1: From current match to merge point (vertical bar)
+                                    // Use current match's color
                                     return (
                                         <path
                                             key={`conn-${slot.key}`}
                                             d={`M ${currentPos.x} ${currentPos.y} 
                                                H ${bracketX} 
-                                               V ${nextPos.y} 
-                                               H ${nextPos.x}`}
+                                               V ${nextPos.y}`}
                                             fill="none"
                                             stroke={strokeColor}
                                             strokeWidth={strokeWidth}
@@ -193,6 +194,40 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                                 }
                             }
                             return null;
+                        });
+                    })}
+
+                    {/* Connections from merge point to next match */}
+                    {virtualStructure.map((level, rIndex) => {
+                        const nextLevel = virtualStructure[rIndex + 1];
+                        if (!nextLevel) return null;
+
+                        return nextLevel.slots.map((parentSlot, parentIndex) => {
+                            const nextPos = posMap.get(parentSlot.key);
+                            if (!nextPos) return null;
+
+                            const bracketX = nextPos.x - 60;
+
+                            // Check if either child match is completed
+                            const childIndex1 = parentIndex * 2;
+                            const childIndex2 = parentIndex * 2 + 1;
+                            const child1 = level.slots[childIndex1];
+                            const child2 = level.slots[childIndex2];
+
+                            const anyChildCompleted = child1?.match?.isCompleted || child2?.match?.isCompleted;
+                            const strokeColor = anyChildCompleted ? "#0F172A" : "#CBD5E1";
+                            const strokeWidth = anyChildCompleted ? "3" : "2";
+
+                            // Part 2: From merge point to next match
+                            return (
+                                <path
+                                    key={`merge-${parentSlot.key}`}
+                                    d={`M ${bracketX} ${nextPos.y} H ${nextPos.x}`}
+                                    fill="none"
+                                    stroke={strokeColor}
+                                    strokeWidth={strokeWidth}
+                                />
+                            );
                         });
                     })}
 
@@ -274,16 +309,18 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         const isWinnerA = slot.match?.winnerTeam === "teamA";
                         const isWinnerB = slot.match?.winnerTeam === "teamB";
 
+                        const bracketX = matchPos.x - 0;
+
                         return (
                             <React.Fragment key={`team-lines-${slot.key}`}>
                                 <path
-                                    d={`M ${NODE_WIDTH} ${slotY_A + ITEM_HEIGHT / 2} H ${matchPos.x - 30} V ${matchPos.y} H ${matchPos.x}`}
+                                    d={`M ${NODE_WIDTH} ${slotY_A + ITEM_HEIGHT / 2} H ${bracketX} V ${matchPos.y} H ${matchPos.x}`}
                                     fill="none"
                                     stroke={isWinnerA ? "#0F172A" : "#CBD5E1"}
                                     strokeWidth={isWinnerA ? "3" : "2"}
                                 />
                                 <path
-                                    d={`M ${NODE_WIDTH} ${slotY_B + ITEM_HEIGHT / 2} H ${matchPos.x - 30} V ${matchPos.y} H ${matchPos.x}`}
+                                    d={`M ${NODE_WIDTH} ${slotY_B + ITEM_HEIGHT / 2} H ${bracketX} V ${matchPos.y} H ${matchPos.x}`}
                                     fill="none"
                                     stroke={isWinnerB ? "#0F172A" : "#CBD5E1"}
                                     strokeWidth={isWinnerB ? "3" : "2"}
@@ -292,46 +329,6 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         );
                     })}
                 </svg>
-
-                {/* Match Nodes (W Labels) */}
-                {virtualStructure.map((level) => {
-                    return level.slots.map((slot) => {
-                        const pos = posMap.get(slot.key);
-                        if (!pos) return null;
-
-                        const isFinished = slot.match?.isCompleted;
-                        const labelText = slot.match ? `W${slot.match.sortOrder}` : `M${slot.sortOrder}`;
-                        // Show M(index) if no match data, or W(sortOrder) if match exists
-                        // Keeping it simple: just sortOrder for virtual?
-                        // User asked for "First match place".
-
-                        // If we are in "Real" rounds, use W.
-                        // If in Virtual rounds...
-                        // Let's just use `W{sortOrder}` if match exists, else hide?
-                        // But for structure verification, let's keep it minimal.
-
-                        const displayText = slot.match ? `W${slot.match.sortOrder}` : '';
-
-                        return (
-                            <div
-                                key={`node-${slot.key}`}
-                                className={cn(
-                                    "absolute flex items-center justify-center text-xs font-bold text-white rounded-sm cursor-pointer hover:scale-110 transition-transform",
-                                    isFinished ? "bg-slate-800" : "bg-slate-400"
-                                )}
-                                style={{
-                                    left: pos.x - MATCH_LABEL_SIZE / 2,
-                                    top: pos.y,
-                                    width: MATCH_LABEL_SIZE,
-                                    height: MATCH_LABEL_SIZE,
-                                    transform: `translateY(${MATCH_LABEL_SIZE / 2}px)`
-                                }}
-                            >
-                                {slot.match ? `W${slot.match.sortOrder}` : ''}
-                            </div>
-                        );
-                    });
-                })}
 
                 {/* Trophy */}
                 {(() => {
