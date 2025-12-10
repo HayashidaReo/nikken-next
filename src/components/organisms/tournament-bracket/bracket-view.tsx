@@ -402,18 +402,31 @@ export const BracketView: React.FC<BracketViewProps> = ({ tournament, matchGroup
                         const styleA = isWinnerA ? { stroke: "#0F172A", strokeWidth: "3" } : { stroke: "#CBD5E1", strokeWidth: "2" };
                         const styleB = isWinnerB ? { stroke: "#0F172A", strokeWidth: "3" } : { stroke: "#CBD5E1", strokeWidth: "2" };
 
+                        const pathA = (
+                            <path
+                                key={`team-line-a-${slot.key}`}
+                                d={`M ${NODE_WIDTH} ${slotY_A + ITEM_HEIGHT / 2} H ${bracketX} V ${matchPos.y} H ${matchPos.x}`}
+                                fill="none"
+                                {...styleA}
+                            />
+                        );
+
+                        const pathB = (
+                            <path
+                                key={`team-line-b-${slot.key}`}
+                                d={`M ${NODE_WIDTH} ${slotY_B + ITEM_HEIGHT / 2} H ${bracketX} V ${matchPos.y} H ${matchPos.x}`}
+                                fill="none"
+                                {...styleB}
+                            />
+                        );
+
+                        // 勝者の線を後に描画（前面に表示）
                         return (
                             <React.Fragment key={`team-lines-${slot.key}`}>
-                                <path
-                                    d={`M ${NODE_WIDTH} ${slotY_A + ITEM_HEIGHT / 2} H ${bracketX} V ${matchPos.y} H ${matchPos.x}`}
-                                    fill="none"
-                                    {...styleA}
-                                />
-                                <path
-                                    d={`M ${NODE_WIDTH} ${slotY_B + ITEM_HEIGHT / 2} H ${bracketX} V ${matchPos.y} H ${matchPos.x}`}
-                                    fill="none"
-                                    {...styleB}
-                                />
+                                {!isWinnerA && pathA}
+                                {!isWinnerB && pathB}
+                                {isWinnerA && pathA}
+                                {isWinnerB && pathB}
                             </React.Fragment>
                         );
                     })}
