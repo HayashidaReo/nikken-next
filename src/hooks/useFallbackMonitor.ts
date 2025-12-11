@@ -29,7 +29,7 @@ export function useFallbackMonitor() {
         try {
             const url = `${window.location.origin}${MONITOR_DISPLAY_PATH}`;
             // popup=yes でアドレスバーなどを隠す
-            window.open(url, "_blank", "width=1920,height=1080,popup=yes,toolbar=no,menubar=no,location=no,status=no");
+            window.open(url, "_blank", "width=1920,height=1080");
 
             // フォールバックで別タブを開いたことをストアに反映
             try {

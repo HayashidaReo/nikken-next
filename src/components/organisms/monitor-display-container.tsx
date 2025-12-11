@@ -81,7 +81,7 @@ export function MonitorDisplayContainer({
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch((err) => {
         // ユーザーインタラクションがないとブロックされることがあるため、警告のみログ出し
-        // console.warn("Fullscreen request failed:", err);
+        console.warn("Fullscreen request failed:", err);
       });
     }
   };
