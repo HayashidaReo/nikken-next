@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils/utils";
 import { useMonitorStore } from "@/store/use-monitor-store";
 import {
-  MatchHeader,
   PlayerScoreCard,
   TimerControl,
 } from "@/components/molecules";
@@ -26,9 +25,6 @@ export function ScoreboardOperator({
   onSpecialWinAction,
 }: ScoreboardOperatorProps) {
   const {
-    courtName,
-    roundName,
-    tournamentName,
     playerA,
     playerB,
     timeRemaining,
@@ -50,21 +46,6 @@ export function ScoreboardOperator({
 
   return (
     <div className={cn("w-full mx-auto space-y-4", className)}>
-      {/* ヘッダー情報 */}
-      {!isManual && (
-        <div className="px-6 lg:px-12">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <MatchHeader
-                tournamentName={tournamentName}
-                courtName={courtName}
-                roundName={roundName}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 選手カード領域（左右いっぱいに寄せる） */}
       <div>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-y-6">
