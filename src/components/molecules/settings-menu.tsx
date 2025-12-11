@@ -9,7 +9,7 @@ import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { UnsyncedDataDialog } from "@/components/organisms/unsynced-data-dialog";
 import { useRouter } from "next/navigation";
-import { ROUTES, AUTH_CONSTANTS } from "@/lib/constants";
+import { APP_INFO, ROUTES, AUTH_CONSTANTS } from "@/lib/constants";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import {
     Tooltip,
@@ -230,6 +230,12 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                             "ログアウト",
                             { isDestructive: true, requiresOnline: true }
                         )}
+
+                        <div className="border-t border-gray-100 my-1" />
+
+                        <div className="px-4 py-2 text-center text-xs text-gray-400">
+                            v{APP_INFO.VERSION}
+                        </div>
                     </div>
                 )}
             </div>

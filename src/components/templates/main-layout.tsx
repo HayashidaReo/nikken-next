@@ -77,9 +77,6 @@ function Header({ activeTab }: HeaderProps) {
                 <span className="text-lg font-semibold text-gray-900 leading-none">
                   拳法大会管理
                 </span>
-                <span className="text-xs text-gray-500 mt-0.5">
-                  v{APP_INFO.VERSION}
-                </span>
               </div>
               {!isOnline && (
                 <TooltipProvider>
