@@ -1,5 +1,14 @@
 "use client";
 
+// TODO
+// - **問題点**:
+//   - 単一ファイル内で SVG の描画計算、ルーティングロジック、サブコンポーネント定義（`TeamCard`）が混在しており、可読性が低いです。
+//   - `TeamCard` が同一ファイルで定義されていますが、これは `Molecules` に切り出すべき再利用可能な部品です。
+// - **改善案**:
+//   - `TeamCard` を `src/components/molecules/team-card.tsx` に切り出す。
+//   - SVG のパス計算ロジック（`posMap` 生成など）をカスタムフック `useBracketLayout` に抽出する。
+//   - 線の描画を行うサブコンポーネント `BracketConnector` を作成し、`BracketView` をすっきりさせる。
+
 import React, { useMemo } from "react";
 import { MatchGroup } from "@/types/match.schema";
 import { Tournament } from "@/types/tournament.schema";

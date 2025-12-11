@@ -1,3 +1,12 @@
+// TODO
+// - **問題点**:
+//   - クラス名が `Service` ですが、実態は Firestore を直接操作する `Repository` です。
+//   - `src/services` はドメインロジック（計算やルール）を置く場所であり、DB操作を置くべきではありません。
+//   - CODING_RULES.md の「データ層アーキテクチャ」に違反しています。
+// - **改善案**:
+//   - `src/repositories/implementations/firebase-tournament-repository.ts` 等へ移動・リネームする。
+//   - `src/repositories/interfaces` にインターフェースを定義し、依存関係を整理する。
+
 import {
     collection,
     getDoc,

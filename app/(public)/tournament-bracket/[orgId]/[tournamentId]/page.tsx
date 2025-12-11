@@ -1,5 +1,16 @@
 "use client";
 
+// TODO
+// - **問題点**:
+//   - `use client` が指定されており、クライアント側で `useEffect` を使ってデータ取得を行っています。これはSEO、パフォーマンス、Core Web Vitalsの観点で非推奨です。
+//   - CODING_RULES.md の「Server Components First」に違反しています。
+// - **改善案**:
+//   - `page.tsx` を Server Component (`async function`) に戻す。
+//   - データ取得（大会情報、チーム情報）はサーバー側（`src/app` または `src/queries` の Server Action/fetch）で行い、初期データとしてClient Component（`BracketView`）に渡す。
+//   - リアルタイム更新が必要な部分のみ、Client Component側で `useMatchGroupSync` フック等を使って購読する構成にする。
+
+
+
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { publicTournamentService } from "@/services/public-tournament-service";
