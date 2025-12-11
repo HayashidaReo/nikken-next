@@ -20,6 +20,7 @@ export interface LocalMatchGroup extends MatchGroup {
     organizationId: string;
     tournamentId: string;
     _deleted?: boolean;     // 論理削除フラグ
+    winnerTeam?: "teamA" | "teamB"; // 勝者チーム
 }
 
 // ローカルDBに保存するTeamMatch型

@@ -7,6 +7,7 @@ import { Tournament } from "@/types/tournament.schema";
 import { determineWinner, Winner } from "@/domains/match/match-logic";
 import { resolvePlayerInfo, analyzeTeamMatchStatus } from "@/domains/match/team-match-logic";
 import { TEAM_MATCH_CONSTANTS } from "@/lib/constants";
+import { MatchJudgementService } from "@/domains/match/services/match-judgement-service";
 
 /**
  * 団体戦の試合進行を制御するカスタムフック
@@ -376,16 +377,24 @@ export function useTeamMatchController({
 
     useEffect(() => {
         const updateMatchGroupCompletion = async () => {
-            if (activeTournamentType === "team" && matchGroupId && isAllFinished) {
+            if (activeTournamentType === "team" && matchGroupId && isAllFinished && teamMatches) {
                 const { localMatchGroupRepository } = await import("@/repositories/local/match-group-repository");
                 const group = await localMatchGroupRepository.getById(matchGroupId);
-                if (group && !group.isCompleted) {
-                    await localMatchGroupRepository.update(matchGroupId, { isCompleted: true });
+
+                if (group && (!group.isCompleted || !group.winnerTeam)) {
+
+                    const winnerTeam = MatchJudgementService.judgeTeamMatchWinner(teamMatches);
+
+
+                    await localMatchGroupRepository.update(matchGroupId, {
+                        isCompleted: true,
+                        winnerTeam: winnerTeam
+                    });
                 }
             }
         };
         updateMatchGroupCompletion();
-    }, [activeTournamentType, matchGroupId, isAllFinished]);
+    }, [activeTournamentType, matchGroupId, isAllFinished, teamMatches]);
 
     const handleSaveMatchResult = useCallback(async (result: Partial<TeamMatch> & { matchId: string }) => {
         const { localTeamMatchRepository } = await import("@/repositories/local/team-match-repository");

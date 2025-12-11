@@ -24,6 +24,7 @@ export async function uploadMatchGroups(orgId: string, tournamentId: string): Pr
                 teamAId: group.teamAId,
                 teamBId: group.teamBId,
                 isCompleted: group.isCompleted,
+                winnerTeam: group.winnerTeam,
             });
         },
         async (_, id) => {
