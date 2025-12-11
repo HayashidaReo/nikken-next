@@ -77,8 +77,19 @@ export function MonitorDisplayContainer({
 
   const activeRenderer = renderers.find((r) => r.condition());
 
+  const handleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        // ユーザーインタラクションがないとブロックされることがあるため、警告のみログ出し
+        // console.warn("Fullscreen request failed:", err);
+      });
+    }
+  };
+
+
+
   return (
-    <MonitorScaleLayout className={className}>
+    <MonitorScaleLayout className={className} onClick={handleFullscreen}>
       {activeRenderer ? activeRenderer.render() : null}
     </MonitorScaleLayout>
   );

@@ -1,64 +1,30 @@
 import { useState } from "react";
-import { usePresentation } from "@/hooks/usePresentation";
+import { useMonitorStore } from "@/store/use-monitor-store";
 import { useFallbackMonitor } from "@/hooks/useFallbackMonitor";
 import { useToast } from "@/components/providers/notification-provider";
-import { MONITOR_DISPLAY_PATH } from "@/lib/constants/monitor";
 
 
 export function useMonitorController() {
     const [showFallbackDialog, setShowFallbackDialog] = useState(false);
-    const { showSuccess, showError, showInfo } = useToast();
-
-    const {
-        isSupported: isPresentationSupported,
-        isAvailable: isPresentationAvailable,
-        isConnected: isPresentationConnected,
-        stopPresentation,
-        startPresentation,
-    } = usePresentation(`${window.location.origin}${MONITOR_DISPLAY_PATH}`);
+    const { showError, showInfo } = useToast();
+    const { fallbackOpen } = useMonitorStore();
 
     const { openFallbackWindow } = useFallbackMonitor();
+
+    const isPresentationConnected = fallbackOpen;
 
     const handleMonitorAction = async () => {
         try {
             if (isPresentationConnected) {
-                await stopPresentation();
-                showInfo("プレゼンテーション接続を停止しました");
+                // 接続解除（ウィンドウを閉じる機能はブラウザの制約で難しいため、ストアの状態を更新してユーザーに通知）
+                // ※実際にはウィンドウを閉じるわけではないが、接続状態をリセットする
+                useMonitorStore.getState().setFallbackOpen(false);
+                showInfo("モニター接続を解除しました");
                 return;
             }
 
-            const monitorUrl = `${window.location.origin}${MONITOR_DISPLAY_PATH}`;
-
-            if (isPresentationSupported && isPresentationAvailable && startPresentation) {
-                try {
-                    // registerGlobal=true でストアに接続を保存する
-                    await startPresentation(monitorUrl, true);
-                    showSuccess("モニター表示を開始しました");
-                    return;
-                } catch (err: unknown) {
-                    console.error(err);
-
-                    // ユーザーがネイティブのプレゼン選択ダイアログを閉じた（キャンセルした）場合は
-                    // フォールバックの確認ダイアログを出さず静かに処理を終了する。
-                    // Presentation API の例外はブラウザや実装によって異なるため、
-                    // エラー名やメッセージを幅広く判定する。
-                    const name = typeof err === "object" && err && "name" in err ? (err as Error).name : "";
-                    const message = typeof err === "object" && err && "message" in err ? (err as Error).message : String(err ?? "");
-                    const isUserCancelled =
-                        name === "NotAllowedError" || name === "AbortError" || /Dialog closed/i.test(message);
-
-                    if (isUserCancelled) {
-                        showInfo("プレゼンテーションの選択がキャンセルされました");
-                        return;
-                    }
-
-                    // それ以外のエラーは通知してフォールバック（下の setShowFallbackDialog）へ進む
-                    showError(`Presentation API の開始に失敗しました: ${message}`);
-                }
-            }
-
-            // Presentation API が利用できないか start に失敗した場合はフォールバックダイアログを表示
-            setShowFallbackDialog(true);
+            // 強制的にフォールバックウィンドウを開く
+            openFallbackWindow();
         } catch (err) {
             console.error(err);
             showError("モニター表示の開始に失敗しました。もう一度お試しください。");

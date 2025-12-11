@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MONITOR_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils/utils";
 
-interface MonitorScaleLayoutProps {
+interface MonitorScaleLayoutProps extends React.HTMLAttributes<HTMLDivElement> {
     children: React.ReactNode;
     className?: string;
 }
@@ -12,6 +12,7 @@ interface MonitorScaleLayoutProps {
 export function MonitorScaleLayout({
     children,
     className,
+    ...props
 }: MonitorScaleLayoutProps) {
     const [scale, setScale] = useState(1);
 
@@ -40,6 +41,7 @@ export function MonitorScaleLayout({
                 "w-screen h-screen bg-black text-white relative overflow-hidden flex items-center justify-center",
                 className
             )}
+            {...props}
         >
             <div
                 style={{
