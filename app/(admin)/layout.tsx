@@ -3,6 +3,7 @@
 import { useSystemAdminGuard } from "@/hooks/useSystemAdmin";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { MasterDataWrapper } from "@/components/providers/master-data-wrapper";
+import { AdminHeader } from "@/components/organisms/admin-header";
 
 /**
  * 管理者グループ共通レイアウト
@@ -32,7 +33,7 @@ export default function AdminLayout({
     return (
         <MasterDataWrapper>
             <div className="min-h-screen bg-gray-50">
-                {/* 将来的にここに管理者用ヘッダーなどを追加可能 */}
+                <AdminHeader />
                 {children}
             </div>
         </MasterDataWrapper>
