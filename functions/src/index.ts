@@ -7,3 +7,4 @@ if (!admin.apps.length) {
 
 // Export functions
 export * from "./features/organization/createOrganization";
+export * from "./features/team/registerTeam";
