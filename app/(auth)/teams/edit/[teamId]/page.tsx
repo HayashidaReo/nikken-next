@@ -66,7 +66,7 @@ export default function TeamEditPage() {
   };
 
   const handleCancel = () => {
-    router.push("/teams");
+    router.back();
   };
 
   // 大会が選択されていない場合

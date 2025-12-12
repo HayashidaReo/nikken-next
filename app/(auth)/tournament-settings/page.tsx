@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/button";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
@@ -14,6 +13,7 @@ import { TournamentSettingsLayout } from "@/components/templates/tournament-sett
 import { useTournamentSettings } from "@/hooks/useTournamentSettings";
 
 export default function TournamentSettingsPage() {
+  const router = useRouter();
   const {
     // 状態
     orgId,
@@ -92,12 +92,10 @@ export default function TournamentSettingsPage() {
           leftPanel={
             <div className="space-y-6">
               <div>
-                <Link href="/dashboard">
-                  <Button variant="outline">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+                <Button variant="outline" onClick={() => router.back()}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
                     ダッシュボードに戻る
-                  </Button>
-                </Link>
+                </Button>
               </div>
 
               <AuthenticatedHeader
