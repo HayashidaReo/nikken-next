@@ -10,9 +10,15 @@ const db = admin.firestore();
 
 /**
  * チーム登録関数 (Callable)
- * 認証なしで実行可能 (public form)
+ * 
+ * [SECURITY] Public Access Allowed
+ * この関数は認証なし（未ログイン状態）での実行を許可しています。
+ * 用途: 外部公開されたチーム登録フォームからのリクエストを受け付けるため。
+ * 
+ * @param request
  */
 export const registerTeam = onCall({ region: REGION }, async (request) => {
+    // Note: request.auth check is intentionally skipped here to allow public registration.
     // 1. 入力バリデーション
     const result = teamFormSchema.safeParse(request.data);
     if (!result.success) {
