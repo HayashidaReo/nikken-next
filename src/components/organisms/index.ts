@@ -9,7 +9,6 @@ export { TeamManagementCardList } from "./team-management-card-list";
 export { TeamForm } from "./team-form";
 export { TeamRegistrationForm } from "./team-registration-form";
 export { TournamentInfoBanner } from "./tournament-info-banner";
-export { OrganizationManagement } from "./organization-management";
 export { OrganizationCreateForm } from "./organization-create-form";
 export { OrganizationList } from "./organization-list";
 export { AuthenticatedHeader } from "./authenticated-header";
