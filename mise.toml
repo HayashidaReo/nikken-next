@@ -1,7 +1,8 @@
 [tools]
 node = "20.19.0"
 java = "temurin-17"
-firebase = "latest"
+npm = "latest"
+"npm:firebase-tools" = "15.0.0"
 
 [tasks.deploy-functions]
 description = "🚀Cloud Functions をデプロイ"
