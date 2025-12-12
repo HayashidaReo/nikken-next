@@ -4,7 +4,7 @@ import { OrganizationCreateForm } from "@/components/organisms/organization-crea
 
 export default function NewOrganizationPage() {
     return (
-        <main className="p-6 max-w-4xl mx-auto">
+        <main className="p-6 w-full mx-auto">
             <div className="mb-8">
                 <h1 className="text-2xl font-bold tracking-tight">新規組織作成</h1>
                 <p className="text-muted-foreground mt-2">
@@ -12,7 +12,7 @@ export default function NewOrganizationPage() {
                 </p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div>
                 <OrganizationCreateForm />
             </div>
         </main>

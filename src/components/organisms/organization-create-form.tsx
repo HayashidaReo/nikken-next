@@ -47,7 +47,7 @@ export function OrganizationCreateForm() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <form onSubmit={handleSubmit(onSubmit)} onKeyDown={handleKeyDown} className="space-y-8">
         <div className="grid gap-8">
           {/* 組織情報 */}
@@ -66,17 +66,16 @@ export function OrganizationCreateForm() {
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 p-6">
-              <FormInput
-                label="団体名"
-                name="orgName"
-                required
-                placeholder="例: ○○道場連盟"
-                register={register}
-                error={errors.orgName?.message}
-                className="max-w-xl"
-              />
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormInput
+                  label="団体名"
+                  name="orgName"
+                  required
+                  placeholder="例: ○○道場連盟"
+                  register={register}
+                  error={errors.orgName?.message}
+                />
+
                 <FormInput
                   label="代表者名"
                   name="representativeName"
@@ -85,7 +84,9 @@ export function OrganizationCreateForm() {
                   register={register}
                   error={errors.representativeName?.message}
                 />
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormInput
                   label="代表者電話番号"
                   name="representativePhone"
@@ -95,18 +96,17 @@ export function OrganizationCreateForm() {
                   register={register}
                   error={errors.representativePhone?.message}
                 />
-              </div>
 
-              <FormInput
-                label="代表者メールアドレス"
-                name="representativeEmail"
-                type="email"
-                required
-                placeholder="例: representative@example.com"
-                register={register}
-                error={errors.representativeEmail?.message}
-                className="max-w-xl"
-              />
+                <FormInput
+                  label="代表者メールアドレス"
+                  name="representativeEmail"
+                  type="email"
+                  required
+                  placeholder="例: representative@example.com"
+                  register={register}
+                  error={errors.representativeEmail?.message}
+                />
+              </div>
             </CardContent>
           </Card>
 
