@@ -2,10 +2,9 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { TeamForm } from "@/components/organisms/team-form";
-import { useTeam, useUpdateTeam, useDeleteTeam } from "@/queries/use-teams";
-import { useMatchGroups } from "@/queries/use-match-groups";
+import { useTeam, useUpdateTeam } from "@/queries/use-teams";
 import { useTeamPersistence } from "@/hooks/useTeamPersistence";
-import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useTeamDeletion } from "@/hooks/useTeamDeletion";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
@@ -72,42 +71,12 @@ export default function TeamEditPage() {
     router.back();
   };
 
-  const { mutateAsync: deleteTeam } = useDeleteTeam();
-  const { data: matchGroups = [] } = useMatchGroups();
-  const deleteConfirmDialog = useConfirmDialog();
+  const { requestDelete, deleteConfirmDialog } = useTeamDeletion();
 
   const handleDelete = async () => {
-    // 関連データのチェック
-    const relatedMatchGroups = matchGroups.filter(
-      (mg) => mg.teamAId === teamId || mg.teamBId === teamId
-    );
-
-    if (relatedMatchGroups.length > 0) {
-      showError(
-        "このチームは既に対戦カードに関連付けられているため削除できません。\n先に対戦カードを削除してください。"
-      );
-      return;
+    if (team) {
+      requestDelete(teamId, team.teamName);
     }
-
-    deleteConfirmDialog.openDialog({
-      title: "チーム削除",
-      message: `チーム「${team?.teamName}」を削除しますか？\nこの操作は取り消せません。`,
-      variant: "destructive",
-      action: async () => {
-        try {
-          await deleteTeam(teamId);
-          await syncTeamToCloud(teamId);
-          showSuccess("チームを削除しました");
-          router.push("/teams");
-        } catch (error) {
-          showError(
-            error instanceof Error
-              ? error.message
-              : "チームの削除に失敗しました"
-          );
-        }
-      },
-    });
   };
 
   // 大会が選択されていない場合
