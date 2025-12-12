@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/atoms/table";
-import { Badge } from "@/components/atoms/badge";
+import { MatchTable } from "@/components/organisms/match-table";
+import { ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS } from "@/lib/ui-constants";
+import { TableRow, TableCell } from "@/components/atoms/table";
 import { useToast } from "@/components/providers/notification-provider";
 import { Button } from "@/components/atoms/button";
 import { useRouter } from "next/navigation";
@@ -16,7 +10,7 @@ import { useOrganizations } from "@/queries/use-organizations";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { ROUTES } from "@/lib/constants";
 import { Card, CardContent } from "@/components/atoms/card";
-import { Building2, Mail, Phone, ExternalLink } from "lucide-react";
+import { Building2, Mail, Phone, ExternalLink, User, Copy } from "lucide-react";
 
 /**
  * 組織一覧表示
@@ -53,65 +47,94 @@ export function OrganizationList() {
     );
   }
 
+  const handleCopyUid = async (uid: string) => {
+    try {
+      await navigator.clipboard.writeText(uid);
+      showSuccess("UIDをコピーしました");
+    } catch {
+      showError("コピーに失敗しました");
+    }
+  };
+
+  const columns = [
+    { key: "orgName", label: "団体名", width: ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS.orgName },
+    { key: "representativeName", label: "代表者名", width: ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS.representativeName },
+    { key: "contact", label: "連絡先", width: ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS.contact },
+    { key: "adminUid", label: "管理者UID", width: ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS.adminUid },
+    { key: "createdAt", label: "作成日", width: ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS.createdAt },
+    { key: "action", label: "アクション", width: ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS.action, className: "text-center" },
+  ];
+
   return (
-    <div className="bg-white rounded-md border shadow-sm overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
-            <TableHead className="w-[250px]">団体名</TableHead>
-            <TableHead>代表者情報</TableHead>
-            <TableHead>管理者アカウント</TableHead>
-            <TableHead>作成日</TableHead>
-            <TableHead className="text-right">アクション</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {organizations.map((org) => (
-            <TableRow key={org.id} className="hover:bg-gray-50/50">
-              <TableCell className="font-medium align-top py-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                    <Building2 className="w-4 h-4" />
-                  </div>
-                  <span>{org.orgName}</span>
-                </div>
-              </TableCell>
-              <TableCell className="align-top py-4">
-                <div className="space-y-1 text-sm text-gray-600">
-                  <div className="font-medium text-gray-900">{org.representativeName}</div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <Phone className="w-3 h-3" />
-                    {org.representativePhone}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <Mail className="w-3 h-3" />
-                    {org.representativeEmail}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className="align-top py-4">
-                <Badge variant="outline" className="font-mono text-xs bg-gray-50">
-                  {org.adminUid}
-                </Badge>
-              </TableCell>
-              <TableCell className="align-top py-4 text-sm text-gray-500">
-                {new Date(org.createdAt).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="text-right align-top py-4">
-                <Button
-                  onClick={() => handleManageOrganization(org.id, org.orgName)}
-                  size="sm"
-                  variant="outline"
-                  className="gap-2 h-8 text-xs"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  大会管理
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <MatchTable
+      title={<span className="text-lg font-bold">登録済み組織一覧 ({organizations.length}件)</span>}
+      columns={columns}
+    >
+      {organizations.map((org) => (
+        <TableRow key={org.id} className="hover:bg-gray-50/50">
+          <TableCell className="font-medium align-top py-4 text-gray-900">
+            <span className="line-clamp-2" title={org.orgName}>
+              {org.orgName}
+            </span>
+          </TableCell>
+          <TableCell className="align-top py-4">
+            <div className="flex items-center gap-2 max-w-full">
+              <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span className="font-medium text-gray-900 truncate" title={org.representativeName}>
+                {org.representativeName}
+              </span>
+            </div>
+          </TableCell>
+          <TableCell className="align-top py-4">
+            <div className="space-y-1 text-sm text-gray-600 max-w-full">
+              <div className="flex items-center gap-1.5">
+                <Phone className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate" title={org.representativePhone}>
+                  {org.representativePhone}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Mail className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate" title={org.representativeEmail}>
+                  {org.representativeEmail}
+                </span>
+              </div>
+            </div>
+          </TableCell>
+          <TableCell className="align-top py-4">
+            <div className="flex items-center gap-2">
+              <code className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600 font-mono truncate max-w-[150px]" title={org.adminUid}>
+                {org.adminUid}
+              </code>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-gray-400 hover:text-gray-600"
+                onClick={() => handleCopyUid(org.adminUid)}
+                title="UIDをコピー"
+              >
+                <Copy className="w-3 h-3" />
+              </Button>
+            </div>
+          </TableCell>
+          <TableCell className="align-top py-4 text-sm text-gray-500">
+            {new Date(org.createdAt).toLocaleDateString()}
+          </TableCell>
+          <TableCell className="text-right align-top py-4">
+            <div className="flex justify-center">
+              <Button
+                onClick={() => handleManageOrganization(org.id, org.orgName)}
+                size="sm"
+                variant="outline"
+                className="gap-2 h-8 text-xs"
+              >
+                <ExternalLink className="w-3 h-3" />
+                大会管理
+              </Button>
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </MatchTable>
   );
 }

@@ -105,6 +105,19 @@ export const MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS = {
     others: 6,         // その他メニュー
 } as const;
 
+/**
+ * OrganizationListTable の列幅の割合（%）
+ * - 組織一覧画面用
+ */
+export const ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS = {
+    orgName: 20,
+    representativeName: 15,
+    contact: 20,
+    adminUid: 25,
+    createdAt: 10,
+    action: 10,
+} as const;
+
 const UI_CONSTANTS = {
     SCORE_COLORS,
     MATCH_TABLE_COLUMN_WIDTHS,
