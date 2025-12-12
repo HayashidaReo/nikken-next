@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { DEMO_ROUNDS, DEMO_COURTS, generateDemoTeams, generateDemoMatches } from "./data/demoData";
 import { organizationCreateSchema, type OrganizationCreateData } from "./schema";
+import { REGION, FIRESTORE_COLLECTIONS } from "../../constants";
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -10,7 +11,7 @@ const auth = admin.auth();
  * 組織作成関数 (Callable)
  * システム管理者のみ実行可能
  */
-export const createOrganization = onCall({ region: "asia-northeast1" }, async (request) => {
+export const createOrganization = onCall({ region: REGION }, async (request) => {
     // 1. 認証チェック
     if (!request.auth) {
         throw new HttpsError(
@@ -22,7 +23,7 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
     const callerUid = request.auth.uid;
 
     // 2. システム管理者権限チェック
-    const callerUserDoc = await db.collection("users").doc(callerUid).get();
+    const callerUserDoc = await db.collection(FIRESTORE_COLLECTIONS.USERS).doc(callerUid).get();
     if (!callerUserDoc.exists || callerUserDoc.data()?.role !== "system_admin") {
         throw new HttpsError(
             "permission-denied",
@@ -86,7 +87,12 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
         const demoMatches = generateDemoMatches(demoTeams); // 12試合
 
         // 8. デフォルト大会データ作成
-        const defaultTournamentRef = db.collection("organizations").doc(newOrgId).collection("tournaments").doc();
+        const defaultTournamentRef = db
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
+            .doc(newOrgId)
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
+            .doc();
+
         const defaultTournament = {
             tournamentId: defaultTournamentRef.id,
             tournamentName: `デモデータ大会`,
@@ -104,17 +110,17 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
         // 一括書き込み (Batch)
         const batch = db.batch();
 
-        const orgRef = db.collection("organizations").doc(newOrgId);
+        const orgRef = db.collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS).doc(newOrgId);
         batch.set(orgRef, orgData);
 
-        const userRef = db.collection("users").doc(newOrgId);
+        const userRef = db.collection(FIRESTORE_COLLECTIONS.USERS).doc(newOrgId);
         batch.set(userRef, userData);
 
         batch.set(defaultTournamentRef, defaultTournament);
 
         // チームデータの書き込み
         for (const team of demoTeams) {
-            const teamRef = defaultTournamentRef.collection("teams").doc(team.teamId);
+            const teamRef = defaultTournamentRef.collection(FIRESTORE_COLLECTIONS.TEAMS).doc(team.teamId);
             const teamDoc = {
                 ...team,
                 representativeName: "デモ代表",
@@ -130,7 +136,7 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
 
         // 試合データの書き込み (matches collection for individual)
         for (const match of demoMatches) {
-            const matchRef = defaultTournamentRef.collection("matches").doc(match.matchId);
+            const matchRef = defaultTournamentRef.collection(FIRESTORE_COLLECTIONS.MATCHES).doc(match.matchId);
             const matchDoc = {
                 matchId: match.matchId,
                 courtId: match.courtId,

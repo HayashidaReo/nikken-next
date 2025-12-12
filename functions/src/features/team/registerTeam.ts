@@ -3,6 +3,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { v4 as uuidv4 } from "uuid";
 import { DisplayNameHelper } from "./helpers/displayNameHelper";
 import { teamFormSchema } from "./schema";
+import { REGION, FIRESTORE_COLLECTIONS } from "../../constants";
 
 const db = admin.firestore();
 
@@ -11,7 +12,7 @@ const db = admin.firestore();
  * チーム登録関数 (Callable)
  * 認証なしで実行可能 (public form)
  */
-export const registerTeam = onCall({ region: "asia-northeast1" }, async (request) => {
+export const registerTeam = onCall({ region: REGION }, async (request) => {
     // 1. 入力バリデーション
     const result = teamFormSchema.safeParse(request.data);
     if (!result.success) {
@@ -59,11 +60,11 @@ export const registerTeam = onCall({ region: "asia-northeast1" }, async (request
         // 3. Firestoreへの保存
         // パス: organizations/{orgId}/tournaments/{tournamentId}/teams/{teamId}
         const teamRef = db
-            .collection("organizations")
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
             .doc(orgId)
-            .collection("tournaments")
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
             .doc(tournamentId)
-            .collection("teams")
+            .collection(FIRESTORE_COLLECTIONS.TEAMS)
             .doc(teamId);
 
         await teamRef.set(teamData);
