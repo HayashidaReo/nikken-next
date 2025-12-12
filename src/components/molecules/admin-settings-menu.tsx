@@ -56,7 +56,7 @@ export function AdminSettingsMenu({ className }: AdminSettingsMenuProps) {
 
     const renderMenuButton = (
         onClick: () => void,
-        icon: React.ElementType,
+        Icon: React.ElementType,
         label: React.ReactNode,
         options: {
             isDestructive?: boolean;
@@ -72,8 +72,7 @@ export function AdminSettingsMenu({ className }: AdminSettingsMenuProps) {
                     isDestructive ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-gray-50"
                 )}
             >
-                {/* @ts-expect-error: Lucide icon component type compatibility */}
-                {icon && <icon className={cn("w-4 h-4", isDestructive ? "text-red-600" : "text-gray-600")} />}
+                {Icon && <Icon className={cn("w-4 h-4", isDestructive ? "text-red-600" : "text-gray-600")} />}
                 <span>{label}</span>
             </button>
         );

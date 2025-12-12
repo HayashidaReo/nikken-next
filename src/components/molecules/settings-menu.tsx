@@ -111,7 +111,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
 
     const renderMenuButton = (
         onClick: () => void,
-        icon: React.ElementType,
+        Icon: React.ElementType,
         label: React.ReactNode,
         options: {
             disabled?: boolean;
@@ -133,8 +133,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                 )}
                 disabled={isDisabled}
             >
-                {/* @ts-expect-error: Lucide icon component type compatibility */}
-                {icon && <icon className={cn("w-4 h-4", isDestructive ? "text-red-600" : "text-gray-600")} />}
+                {Icon && <Icon className={cn("w-4 h-4", isDestructive ? "text-red-600" : "text-gray-600")} />}
                 <span>{label}</span>
             </button>
         );
