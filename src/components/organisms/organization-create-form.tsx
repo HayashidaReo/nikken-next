@@ -29,9 +29,9 @@ export function OrganizationCreateForm() {
 
   const onSubmit = async (data: OrganizationCreateWithAccount) => {
     try {
-      const result = await createOrganizationMutation.mutateAsync(data);
+      await createOrganizationMutation.mutateAsync(data);
       showSuccess(
-        `組織「${result.orgName}」を作成し、管理者アカウントを発行しました。` +
+        `組織「${data.orgName}」を作成し、管理者アカウントを発行しました。` +
         `デフォルト大会も自動作成されました。`
       );
       reset(); // フォームをリセット
