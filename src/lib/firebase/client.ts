@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
 
 // Firebase設定（環境変数から取得）
 const firebaseConfig = {
@@ -22,6 +23,9 @@ export const auth = getAuth(app);
 // Firestore インスタンスを取得
 // 既存インスタンスがあればそれを返す getFirestore を使用します。
 export const db = getFirestore(app);
+
+// Functions インスタンスを取得
+export const functions = getFunctions(app, "asia-northeast1");
 
 
 // デフォルトエクスポート

@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Helper Functions ---
+
+    // ユーザーが認証されているか
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // ユーザーがシステム管理者かどうか
+    function isSystemAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'system_admin';
+    }
+
+    // ユーザーが特定の組織の管理者かどうか
+    function isOrgAdmin(orgId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId == orgId &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'org_admin' || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'system_admin');
+    }
+
+    // --- Collections ---
+
+    // Users Collection
+    match /users/{userId} {
+      // 自分のデータ or システム管理者は読み取り可能
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSystemAdmin());
+      
+      // システム管理者のみ更新可能
+      allow write: if isSystemAdmin();
+    }
+
+    // Organizations Collection
+    match /organizations/{orgId} {
+      // システム管理者 または その組織の管理者は読み書き可能
+      allow read, write: if isOrgAdmin(orgId);
+
+      // Subcollections (tournaments, teams, etc)
+      match /{document=**} {
+        allow read, write: if isOrgAdmin(orgId);
+      }
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
