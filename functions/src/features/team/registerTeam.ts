@@ -1,5 +1,5 @@
-import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { DisplayNameHelper } from "./helpers/displayNameHelper";
@@ -13,6 +13,7 @@ const validatePlayerName = (name: string) => {
     return parts.length === 2;
 };
 
+// バリデーションスキーマ (zod)
 const teamFormSchema = z.object({
     representativeName: z.string().min(1, "代表者名は必須です"),
     representativePhone: z.string().min(1, "代表者電話番号は必須です"),
@@ -35,7 +36,7 @@ const teamFormSchema = z.object({
             })
         )
         .min(1, "最低1人の選手を登録してください"),
-    remarks: z.string(),
+    remarks: z.string().optional().default(""),
     orgId: z.string().min(1, "orgIdは必須です"),
     tournamentId: z.string().min(1, "tournamentIdは必須です"),
 });
@@ -53,11 +54,11 @@ const splitPlayerName = (fullName: string) => {
  * チーム登録関数 (Callable)
  * 認証なしで実行可能 (public form)
  */
-export const registerTeam = functions.region("asia-northeast1").https.onCall(async (data, context) => {
+export const registerTeam = onCall({ region: "asia-northeast1" }, async (request) => {
     // 1. 入力バリデーション
-    const result = teamFormSchema.safeParse(data);
+    const result = teamFormSchema.safeParse(request.data);
     if (!result.success) {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
             "invalid-argument",
             "入力データが無効です",
             result.error.issues.map(i => i.message)
@@ -124,7 +125,7 @@ export const registerTeam = functions.region("asia-northeast1").https.onCall(asy
 
     } catch (error: any) {
         console.error("Register Team Error:", error);
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
             "internal",
             "チーム登録に失敗しました"
         );

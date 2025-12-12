@@ -1,5 +1,5 @@
-import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -30,21 +30,21 @@ const validateOrganizationData = (data: any): OrganizationCreateData => {
  * 組織作成関数 (Callable)
  * システム管理者のみ実行可能
  */
-export const createOrganization = functions.region("asia-northeast1").https.onCall(async (data, context) => {
+export const createOrganization = onCall({ region: "asia-northeast1" }, async (request) => {
     // 1. 認証チェック
-    if (!context.auth) {
-        throw new functions.https.HttpsError(
+    if (!request.auth) {
+        throw new HttpsError(
             "unauthenticated",
             "認証が必要です"
         );
     }
 
-    const callerUid = context.auth.uid;
+    const callerUid = request.auth.uid;
 
     // 2. システム管理者権限チェック
     const callerUserDoc = await db.collection("users").doc(callerUid).get();
     if (!callerUserDoc.exists || callerUserDoc.data()?.role !== "system_admin") {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
             "permission-denied",
             "システム管理者権限が必要です"
         );
@@ -53,9 +53,9 @@ export const createOrganization = functions.region("asia-northeast1").https.onCa
     // 3. 入力バリデーション
     let input: OrganizationCreateData;
     try {
-        input = validateOrganizationData(data);
+        input = validateOrganizationData(request.data);
     } catch (e: any) {
-        throw new functions.https.HttpsError("invalid-argument", e.message);
+        throw new HttpsError("invalid-argument", e.message);
     }
 
     try {
@@ -131,7 +131,7 @@ export const createOrganization = functions.region("asia-northeast1").https.onCa
         console.error("Create Organization Error:", error);
         // Auth作成済みでDB作成失敗などの場合、Authを削除するロールバック処理を入れるのが理想
         // 今回は簡易実装としてエラーを返すのみ
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
             "internal",
             error.message || "組織作成中にエラーが発生しました"
         );
