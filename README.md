@@ -58,7 +58,19 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
    mise install
    ```
 
-3. **タスクの実行**:
+3. **Firebase プロジェクトの設定**:
+   デプロイ先のFirebaseプロジェクトを選択します。
+
+   ```bash
+   # ログイン（初回のみ）
+   firebase login
+
+   # プロジェクトの紐付け（対話モードで選択）
+   # エイリアスには `default` を指定してください
+   firebase use --add
+   ```
+
+4. **タスクの実行**:
    `mise.toml` に定義されたタスクにより、デプロイコマンドなどを簡単に実行できます。
 
    ```bash
