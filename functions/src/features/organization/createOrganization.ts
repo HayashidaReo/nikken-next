@@ -3,6 +3,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { DEMO_ROUNDS, DEMO_COURTS, generateDemoTeams, generateDemoMatches } from "./data/demoData";
 import { organizationCreateSchema, type OrganizationCreateData } from "./schema";
 import { REGION, FIRESTORE_COLLECTIONS } from "../../constants";
+import { AuthHelper } from "../../utils/authHelper";
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -178,12 +179,7 @@ export const createOrganization = onCall({ region: REGION }, async (request) => 
 
         // ロールバック処理: Authユーザーが作成されていた場合、削除する
         if (newOrgId) {
-            try {
-                await auth.deleteUser(newOrgId);
-                console.log(`Rollback: Deleted auth user ${newOrgId}`);
-            } catch (deleteError) {
-                console.error(`Rollback Error: Failed to delete auth user ${newOrgId}`, deleteError);
-            }
+            await AuthHelper.deleteUser(newOrgId);
         }
 
         throw new HttpsError(
