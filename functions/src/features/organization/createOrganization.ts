@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { DEMO_ROUNDS, DEMO_COURTS, generateDemoTeams, generateDemoMatches } from "./data/demoData";
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -94,16 +95,22 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
             updatedAt: now,
         };
 
-        // 7. デフォルト大会データ作成
+        // 7. デモデータ生成
+        const demoTeams = generateDemoTeams(8, 5); // 8チーム, 各5名
+        const demoMatches = generateDemoMatches(demoTeams); // 4試合 (個人戦形式のペアリング)
+
+        // 8. デフォルト大会データ作成
         const defaultTournamentRef = db.collection("organizations").doc(newOrgId).collection("tournaments").doc();
         const defaultTournament = {
             tournamentId: defaultTournamentRef.id,
-            tournamentName: "大会名（変更してください）",
-            tournamentDate: "",
-            location: "",
-            tournamentDetail: "",
+            tournamentName: `デモデータ大会`,
+            tournamentDate: now,
+            location: "市民体育館",
+            tournamentDetail: "デモデータがセットアップされた大会です。削除して新しい大会を作成してください。",
             defaultMatchTime: 180,
-            courts: [],
+            courts: DEMO_COURTS, // デモ用コート
+            rounds: DEMO_ROUNDS, // デモ用ラウンド
+            tournamentType: "individual", // 個人戦
             createdAt: now,
             updatedAt: now,
         };
@@ -119,18 +126,63 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
 
         batch.set(defaultTournamentRef, defaultTournament);
 
+        // チームデータの書き込み
+        for (const team of demoTeams) {
+            const teamRef = defaultTournamentRef.collection("teams").doc(team.teamId);
+            const teamDoc = {
+                ...team,
+                representativeName: "デモ代表",
+                representativePhone: "090-0000-0000",
+                representativeEmail: "demo@example.com",
+                remarks: "デモチーム",
+                isApproved: true,
+                createdAt: now,
+                updatedAt: now,
+            };
+            batch.set(teamRef, teamDoc);
+        }
+
+        // 試合データの書き込み (matches collection for individual)
+        for (const match of demoMatches) {
+            const matchRef = defaultTournamentRef.collection("matches").doc(match.matchId);
+            const matchDoc = {
+                matchId: match.matchId,
+                courtId: match.courtId,
+                roundId: match.roundId,
+                sortOrder: match.sortOrder,
+                players: {
+                    playerA: {
+                        playerId: match.playerA.playerId,
+                        teamId: match.playerA.teamId,
+                        score: 0,
+                        hansoku: 0,
+                    },
+                    playerB: {
+                        playerId: match.playerB.playerId,
+                        teamId: match.playerB.teamId,
+                        score: 0,
+                        hansoku: 0,
+                    }
+                },
+                isCompleted: match.isCompleted,
+                winner: "",
+                winReason: "",
+                createdAt: now,
+                updatedAt: now,
+            };
+            batch.set(matchRef, matchDoc);
+        }
+
         await batch.commit();
 
         return {
             success: true,
             orgId: newOrgId,
-            message: "組織を作成しました"
+            message: "組織を作成しました（デモデータを含む）"
         };
 
     } catch (error: any) {
         console.error("Create Organization Error:", error);
-        // Auth作成済みでDB作成失敗などの場合、Authを削除するロールバック処理を入れるのが理想
-        // 今回は簡易実装としてエラーを返すのみ
         throw new HttpsError(
             "internal",
             error.message || "組織作成中にエラーが発生しました"
