@@ -1,31 +1,10 @@
 import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { DEMO_ROUNDS, DEMO_COURTS, generateDemoTeams, generateDemoMatches } from "./data/demoData";
+import { organizationCreateSchema, type OrganizationCreateData } from "./schema";
 
 const db = admin.firestore();
 const auth = admin.auth();
-
-// --- Schemas (Copied/Adapted for minimal validation) ---
-interface OrganizationCreateData {
-    orgName: string;
-    representativeName: string;
-    representativePhone: string;
-    representativeEmail: string;
-    adminEmail: string;
-    adminPassword: string;
-}
-
-// Helper to validate input (Simplified for now)
-const validateOrganizationData = (data: any): OrganizationCreateData => {
-    if (!data.orgName) throw new Error("団体名は必須です");
-    if (!data.representativeName) throw new Error("団体代表者名は必須です");
-    if (!data.representativePhone) throw new Error("団体代表者電話番号は必須です");
-    if (!data.representativeEmail) throw new Error("団体代表者メールアドレスは必須です");
-    if (!data.adminEmail) throw new Error("管理者メールアドレスは必須です");
-    if (!data.adminPassword || data.adminPassword.length < 6) throw new Error("パスワードは6文字以上必須です");
-
-    return data as OrganizationCreateData;
-};
 
 /**
  * 組織作成関数 (Callable)
@@ -52,12 +31,16 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
     }
 
     // 3. 入力バリデーション
-    let input: OrganizationCreateData;
-    try {
-        input = validateOrganizationData(request.data);
-    } catch (e: any) {
-        throw new HttpsError("invalid-argument", e.message);
+    const result = organizationCreateSchema.safeParse(request.data);
+    if (!result.success) {
+        throw new HttpsError(
+            "invalid-argument",
+            "入力データが無効です",
+            result.error.issues.map(i => i.message)
+        );
     }
+
+    const input: OrganizationCreateData = result.data;
 
     // Rollback用変数を外で定義
     let newOrgId: string | null = null;
