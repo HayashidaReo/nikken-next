@@ -1,0 +1,12 @@
+[tools]
+node = "20.19.0"
+java = "temurin-17"
+firebase = "latest"
+
+[tasks.deploy-functions]
+description = "🚀Cloud Functions をデプロイ"
+run = "firebase deploy --only functions"
+
+[tasks.deploy-rules]
+description = "🚀 Firestore Rules をデプロイ"
+run = "firebase deploy --only firestore:rules"

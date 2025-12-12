@@ -37,6 +37,38 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## 🛠️ 開発環境セットアップ (mise)
+
+このプロジェクトでは、タスクランナー、バージョン管理ツールとして [mise](https://mise.jdx.dev/) を導入しています。
+
+1. **mise のインストール**:
+   [公式ドキュメント](https://mise.jdx.dev/getting-started.html)に従ってインストールしてください。
+
+   ```bash
+   # macOS (Homebrew)
+   brew install mise
+   echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
+   source ~/.zshrc
+   ```
+
+2. **ツールのインストール**:
+   `mise.toml` に定義されたバージョン（Node.js, Java, Firebase CLI）をインストールします。
+
+   ```bash
+   mise install
+   ```
+
+3. **タスクの実行**:
+   `mise.toml` に定義されたタスクにより、デプロイコマンドなどを簡単に実行できます。
+
+   ```bash
+   # タスクの一覧から選択して実行
+   mise run 
+
+   # タスクを指定して実行
+   mise run <task_name>
+   ```
+
 ## 📦 プロジェクト構造
 
 ```
