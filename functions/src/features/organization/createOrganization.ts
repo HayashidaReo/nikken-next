@@ -59,6 +59,9 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
         throw new HttpsError("invalid-argument", e.message);
     }
 
+    // Rollback用変数を外で定義
+    let newOrgId: string | null = null;
+
     try {
         // 4. 管理者アカウント作成 (Firebase Auth)
         const userRecord = await auth.createUser({
@@ -68,7 +71,7 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
             emailVerified: true // 管理作成なので確認済みとする
         });
 
-        const newOrgId = userRecord.uid;
+        newOrgId = userRecord.uid;
         const now = admin.firestore.Timestamp.now();
 
         // 5. 組織データ作成 (organizations collection)
@@ -97,7 +100,7 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
 
         // 7. デモデータ生成
         const demoTeams = generateDemoTeams(8, 5); // 8チーム, 各5名
-        const demoMatches = generateDemoMatches(demoTeams); // 4試合 (個人戦形式のペアリング)
+        const demoMatches = generateDemoMatches(demoTeams); // 12試合
 
         // 8. デフォルト大会データ作成
         const defaultTournamentRef = db.collection("organizations").doc(newOrgId).collection("tournaments").doc();
@@ -183,6 +186,17 @@ export const createOrganization = onCall({ region: "asia-northeast1" }, async (r
 
     } catch (error: any) {
         console.error("Create Organization Error:", error);
+
+        // ロールバック処理: Authユーザーが作成されていた場合、削除する
+        if (newOrgId) {
+            try {
+                await auth.deleteUser(newOrgId);
+                console.log(`Rollback: Deleted auth user ${newOrgId}`);
+            } catch (deleteError) {
+                console.error(`Rollback Error: Failed to delete auth user ${newOrgId}`, deleteError);
+            }
+        }
+
         throw new HttpsError(
             "internal",
             error.message || "組織作成中にエラーが発生しました"
