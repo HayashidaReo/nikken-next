@@ -4,6 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { TeamForm } from "@/components/organisms/team-form";
 import { useTeam, useUpdateTeam } from "@/queries/use-teams";
 import { useTeamPersistence } from "@/hooks/useTeamPersistence";
+import { useTeamDeletion } from "@/hooks/useTeamDeletion";
+import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useToast } from "@/components/providers/notification-provider";
 import { MainLayout } from "@/components/templates/main-layout";
@@ -66,7 +68,15 @@ export default function TeamEditPage() {
   };
 
   const handleCancel = () => {
-    router.push("/teams");
+    router.back();
+  };
+
+  const { requestDelete, deleteConfirmDialog } = useTeamDeletion();
+
+  const handleDelete = async () => {
+    if (team) {
+      requestDelete(teamId, team.teamName);
+    }
   };
 
   // 大会が選択されていない場合
@@ -120,7 +130,23 @@ export default function TeamEditPage() {
   return (
     <MainLayout activeTab="teams">
       <div className="py-8 px-4">
-        <TeamForm team={team} onSave={handleSave} onCancel={handleCancel} />
+        <TeamForm
+          team={team}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          onDelete={handleDelete}
+        />
+
+        <ConfirmDialog
+          isOpen={deleteConfirmDialog.isOpen}
+          title={deleteConfirmDialog.title}
+          message={deleteConfirmDialog.message}
+          variant={deleteConfirmDialog.variant}
+          confirmText="削除"
+          cancelText="キャンセル"
+          onConfirm={deleteConfirmDialog.action}
+          onCancel={deleteConfirmDialog.closeDialog}
+        />
       </div>
     </MainLayout>
   );

@@ -14,6 +14,15 @@ export class LocalMatchRepository {
     }
 
     /**
+     * チームIDで試合を取得
+     */
+    async findByTeamId(teamId: string): Promise<LocalMatch[]> {
+        return await db.matches
+            .filter(m => (m.players.playerA.teamId === teamId || m.players.playerB.teamId === teamId) && !m._deleted)
+            .toArray();
+    }
+
+    /**
      * IDで試合を取得
      */
     async getById(matchId: string): Promise<LocalMatch | undefined> {

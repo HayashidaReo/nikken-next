@@ -306,6 +306,11 @@ export default function MonitorControlPage() {
             onShowTeamResult: handleShowTeamResult,
             onStartMatch: handleStartMatch,
           }}
+          matchInfo={{
+            tournamentName: useMonitorStore.getState().tournamentName,
+            courtName: useMonitorStore.getState().courtName,
+            roundName: useMonitorStore.getState().roundName,
+          }}
         />
 
         <ScoreboardOperator

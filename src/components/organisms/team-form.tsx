@@ -5,7 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
   Card,
@@ -54,6 +54,7 @@ interface TeamFormProps {
   team?: Team;
   onSave: (data: TeamEditData) => Promise<void>;
   onCancel: () => void;
+  onDelete?: () => Promise<void>;
   className?: string;
 }
 
@@ -61,6 +62,7 @@ export function TeamForm({
   team,
   onSave,
   onCancel,
+  onDelete,
   className,
 }: TeamFormProps) {
   const isEditMode = !!team;
@@ -215,9 +217,22 @@ export function TeamForm({
             {isEditMode ? "チーム情報編集" : "チーム新規登録"}
           </h1>
         </div>
-        <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading} loadingText="保存中...">
-          {isEditMode ? "保存" : "登録"}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isEditMode && onDelete && (
+            <Button
+              variant="ghost"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={onDelete}
+              type="button"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              削除
+            </Button>
+          )}
+          <Button onClick={handleSubmit(handleFormSubmit)} isLoading={isLoading} loadingText="保存中...">
+            {isEditMode ? "保存" : "登録"}
+          </Button>
+        </div>
       </div>
 
       <TooltipProvider delayDuration={20}>

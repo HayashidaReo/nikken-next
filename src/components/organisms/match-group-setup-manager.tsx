@@ -35,9 +35,7 @@ export function MatchGroupSetupManager() {
     const { syncMatchGroupsToCloud, syncTeamMatchesToCloud } = useMatchGroupPersistence();
 
     const handleBack = () => {
-        const params = new URLSearchParams(searchParams);
-        params.delete("matchGroupId");
-        router.push(`${pathname}?${params.toString()}`);
+        router.back();
     };
 
     const handleSelect = (group: MatchGroupSetupData) => {

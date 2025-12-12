@@ -59,13 +59,13 @@ export function PlayerSection({
                 className="font-black leading-none"
               />
               {player.grade && (
-                <div className="mt-1">
+                <div className="my-1">
                   <AdjustHorizontalText
                     textContent={player.grade}
-                    baseFontSize={5}
-                    minFontSize={1}
-                    maxWidth={200}
-                    className="font-bold text-white bg-red-500 px-4 py-0 rounded w-fit"
+                    baseFontSize={7}
+                    minFontSize={2}
+                    maxWidth={380}
+                    className="font-black text-red-800 bg-white px-6 pt-3 pb-1 leading-none rounded w-fit"
                   />
                 </div>
               )}
@@ -76,13 +76,13 @@ export function PlayerSection({
           {variant === "white" && (
             <>
               {player.grade && (
-                <div className="mb-1">
+                <div className="my-1">
                   <AdjustHorizontalText
                     textContent={player.grade}
-                    baseFontSize={5}
-                    minFontSize={1}
-                    maxWidth={200}
-                    className="font-bold text-gray-700 bg-gray-200 px-4 py-0 rounded w-fit"
+                    baseFontSize={7}
+                    minFontSize={2}
+                    maxWidth={380}
+                    className="font-black text-white bg-black px-6 pt-3 pb-1 leading-none rounded w-fit"
                   />
                 </div>
               )}

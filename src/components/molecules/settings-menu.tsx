@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Settings, LogOut, CloudDownload, CloudUpload, Trash2 } from "lucide-react";
+import { Settings, LogOut, CloudDownload, CloudUpload, Trash2, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { cn } from "@/lib/utils/utils";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -9,7 +9,7 @@ import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { ConfirmDialog } from "@/components/molecules/confirm-dialog";
 import { UnsyncedDataDialog } from "@/components/organisms/unsynced-data-dialog";
 import { useRouter } from "next/navigation";
-import { ROUTES, AUTH_CONSTANTS } from "@/lib/constants";
+import { APP_INFO, ROUTES, AUTH_CONSTANTS } from "@/lib/constants";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import {
     Tooltip,
@@ -27,7 +27,7 @@ interface SettingsMenuProps {
 export function SettingsMenu({ className }: SettingsMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-    const { signOut } = useAuthStore();
+    const { signOut, user } = useAuthStore();
     const { activeTournamentId } = useActiveTournament();
     const router = useRouter();
     const isOnline = useOnlineStatus();
@@ -171,7 +171,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                         <Settings className="h-5 w-5" />
                     </Button>
                     {unsyncedCount !== undefined && unsyncedCount > 0 && (
-                        <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                        <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white pointer-events-none">
                             {unsyncedCount > 99 ? "99+" : unsyncedCount}
                         </span>
                     )}
@@ -207,12 +207,35 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
 
                         <div className="border-t border-gray-100 my-1" />
 
+                        {user && (
+                            <>
+                                <div className="px-4 py-2 flex items-center gap-3 text-sm text-gray-700 bg-gray-50/50">
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        <UserIcon className="w-4 h-4 text-gray-500" />
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-xs text-muted-foreground font-medium">Logged in as</span>
+                                        <span className="font-medium truncate" title={user.email || ""}>
+                                            {user.email}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="border-t border-gray-100 my-1" />
+                            </>
+                        )}
+
                         {renderMenuButton(
                             handleLogoutClick,
                             LogOut,
                             "ログアウト",
                             { isDestructive: true, requiresOnline: true }
                         )}
+
+                        <div className="border-t border-gray-100 my-1" />
+
+                        <div className="px-4 py-2 text-center text-xs text-gray-400">
+                            v{APP_INFO.VERSION}
+                        </div>
                     </div>
                 )}
             </div>

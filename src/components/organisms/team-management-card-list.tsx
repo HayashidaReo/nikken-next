@@ -32,9 +32,29 @@ function TeamCard({ team, onApprovalChange }: TeamCardProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState<
     "approve" | "unapprove" | null
   >(null);
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
 
-  const handleApprovalClick = (action: "approve" | "unapprove") => {
+  const handleApprovalClick = async (action: "approve" | "unapprove") => {
+    // 承認取り消し時の依存関係チェック
+    if (action === "unapprove") {
+      try {
+        const { localMatchGroupRepository } = await import("@/repositories/local/match-group-repository");
+        const { localMatchRepository } = await import("@/repositories/local/match-repository");
+        const { TeamDependencyService } = await import("@/domains/team/services/team-dependency-service");
+
+        // 並列取得
+        const [matchGroups, matches] = await Promise.all([
+          localMatchGroupRepository.findByTeamId(team.teamId),
+          localMatchRepository.findByTeamId(team.teamId),
+        ]);
+
+        TeamDependencyService.validateUnapproval(team.teamId, matchGroups, matches);
+      } catch (error) {
+        showError(error instanceof Error ? error.message : "承認を取り消せません");
+        return;
+      }
+    }
+
     setShowConfirmDialog(action);
   };
 
