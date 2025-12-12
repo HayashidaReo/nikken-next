@@ -14,6 +14,12 @@ export class LocalMatchGroupRepository {
         return allGroups.filter(g => !g._deleted);
     }
 
+    async findByTeamId(teamId: string): Promise<LocalMatchGroup[]> {
+        return await db.matchGroups
+            .filter(mg => (mg.teamAId === teamId || mg.teamBId === teamId) && !mg._deleted)
+            .toArray();
+    }
+
     async put(matchGroup: LocalMatchGroup): Promise<number> {
         return await db.matchGroups.put(matchGroup);
     }

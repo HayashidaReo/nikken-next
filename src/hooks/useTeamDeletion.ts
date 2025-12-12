@@ -2,7 +2,8 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/providers/notification-provider";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useDeleteTeam } from "@/queries/use-teams";
-import { useMatchGroups } from "@/queries/use-match-groups";
+import { localMatchGroupRepository } from "@/repositories/local/match-group-repository";
+import { localMatchRepository } from "@/repositories/local/match-repository";
 import { useTeamPersistence } from "@/hooks/useTeamPersistence";
 import { TeamDependencyService } from "@/domains/team/services/team-dependency-service";
 
@@ -15,8 +16,7 @@ export function useTeamDeletion() {
     const { showSuccess, showError } = useToast();
 
     // 依存データの取得
-    // コンポーネントレベルでキャッシュが効いていることを前提
-    const { data: matchGroups = [] } = useMatchGroups();
+    // 削除実行時にオンデマンドで必要な分だけ取得する方針
 
     // 削除操作
     const { mutateAsync: deleteTeam } = useDeleteTeam();
@@ -29,10 +29,16 @@ export function useTeamDeletion() {
      * 削除リクエストを実行
      * 制約チェックを行い、問題なければ確認ダイアログを表示
      */
-    const requestDelete = (teamId: string, teamName: string) => {
+    const requestDelete = async (teamId: string, teamName: string) => {
         try {
             // 1. ドメインルールによる検証
-            TeamDependencyService.validateDeletion(teamId, matchGroups);
+            // DBから対象チームが関与する対戦グループおよび個人戦を取得
+            const [dependentMatchGroups, dependentMatches] = await Promise.all([
+                localMatchGroupRepository.findByTeamId(teamId),
+                localMatchRepository.findByTeamId(teamId),
+            ]);
+
+            TeamDependencyService.validateDeletion(teamId, dependentMatchGroups, dependentMatches);
 
             // 2. 確認ダイアログの表示
             confirmDialog.openDialog({
