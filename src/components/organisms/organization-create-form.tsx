@@ -2,12 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/atoms/card";
 import { FormInput } from "@/components/molecules/form-input";
 import { Button } from "@/components/atoms/button";
 import { useToast } from "@/components/providers/notification-provider";
@@ -49,30 +43,35 @@ export function OrganizationCreateForm() {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>新しい組織を作成</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* 組織情報 */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">組織情報</h3>
+    <div className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {/* 組織情報 */}
+        <section className="space-y-4">
+          <div className="pb-2 border-b">
+            <h3 className="text-lg font-medium text-gray-900">組織情報</h3>
+            <p className="text-sm text-gray-500">
+              作成する組織の基本情報を入力してください。
+            </p>
+          </div>
 
-            <FormInput
-              label="団体名"
-              name="orgName"
-              required
-              placeholder="○○道場連盟"
-              register={register}
-              error={errors.orgName?.message}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <FormInput
+                label="団体名"
+                name="orgName"
+                required
+                placeholder="例: ○○道場連盟"
+                register={register}
+                error={errors.orgName?.message}
+                className="max-w-xl"
+              />
+            </div>
 
             <FormInput
               label="団体代表者名"
               name="representativeName"
               required
-              placeholder="山田太郎"
+              placeholder="例: 山田太郎"
               register={register}
               error={errors.representativeName?.message}
             />
@@ -82,7 +81,7 @@ export function OrganizationCreateForm() {
               name="representativePhone"
               type="tel"
               required
-              placeholder="090-1234-5678"
+              placeholder="例: 090-1234-5678"
               register={register}
               error={errors.representativePhone?.message}
             />
@@ -92,25 +91,30 @@ export function OrganizationCreateForm() {
               name="representativeEmail"
               type="email"
               required
-              placeholder="representative@example.com"
+              placeholder="例: representative@example.com"
               register={register}
               error={errors.representativeEmail?.message}
+              className="md:col-span-2 max-w-xl"
             />
           </div>
+        </section>
 
-          {/* 管理者アカウント情報 */}
-          <div className="space-y-4 border-t pt-4">
-            <h3 className="text-lg font-medium">管理者アカウント情報</h3>
-            <p className="text-sm text-gray-600">
-              この組織の管理者として使用するログインアカウントを設定します
+        {/* 管理者アカウント情報 */}
+        <section className="space-y-4">
+          <div className="pb-2 border-b">
+            <h3 className="text-lg font-medium text-gray-900">管理者アカウント</h3>
+            <p className="text-sm text-gray-500">
+              この組織の管理者として使用するログイン情報を設定します。
             </p>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormInput
               label="管理者メールアドレス（ログインID）"
               name="adminEmail"
               type="email"
               required
-              placeholder="admin@example.com"
+              placeholder="例: admin@example.com"
               register={register}
               error={errors.adminEmail?.message}
             />
@@ -125,28 +129,28 @@ export function OrganizationCreateForm() {
               error={errors.adminPassword?.message}
             />
           </div>
+        </section>
 
-          <div className="flex gap-4 justify-end pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => reset()}
-              disabled={createOrganizationMutation.isPending}
-            >
-              リセット
-            </Button>
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={createOrganizationMutation.isPending}
-              loadingText="作成中..."
-              disabled={createOrganizationMutation.isPending}
-            >
-              組織を作成
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+        <div className="flex gap-4 justify-end pt-4 border-t">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => reset()}
+            disabled={createOrganizationMutation.isPending}
+          >
+            入力内容をクリア
+          </Button>
+          <Button
+            type="submit"
+            className="min-w-[160px]"
+            isLoading={createOrganizationMutation.isPending}
+            loadingText="作成中..."
+            disabled={createOrganizationMutation.isPending}
+          >
+            組織を作成する
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

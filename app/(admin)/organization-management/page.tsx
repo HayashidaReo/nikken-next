@@ -1,16 +1,16 @@
-"use client";
+import { OrganizationList } from "@/components/organisms/organization-list";
 
-import { OrganizationManagement } from "@/components/organisms/organization-management";
-
-/**
- * 組織管理画面（システム管理者専用）
- * 
- * アクセス制御: useSystemAdminGuardにより、usersコレクションのroleが'system_admin'のユーザーのみアクセス可能
- */
 export default function OrganizationManagementPage() {
   return (
-    <main className="p-6">
-      <OrganizationManagement />
+    <main className="p-6 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight">組織一覧</h1>
+        <p className="text-muted-foreground mt-2">
+          登録済みの組織（団体）と管理者情報を管理します。
+        </p>
+      </div>
+
+      <OrganizationList />
     </main>
   );
 }
