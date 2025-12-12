@@ -6,14 +6,6 @@ import { teamFormSchema } from "./schema";
 
 const db = admin.firestore();
 
-// --- Converter Logic ---
-const splitPlayerName = (fullName: string) => {
-    const parts = fullName.trim().split(/[\s\u3000]+/);
-    return {
-        lastName: parts[0] || "",
-        firstName: parts[1] || "",
-    };
-};
 
 /**
  * チーム登録関数 (Callable)
@@ -35,7 +27,7 @@ export const registerTeam = onCall({ region: "asia-northeast1" }, async (request
     try {
         // 2. データの変換 (FormData -> TeamCreate)
         const players = formData.players.map(player => {
-            const nameResult = splitPlayerName(player.fullName);
+            const nameResult = DisplayNameHelper.splitPlayerName(player.fullName);
             return {
                 playerId: `player_${uuidv4()}`,
                 lastName: nameResult.lastName,

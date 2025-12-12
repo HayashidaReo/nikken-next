@@ -84,4 +84,12 @@ export class DisplayNameHelper {
     private static getMaxFirstNameLength(players: Player[]): number {
         return Math.max(...players.map(player => player.firstName.length));
     }
+
+    public static splitPlayerName(fullName: string): { lastName: string; firstName: string } {
+        const parts = fullName.trim().split(/[\s\u3000]+/);
+        return {
+            lastName: parts[0] || "",
+            firstName: parts[1] || "",
+        };
+    }
 }
