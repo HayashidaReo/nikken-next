@@ -92,6 +92,7 @@ export function useTournamentSettings() {
             value:
                 | string
                 | number
+                | boolean
                 | Date
                 | null
                 | { courtId: string; courtName: string }[]
@@ -138,6 +139,7 @@ export function useTournamentSettings() {
                         courts: formData.courts,
                         rounds: formData.rounds,
                         tournamentType: formData.tournamentType as "individual" | "team",
+                        isTeamFormOpen: formData.isTeamFormOpen,
                     },
                 });
 
@@ -160,6 +162,7 @@ export function useTournamentSettings() {
                         courts: formData.courts,
                         rounds: formData.rounds,
                         tournamentType: formData.tournamentType as "individual" | "team",
+                        isTeamFormOpen: formData.isTeamFormOpen,
                     },
                 });
 

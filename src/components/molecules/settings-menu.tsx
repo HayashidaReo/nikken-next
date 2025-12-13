@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Settings, LogOut, CloudDownload, CloudUpload, Trash2, User as UserIcon } from "lucide-react";
+import { Settings, LogOut, CloudDownload, CloudUpload, Trash2, User as UserIcon, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { cn } from "@/lib/utils/utils";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -19,6 +19,7 @@ import {
 } from "@/components/atoms/tooltip";
 import { useSyncActions, UnsyncedData } from "@/hooks/useSyncActions";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useSystemAdmin } from "@/hooks/useSystemAdmin";
 
 interface SettingsMenuProps {
     className?: string;
@@ -31,6 +32,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
     const { activeTournamentId } = useActiveTournament();
     const router = useRouter();
     const isOnline = useOnlineStatus();
+    const { isSystemAdmin } = useSystemAdmin();
 
     const {
         unsyncedCount,
@@ -111,7 +113,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
 
     const renderMenuButton = (
         onClick: () => void,
-        icon: React.ElementType,
+        Icon: React.ElementType,
         label: React.ReactNode,
         options: {
             disabled?: boolean;
@@ -133,8 +135,7 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                 )}
                 disabled={isDisabled}
             >
-                {/* @ts-expect-error: Lucide icon component type compatibility */}
-                {icon && <icon className={cn("w-4 h-4", isDestructive ? "text-red-600" : "text-gray-600")} />}
+                {Icon && <Icon className={cn("w-4 h-4", isDestructive ? "text-red-600" : "text-gray-600")} />}
                 <span>{label}</span>
             </button>
         );
@@ -206,6 +207,20 @@ export function SettingsMenu({ className }: SettingsMenuProps) {
                         )}
 
                         <div className="border-t border-gray-100 my-1" />
+
+                        {isSystemAdmin && (
+                            <>
+                                {renderMenuButton(
+                                    () => {
+                                        setIsOpen(false);
+                                        router.push(ROUTES.ORGANIZATION_MANAGEMENT);
+                                    },
+                                    ShieldCheck,
+                                    "管理者画面へ"
+                                )}
+                                <div className="border-t border-gray-100 my-1" />
+                            </>
+                        )}
 
                         {user && (
                             <>

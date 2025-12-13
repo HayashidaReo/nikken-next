@@ -16,6 +16,10 @@ interface ShareMenuProps {
      */
     sharePath: string;
     /**
+     * 無効時のメッセージ（設定されている場合、アクション前に警告を表示）
+     */
+    disabledMessage?: string;
+    /**
      * カスタムクラス
      */
     className?: string;
@@ -24,6 +28,7 @@ interface ShareMenuProps {
 export function ShareMenu({
     itemName,
     sharePath,
+    disabledMessage,
     className,
 }: ShareMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -52,6 +57,12 @@ export function ShareMenu({
      * URLをクリップボードにコピー
      */
     const handleCopy = async () => {
+        if (disabledMessage) {
+            showError(disabledMessage);
+            setIsOpen(false);
+            return;
+        }
+
         try {
             const baseUrl =
                 typeof window !== "undefined" ? window.location.origin : "";
@@ -69,6 +80,12 @@ export function ShareMenu({
      * リンク先へ遷移
      */
     const handleNavigate = () => {
+        if (disabledMessage) {
+            showError(disabledMessage);
+            setIsOpen(false);
+            return;
+        }
+
         setIsOpen(false);
         // 新しいタブで開く
         window.open(sharePath, "_blank");
@@ -79,7 +96,13 @@ export function ShareMenu({
             <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => {
+                    if (disabledMessage) {
+                        showError(disabledMessage);
+                        return;
+                    }
+                    setIsOpen(!isOpen);
+                }}
                 aria-label="共有メニュー"
             >
                 <Share2 className="w-4 h-4" />

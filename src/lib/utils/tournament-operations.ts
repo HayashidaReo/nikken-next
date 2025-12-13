@@ -21,6 +21,7 @@ export function createEmptyTournamentFormData(): TournamentFormData {
         courts: [],
         rounds: [],
         tournamentType: null,
+        isTeamFormOpen: false,
     };
 }
 
@@ -52,6 +53,7 @@ export function mapTournamentToFormData(
         courts: tournament.courts,
         rounds: tournament.rounds,
         tournamentType: tournament.tournamentType,
+        isTeamFormOpen: tournament.isTeamFormOpen,
         createdAt: tournament.createdAt,
         updatedAt: tournament.updatedAt,
     };
@@ -117,6 +119,7 @@ export function hasTournamentFormDataChanged(
         original.tournamentDetail !== current.tournamentDetail ||
         original.defaultMatchTime !== current.defaultMatchTime ||
         original.tournamentType !== current.tournamentType ||
+        original.isTeamFormOpen !== current.isTeamFormOpen ||
         JSON.stringify(original.courts) !== JSON.stringify(current.courts) ||
         JSON.stringify(original.rounds) !== JSON.stringify(current.rounds)
     );
@@ -142,6 +145,7 @@ export function mergeTournamentData(
         courts: formData.courts,
         rounds: formData.rounds,
         tournamentType: formData.tournamentType,
+        isTeamFormOpen: formData.isTeamFormOpen,
         createdAt: serverData.createdAt,
         updatedAt: serverData.updatedAt,
     };

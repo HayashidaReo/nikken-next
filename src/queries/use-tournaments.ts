@@ -124,6 +124,7 @@ export function useCreateTournament() {
                 courts: { courtId: string; courtName: string }[];
                 rounds: { roundId: string; roundName: string }[];
                 tournamentType: "individual" | "team";
+                isTeamFormOpen: boolean;
             };
         }) => {
             const now = new Date();
@@ -217,39 +218,3 @@ export function useDeleteTournament() {
     });
 }
 
-/**
- * 組織作成のMutation
- */
-export function useCreateOrganization() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async () => {
-            const auth = await import("firebase/auth");
-            const currentUser = auth.getAuth().currentUser;
-            if (!currentUser) {
-                throw new Error("認証状態が無効です");
-            }
-
-            const token = await currentUser.getIdToken();
-            const response = await fetch("/api/organizations/create-for-user", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "組織作成に失敗しました");
-            }
-
-            return response.json();
-        },
-        onSuccess: () => {
-            // 組織作成後、大会一覧を無効化してリフレッシュ
-            queryClient.invalidateQueries({ queryKey: tournamentKeys.lists() });
-        },
-    });
-}

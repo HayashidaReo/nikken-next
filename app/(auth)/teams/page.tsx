@@ -8,6 +8,7 @@ import { Button } from "@/components/atoms/button";
 import { Plus } from "lucide-react";
 import { TeamStatsSummary } from "@/components/molecules/team-stats-summary";
 import { useTeams, useApproveTeam } from "@/queries/use-teams";
+import { useTournament } from "@/queries/use-tournaments";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { InfoDisplay } from "@/components/molecules/info-display";
@@ -19,6 +20,7 @@ import { useTeamFilter } from "@/hooks/useTeamFilter";
 export default function TeamsPage() {
   const { needsTournamentSelection, isLoading: authLoading, orgId, activeTournamentId } = useAuthContext();
   const { data: teams = [], isLoading: teamsLoading, error } = useTeams();
+  const { data: tournament } = useTournament(orgId, activeTournamentId);
   const { syncTeamToCloud } = useTeamPersistence();
   const approveTeamMutation = useApproveTeam();
   const { showError } = useToast();
@@ -109,6 +111,7 @@ export default function TeamsPage() {
                 <ShareMenu
                   itemName="チーム・選手管理ページ"
                   sharePath={`/teams-form/${orgId}/${activeTournamentId}`}
+                  disabledMessage={!tournament?.isTeamFormOpen ? "現在、この大会のチーム登録フォームは非公開です。\n大会設定から「参加申込フォームを公開」を有効にしてください。" : undefined}
                 />
               </div>
             )}
