@@ -60,10 +60,6 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
           # --- Presentation Token用 ---
           PRESENTATION_TOKEN_SECRET: ${{ secrets.PRESENTATION_TOKEN_SECRET }}
-          # --- Firebase Admin SDK用 ---
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
-          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
           # --- GitHub Token for private repo releases ---
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

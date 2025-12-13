@@ -1,5 +1,4 @@
 import { db } from "@/lib/firebase/client";
-import { adminDb } from "@/lib/firebase-admin/server";
 import { collection, doc } from "firebase/firestore";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 
@@ -90,84 +89,6 @@ export const clientDocs = {
     ),
 } as const;
 
-// Admin SDK用のコレクション参照（サーバーサイドのみ）
-export const adminCollections = {
-  /**
-   * organizations コレクション
-   */
-  organizations: () => adminDb.collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS),
-
-  /**
-   * 特定の組織の tournaments サブコレクション
-   */
-  tournaments: (orgId: string) =>
-    adminDb.collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS).doc(orgId).collection(FIRESTORE_COLLECTIONS.TOURNAMENTS),
-
-  /**
-   * 特定の大会の teams サブコレクション
-   */
-  teams: (orgId: string, tournamentId: string) =>
-    adminDb
-      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
-      .doc(orgId)
-      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
-      .doc(tournamentId)
-      .collection(FIRESTORE_COLLECTIONS.TEAMS),
-
-  /**
-   * 特定の大会の matches サブコレクション
-   */
-  matches: (orgId: string, tournamentId: string) =>
-    adminDb
-      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
-      .doc(orgId)
-      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
-      .doc(tournamentId)
-      .collection(FIRESTORE_COLLECTIONS.MATCHES),
-} as const;
-
-// Admin SDK用のドキュメント参照（サーバーサイドのみ）
-export const adminDocs = {
-  /**
-   * 特定の組織のドキュメント参照
-   */
-  organization: (orgId: string) =>
-    adminDb.collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS).doc(orgId),
-
-  /**
-   * 特定の大会のドキュメント参照
-   */
-  tournament: (orgId: string, tournamentId: string) =>
-    adminDb
-      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
-      .doc(orgId)
-      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
-      .doc(tournamentId),
-
-  /**
-   * 特定のチームのドキュメント参照
-   */
-  team: (orgId: string, tournamentId: string, teamId: string) =>
-    adminDb
-      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
-      .doc(orgId)
-      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
-      .doc(tournamentId)
-      .collection(FIRESTORE_COLLECTIONS.TEAMS)
-      .doc(teamId),
-
-  /**
-   * 特定の試合のドキュメント参照
-   */
-  match: (orgId: string, tournamentId: string, matchId: string) =>
-    adminDb
-      .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
-      .doc(orgId)
-      .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
-      .doc(tournamentId)
-      .collection(FIRESTORE_COLLECTIONS.MATCHES)
-      .doc(matchId),
-} as const;
 
 /**
  * パスビルダーユーティリティ
