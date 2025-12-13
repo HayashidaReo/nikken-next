@@ -3,6 +3,7 @@ import {
     query,
     orderBy,
     onSnapshot,
+    getDocs,
     Unsubscribe,
 } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
@@ -42,6 +43,18 @@ export class FirestoreOrganizationRepository implements OrganizationRepository {
         );
 
         return () => unsub();
+    }
+
+    async fetchAll(): Promise<Organization[]> {
+        const q = query(
+            collection(db, FIRESTORE_COLLECTIONS.ORGANIZATIONS),
+            orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((doc) => {
+            const data = doc.data() as FirestoreOrganizationDoc;
+            return OrganizationMapper.toDomain({ ...data, id: doc.id });
+        });
     }
 
     async create(data: OrganizationCreateWithAccount): Promise<{ orgId: string }> {

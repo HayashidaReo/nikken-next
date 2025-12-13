@@ -1,38 +1,42 @@
-import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FirestoreOrganizationRepository } from "@/repositories/firestore/organization-repository";
 import type { Organization, OrganizationCreateWithAccount } from "@/types/organization.schema";
 
 export type { Organization, OrganizationCreateWithAccount };
 
 const repository = new FirestoreOrganizationRepository();
+const ORGANIZATIONS_QUERY_KEY = ["organizations"];
 
 /**
- * 組織一覧取得 Hook (Real-time)
+ * 組織一覧取得 Hook (Real-time + TanStack Query)
  */
 export function useOrganizations() {
-  const [data, setData] = useState<Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ORGANIZATIONS_QUERY_KEY,
+    queryFn: () => repository.fetchAll(),
+    staleTime: Infinity, // リアルタイムリスナーで更新するため、自動再取得は抑制しても良い
+  });
 
   useEffect(() => {
     // リアルタイム購読開始
     const unsubscribe = repository.listenAll(
       (organizations) => {
-        setData(organizations);
-        setIsLoading(false);
+        // キャッシュを直接更新
+        queryClient.setQueryData(ORGANIZATIONS_QUERY_KEY, organizations);
       },
       (err) => {
-        setError(err);
-        setIsLoading(false);
+        console.error("Organization listen error:", err);
       }
     );
 
     // クリーンアップ
     return () => unsubscribe();
-  }, []);
+  }, [queryClient]);
 
-  return { data, isLoading, error };
+  return query;
 }
 
 /**

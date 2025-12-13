@@ -11,6 +11,12 @@ export interface OrganizationRepository {
      */
     listenAll(onChange: (organizations: Organization[]) => void, onError: (error: Error) => void): () => void;
 
+
+    /**
+     * 組織一覧を取得する（非リアルタイム）
+     */
+    fetchAll(): Promise<Organization[]>;
+
     /**
      * 組織を作成する
      * @param data 作成データ
