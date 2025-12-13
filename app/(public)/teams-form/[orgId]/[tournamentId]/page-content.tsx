@@ -7,6 +7,7 @@ import {
   TeamRegistrationForm,
   TournamentInfoBanner,
 } from "@/components/organisms";
+import { InfoDisplay } from "@/components/molecules/info-display";
 import { useRegisterTeamWithParams } from "@/queries/use-teams";
 import { useTournament } from "@/queries/use-tournaments";
 import type { TeamFormData } from "@/types/team-form.schema";
@@ -50,7 +51,7 @@ export function TeamsFormPageContent({
   }, [isLoading, error, tournament, router, orgId, tournamentId]);
 
   const handleSubmit = async (formData: TeamFormData) => {
-    return await registerTeamMutation.mutateAsync(formData);
+    await registerTeamMutation.mutateAsync(formData);
   };
 
   // ローディング中またはエラー時（404への遷移待ち）はローディングスピナーを表示
@@ -64,6 +65,22 @@ export function TeamsFormPageContent({
           size="xl"
           className="min-h-[400px]"
         />
+      </div>
+    );
+  }
+
+  // フォーム公開期間外チェック
+  if (tournament && !tournament.isTeamFormOpen) {
+    return (
+      <div className="max-w-4xl mx-auto mt-8 px-4">
+        <InfoDisplay
+          variant="warning"
+          title="受付していません"
+          message="現在、この大会のチーム登録フォームは公開されていません。\n大会主催者にお問い合わせください。"
+        />
+        <div className="mt-8">
+          <TournamentInfoBanner orgId={orgId} tournamentId={tournamentId} />
+        </div>
       </div>
     );
   }

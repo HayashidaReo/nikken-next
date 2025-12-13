@@ -76,6 +76,7 @@
 | `rounds[].roundId`   | String        | ラウンドID                               |
 | `rounds[].roundName` | String        | ラウンド名                               |
 | `tournamentType`     | String        | 大会形式 ("individual" \| "team")        |
+| `isTeamFormOpen`     | Boolean       | 一般公開（チーム申請フォーム）の受付中か |
 | `createdAt`          | Timestamp     | データ作成日時                           |
 | `updatedAt`          | Timestamp     | 最終編集日時                             |
 

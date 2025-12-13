@@ -124,6 +124,7 @@ export function useCreateTournament() {
                 courts: { courtId: string; courtName: string }[];
                 rounds: { roundId: string; roundName: string }[];
                 tournamentType: "individual" | "team";
+                isTeamFormOpen: boolean;
             };
         }) => {
             const now = new Date();

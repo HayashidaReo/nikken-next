@@ -14,6 +14,7 @@ import {
   formatDateToInputValue,
   parseInputValueToDate,
 } from "@/lib/utils/date-utils";
+import { Switch } from "@/components/atoms/switch";
 import type { TournamentFormData } from "@/types/tournament.schema";
 import { TEXT_LENGTH_LIMITS } from "@/lib/constants";
 
@@ -27,6 +28,7 @@ interface TournamentFormProps {
     value:
       | string
       | number
+      | boolean
       | Date
       | null
       | { courtId: string; courtName: string }[]
@@ -124,6 +126,21 @@ export function TournamentSettingForm({
             maxLength={TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}
           />
         </FormField>
+
+        {/* チーム登録フォーム公開設定 */}
+        <div className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-white">
+          <div className="space-y-0.5">
+            <label className="text-base font-medium">参加申込フォームを公開</label>
+            <p className="text-sm text-gray-500">
+              有効にすると、外部からのチーム申請を受け付けることができます。
+            </p>
+          </div>
+          <Switch
+            checked={formData.isTeamFormOpen}
+            onCheckedChange={(checked) => onFormChange("isTeamFormOpen", checked)}
+            aria-label="Toggle entry form based on isTeamFormOpen"
+          />
+        </div>
 
         {/* 開催日 */}
         <FormField label="開催日" required>

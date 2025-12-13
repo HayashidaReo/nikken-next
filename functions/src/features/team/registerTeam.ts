@@ -19,6 +19,35 @@ const db = admin.firestore();
  */
 export const registerTeam = onCall({ region: REGION }, async (request) => {
     // Note: request.auth check is intentionally skipped here to allow public registration.
+
+    // 0. バリデーション前チェック: request.dataが存在するか確認
+    if (!request.data) {
+        throw new HttpsError("invalid-argument", "データがありません");
+    }
+
+    const { orgId: requestOrgId, tournamentId: requestTournamentId } = request.data;
+
+    // 0.5 公開設定チェック
+    // 組織IDと大会IDがバリデーション前でも最低限必要
+    if (typeof requestOrgId === 'string' && typeof requestTournamentId === 'string') {
+        const tournamentSnapshot = await db
+            .collection(FIRESTORE_COLLECTIONS.ORGANIZATIONS)
+            .doc(requestOrgId)
+            .collection(FIRESTORE_COLLECTIONS.TOURNAMENTS)
+            .doc(requestTournamentId)
+            .get();
+
+        const tournamentData = tournamentSnapshot.data();
+
+        // 大会が存在しない、またはフォーム公開が許可されていない場合
+        if (!tournamentSnapshot.exists || !tournamentData?.isTeamFormOpen) {
+            throw new HttpsError(
+                "permission-denied",
+                "現在、この大会のチーム登録は受け付けていません"
+            );
+        }
+    }
+
     // 1. 入力バリデーション
     const result = teamFormSchema.safeParse(request.data);
     if (!result.success) {

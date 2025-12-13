@@ -42,18 +42,21 @@ export const roundInputSchema = roundSchema.extend({
 export const tournamentSchema = z.object({
   tournamentId: z.string(), // Firestoreで自動生成
   tournamentName: z.string().trim()
-    .max(TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX, `大会名は${TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}文字以内で入力してください`), // 空文字許可（デフォルト大会用）
+    .min(1, "大会名は必須です")
+    .max(TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX, `大会名は${TEXT_LENGTH_LIMITS.TOURNAMENT_NAME_MAX}文字以内で入力してください`),
   tournamentDate: z.coerce.date(), // 文字列からDateへ自動変換（JSON経由のAPI対応）
   tournamentDetail: z.string().trim()
     .max(TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX, `大会概要は${TEXT_LENGTH_LIMITS.TOURNAMENT_DETAIL_MAX}文字以内で入力してください`), // 大会概要（自由記述）
   location: z.string().trim()
-    .max(TEXT_LENGTH_LIMITS.LOCATION_MAX, `開催場所は${TEXT_LENGTH_LIMITS.LOCATION_MAX}文字以内で入力してください`), // 空文字許可（デフォルト大会用）
+    .min(1, "開催場所は必須です")
+    .max(TEXT_LENGTH_LIMITS.LOCATION_MAX, `開催場所は${TEXT_LENGTH_LIMITS.LOCATION_MAX}文字以内で入力してください`),
   defaultMatchTime: z
     .number()
     .min(1, "デフォルト試合時間は1秒以上である必要があります"),
-  courts: z.array(courtSchema), // 空配列許可（デフォルト大会用）
-  rounds: z.array(roundSchema), // 空配列許可（デフォルト大会用）
+  courts: z.array(courtSchema).min(1, "最低1つのコートを設定してください"),
+  rounds: z.array(roundSchema).min(1, "最低1つのラウンドを設定してください"),
   tournamentType: z.enum(["individual", "team"]), // 大会形式
+  isTeamFormOpen: z.boolean(), // 一般公開（チーム申請フォーム）の受付中か
   createdAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
   updatedAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
 });
@@ -80,6 +83,7 @@ export const tournamentFormSchema = z.object({
   tournamentType: z.enum(["individual", "team"], {
     message: "大会形式を選択してください",
   }), // 大会形式
+  isTeamFormOpen: z.boolean(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
 });

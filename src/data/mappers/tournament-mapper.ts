@@ -15,6 +15,7 @@ export interface FirestoreTournamentDoc {
   courts: FirestoreCourtDoc[];
   rounds: FirestoreRoundDoc[];
   tournamentType: "individual" | "team";
+  isTeamFormOpen: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -59,15 +60,16 @@ export class TournamentMapper {
       tournamentDetail: doc.tournamentDetail,
       location: doc.location,
       defaultMatchTime: doc.defaultMatchTime,
-      courts: doc.courts.map(court => ({
+      courts: doc.courts.map((court) => ({
         courtId: court.courtId,
         courtName: court.courtName,
       })),
-      rounds: (doc.rounds || []).map(round => ({
+      rounds: (doc.rounds || []).map((round) => ({
         roundId: round.roundId,
         roundName: round.roundName,
       })),
       tournamentType: doc.tournamentType,
+      isTeamFormOpen: doc.isTeamFormOpen,
       createdAt: doc.createdAt.toDate(),
       updatedAt: doc.updatedAt.toDate(),
     };
@@ -86,7 +88,9 @@ export class TournamentMapper {
    * ドメインエンティティからFirestore新規作成用ドキュメントに変換
    */
   static toFirestoreCreate(
-    tournament: Omit<Tournament, "tournamentId" | "createdAt" | "updatedAt"> & { id: string }
+    tournament: Omit<Tournament, "tournamentId" | "createdAt" | "updatedAt"> & {
+      id: string;
+    }
   ): FirestoreTournamentCreateDoc {
     const now = Timestamp.now();
     return {
@@ -96,15 +100,16 @@ export class TournamentMapper {
       tournamentDetail: tournament.tournamentDetail,
       location: tournament.location,
       defaultMatchTime: tournament.defaultMatchTime,
-      courts: tournament.courts.map(court => ({
+      courts: tournament.courts.map((court) => ({
         courtId: court.courtId,
         courtName: court.courtName,
       })),
-      rounds: tournament.rounds.map(round => ({
+      rounds: tournament.rounds.map((round) => ({
         roundId: round.roundId,
         roundName: round.roundName,
       })),
       tournamentType: tournament.tournamentType,
+      isTeamFormOpen: tournament.isTeamFormOpen,
       createdAt: now,
       updatedAt: now,
     };
@@ -136,19 +141,22 @@ export class TournamentMapper {
       updateDoc.defaultMatchTime = tournament.defaultMatchTime;
     }
     if (tournament.courts !== undefined) {
-      updateDoc.courts = tournament.courts.map(court => ({
+      updateDoc.courts = tournament.courts.map((court) => ({
         courtId: court.courtId,
         courtName: court.courtName,
       }));
     }
     if (tournament.rounds !== undefined) {
-      updateDoc.rounds = tournament.rounds.map(round => ({
+      updateDoc.rounds = tournament.rounds.map((round) => ({
         roundId: round.roundId,
         roundName: round.roundName,
       }));
     }
     if (tournament.tournamentType !== undefined) {
       updateDoc.tournamentType = tournament.tournamentType;
+    }
+    if (tournament.isTeamFormOpen !== undefined) {
+      updateDoc.isTeamFormOpen = tournament.isTeamFormOpen;
     }
 
     return updateDoc;
