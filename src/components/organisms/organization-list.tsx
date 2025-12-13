@@ -103,27 +103,28 @@ export function OrganizationList() {
           </TableCell>
           <TableCell className="align-top py-4">
             <div className="flex items-center gap-2">
-              <code className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600 font-mono truncate max-w-[150px]" title={org.adminUid}>
-                {org.adminUid}
+              <code className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600 font-mono truncate max-w-[150px]" title={org.adminUid ?? ""}>
+                {org.adminUid ?? "未設定"}
               </code>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 text-gray-400 hover:text-gray-600"
-                onClick={() => handleCopyUid(org.adminUid)}
+                onClick={() => handleCopyUid(org.adminUid ?? "")}
                 title="UIDをコピー"
+                disabled={!org.adminUid}
               >
                 <Copy className="w-3 h-3" />
               </Button>
             </div>
           </TableCell>
           <TableCell className="align-top py-4 text-sm text-gray-500">
-            {new Date(org.createdAt).toLocaleDateString()}
+            {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : "-"}
           </TableCell>
           <TableCell className="text-right align-top py-4">
             <div className="flex justify-center">
               <Button
-                onClick={() => handleManageOrganization(org.id, org.orgName)}
+                onClick={() => handleManageOrganization(org.id ?? "", org.orgName)}
                 size="sm"
                 variant="outline"
                 className="gap-2 h-8 text-xs"

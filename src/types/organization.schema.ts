@@ -17,8 +17,8 @@ export const organizationSchema = z.object({
       message: "正しいメールアドレスを入力してください",
     }),
   adminUid: z.string().optional(), // 管理者のUID
-  createdAt: z.union([z.date(), z.string()]).optional(),
-  updatedAt: z.union([z.date(), z.string()]).optional(),
+  createdAt: z.string().refine((str) => !isNaN(Date.parse(str)), { message: "無効な日付形式です" }).optional(),
+  updatedAt: z.string().refine((str) => !isNaN(Date.parse(str)), { message: "無効な日付形式です" }).optional(),
 });
 
 /**
@@ -58,19 +58,7 @@ export const organizationCreateSchema = organizationSchema.omit({
 });
 
 // TypeScriptの型を自動導出
-// ドメインエンティティとして使用するため、id, adminUidなどは必須とする型ユーティリティを使用してもよいが、
-// Zodの推論を活かすため、Mapperで保証する運用とする。
-// ただし、既存のコードが `id: string` (必須) を期待しているため、交差型で補完する。
-
-type ZodOrganization = z.infer<typeof organizationSchema>;
-
-export type Organization = Omit<ZodOrganization, "id" | "adminUid" | "createdAt" | "updatedAt"> & {
-  id: string;
-  adminUid: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
+export type Organization = z.infer<typeof organizationSchema>;
 export type OrganizationCreate = z.infer<typeof organizationCreateSchema>;
 export type OrganizationCreateWithAccount = z.infer<
   typeof organizationCreateWithAccountSchema
