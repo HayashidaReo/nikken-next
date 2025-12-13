@@ -70,7 +70,6 @@
 
 #### `.env.example`
 - 必要な環境変数のテンプレート
-- `PRESENTATION_TOKEN_SECRET` の設定例
 
 ## セキュリティ対策
 
