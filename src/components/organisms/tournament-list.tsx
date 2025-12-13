@@ -13,7 +13,7 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { TournamentDeleteConfirmationDialog } from "@/components/molecules/tournament-delete-confirmation-dialog";
 import { useTournamentListManagement } from "@/hooks/useTournamentListManagement";
-import { useTournamentSort, type SortField, type SortDirection } from "@/hooks/useTournamentSort";
+import { useTournamentSort, sortTournaments, type SortField, type SortDirection } from "@/hooks/useTournamentSort";
 import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
@@ -30,10 +30,10 @@ interface TournamentListProps {
 }
 
 const SORT_OPTIONS: SearchableSelectOption[] = [
-  { value: "createdAt_desc", label: "登録日が新しい順" },
-  { value: "createdAt_asc", label: "登録日が古い順" },
-  { value: "tournamentDate_desc", label: "開催日が新しい順" },
-  { value: "tournamentDate_asc", label: "開催日が古い順" },
+  { value: "createdAt_desc", label: "登録が新しい順" },
+  { value: "createdAt_asc", label: "登録が古い順" },
+  { value: "tournamentDate_desc", label: "開催が新しい順" },
+  { value: "tournamentDate_asc", label: "開催が古い順" },
 ];
 
 export function TournamentList({
@@ -54,18 +54,7 @@ export function TournamentList({
 
   // ソート処理
   const sortedTournaments = useMemo(() => {
-    return [...tournaments].sort((a, b) => {
-      const { field, direction } = sortConfig;
-      const factor = direction === "asc" ? 1 : -1;
-
-      if (field === "createdAt") {
-        return (a.createdAt.getTime() - b.createdAt.getTime()) * factor;
-      } else if (field === "tournamentDate") {
-        // tournamentDate is Date object (Dexie maps it)
-        return (a.tournamentDate.getTime() - b.tournamentDate.getTime()) * factor;
-      }
-      return 0;
-    });
+    return sortTournaments(tournaments, sortConfig);
   }, [tournaments, sortConfig]);
 
   // 削除管理専用フック

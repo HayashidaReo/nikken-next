@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { useAuthStore } from "@/store/use-auth-store";
-import { useTournamentSort } from "@/hooks/useTournamentSort";
+import { useTournamentSort, sortTournaments } from "@/hooks/useTournamentSort";
 import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { TournamentSelectDropdown } from "@/components/atoms/tournament-select-dropdown";
@@ -38,17 +38,7 @@ export function HeaderTournamentSelector({
 
   // ソート設定に基づいて大会リストをソート
   const sortedTournaments = useMemo(() => {
-    return [...tournaments].sort((a, b) => {
-      const { field, direction } = sortConfig;
-      const factor = direction === "asc" ? 1 : -1;
-
-      if (field === "createdAt") {
-        return (a.createdAt.getTime() - b.createdAt.getTime()) * factor;
-      } else if (field === "tournamentDate") {
-        return (a.tournamentDate.getTime() - b.tournamentDate.getTime()) * factor;
-      }
-      return 0;
-    });
+    return sortTournaments(tournaments, sortConfig);
   }, [tournaments, sortConfig]);
 
   const handleTournamentChange = (value: string) => {
