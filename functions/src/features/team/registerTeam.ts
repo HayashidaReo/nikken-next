@@ -116,7 +116,7 @@ export const registerTeam = onCall({ region: REGION }, async (request) => {
             },
         };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Register Team Error:", error);
         throw new HttpsError(
             "internal",

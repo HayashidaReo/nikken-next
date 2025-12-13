@@ -175,7 +175,7 @@ export const createOrganization = onCall({ region: REGION }, async (request) => 
             message: "組織を作成しました（デモデータを含む）"
         };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Create Organization Error:", error);
 
         // ロールバック処理: Authユーザーが作成されていた場合、削除する
@@ -183,9 +183,11 @@ export const createOrganization = onCall({ region: REGION }, async (request) => 
             await AuthHelper.deleteUser(newOrgId);
         }
 
+        const errorMessage = error instanceof Error ? error.message : "組織作成中にエラーが発生しました";
+
         throw new HttpsError(
             "internal",
-            error.message || "組織作成中にエラーが発生しました"
+            errorMessage
         );
     }
 });
