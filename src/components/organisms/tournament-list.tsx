@@ -158,16 +158,28 @@ export function TournamentList({
               className={cn(
                 "cursor-pointer transition-all duration-200 hover:shadow-md",
                 selectedTournamentId === tournament.tournamentId
-                  ? "ring-2 ring-blue-500 bg-blue-50"
-                  : "hover:bg-gray-50"
+                  ? tournament.isArchived
+                    ? "ring-2 ring-blue-300 bg-blue-50/50"
+                    : "ring-2 ring-blue-500 bg-blue-50"
+                  : tournament.isArchived
+                    ? "bg-gray-100/60 hover:bg-gray-100"
+                    : "hover:bg-gray-50"
               )}
               onClick={() => onTournamentSelect(tournament)}
             >
               <CardHeader className="p-4 pb-2">
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base font-bold truncate leading-tight mb-2">
-                      {tournament.tournamentName}
+                    <CardTitle className={cn(
+                      "text-base font-bold truncate leading-tight mb-2 flex items-center gap-2",
+                      tournament.isArchived && "text-gray-500 font-normal"
+                    )}>
+                      {tournament.isArchived && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium bg-gray-200 text-gray-600 rounded">
+                          アーカイブ
+                        </span>
+                      )}
+                      <span className="truncate">{tournament.tournamentName}</span>
                     </CardTitle>
                     <div className="grid grid-cols-2 gap-x-3 gap-y-1">
                       <div className="flex items-center gap-1 min-w-0">

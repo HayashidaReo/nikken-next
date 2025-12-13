@@ -36,6 +36,7 @@ export interface LocalTeamMatch extends TeamMatch {
 export interface LocalTournament extends Tournament {
     organizationId: string; // クエリ用に追加
     isSynced: boolean;      // 同期フラグ
+    isArchived: boolean;    // アーカイブフラグ
     _deleted?: boolean;     // 論理削除フラグ
 }
 

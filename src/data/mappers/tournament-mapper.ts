@@ -71,7 +71,7 @@ export class TournamentMapper {
       })),
       tournamentType: doc.tournamentType,
       isTeamFormOpen: doc.isTeamFormOpen,
-      isArchived: doc.isArchived,
+      isArchived: doc.isArchived ?? false,
       createdAt: doc.createdAt.toDate(),
       updatedAt: doc.updatedAt.toDate(),
     };

@@ -55,7 +55,7 @@ export function mapTournamentToFormData(
         rounds: tournament.rounds,
         tournamentType: tournament.tournamentType,
         isTeamFormOpen: tournament.isTeamFormOpen,
-        isArchived: tournament.isArchived,
+        isArchived: tournament.isArchived ?? false,
         createdAt: tournament.createdAt,
         updatedAt: tournament.updatedAt,
     };
