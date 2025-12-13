@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Settings, LogOut, User as UserIcon } from "lucide-react";
+import { Settings, LogOut, User as UserIcon, Home } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { cn } from "@/lib/utils/utils";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -94,6 +94,17 @@ export function AdminSettingsMenu({ className }: AdminSettingsMenuProps) {
 
                 {isOpen && (
                     <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                        {renderMenuButton(
+                            () => {
+                                setIsOpen(false);
+                                router.push("/");
+                            },
+                            Home,
+                            "通常画面へ"
+                        )}
+
+                        <div className="border-t border-gray-100 my-1" />
+                        
                         {user && (
                             <>
                                 <div className="px-4 py-2 flex items-center gap-3 text-sm text-gray-700 bg-gray-50/50">
