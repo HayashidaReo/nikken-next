@@ -78,7 +78,7 @@ describe("registerTeam", () => {
             },
         } as any;
 
-        await expect(wrapped(request)).rejects.toThrow("現在、こ大会の参加申し込みは受け付けていません");
+        await expect(wrapped(request)).rejects.toThrow("現在、この大会のチーム登録は受け付けていません");
     });
 
     test("大会の isTeamFormOpen が true の場合は成功すること（最低限の確認）", async () => {
@@ -103,7 +103,7 @@ describe("registerTeam", () => {
                 representativeName: "代表者",
                 representativePhone: "090-0000-0000",
                 representativeEmail: "test@example.com",
-                players: [],
+                players: [{ fullName: "山田 太郎", grade: "初段" }],
             },
         } as any;
 
