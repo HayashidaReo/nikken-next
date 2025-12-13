@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Plus, Trash2, Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
@@ -12,6 +13,8 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { TournamentDeleteConfirmationDialog } from "@/components/molecules/tournament-delete-confirmation-dialog";
 import { useTournamentListManagement } from "@/hooks/useTournamentListManagement";
+import { useTournamentSort, type SortField, type SortDirection } from "@/hooks/useTournamentSort";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
@@ -25,6 +28,13 @@ interface TournamentListProps {
   isCreating?: boolean;
   className?: string;
 }
+
+const SORT_OPTIONS: SearchableSelectOption[] = [
+  { value: "createdAt_desc", label: "登録日が新しい順" },
+  { value: "createdAt_asc", label: "登録日が古い順" },
+  { value: "tournamentDate_desc", label: "開催日が新しい順" },
+  { value: "tournamentDate_asc", label: "開催日が古い順" },
+];
 
 export function TournamentList({
   orgId,
@@ -40,6 +50,24 @@ export function TournamentList({
     error,
   } = useTournamentsByOrganization(orgId);
 
+  const { sortConfig, setSortConfig } = useTournamentSort();
+
+  // ソート処理
+  const sortedTournaments = useMemo(() => {
+    return [...tournaments].sort((a, b) => {
+      const { field, direction } = sortConfig;
+      const factor = direction === "asc" ? 1 : -1;
+
+      if (field === "createdAt") {
+        return (a.createdAt.getTime() - b.createdAt.getTime()) * factor;
+      } else if (field === "tournamentDate") {
+        // tournamentDate is Date object (Dexie maps it)
+        return (a.tournamentDate.getTime() - b.tournamentDate.getTime()) * factor;
+      }
+      return 0;
+    });
+  }, [tournaments, sortConfig]);
+
   // 削除管理専用フック
   const {
     deleteConfirm,
@@ -53,6 +81,11 @@ export function TournamentList({
     if (orgId) {
       handleDeleteConfirm(orgId);
     }
+  };
+
+  const handleSortChange = (value: string) => {
+    const [field, direction] = value.split("_") as [SortField, SortDirection];
+    setSortConfig({ field, direction });
   };
 
   if (isLoading) {
@@ -87,6 +120,16 @@ export function TournamentList({
     <div className={cn("space-y-4", className)}>
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">大会一覧</h2>
+        <div className="w-48">
+          <SearchableSelect
+            value={`${sortConfig.field}_${sortConfig.direction}`}
+            onValueChange={handleSortChange}
+            options={SORT_OPTIONS}
+            placeholder="並び替え"
+            className="h-9"
+            searchPlaceholder="検索..."
+          />
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -109,7 +152,7 @@ export function TournamentList({
           </Card>
         )}
 
-        {tournaments.length === 0 && !isCreating ? (
+        {sortedTournaments.length === 0 && !isCreating ? (
           <Card>
             <CardContent className="text-center py-8">
               <p className="text-gray-500 mb-4">まだ大会が作成されていません</p>
@@ -120,7 +163,7 @@ export function TournamentList({
             </CardContent>
           </Card>
         ) : (
-          tournaments.map((tournament: Tournament) => (
+          sortedTournaments.map((tournament: Tournament) => (
             <Card
               key={tournament.tournamentId}
               className={cn(

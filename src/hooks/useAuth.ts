@@ -77,6 +77,12 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     await storeSignOut();
+    // ログアウト時に大会ソート設定を削除
+    // Note: useAuthStoreのsignOut内で行うことも考えられるが、
+    // UI設定のクリアはView層に近いこのフックで行うことで責務を分ける
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("tournament_sort_config");
+    }
   }, [storeSignOut]);
 
   return {
