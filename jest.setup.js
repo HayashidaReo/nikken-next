@@ -6,8 +6,7 @@ if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
 }
 
 // Web APIs polyfills for Firebase Node.js compatibility
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const fetch = require("node-fetch");
+import fetch from "node-fetch";
 global.fetch = fetch;
 global.Response = fetch.Response;
 global.Request = fetch.Request;
@@ -21,8 +20,6 @@ process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "mock-project.appspot.com";
 process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "123456789";
 process.env.NEXT_PUBLIC_FIREBASE_APP_ID = "1:123456789:web:abc123def456";
 
-// テスト実行時にプレゼンテーショントークンのシークレットを設定
-process.env.PRESENTATION_TOKEN_SECRET = "test-secret";
 
 // Firebase Auth/Firestore のモック
 jest.mock("firebase/auth", () => ({
@@ -38,6 +35,11 @@ jest.mock("firebase/auth", () => ({
   onAuthStateChanged: jest.fn(),
   createUserWithEmailAndPassword: jest.fn(),
   User: jest.fn(),
+}));
+
+jest.mock("firebase/functions", () => ({
+  getFunctions: jest.fn(() => ({})),
+  httpsCallable: jest.fn(() => jest.fn()),
 }));
 
 jest.mock("firebase/firestore", () => ({

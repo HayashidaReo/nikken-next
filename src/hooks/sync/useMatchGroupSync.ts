@@ -5,8 +5,34 @@ import { db as localDB, LocalMatchGroup, LocalTeamMatch } from '@/lib/db';
 import { FIRESTORE_COLLECTIONS } from '@/lib/constants';
 import { MatchGroupMapper, FirestoreMatchGroupDoc } from '@/data/mappers/match-group-mapper';
 import { TeamMatchMapper, FirestoreTeamMatchDoc } from '@/data/mappers/team-match-mapper';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { uploadMatchGroups } from '@/services/sync/match-group-sync';
 
 export function useMatchGroupSync(orgId: string | undefined, tournamentId: string | undefined, enabled: boolean) {
+    // 未送信データの監視と自動送信
+    const unsyncedCount = useLiveQuery(async () => {
+        if (!orgId || !tournamentId) return 0;
+        return await localDB.matchGroups
+            .where({ organizationId: orgId, tournamentId })
+            .filter(g => g.isSynced === false)
+            .count();
+    }, [orgId, tournamentId]);
+
+    useEffect(() => {
+        if (!enabled || !orgId || !tournamentId || !unsyncedCount) return;
+
+        const sync = async () => {
+            try {
+                await uploadMatchGroups(orgId, tournamentId);
+            } catch (error) {
+                console.error("Auto-sync failed for match groups:", error);
+            }
+        };
+
+        sync();
+    }, [enabled, orgId, tournamentId, unsyncedCount]);
+
+    // Firestoreからの受信
     useEffect(() => {
         if (!enabled || !orgId || !tournamentId) return;
 
@@ -77,8 +103,8 @@ export function useMatchGroupSync(orgId: string | undefined, tournamentId: strin
                                 organizationId: orgId,
                                 tournamentId,
                                 isSynced: true,
-                                id: localTmData?.id,
                                 matchGroupId: groupId,
+                                id: localTmData?.id,
                             } as LocalTeamMatch);
                         });
                     });

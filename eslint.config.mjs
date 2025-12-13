@@ -18,11 +18,23 @@ const eslintConfig = defineConfig([
     "release/**",
     // Build scripts (use CommonJS):
     "scripts/**",
+    // Firebase Functions compiled output:
+    "functions/lib/**",
+    // Generated Service Worker:
+    "public/sw.js",
   ]),
   // Jest設定ファイルではrequireを許可
   {
     files: ["jest.config.js"],
     rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  // テストファイルでは any を許可
+  {
+    files: ["**/*.test.ts", "**/*.test.js", "**/__mocks__/**", "**/*.cjs"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-require-imports": "off",
     },
   },

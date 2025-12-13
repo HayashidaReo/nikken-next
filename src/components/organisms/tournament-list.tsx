@@ -22,6 +22,7 @@ interface TournamentListProps {
   selectedTournamentId: string | null;
   onTournamentSelect: (tournament: Tournament) => void;
   onNewTournament: () => void;
+  isCreating?: boolean;
   className?: string;
 }
 
@@ -30,6 +31,7 @@ export function TournamentList({
   selectedTournamentId,
   onTournamentSelect,
   onNewTournament,
+  isCreating = false,
   className,
 }: TournamentListProps) {
   const {
@@ -88,7 +90,26 @@ export function TournamentList({
       </div>
 
       <div className="space-y-3">
-        {tournaments.length === 0 ? (
+        {isCreating && (
+          <Card className="border-2 border-dashed border-blue-200 bg-blue-50/50 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+            <CardHeader className="p-4 pb-2">
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="h-6 w-32 bg-blue-100 rounded animate-pulse mb-2" />
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    <div className="h-4 w-20 bg-blue-100 rounded animate-pulse" />
+                    <div className="h-4 w-20 bg-blue-100 rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-xs text-blue-400 font-medium">新しい大会を作成中...</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {tournaments.length === 0 && !isCreating ? (
           <Card>
             <CardContent className="text-center py-8">
               <p className="text-gray-500 mb-4">まだ大会が作成されていません</p>

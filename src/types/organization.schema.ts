@@ -5,7 +5,8 @@ import { z } from "zod";
  * データベース設計の organizations コレクションに対応
  */
 export const organizationSchema = z.object({
-  orgId: z.string().optional(), // Firestoreで自動生成
+  orgId: z.string().optional(), // FirestoreのドキュメントID
+  id: z.string().optional(),    // ドメイン層でのID
   orgName: z.string().min(1, "団体名は必須です"),
   representativeName: z.string().min(1, "団体代表者名は必須です"),
   representativePhone: z.string().min(1, "団体代表者電話番号は必須です"),
@@ -15,8 +16,9 @@ export const organizationSchema = z.object({
     .refine((val) => z.email().safeParse(val).success, {
       message: "正しいメールアドレスを入力してください",
     }),
-  createdAt: z.date().optional(), // Firestoreで自動設定
-  updatedAt: z.date().optional(), // Firestoreで自動設定
+  adminUid: z.string().optional(), // 管理者のUID
+  createdAt: z.string().refine((str) => !isNaN(Date.parse(str)), { message: "無効な日付形式です" }).optional(),
+  updatedAt: z.string().refine((str) => !isNaN(Date.parse(str)), { message: "無効な日付形式です" }).optional(),
 });
 
 /**
@@ -26,6 +28,8 @@ export const organizationSchema = z.object({
 export const organizationCreateWithAccountSchema = organizationSchema
   .omit({
     orgId: true,
+    id: true,
+    adminUid: true,
     createdAt: true,
     updatedAt: true,
   })
@@ -47,6 +51,8 @@ export const organizationCreateWithAccountSchema = organizationSchema
  */
 export const organizationCreateSchema = organizationSchema.omit({
   orgId: true,
+  id: true,
+  adminUid: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -57,3 +63,4 @@ export type OrganizationCreate = z.infer<typeof organizationCreateSchema>;
 export type OrganizationCreateWithAccount = z.infer<
   typeof organizationCreateWithAccountSchema
 >;
+

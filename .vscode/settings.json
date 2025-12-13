@@ -14,6 +14,7 @@
     "Dexie",
     "firestore",
     "FORMSPREE",
+    "ftest",
     "fusen",
     "Hansoku",
     "hantei",
@@ -21,8 +22,11 @@
     "nikken",
     "serwist",
     "Turbopack",
+    "Unapproval",
+    "unapprove",
     "Unsub",
     "unsubs",
+    "uuidv",
     "webworker"
   ]
 }

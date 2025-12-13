@@ -95,7 +95,7 @@ export function useDashboard() {
         }
     };
 
-    const handleBack = () => router.push("/dashboard");
+    const handleBack = () => router.back();
 
     return {
         needsTournamentSelection,

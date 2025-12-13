@@ -12,12 +12,32 @@
 - **表示名の取得**: 画面表示時は、保存されたIDを基に対応するマスターデータから名前を取得します。
 - **データ同期**: チーム名や選手名が変更された場合、Cloud Functionで関連するmatchesコレクションのキャッシュデータ（displayName, teamName）を自動更新します。
 
+## users コレクション
+
+システム利用者（システム管理者、組織管理者など）の権限や所属情報を管理します。
+
+- **パス**: `users/{userId}`
+- **ドキュメントID**: Firebase AuthenticationのUIDと同じ
+
+### フィールド
+
+| フィールド名    | データ型  | 説明                                         |
+| --------------- | --------- | -------------------------------------------- |
+| `userId`        | String    | ユーザーID                                   |
+| `orgId`         | String    | 所属する組織ID（システム管理者の場合はnull） |
+| `role`          | String    | 権限 (`system_admin`, `org_admin`)           |
+| `isActive`      | Boolean   | アカウント有効状態                           |
+| `email`         | String    | メールアドレス                               |
+| `displayName`   | String    | 表示名                                       |
+| `createdAt`     | Timestamp | 作成日時                                     |
+| `updatedAt`     | Timestamp | 更新日時                                     |
+
 ## organizations コレクション
 
 大会運営を行う主催組織ごとに、tournaments コレクションの管理を行います。
 
 - **パス**: `organizations/{orgId}`
-- **ドキュメントID**: 自動生成ID
+- **ドキュメントID**: org_admin の Auth UID
 
 ### フィールド
 
@@ -28,6 +48,7 @@
 | `representativeName`  | String    | 団体代表者名             |
 | `representativePhone` | String    | 団体代表者電話番号       |
 | `representativeEmail` | String    | 団体代表者メールアドレス |
+| `adminUid`            | String    | 管理者のUser UID         |
 | `createdAt`           | Timestamp | データ作成日時           |
 | `updatedAt`           | Timestamp | 最終編集日時             |
 
@@ -55,6 +76,7 @@
 | `rounds[].roundId`   | String        | ラウンドID                               |
 | `rounds[].roundName` | String        | ラウンド名                               |
 | `tournamentType`     | String        | 大会形式 ("individual" \| "team")        |
+| `isTeamFormOpen`     | Boolean       | 一般公開（チーム申請フォーム）の受付中か |
 | `createdAt`          | Timestamp     | データ作成日時                           |
 | `updatedAt`          | Timestamp     | 最終編集日時                             |
 
@@ -108,6 +130,7 @@
 | `courtId`      | String    | コートID（tournamentsのcourts配列内のcourtIdと対応）   |
 | `roundId`      | String    | ラウンドID（tournamentsのrounds配列内のroundIdと対応） |
 | `isCompleted`  | Boolean   | 試合完了フラグ                                         |
+| `winnerTeam`   | String    | 試合に勝ったチーム(`teamA` or `teamB`)                  |
 | `sortOrder`    | number    | 表示順序                                               |
 | `teamAId`      | String    | チームAのID                                            |
 | `teamBId`      | String    | チームBのID                                            |

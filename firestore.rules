@@ -1,0 +1,105 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // =========================================================
+    // Helper Functions
+    // =========================================================
+
+    // 認証済みかどうか
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // システム管理者かどうか
+    // usersコレクションのroleフィールドを確認
+    function isSystemAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'system_admin';
+    }
+
+    // 特定の組織の管理者（またはシステム管理者）かどうか
+    // usersコレクションのorgIdとroleを確認
+    function isOrgAdmin(orgId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (
+          // システム管理者は全ての組織の管理者権限を持つ
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'system_admin' ||
+          // 組織管理者は自分の組織のみ
+          (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId == orgId &&
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'org_admin'
+          )
+        );
+    }
+
+    // =========================================================
+    // Collections
+    // =========================================================
+
+    // --- users (ユーザー管理) ---
+    // システム管理者、組織管理者などの権限情報を管理
+    match /users/{userId} {
+      // 自分のデータは読み取り可能、システム管理者は全員分読み取り可能
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSystemAdmin());
+      
+      // 書き込みはシステム管理者のみ（権限昇格などを防ぐため）
+      allow write: if isSystemAdmin();
+    }
+
+    // --- organizations (組織・大会データ) ---
+    match /organizations/{orgId} {
+      // 組織情報の閲覧
+      // 自分の団体のみ閲覧可能
+      allow read: if isOrgAdmin(orgId);
+      
+      // 組織情報の更新
+      // システム管理者のみ (OrgAdminは自分の組織でも更新不可)
+      allow write: if isSystemAdmin();
+
+      // --- tournaments (大会) ---
+      match /tournaments/{tournamentId} {
+        // 大会情報の閲覧
+        allow read: if true;
+        
+        // 大会情報の管理
+        // 組織管理者のみ
+        allow write: if isOrgAdmin(orgId);
+
+        // --- subcollections: teams, matches, matchGroups, teamMatches ---
+        
+        match /teams/{teamId} {
+          allow read: if true;
+          // チーム作成・編集は原則組織管理者
+          // ※公開フォームからの登録はCloud Functionsを経由してDBに保存するため、
+          // クライアントからの直接書き込みはOrgAdminのみ許可
+          allow write: if isOrgAdmin(orgId);
+        }
+
+        match /matches/{matchId} {
+          allow read: if true;
+          allow write: if isOrgAdmin(orgId);
+        }
+
+        match /matchGroups/{matchGroupId} {
+          allow read: if true;
+          allow write: if isOrgAdmin(orgId);
+
+          // 団体戦内の個別試合
+          match /teamMatches/{teamMatchId} {
+            allow read: if true;
+            allow write: if isOrgAdmin(orgId);
+          }
+        }
+      }
+    }
+    
+    // デフォルトは拒否
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

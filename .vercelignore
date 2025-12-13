@@ -1,0 +1,15 @@
+# Firebase Functions
+functions
+
+# Electron App
+electron
+
+# GitHub Actions & Templates
+.github
+
+# Documentation
+docs
+
+# Local development files
+release
+scripts

@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/atoms/tooltip";
 import { cn } from "@/lib/utils/utils";
-import { APP_INFO, ROUTES } from "@/lib/constants";
+import { ROUTES } from "@/lib/constants";
 import { HeaderTournamentSelector } from "@/components/molecules/header-tournament-selector";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { isElectron } from "@/lib/utils/platform";
@@ -76,9 +76,6 @@ function Header({ activeTab }: HeaderProps) {
               <div className="hidden md:flex flex-col">
                 <span className="text-lg font-semibold text-gray-900 leading-none">
                   拳法大会管理
-                </span>
-                <span className="text-xs text-gray-500 mt-0.5">
-                  v{APP_INFO.VERSION}
                 </span>
               </div>
               {!isOnline && (

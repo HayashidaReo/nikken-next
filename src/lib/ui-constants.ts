@@ -96,12 +96,26 @@ export const TEAM_MATCH_LIST_TABLE_COLUMN_WIDTHS = {
  */
 export const MATCH_GROUP_LIST_TABLE_COLUMN_WIDTHS = {
     status: 6,          // 終了ステータス
-    court: 16,          // コート名
-    round: 18,          // 回戦
-    teamA: 23,          // チームA
+    court: 14,          // コート名
+    round: 16,          // 回戦
+    teamA: 22,          // チームA
     vs: 6,              // VS表示
-    teamB: 23,          // チームB
+    teamB: 22,          // チームB
     action: 8,         // 詳細ボタン
+    others: 6,         // その他メニュー
+} as const;
+
+/**
+ * OrganizationListTable の列幅の割合（%）
+ * - 組織一覧画面用
+ */
+export const ORGANIZATION_LIST_TABLE_COLUMN_WIDTHS = {
+    orgName: 20,
+    representativeName: 15,
+    contact: 20,
+    adminUid: 25,
+    createdAt: 10,
+    action: 10,
 } as const;
 
 const UI_CONSTANTS = {

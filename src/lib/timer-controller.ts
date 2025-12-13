@@ -4,7 +4,7 @@ export class TimerController {
 
     private init() {
         if (typeof window !== "undefined" && typeof Worker !== "undefined" && !this.worker) {
-            this.worker = new Worker("/timer-worker.js");
+            this.worker = new window.Worker("/timer-worker.js");
             this.worker.onmessage = (e) => {
                 if (e.data.type === "tick") {
                     if (this.onTick) this.onTick();

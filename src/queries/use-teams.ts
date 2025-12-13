@@ -3,7 +3,9 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { localTeamRepository } from "@/repositories/local/team-repository";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import type { Team, TeamCreate } from "@/types/team.schema";
-import type { TeamFormData } from "@/types/team-form.schema";
+import type { TeamFormData, TeamFormWithParams } from "@/types/team-form.schema";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "@/lib/firebase/client";
 
 /**
  * Query Keys for Team entities
@@ -157,30 +159,41 @@ export function useApproveTeam() {
 
 
 /**
- * チーム登録用のMutation（API Route経由）
+ * チーム登録用のMutation
  * 認証なしで使用可能（公開フォーム用）
  */
+interface RegisterTeamResponse {
+  success: boolean;
+  team: {
+    id: string;
+    name: string;
+    representativeName: string;
+    playersCount: number;
+    isApproved: boolean;
+    createdAt: string;
+  };
+}
+
 function useRegisterTeamBase(orgId?: string, tournamentId?: string) {
   return useMutation({
     mutationFn: async (formData: TeamFormData) => {
       const payload =
         orgId && tournamentId ? { ...formData, orgId, tournamentId } : formData;
-      const response = await fetch("/api/teams/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.details || errorData.error || "チーム登録に失敗しました"
-        );
+      const registerTeamFn = httpsCallable<
+        TeamFormWithParams,
+        RegisterTeamResponse
+      >(functions, "registerTeam");
+
+      try {
+        const result = await registerTeamFn(payload);
+        return result.data;
+      } catch (error: unknown) {
+        console.error("Team registration error:", error);
+
+        const errorMessage = error instanceof Error ? error.message : "チーム登録に失敗しました";
+        throw new Error(errorMessage);
       }
-
-      return response.json();
     },
   });
 }

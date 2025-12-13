@@ -56,7 +56,7 @@ jest.mock("@/components/providers/notification-provider", () => ({
 }));
 
 describe("useDashboard", () => {
-    const mockRouter = { push: jest.fn() };
+    const mockRouter = { push: jest.fn(), back: jest.fn() };
     const mockSearchParams = { get: jest.fn() };
     const mockShowSuccess = jest.fn();
     const mockShowError = jest.fn();
@@ -196,7 +196,7 @@ describe("useDashboard", () => {
             result.current.handleBack();
         });
 
-        expect(mockRouter.push).toHaveBeenCalledWith("/dashboard");
+        expect(mockRouter.back).toHaveBeenCalled();
     });
 
     it("should return matchGroupId from searchParams", () => {

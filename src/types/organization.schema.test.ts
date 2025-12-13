@@ -15,8 +15,8 @@ describe("Organization Schema Validation", () => {
       representativeName: "田中太郎",
       representativePhone: "090-1234-5678",
       representativeEmail: "tanaka@example.com",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     it("有効な組織データを受け入れる", () => {
@@ -115,8 +115,8 @@ describe("Organization Schema Validation", () => {
       const withExtraFields = {
         ...validOrganizationCreate,
         orgId: "should-be-excluded",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       const result = organizationCreateSchema.safeParse(withExtraFields);
       expect(result.success).toBe(true);
@@ -209,8 +209,8 @@ describe("Organization Schema Validation", () => {
       const withExtraFields = {
         ...validOrganizationCreateWithAccount,
         orgId: "should-be-excluded",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       const result =
         organizationCreateWithAccountSchema.safeParse(withExtraFields);

@@ -1,4 +1,4 @@
-import { ArrowLeft, Monitor, Unplug, ChevronRight } from "lucide-react";
+import { ArrowLeft, Monitor, Unplug, ChevronRight, Trophy, MapPin, Repeat } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import SwitchLabel from "@/components/molecules/switch-label";
 import { ShortcutBadge } from "@/components/atoms/shortcut-badge";
@@ -38,6 +38,7 @@ import { MONITOR_VIEW_MODES, TOURNAMENT_TYPES } from "@/lib/constants";
 export function MonitorControlHeader({
     monitorState,
     matchState,
+    matchInfo,
     actions,
 }: MonitorControlHeaderProps) {
     const { isPublic, monitorStatusMode, isPresentationConnected } = monitorState;
@@ -113,12 +114,33 @@ export function MonitorControlHeader({
 
     return (
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-4">
-            <div className="flex items-center justify-start gap-4">
+            <div className="flex items-start justify-start gap-4">
                 <Button variant="outline" onClick={onBackToDashboard}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     戻る
                 </Button>
-                <h1 className="text-xl font-bold text-gray-900">モニター操作画面</h1>
+                <div className="flex flex-col">
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">モニター操作画面</h1>
+                    {matchInfo && (
+                        <div className="mt-1.5 flex flex-col gap-1">
+                            <div className="flex items-center text-base font-medium text-gray-700">
+                                <Trophy className="w-4 h-4 mr-2 text-yellow-600/80" />
+                                {matchInfo.tournamentName}
+                            </div>
+                            <div className="flex items-center gap-3 text-sm text-gray-500 pl-0.5">
+                                <div className="flex items-center hover:text-gray-700 transition-colors">
+                                    <MapPin className="w-4 h-4 mr-1.5 text-blue-500/70" />
+                                    {matchInfo.courtName}
+                                </div>
+                                <span className="text-gray-300">|</span>
+                                <div className="flex items-center hover:text-gray-700 transition-colors">
+                                    <Repeat className="w-4 h-4 mr-1.5 text-green-500/70" />
+                                    {matchInfo.roundName}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* モニタープレビュー */}

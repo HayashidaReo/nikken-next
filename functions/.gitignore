@@ -1,0 +1,14 @@
+# Compiled JavaScript files
+lib/
+
+# Node Modules
+node_modules/
+
+# Log files
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# Environment variables
+.env
+.runtimeconfig.json

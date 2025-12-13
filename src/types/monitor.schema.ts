@@ -138,6 +138,7 @@ export interface MonitorActions {
  * <MonitorControlHeader
  *   monitorState={{ isPublic, monitorStatusMode, isPresentationConnected }}
  *   matchState={{ activeTournamentType, viewMode, isAllFinished, isSaving }}
+ *   matchInfo={{ tournamentName, courtName, roundName }}
  *   actions={{ onTogglePublic, onBackToDashboard, ... }}
  * />
  * ```
@@ -147,6 +148,12 @@ export interface MonitorControlHeaderProps {
     monitorState: MonitorStateProps;
     /** 試合状態関連のプロパティ */
     matchState: MatchStateProps;
+    /** 試合情報 */
+    matchInfo?: {
+        tournamentName: string;
+        courtName: string;
+        roundName: string;
+    };
     /** アクション関数群 */
     actions: MonitorActions;
 }

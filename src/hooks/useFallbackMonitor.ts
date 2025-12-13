@@ -28,6 +28,7 @@ export function useFallbackMonitor() {
     const openFallbackWindow = useCallback(async () => {
         try {
             const url = `${window.location.origin}${MONITOR_DISPLAY_PATH}`;
+            // popup=yes でアドレスバーなどを隠す
             window.open(url, "_blank", "width=1920,height=1080");
 
             // フォールバックで別タブを開いたことをストアに反映

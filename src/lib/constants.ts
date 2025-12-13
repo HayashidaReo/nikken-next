@@ -239,6 +239,7 @@ export const ROUTES = {
   LOGIN: "/login",
   DASHBOARD: "/dashboard",
   TOURNAMENT_SETTINGS: "/tournament-settings",
+  ORGANIZATION_MANAGEMENT: "/organization-management",
 } as const;
 
 // 💬 テキストメッセージ定数（ユーザーに表示するメッセージ）

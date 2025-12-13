@@ -20,8 +20,12 @@ import { RepMatchSetupDialog } from "@/components/molecules/rep-match-setup-dial
 import { useMatchAction } from "@/hooks/useMatchAction";
 import { useMonitorPageData } from "@/hooks/useMonitorPageData";
 import { useMonitorPageUi } from "@/hooks/useMonitorPageUi";
+import { useFirestoreSync } from "@/hooks/useFirestoreSync";
 
 export default function MonitorControlPage() {
+  // リアルタイム同期の有効化
+  useFirestoreSync();
+
   const params = useParams();
   const searchParams = useSearchParams();
   const matchId = params.matchId as string;
@@ -301,6 +305,11 @@ export default function MonitorControlPage() {
             onNextMatch: handleNextMatchClick,
             onShowTeamResult: handleShowTeamResult,
             onStartMatch: handleStartMatch,
+          }}
+          matchInfo={{
+            tournamentName: useMonitorStore.getState().tournamentName,
+            courtName: useMonitorStore.getState().courtName,
+            roundName: useMonitorStore.getState().roundName,
           }}
         />
 
