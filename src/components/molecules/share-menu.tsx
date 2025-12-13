@@ -96,7 +96,13 @@ export function ShareMenu({
             <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => {
+                    if (disabledMessage) {
+                        showError(disabledMessage);
+                        return;
+                    }
+                    setIsOpen(!isOpen);
+                }}
                 aria-label="共有メニュー"
             >
                 <Share2 className="w-4 h-4" />

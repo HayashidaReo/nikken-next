@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils/utils";
 
 interface FormFieldProps {
   label: string;
+  description?: string;
   error?: string;
   required?: boolean;
   className?: string;
@@ -15,6 +16,7 @@ interface FormFieldProps {
 
 export function FormField({
   label,
+  description,
   error,
   required = false,
   className,
@@ -22,12 +24,17 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex items-center gap-2">
-        <div className="h-5 w-2 bg-blue-600 rounded-full" />
-        <Label className="text-base font-medium">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </Label>
+      <div className="flex flex-col space-y-1">
+        <div className="flex items-center gap-2">
+          <div className="h-5 w-2 bg-blue-600 rounded-full" />
+          <Label className="text-base font-medium">
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </Label>
+        </div>
+        {description && (
+          <p className="text-sm text-gray-500 ml-4">{description}</p>
+        )}
       </div>
       {children}
       {error && <p className="text-sm text-red-600">{error}</p>}

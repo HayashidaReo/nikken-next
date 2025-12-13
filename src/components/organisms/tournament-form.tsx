@@ -128,19 +128,21 @@ export function TournamentSettingForm({
         </FormField>
 
         {/* チーム登録フォーム公開設定 */}
-        <div className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-white">
-          <div className="space-y-0.5">
-            <label className="text-base font-medium">参加申込フォームを公開</label>
-            <p className="text-sm text-gray-500">
-              有効にすると、外部からのチーム申請を受け付けることができます。
-            </p>
+        <FormField
+          label="参加申込フォームを公開"
+          description="有効にすると、外部からのチーム申請を受け付けることができます。"
+        >
+          <div className="flex items-center pt-2">
+            <Switch
+              checked={formData.isTeamFormOpen}
+              onCheckedChange={(checked) => onFormChange("isTeamFormOpen", checked)}
+              aria-label="Toggle entry form based on isTeamFormOpen"
+            />
+            <span className="ml-3 text-sm text-gray-600">
+              {formData.isTeamFormOpen ? "公開" : "非公開"}
+            </span>
           </div>
-          <Switch
-            checked={formData.isTeamFormOpen}
-            onCheckedChange={(checked) => onFormChange("isTeamFormOpen", checked)}
-            aria-label="Toggle entry form based on isTeamFormOpen"
-          />
-        </div>
+        </FormField>
 
         {/* 開催日 */}
         <FormField label="開催日" required>
