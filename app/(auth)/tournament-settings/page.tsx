@@ -94,7 +94,7 @@ export default function TournamentSettingsPage() {
               <div>
                 <Button variant="outline" onClick={() => router.back()}>
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                    ダッシュボードに戻る
+                  ダッシュボードに戻る
                 </Button>
               </div>
 
@@ -108,6 +108,7 @@ export default function TournamentSettingsPage() {
                 selectedTournamentId={selectedTournamentId}
                 onTournamentSelect={handleSelectTournament}
                 onNewTournament={handleStartNew}
+                isCreating={isAddingNew}
               />
             </div>
           }

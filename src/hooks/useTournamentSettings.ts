@@ -92,6 +92,7 @@ export function useTournamentSettings() {
             value:
                 | string
                 | number
+                | boolean
                 | Date
                 | null
                 | { courtId: string; courtName: string }[]
