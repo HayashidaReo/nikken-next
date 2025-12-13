@@ -6,8 +6,7 @@ if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
 }
 
 // Web APIs polyfills for Firebase Node.js compatibility
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const fetch = require("node-fetch");
+import fetch from "node-fetch";
 global.fetch = fetch;
 global.Response = fetch.Response;
 global.Request = fetch.Request;

@@ -32,7 +32,7 @@ const eslintConfig = defineConfig([
   },
   // テストファイルでは any を許可
   {
-    files: ["**/*.test.ts", "**/*.test.js", "**/__mocks__/**"],
+    files: ["**/*.test.ts", "**/*.test.js", "**/__mocks__/**", "**/*.cjs"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-require-imports": "off",
