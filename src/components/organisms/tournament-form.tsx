@@ -228,7 +228,7 @@ export function TournamentSettingForm({
           <div className="pt-6 border-t border-gray-100">
             <FormField
               label="大会をアーカイブ"
-              description="有効にすると、ヘッダーの大会一覧に表示されなくなります。データは保持されます。"
+              description="アーカイブにすると、ヘッダーの大会一覧に表示されなくなります。データは保持されます。"
             >
               <div className="flex items-center pt-2">
                 <Switch

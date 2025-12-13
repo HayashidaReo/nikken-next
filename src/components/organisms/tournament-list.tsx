@@ -1,6 +1,5 @@
 "use client";
-
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Trash2, Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
@@ -15,6 +14,7 @@ import { TournamentDeleteConfirmationDialog } from "@/components/molecules/tourn
 import { useTournamentListManagement } from "@/hooks/useTournamentListManagement";
 import { useTournamentSort, sortTournaments, type SortField, type SortDirection } from "@/hooks/useTournamentSort";
 import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
+import { MultiSelectDropdown, type MultiSelectOption } from "@/components/molecules/multi-select-dropdown";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
@@ -36,6 +36,11 @@ const SORT_OPTIONS: SearchableSelectOption[] = [
   { value: "tournamentDate_asc", label: "開催が古い順" },
 ];
 
+const FILTER_OPTIONS: MultiSelectOption[] = [
+  { value: "active", label: "有効" },
+  { value: "archived", label: "アーカイブ済み" },
+];
+
 export function TournamentList({
   orgId,
   selectedTournamentId,
@@ -51,11 +56,25 @@ export function TournamentList({
   } = useTournamentsByOrganization(orgId);
 
   const { sortConfig, setSortConfig } = useTournamentSort();
+  const [selectedFilterValues, setSelectedFilterValues] = useState<string[]>(["active"]);
+
+  // フィルタリング処理
+  const filteredTournaments = useMemo(() => {
+    return tournaments.filter((t) => {
+      const showActive = selectedFilterValues.includes("active");
+      const showArchived = selectedFilterValues.includes("archived");
+
+      if (showActive && !t.isArchived) return true;
+      if (showArchived && t.isArchived) return true;
+
+      return false;
+    });
+  }, [tournaments, selectedFilterValues]);
 
   // ソート処理
   const sortedTournaments = useMemo(() => {
-    return sortTournaments(tournaments, sortConfig);
-  }, [tournaments, sortConfig]);
+    return sortTournaments(filteredTournaments, sortConfig);
+  }, [filteredTournaments, sortConfig]);
 
   // 削除管理専用フック
   const {
@@ -107,17 +126,33 @@ export function TournamentList({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">大会一覧</h2>
-        <div className="w-48">
-          <SearchableSelect
-            value={`${sortConfig.field}_${sortConfig.direction}`}
-            onValueChange={handleSortChange}
-            options={SORT_OPTIONS}
-            placeholder="並び替え"
-            className="h-9"
-            searchPlaceholder="検索..."
-          />
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900">大会一覧</h2>
+        </div>
+
+        <div className="flex gap-2 items-center bg-white p-2 rounded-md border border-gray-200">
+          <div className="flex-1">
+            <div className="w-48">
+              <SearchableSelect
+                value={`${sortConfig.field}_${sortConfig.direction}`}
+                onValueChange={handleSortChange}
+                options={SORT_OPTIONS}
+                placeholder="並び替え"
+                className="h-9 border-none bg-transparent shadow-none"
+                searchPlaceholder="検索..."
+              />
+            </div>
+          </div>
+          <div className="w-px h-6 bg-gray-200 mx-2" />
+          <div className="w-auto px-2">
+            <MultiSelectDropdown
+              label="表示設定"
+              options={FILTER_OPTIONS}
+              selectedValues={selectedFilterValues}
+              onSelectionChange={setSelectedFilterValues}
+            />
+          </div>
         </div>
       </div>
 
@@ -144,11 +179,7 @@ export function TournamentList({
         {sortedTournaments.length === 0 && !isCreating ? (
           <Card>
             <CardContent className="text-center py-8">
-              <p className="text-gray-500 mb-4">まだ大会が作成されていません</p>
-              <Button onClick={onNewTournament} variant="outline">
-                <Plus className="w-4 h-4 mr-2" />
-                最初の大会を作成
-              </Button>
+              <p className="text-gray-500">表示する大会がありません</p>
             </CardContent>
           </Card>
         ) : (
