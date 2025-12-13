@@ -73,13 +73,13 @@ export function TeamsFormPageContent({
   if (tournament && !tournament.isTeamFormOpen) {
     return (
       <div className="max-w-4xl mx-auto mt-8 px-4">
-        <InfoDisplay
-          variant="warning"
-          title="受付していません"
-          message="現在、この大会のチーム登録フォームは公開されていません。\n大会主催者にお問い合わせください。"
-        />
+        <TournamentInfoBanner orgId={orgId} tournamentId={tournamentId} />
         <div className="mt-8">
-          <TournamentInfoBanner orgId={orgId} tournamentId={tournamentId} />
+          <InfoDisplay
+            variant="warning"
+            title="受付していません"
+            message="現在、この大会の出場チーム申請フォームは公開されていません。大会主催者にお問い合わせください。"
+          />
         </div>
       </div>
     );
