@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { FirestoreOrganizationRepository } from "@/repositories/firestore/organization-repository";
-import type { Organization, OrganizationCreateData } from "@/types/organization";
+import type { Organization, OrganizationCreateWithAccount } from "@/types/organization.schema";
 
-export type { Organization, OrganizationCreateData };
+export type { Organization, OrganizationCreateWithAccount };
 
 const repository = new FirestoreOrganizationRepository();
 
@@ -41,7 +41,7 @@ export function useOrganizations() {
 export function useCreateOrganization() {
 
   return useMutation({
-    mutationFn: (data: OrganizationCreateData) => repository.create(data),
+    mutationFn: (data: OrganizationCreateWithAccount) => repository.create(data),
     onSuccess: () => {
     },
   });

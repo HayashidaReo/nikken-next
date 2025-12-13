@@ -10,7 +10,7 @@ import { db, functions } from "@/lib/firebase/client";
 import { FIRESTORE_COLLECTIONS } from "@/lib/constants";
 import { OrganizationRepository } from "@/repositories/organization-repository";
 import { OrganizationMapper, FirestoreOrganizationDoc } from "@/data/mappers/organization-mapper";
-import type { Organization, OrganizationCreateData } from "@/types/organization";
+import type { Organization, OrganizationCreateWithAccount } from "@/types/organization.schema";
 
 export class FirestoreOrganizationRepository implements OrganizationRepository {
     listenAll(
@@ -44,9 +44,9 @@ export class FirestoreOrganizationRepository implements OrganizationRepository {
         return () => unsub();
     }
 
-    async create(data: OrganizationCreateData): Promise<{ orgId: string }> {
+    async create(data: OrganizationCreateWithAccount): Promise<{ orgId: string }> {
         try {
-            const createOrganizationFn = httpsCallable<OrganizationCreateData, { orgId: string }>(
+            const createOrganizationFn = httpsCallable<OrganizationCreateWithAccount, { orgId: string }>(
                 functions,
                 "createOrganization"
             );

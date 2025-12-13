@@ -1,4 +1,4 @@
-import type { Organization, OrganizationCreateData } from "@/types/organization";
+import type { Organization, OrganizationCreateWithAccount } from "@/types/organization.schema";
 
 /**
  * 組織リポジトリの抽象インターフェース
@@ -15,5 +15,5 @@ export interface OrganizationRepository {
      * 組織を作成する
      * @param data 作成データ
      */
-    create(data: OrganizationCreateData): Promise<{ orgId: string }>;
+    create(data: OrganizationCreateWithAccount): Promise<{ orgId: string }>;
 }

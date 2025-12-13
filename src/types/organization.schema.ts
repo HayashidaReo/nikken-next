@@ -5,7 +5,8 @@ import { z } from "zod";
  * データベース設計の organizations コレクションに対応
  */
 export const organizationSchema = z.object({
-  orgId: z.string().optional(), // Firestoreで自動生成
+  orgId: z.string().optional(), // FirestoreのドキュメントID
+  id: z.string().optional(),    // ドメイン層でのID
   orgName: z.string().min(1, "団体名は必須です"),
   representativeName: z.string().min(1, "団体代表者名は必須です"),
   representativePhone: z.string().min(1, "団体代表者電話番号は必須です"),
@@ -15,8 +16,9 @@ export const organizationSchema = z.object({
     .refine((val) => z.email().safeParse(val).success, {
       message: "正しいメールアドレスを入力してください",
     }),
-  createdAt: z.date().optional(), // Firestoreで自動設定
-  updatedAt: z.date().optional(), // Firestoreで自動設定
+  adminUid: z.string().optional(), // 管理者のUID
+  createdAt: z.union([z.date(), z.string()]).optional(),
+  updatedAt: z.union([z.date(), z.string()]).optional(),
 });
 
 /**
@@ -26,6 +28,8 @@ export const organizationSchema = z.object({
 export const organizationCreateWithAccountSchema = organizationSchema
   .omit({
     orgId: true,
+    id: true,
+    adminUid: true,
     createdAt: true,
     updatedAt: true,
   })
@@ -47,13 +51,28 @@ export const organizationCreateWithAccountSchema = organizationSchema
  */
 export const organizationCreateSchema = organizationSchema.omit({
   orgId: true,
+  id: true,
+  adminUid: true,
   createdAt: true,
   updatedAt: true,
 });
 
 // TypeScriptの型を自動導出
-export type Organization = z.infer<typeof organizationSchema>;
+// ドメインエンティティとして使用するため、id, adminUidなどは必須とする型ユーティリティを使用してもよいが、
+// Zodの推論を活かすため、Mapperで保証する運用とする。
+// ただし、既存のコードが `id: string` (必須) を期待しているため、交差型で補完する。
+
+type ZodOrganization = z.infer<typeof organizationSchema>;
+
+export type Organization = Omit<ZodOrganization, "id" | "adminUid" | "createdAt" | "updatedAt"> & {
+  id: string;
+  adminUid: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type OrganizationCreate = z.infer<typeof organizationCreateSchema>;
 export type OrganizationCreateWithAccount = z.infer<
   typeof organizationCreateWithAccountSchema
 >;
+

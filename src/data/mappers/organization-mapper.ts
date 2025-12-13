@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import type { Organization, OrganizationCreateData } from "@/types/organization";
+import type { Organization, OrganizationCreateWithAccount } from "@/types/organization.schema";
 
 export interface FirestoreOrganizationDoc {
     orgName: string;
@@ -30,7 +30,7 @@ export class OrganizationMapper {
     }
 
     // 作成用データはFunction経由なのでMapper不要かもだが、一応
-    static toFirestore(data: OrganizationCreateData): Partial<FirestoreOrganizationDoc> {
+    static toFirestore(data: OrganizationCreateWithAccount): Partial<FirestoreOrganizationDoc> {
         // Cloud Functions側で処理されるため、クライアント側での厳密なFirestore型変換は必須ではないが
         // 型安全のために定義しておく
         return {
