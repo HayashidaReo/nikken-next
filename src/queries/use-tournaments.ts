@@ -125,6 +125,7 @@ export function useCreateTournament() {
                 rounds: { roundId: string; roundName: string }[];
                 tournamentType: "individual" | "team";
                 isTeamFormOpen: boolean;
+                isArchived: boolean;
             };
         }) => {
             const now = new Date();

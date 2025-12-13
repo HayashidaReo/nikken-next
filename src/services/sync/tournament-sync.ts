@@ -20,6 +20,13 @@ export async function uploadTournaments(orgId: string): Promise<number> {
                 tournamentName: tournament.tournamentName,
                 tournamentDate: tournament.tournamentDate,
                 tournamentType: tournament.tournamentType,
+                tournamentDetail: tournament.tournamentDetail,
+                location: tournament.location,
+                defaultMatchTime: tournament.defaultMatchTime,
+                courts: tournament.courts,
+                rounds: tournament.rounds,
+                isTeamFormOpen: tournament.isTeamFormOpen,
+                isArchived: tournament.isArchived,
             });
         },
         async (_, id) => {

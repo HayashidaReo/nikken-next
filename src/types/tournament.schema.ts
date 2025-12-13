@@ -57,6 +57,7 @@ export const tournamentSchema = z.object({
   rounds: z.array(roundSchema).min(1, "最低1つのラウンドを設定してください"),
   tournamentType: z.enum(["individual", "team"]), // 大会形式
   isTeamFormOpen: z.boolean(), // 一般公開（チーム申請フォーム）の受付中か
+  isArchived: z.boolean(), // アーカイブ済みかどうか
   createdAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
   updatedAt: z.coerce.date(), // Firestoreで自動設定（文字列からDateへ自動変換）
 });
@@ -84,6 +85,7 @@ export const tournamentFormSchema = z.object({
     message: "大会形式を選択してください",
   }), // 大会形式
   isTeamFormOpen: z.boolean(),
+  isArchived: z.boolean().default(false),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
 });

@@ -36,9 +36,10 @@ export function HeaderTournamentSelector({
     error,
   } = useTournamentsByOrganization(orgId);
 
-  // ソート設定に基づいて大会リストをソート
+  // ソート設定に基づいて大会リストをソート（アーカイブ済みは除外）
   const sortedTournaments = useMemo(() => {
-    return sortTournaments(tournaments, sortConfig);
+    const activeTournaments = tournaments.filter(t => !t.isArchived);
+    return sortTournaments(activeTournaments, sortConfig);
   }, [tournaments, sortConfig]);
 
   const handleTournamentChange = (value: string) => {

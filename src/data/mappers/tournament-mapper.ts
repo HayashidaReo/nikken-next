@@ -16,6 +16,7 @@ export interface FirestoreTournamentDoc {
   rounds: FirestoreRoundDoc[];
   tournamentType: "individual" | "team";
   isTeamFormOpen: boolean;
+  isArchived: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -70,6 +71,7 @@ export class TournamentMapper {
       })),
       tournamentType: doc.tournamentType,
       isTeamFormOpen: doc.isTeamFormOpen,
+      isArchived: doc.isArchived,
       createdAt: doc.createdAt.toDate(),
       updatedAt: doc.updatedAt.toDate(),
     };
@@ -110,6 +112,7 @@ export class TournamentMapper {
       })),
       tournamentType: tournament.tournamentType,
       isTeamFormOpen: tournament.isTeamFormOpen,
+      isArchived: tournament.isArchived,
       createdAt: now,
       updatedAt: now,
     };
@@ -157,6 +160,9 @@ export class TournamentMapper {
     }
     if (tournament.isTeamFormOpen !== undefined) {
       updateDoc.isTeamFormOpen = tournament.isTeamFormOpen;
+    }
+    if (tournament.isArchived !== undefined) {
+      updateDoc.isArchived = tournament.isArchived;
     }
 
     return updateDoc;
