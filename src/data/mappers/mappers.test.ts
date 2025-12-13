@@ -571,12 +571,13 @@ describe("TournamentMapper", () => {
       );
     });
 
-    it("コート配列が空の場合も正常に変換する", () => {
-      const result = TournamentMapper.toDomain({
-        ...mockFirestoreTournament,
-        courts: [],
-      });
-      expect(result.courts).toEqual([]);
+    it("コート配列が空の場合はバリデーションエラーを投げる", () => {
+      expect(() =>
+        TournamentMapper.toDomain({
+          ...mockFirestoreTournament,
+          courts: [],
+        })
+      ).toThrow();
     });
 
     it("複数のコートを持つドキュメントを正常に変換する", () => {
@@ -614,12 +615,13 @@ describe("TournamentMapper", () => {
       expect(result.updatedAt).toEqual(specificDate);
     });
 
-    it("tournamentName が空文字列でも tournamentSchema では許可される", () => {
-      const result = TournamentMapper.toDomain({
-        ...mockFirestoreTournament,
-        tournamentName: "",
-      });
-      expect(result.tournamentName).toBe("");
+    it("tournamentName が空文字列の場合はバリデーションエラーを投げる", () => {
+      expect(() =>
+        TournamentMapper.toDomain({
+          ...mockFirestoreTournament,
+          tournamentName: "",
+        })
+      ).toThrow();
     });
 
     it("無効な defaultMatchTime（0以下）の場合はバリデーションエラーを投げる", () => {
@@ -631,12 +633,13 @@ describe("TournamentMapper", () => {
       ).toThrow();
     });
 
-    it("location が空文字列でも tournamentSchema では許可される", () => {
-      const result = TournamentMapper.toDomain({
-        ...mockFirestoreTournament,
-        location: "",
-      });
-      expect(result.location).toBe("");
+    it("location が空文字列の場合はバリデーションエラーを投げる", () => {
+      expect(() =>
+        TournamentMapper.toDomain({
+          ...mockFirestoreTournament,
+          location: "",
+        })
+      ).toThrow();
     });
 
     it("極端に大きな defaultMatchTime でも正常に変換できる", () => {
