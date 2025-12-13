@@ -104,6 +104,7 @@ export const createOrganization = onCall({ region: REGION }, async (request) => 
             courts: DEMO_COURTS, // デモ用コート
             rounds: DEMO_ROUNDS, // デモ用ラウンド
             tournamentType: "individual", // 個人戦
+            isTeamFormOpen: false, // デフォルトは非公開
             createdAt: now,
             updatedAt: now,
         };

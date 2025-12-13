@@ -512,6 +512,7 @@ describe("TournamentMapper", () => {
     tournamentName: "第1回テスト大会",
     tournamentDate: mockTournamentDateTimestamp,
     tournamentDetail: "テスト大会の詳細情報",
+    isTeamFormOpen: true,
     location: "テスト会場",
     defaultMatchTime: 180,
     courts: [mockCourt],
@@ -663,6 +664,7 @@ describe("TournamentMapper", () => {
         tournamentName: "新規大会",
         tournamentDate: new Date("2024-02-01"),
         tournamentDetail: "新規大会詳細",
+        isTeamFormOpen: true,
         location: "新規会場",
         defaultMatchTime: 240,
         courts: [mockCourt],
@@ -685,6 +687,7 @@ describe("TournamentMapper", () => {
         tournamentName: "タイムスタンプテスト",
         tournamentDate: new Date("2024-02-01"),
         tournamentDetail: "詳細",
+        isTeamFormOpen: false,
         location: "会場",
         defaultMatchTime: 180,
         courts: [],
@@ -707,6 +710,7 @@ describe("TournamentMapper", () => {
         tournamentName: "コートなし大会",
         tournamentDate: new Date("2024-02-01"),
         tournamentDetail: "詳細",
+        isTeamFormOpen: true,
         location: "会場",
         defaultMatchTime: 180,
         courts: [],
@@ -728,6 +732,7 @@ describe("TournamentMapper", () => {
         tournamentName: "複数コート大会",
         tournamentDate: new Date("2024-02-01"),
         tournamentDetail: "詳細",
+        isTeamFormOpen: false,
         location: "会場",
         defaultMatchTime: 180,
         courts,
@@ -787,12 +792,14 @@ describe("TournamentMapper", () => {
         tournamentName: "新大会名",
         location: "新会場",
         defaultMatchTime: 250,
+        isTeamFormOpen: false,
       };
 
       const result = TournamentMapper.toFirestoreUpdate(partialTournament);
       expect(result.tournamentName).toBe("新大会名");
       expect(result.location).toBe("新会場");
       expect(result.defaultMatchTime).toBe(250);
+      expect(result.isTeamFormOpen).toBe(false);
       expect(result.tournamentDetail).toBeUndefined();
     });
 

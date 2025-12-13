@@ -119,7 +119,13 @@ describe("createOrganization", () => {
         expect(authMock.createUser).toHaveBeenCalledWith(expect.objectContaining({
             email: inputData.adminEmail,
         }));
-        expect(batchMock.set).toHaveBeenCalled();
+        expect(batchMock.set).toHaveBeenCalledWith(
+            expect.anything(), // defaultTournamentRef (difficult to match exact ref object)
+            expect.objectContaining({
+                tournamentName: "デモデータ大会",
+                isTeamFormOpen: false,
+            })
+        );
         expect(batchMock.commit).toHaveBeenCalled();
     });
 });
