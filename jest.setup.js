@@ -38,6 +38,11 @@ jest.mock("firebase/auth", () => ({
   User: jest.fn(),
 }));
 
+jest.mock("firebase/functions", () => ({
+  getFunctions: jest.fn(() => ({})),
+  httpsCallable: jest.fn(() => jest.fn()),
+}));
+
 jest.mock("firebase/firestore", () => ({
   getFirestore: jest.fn(() => ({})),
   collection: jest.fn(),

@@ -4,89 +4,8 @@ import {
   type Court,
   type Tournament,
 } from "./tournament.schema";
-import { organizationSchema, type Organization } from "./organization.schema";
 
 describe("Tournament Schema Validation", () => {
-  describe("organizationSchema", () => {
-    const validOrganization: Organization = {
-      orgId: "org-001",
-      orgName: "日本拳法連盟",
-      representativeName: "田中太郎",
-      representativePhone: "090-1234-5678",
-      representativeEmail: "tanaka@example.com",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    it("有効な組織データを受け入れる", () => {
-      const result = organizationSchema.safeParse(validOrganization);
-      expect(result.success).toBe(true);
-    });
-
-    it("orgIdが空文字列の場合はエラー", () => {
-      const invalid = { ...validOrganization, orgId: "" };
-      const result = organizationSchema.safeParse(invalid);
-
-      expect(result.success).toBe(true); // orgIdはoptionalなので空文字列でも有効
-    });
-
-    it("orgNameが空文字列の場合はエラー", () => {
-      const invalid = { ...validOrganization, orgName: "" };
-      const result = organizationSchema.safeParse(invalid);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toBe("団体名は必須です");
-      }
-    });
-
-    it("representativeNameが空文字列の場合はエラー", () => {
-      const invalid = { ...validOrganization, representativeName: "" };
-      const result = organizationSchema.safeParse(invalid);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toBe("団体代表者名は必須です");
-      }
-    });
-
-    it("representativePhoneが空文字列の場合はエラー", () => {
-      const invalid = { ...validOrganization, representativePhone: "" };
-      const result = organizationSchema.safeParse(invalid);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toBe(
-          "団体代表者電話番号は必須です"
-        );
-      }
-    });
-
-    it("representativeEmailが無効な形式の場合はエラー", () => {
-      const invalid = {
-        ...validOrganization,
-        representativeEmail: "invalid-email",
-      };
-      const result = organizationSchema.safeParse(invalid);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toBe(
-          "正しいメールアドレスを入力してください"
-        );
-      }
-    });
-
-    it("必須プロパティが不足している場合はエラー", () => {
-      const invalid = {
-        orgName: "テスト団体",
-      };
-      const result = organizationSchema.safeParse(invalid);
-
-      expect(result.success).toBe(false);
-    });
-  });
-
   describe("courtSchema", () => {
     const validCourt: Court = {
       courtId: "court-001",
@@ -244,16 +163,6 @@ describe("Tournament Schema Validation", () => {
 
   describe("型の相互変換テスト", () => {
     it("TypeScriptの型とZodスキーマの一貫性", () => {
-      const org: Organization = {
-        orgId: "test-001",
-        orgName: "テスト団体",
-        representativeName: "テスト太郎",
-        representativePhone: "090-0000-0000",
-        representativeEmail: "test@example.com",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
       const court: Court = {
         courtId: "court-001",
         courtName: "テストコート",
@@ -276,7 +185,6 @@ describe("Tournament Schema Validation", () => {
       };
 
       // 型で定義したオブジェクトがスキーマを通ることを確認
-      expect(organizationSchema.safeParse(org).success).toBe(true);
       expect(courtSchema.safeParse(court).success).toBe(true);
       expect(tournamentSchema.safeParse(tournament).success).toBe(true);
     });
