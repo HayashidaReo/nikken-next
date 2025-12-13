@@ -32,6 +32,7 @@ export const mockTournament: Tournament = {
     { roundId: "round-2", roundName: "2回戦" },
   ],
   tournamentType: "individual",
+  isTeamFormOpen: true,
   createdAt: new Date("2024-01-15"),
   updatedAt: new Date("2024-01-15"),
 };
