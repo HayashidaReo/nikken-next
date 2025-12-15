@@ -232,6 +232,8 @@ export const STORAGE_KEYS = {
   PRESENTATION_CONNECTION_ID: "presentation_connection_id",
   /** 手動モニター操作画面の状態保存キー */
   MANUAL_MONITOR_STATE: "nikken-manual-monitor-state",
+  /** 大会一覧のフィルター設定保存キー */
+  TOURNAMENT_LIST_FILTERS: "nikken-tournament-list-filters",
 } as const;
 
 // 🛣️ ルートパス定数

@@ -56,6 +56,7 @@ describe("Tournament Schema Validation", () => {
       ],
       tournamentType: "individual",
       isTeamFormOpen: true,
+      isArchived: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -193,6 +194,7 @@ describe("Tournament Schema Validation", () => {
         ],
         tournamentType: "individual",
         isTeamFormOpen: true,
+        isArchived: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -216,6 +218,7 @@ describe("Tournament Schema Validation", () => {
         rounds: [{ roundId: "r1", roundName: "Round 1" }],
         tournamentType: "individual",
         isTeamFormOpen: true,
+        isArchived: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -238,6 +241,7 @@ describe("Tournament Schema Validation", () => {
         rounds: [{ roundId: "r1", roundName: "Round 1" }],
         tournamentType: "individual",
         isTeamFormOpen: true,
+        isArchived: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -258,6 +262,7 @@ describe("Tournament Schema Validation", () => {
         rounds: [{ roundId: "r1", roundName: "Round 1" }],
         tournamentType: "individual",
         isTeamFormOpen: true,
+        isArchived: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -279,6 +284,7 @@ describe("Tournament Schema Validation", () => {
         rounds: [{ roundId: "r1", roundName: "Round 1" }],
         tournamentType: "individual",
         isTeamFormOpen: true,
+        isArchived: false,
         createdAt: "2024-01-01T00:00:00.000Z",
         updatedAt: "2024-01-01T00:00:00.000Z",
       };

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Tournament } from "@/types/tournament.schema";
 import { useLiveQuery } from "dexie-react-hooks";
 import { localTournamentRepository } from "@/repositories/local/tournament-repository";
-import { FirestoreTournamentRepository } from "@/repositories/firestore/tournament-repository";
+import { syncTournamentsFromCloud } from "@/services/sync/tournament-sync";
 
 /**
  * Query Keys for Tournament entities
@@ -38,37 +38,7 @@ export function useTournamentsByOrganization(orgId: string | null) {
         queryKey: [...tournamentKeys.lists(), "organization", orgId, "sync"],
         queryFn: async () => {
             if (!orgId) return null;
-
-            // Firestoreから直接取得
-            const tournamentRepository = new FirestoreTournamentRepository();
-            try {
-                const tournaments = await tournamentRepository.listAll(orgId);
-
-                // 未同期のローカル変更を取得
-                const unsyncedLocalTournaments = await localTournamentRepository.getUnsynced(orgId);
-                const unsyncedIds = new Set(unsyncedLocalTournaments.map(t => t.tournamentId));
-
-                // ローカルDBを更新
-                // 未同期の項目は上書きしないようにフィルタリング
-                const localTournaments = tournaments
-                    .filter((t: Tournament) => !unsyncedIds.has(t.tournamentId!))
-                    .map((t: Tournament) => ({
-                        ...t,
-                        organizationId: orgId,
-                        tournamentDate: t.tournamentDate ? new Date(t.tournamentDate) : new Date(),
-                        createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
-                        updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(),
-                        isSynced: true,
-                    }));
-
-                if (localTournaments.length > 0) {
-                    await localTournamentRepository.bulkPut(localTournaments);
-                }
-                return tournaments;
-            } catch (error) {
-                console.error("Failed to sync tournaments:", error);
-                return null;
-            }
+            return await syncTournamentsFromCloud(orgId);
         },
         enabled: !!orgId,
         staleTime: 1000 * 60 * 5, // 5分間は再フェッチしない
@@ -125,6 +95,7 @@ export function useCreateTournament() {
                 rounds: { roundId: string; roundName: string }[];
                 tournamentType: "individual" | "team";
                 isTeamFormOpen: boolean;
+                isArchived: boolean;
             };
         }) => {
             const now = new Date();

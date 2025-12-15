@@ -1,14 +1,11 @@
-"use client";
-
+import { useMemo } from "react";
 import { useActiveTournament } from "@/store/use-active-tournament-store";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useTournamentSort, sortTournaments } from "@/hooks/useTournamentSort";
 import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { TournamentSelectDropdown } from "@/components/atoms/tournament-select-dropdown";
-import {
-  SelectItem,
-} from "@/components/atoms/select";
 
 interface TournamentSelectorProps {
   className?: string;
@@ -25,6 +22,7 @@ export function HeaderTournamentSelector({
 }: TournamentSelectorProps) {
   const { user } = useAuthStore();
   const { activeTournamentId, setActiveTournament } = useActiveTournament();
+  const { sortConfig } = useTournamentSort();
 
   // ユーザーのUIDを組織IDとして使用（大会設定画面と同じ実装）
   const orgId = user?.uid || null;
@@ -34,6 +32,12 @@ export function HeaderTournamentSelector({
     isLoading,
     error,
   } = useTournamentsByOrganization(orgId);
+
+  // ソート設定に基づいて大会リストをソート（アーカイブ済みは除外）
+  const sortedTournaments = useMemo(() => {
+    const activeTournaments = tournaments.filter(t => !t.isArchived);
+    return sortTournaments(activeTournaments, sortConfig);
+  }, [tournaments, sortConfig]);
 
   const handleTournamentChange = (value: string) => {
     if (value === "manage") {
@@ -59,26 +63,11 @@ export function HeaderTournamentSelector({
     );
   }
 
-  // 大会管理メニューのフッターコンテンツ
-  const managementFooter = tournaments.length > 0 ? (
-    <div className="bg-gray-50 mt-1 pt-1 pb-0.5">
-      <SelectItem
-        value="manage"
-        className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 cursor-pointer rounded-md"
-      >
-        <div className="flex items-center space-x-2 py-1.5">
-          <Settings className="h-4 w-4" />
-          <span className="font-medium">大会を管理</span>
-        </div>
-      </SelectItem>
-    </div>
-  ) : null;
-
   return (
     <div className={cn("flex items-center", className)}>
       {/* Header 用 大会選択ドロップダウン */}
       <TournamentSelectDropdown
-        tournaments={tournaments}
+        tournaments={sortedTournaments}
         selectedId={activeTournamentId || undefined}
         onSelect={handleTournamentChange}
         isLoading={isLoading}
@@ -87,7 +76,7 @@ export function HeaderTournamentSelector({
         showSelectedDetails={true}
         triggerClassName="border-none bg-transparent hover:bg-gray-100 transition-colors min-w-[320px] h-auto shadow-none focus:ring-0 focus:ring-offset-0 py-2 px-3"
         contentMinWidth="min-w-[280px]"
-        footerContent={managementFooter}
+        actions={tournaments.length > 0 ? [{ value: "manage", label: "大会を管理", icon: Settings }] : undefined}
       />
     </div>
   );
