@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import type { Tournament } from "@/types/tournament.schema";
 import { useSessionStorage } from "./useSessionStorage";
-
-const FILTER_STORAGE_KEY = "nikken-tournament-list-filters";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 interface TournamentFilters {
     statusValues: string[];
@@ -16,7 +15,7 @@ export const TOURNAMENT_FILTER_OPTIONS = [
 export const useTournamentFilter = (tournaments: Tournament[]) => {
     // SessionStorageからフィルター状態を復元
     const [filters, setFilters] = useSessionStorage<TournamentFilters>(
-        FILTER_STORAGE_KEY,
+        STORAGE_KEYS.TOURNAMENT_LIST_FILTERS,
         {
             statusValues: ["active"], // デフォルトは有効のみ
         }
