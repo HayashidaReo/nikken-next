@@ -81,7 +81,8 @@ export function TeamRegistrationForm({
   };
 
   const handleConfirmDialog = () => {
-    handleSubmit(handleConfirmSubmit)();
+    // バリデーションはダイアログ表示前に済んでいるため、直接送信処理を実行
+    handleConfirmSubmit(getValues());
   };
 
   return (
@@ -218,6 +219,7 @@ export function TeamRegistrationForm({
         data={getValues()}
         onConfirm={handleConfirmDialog}
         onCancel={() => setShowConfirmation(false)}
+        isLoading={isLoading}
       />
     </div>
   );

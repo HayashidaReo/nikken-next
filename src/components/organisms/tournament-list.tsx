@@ -1,5 +1,5 @@
 "use client";
-
+import { useMemo } from "react";
 import { Plus, Trash2, Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
@@ -12,6 +12,10 @@ import { LoadingIndicator } from "@/components/molecules/loading-indicator";
 import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { TournamentDeleteConfirmationDialog } from "@/components/molecules/tournament-delete-confirmation-dialog";
 import { useTournamentListManagement } from "@/hooks/useTournamentListManagement";
+import { useTournamentSort, sortTournaments, type SortField, type SortDirection } from "@/hooks/useTournamentSort";
+import { useTournamentFilter } from "@/hooks/useTournamentFilter";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
+import { MultiSelectDropdown } from "@/components/molecules/multi-select-dropdown";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
@@ -25,6 +29,13 @@ interface TournamentListProps {
   isCreating?: boolean;
   className?: string;
 }
+
+const SORT_OPTIONS: SearchableSelectOption[] = [
+  { value: "createdAt_desc", label: "登録が新しい順" },
+  { value: "createdAt_asc", label: "登録が古い順" },
+  { value: "tournamentDate_desc", label: "開催が新しい順" },
+  { value: "tournamentDate_asc", label: "開催が古い順" },
+];
 
 export function TournamentList({
   orgId,
@@ -40,6 +51,20 @@ export function TournamentList({
     error,
   } = useTournamentsByOrganization(orgId);
 
+  const { sortConfig, setSortConfig } = useTournamentSort();
+
+  const {
+    selectedStatusValues,
+    setSelectedStatusValues,
+    filterOptions,
+    filteredTournaments,
+  } = useTournamentFilter(tournaments);
+
+  // ソート処理
+  const sortedTournaments = useMemo(() => {
+    return sortTournaments(filteredTournaments, sortConfig);
+  }, [filteredTournaments, sortConfig]);
+
   // 削除管理専用フック
   const {
     deleteConfirm,
@@ -53,6 +78,11 @@ export function TournamentList({
     if (orgId) {
       handleDeleteConfirm(orgId);
     }
+  };
+
+  const handleSortChange = (value: string) => {
+    const [field, direction] = value.split("_") as [SortField, SortDirection];
+    setSortConfig({ field, direction });
   };
 
   if (isLoading) {
@@ -85,8 +115,34 @@ export function TournamentList({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">大会一覧</h2>
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900">大会一覧</h2>
+        </div>
+
+        <div className="flex gap-2 items-center bg-white p-2 rounded-md border border-gray-200">
+          <div className="flex-1">
+            <div className="w-48">
+              <SearchableSelect
+                value={`${sortConfig.field}_${sortConfig.direction}`}
+                onValueChange={handleSortChange}
+                options={SORT_OPTIONS}
+                placeholder="並び替え"
+                className="h-9 border-none bg-transparent shadow-none"
+                searchPlaceholder="検索..."
+              />
+            </div>
+          </div>
+          <div className="w-px h-6 bg-gray-200 mx-2" />
+          <div className="w-auto px-2">
+            <MultiSelectDropdown
+              label="表示設定"
+              options={filterOptions}
+              selectedValues={selectedStatusValues}
+              onSelectionChange={setSelectedStatusValues}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -109,33 +165,41 @@ export function TournamentList({
           </Card>
         )}
 
-        {tournaments.length === 0 && !isCreating ? (
+        {sortedTournaments.length === 0 && !isCreating ? (
           <Card>
             <CardContent className="text-center py-8">
-              <p className="text-gray-500 mb-4">まだ大会が作成されていません</p>
-              <Button onClick={onNewTournament} variant="outline">
-                <Plus className="w-4 h-4 mr-2" />
-                最初の大会を作成
-              </Button>
+              <p className="text-gray-500">表示する大会がありません</p>
             </CardContent>
           </Card>
         ) : (
-          tournaments.map((tournament: Tournament) => (
+          sortedTournaments.map((tournament: Tournament) => (
             <Card
               key={tournament.tournamentId}
               className={cn(
                 "cursor-pointer transition-all duration-200 hover:shadow-md",
                 selectedTournamentId === tournament.tournamentId
-                  ? "ring-2 ring-blue-500 bg-blue-50"
-                  : "hover:bg-gray-50"
+                  ? tournament.isArchived
+                    ? "ring-2 ring-blue-300 bg-blue-50/50"
+                    : "ring-2 ring-blue-500 bg-blue-50"
+                  : tournament.isArchived
+                    ? "bg-gray-100/60 hover:bg-gray-100"
+                    : "hover:bg-gray-50"
               )}
               onClick={() => onTournamentSelect(tournament)}
             >
               <CardHeader className="p-4 pb-2">
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base font-bold truncate leading-tight mb-2">
-                      {tournament.tournamentName}
+                    <CardTitle className={cn(
+                      "text-base font-bold truncate leading-tight mb-2 flex items-center gap-2",
+                      tournament.isArchived && "text-gray-500 font-normal"
+                    )}>
+                      {tournament.isArchived && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium bg-gray-200 text-gray-600 rounded">
+                          アーカイブ
+                        </span>
+                      )}
+                      <span className="truncate">{tournament.tournamentName}</span>
                     </CardTitle>
                     <div className="grid grid-cols-2 gap-x-3 gap-y-1">
                       <div className="flex items-center gap-1 min-w-0">

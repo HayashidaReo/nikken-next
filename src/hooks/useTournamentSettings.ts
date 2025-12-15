@@ -140,6 +140,7 @@ export function useTournamentSettings() {
                         rounds: formData.rounds,
                         tournamentType: formData.tournamentType as "individual" | "team",
                         isTeamFormOpen: formData.isTeamFormOpen,
+                        isArchived: formData.isArchived,
                     },
                 });
 
@@ -163,6 +164,7 @@ export function useTournamentSettings() {
                         rounds: formData.rounds,
                         tournamentType: formData.tournamentType as "individual" | "team",
                         isTeamFormOpen: formData.isTeamFormOpen,
+                        isArchived: formData.isArchived,
                     },
                 });
 

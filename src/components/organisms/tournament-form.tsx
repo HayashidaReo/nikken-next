@@ -144,6 +144,8 @@ export function TournamentSettingForm({
           </div>
         </FormField>
 
+
+
         {/* 開催日 */}
         <FormField label="開催日" required>
           <Input
@@ -220,6 +222,27 @@ export function TournamentSettingForm({
             onChange={rounds => onFormChange("rounds", rounds)}
           />
         </FormField>
+
+        {/* アーカイブ設定 (編集時のみ表示) */}
+        {!isAddingNew && (
+          <div className="pt-6 border-t border-gray-100">
+            <FormField
+              label="大会をアーカイブ"
+              description="アーカイブにすると、ヘッダーの大会一覧に表示されなくなります。データは保持されます。"
+            >
+              <div className="flex items-center pt-2">
+                <Switch
+                  checked={formData.isArchived}
+                  onCheckedChange={(checked) => onFormChange("isArchived", checked)}
+                  aria-label="Toggle archive status"
+                />
+                <span className="ml-3 text-sm text-gray-600">
+                  {formData.isArchived ? "アーカイブ済み" : "表示中"}
+                </span>
+              </div>
+            </FormField>
+          </div>
+        )}
       </div>
 
       <ConfirmDialog

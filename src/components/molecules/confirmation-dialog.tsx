@@ -10,6 +10,7 @@ interface ConfirmationDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   isVisible: boolean;
+  isLoading?: boolean;
 }
 
 export function ConfirmationDialog({
@@ -17,11 +18,16 @@ export function ConfirmationDialog({
   onConfirm,
   onCancel,
   isVisible,
+  isLoading = false,
 }: ConfirmationDialogProps) {
   if (!isVisible) return null;
 
   return (
-    <DialogOverlay isOpen={isVisible} onClose={onCancel} className="p-4">
+    <DialogOverlay
+      isOpen={isVisible}
+      onClose={isLoading ? undefined : onCancel}
+      className="p-4"
+    >
       <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-6">
@@ -112,6 +118,7 @@ export function ConfirmationDialog({
               type="button"
               variant="outline"
               onClick={onCancel}
+              disabled={isLoading}
               className="px-6 h-11"
             >
               戻る
@@ -119,6 +126,8 @@ export function ConfirmationDialog({
             <Button
               type="button"
               onClick={onConfirm}
+              isLoading={isLoading}
+              loadingText="送信中..."
               className="px-8 h-11 bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20"
             >
               送信する
