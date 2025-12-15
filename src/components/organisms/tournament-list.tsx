@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Plus, Trash2, Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import {
@@ -13,8 +13,9 @@ import { useTournamentsByOrganization } from "@/queries/use-tournaments";
 import { TournamentDeleteConfirmationDialog } from "@/components/molecules/tournament-delete-confirmation-dialog";
 import { useTournamentListManagement } from "@/hooks/useTournamentListManagement";
 import { useTournamentSort, sortTournaments, type SortField, type SortDirection } from "@/hooks/useTournamentSort";
+import { useTournamentFilter } from "@/hooks/useTournamentFilter";
 import { SearchableSelect, type SearchableSelectOption } from "@/components/molecules/searchable-select";
-import { MultiSelectDropdown, type MultiSelectOption } from "@/components/molecules/multi-select-dropdown";
+import { MultiSelectDropdown } from "@/components/molecules/multi-select-dropdown";
 import type { Tournament } from "@/types/tournament.schema";
 import { cn } from "@/lib/utils/utils";
 import { formatDateForDisplay } from "@/lib/utils/date-utils";
@@ -36,11 +37,6 @@ const SORT_OPTIONS: SearchableSelectOption[] = [
   { value: "tournamentDate_asc", label: "開催が古い順" },
 ];
 
-const FILTER_OPTIONS: MultiSelectOption[] = [
-  { value: "active", label: "有効" },
-  { value: "archived", label: "アーカイブ済み" },
-];
-
 export function TournamentList({
   orgId,
   selectedTournamentId,
@@ -56,20 +52,13 @@ export function TournamentList({
   } = useTournamentsByOrganization(orgId);
 
   const { sortConfig, setSortConfig } = useTournamentSort();
-  const [selectedFilterValues, setSelectedFilterValues] = useState<string[]>(["active"]);
 
-  // フィルタリング処理
-  const filteredTournaments = useMemo(() => {
-    return tournaments.filter((t) => {
-      const showActive = selectedFilterValues.includes("active");
-      const showArchived = selectedFilterValues.includes("archived");
-
-      if (showActive && !t.isArchived) return true;
-      if (showArchived && t.isArchived) return true;
-
-      return false;
-    });
-  }, [tournaments, selectedFilterValues]);
+  const {
+    selectedStatusValues,
+    setSelectedStatusValues,
+    filterOptions,
+    filteredTournaments,
+  } = useTournamentFilter(tournaments);
 
   // ソート処理
   const sortedTournaments = useMemo(() => {
@@ -148,9 +137,9 @@ export function TournamentList({
           <div className="w-auto px-2">
             <MultiSelectDropdown
               label="表示設定"
-              options={FILTER_OPTIONS}
-              selectedValues={selectedFilterValues}
-              onSelectionChange={setSelectedFilterValues}
+              options={filterOptions}
+              selectedValues={selectedStatusValues}
+              onSelectionChange={setSelectedStatusValues}
             />
           </div>
         </div>
